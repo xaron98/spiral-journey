@@ -1,0 +1,221 @@
+import SwiftUI
+import SpiralKit
+
+/// 3D helix view of the sleep spiral.
+/// The helix axis is vertical — time winds upward.
+/// Pinch gesture controls elevation (logarithmic zoom):
+///   - Pinch out → look from above (flat, like the 2D view)
+///   - Pinch in  → look from the side (full 3D helix depth)
+struct Spiral3DView: View {
+
+    let records: [SleepRecord]
+    let episodes: [SleepEpisode]
+    let spiralType: SpiralType
+    let period: Double
+    let maxReachedTurns: Double
+
+    // Elevation angle in radians: 0 = side-on, π/2 = top-down (2D)
+    @State private var elevation: Double = 0.55       // start ~31° from side
+    @State private var baseElevation: Double = 0.55
+    @GestureState private var pinchScale: CGFloat = 1.0
+
+    var body: some View {
+        GeometryReader { geo in
+            Canvas { context, size in
+                let elev = clampElevation(elevation * Double(pinchScale))
+                drawHelix(context: context, size: size, elevation: elev)
+            }
+            .background(SpiralColors.bg)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .gesture(
+                MagnifyGesture()
+                    .updating($pinchScale) { value, state, _ in
+                        // Logarithmic mapping: pinch scale → elevation
+                        // scale > 1 (pinch out) → more top-down → higher elevation
+                        state = value.magnification
+                    }
+                    .onEnded { value in
+                        elevation = clampElevation(elevation * Double(value.magnification))
+                        baseElevation = elevation
+                    }
+            )
+        }
+    }
+
+    // MARK: - Elevation clamp
+
+    private func clampElevation(_ e: Double) -> Double {
+        // Log scale: map [0.05 … π/2] range
+        max(0.05, min(.pi / 2, e))
+    }
+
+    // MARK: - 3D projection
+
+    /// Project a 3D point (x, y, z) to 2D canvas using perspective.
+    /// Camera is at elevation `elev` above the XZ plane, looking at origin.
+    private func project(_ x: Double, _ y: Double, _ z: Double,
+                         cx: Double, cy: Double,
+                         fov: Double, elevation elev: Double) -> CGPoint {
+        // Rotate around X axis by elevation
+        let cosE = cos(elev)
+        let sinE = sin(elev)
+        let ry = y * cosE - z * sinE
+        let rz = y * sinE + z * cosE
+
+        // Perspective divide
+        let camDist = fov
+        let scale = camDist / (camDist + rz)
+        return CGPoint(x: cx + x * scale, y: cy - ry * scale)
+    }
+
+    // MARK: - Drawing
+
+    private func drawHelix(context: GraphicsContext, size: CGSize, elevation: Double) {
+        let cx = size.width / 2
+        let cy = size.height / 2
+        let fov = size.height * 1.5   // perspective distance
+
+        let turns = max(maxReachedTurns, 1.0)
+        let scaleDays = max(1, Int(ceil(turns)))
+
+        // Helix parameters
+        let helixRadius = min(size.width, size.height) * 0.32
+        let helixHeight = min(size.width, size.height) * 0.7   // total vertical span
+        let turnsTotal = turns
+
+        // Draw guide rings (faint circles at each day boundary)
+        for day in 0...scaleDays {
+            let t = Double(day)
+            let frac = t / turnsTotal
+            let z = (frac - 0.5) * helixHeight   // center vertically
+            var ringPath = Path()
+            let steps = 60
+            for i in 0...steps {
+                let angle = Double(i) / Double(steps) * 2 * .pi - .pi / 2
+                let px = helixRadius * cos(angle)
+                let py = helixRadius * sin(angle)
+                let pt = project(px, 0, py + z, cx: cx, cy: cy, fov: fov, elevation: elevation)
+                if i == 0 { ringPath.move(to: pt) } else { ringPath.addLine(to: pt) }
+            }
+            ringPath.closeSubpath()
+            let isWeek = day % 7 == 0
+            context.stroke(ringPath,
+                           with: .color(SpiralColors.border.opacity(isWeek ? 0.45 : 0.2)),
+                           lineWidth: isWeek ? 0.8 : 0.4)
+        }
+
+        // Draw vertical axis lines
+        let axisSteps = 8
+        for i in 0..<axisSteps {
+            let angle = Double(i) / Double(axisSteps) * 2 * .pi - .pi / 2
+            let px = helixRadius * cos(angle)
+            let py = helixRadius * sin(angle)
+            let top = project(px, 0, py + helixHeight * 0.5, cx: cx, cy: cy, fov: fov, elevation: elevation)
+            let bot = project(px, 0, py - helixHeight * 0.5, cx: cx, cy: cy, fov: fov, elevation: elevation)
+            var p = Path()
+            p.move(to: bot); p.addLine(to: top)
+            context.stroke(p, with: .color(SpiralColors.border.opacity(0.15)), lineWidth: 0.4)
+        }
+
+        // Draw backbone helix
+        let pathSteps = Int(turns * 120)
+        var backbone = Path()
+        for i in 0...pathSteps {
+            let t = Double(i) / Double(pathSteps) * turns
+            let angle = t * 2 * .pi - .pi / 2
+            let frac = t / turnsTotal
+            let z = (frac - 0.5) * helixHeight
+            let px = helixRadius * cos(angle)
+            let py = helixRadius * sin(angle)
+            let pt = project(px, 0, py + z, cx: cx, cy: cy, fov: fov, elevation: elevation)
+            if i == 0 { backbone.move(to: pt) } else { backbone.addLine(to: pt) }
+        }
+        context.stroke(backbone,
+                       with: .color(Color(hex: "3a4055")),
+                       style: StrokeStyle(lineWidth: 9, lineCap: .round, lineJoin: .round))
+        context.stroke(backbone,
+                       with: .color(Color(hex: "8090b0").opacity(0.5)),
+                       style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
+
+        // Draw sleep/wake colored overlay
+        drawPhaseOverlay(context: context, size: size, cx: cx, cy: cy,
+                         fov: fov, elevation: elevation,
+                         helixRadius: helixRadius, helixHeight: helixHeight,
+                         turnsTotal: turnsTotal)
+    }
+
+    private func drawPhaseOverlay(context: GraphicsContext, size: CGSize,
+                                  cx: Double, cy: Double, fov: Double, elevation: Double,
+                                  helixRadius: Double, helixHeight: Double, turnsTotal: Double) {
+        for record in records {
+            let phases = record.phases
+            guard !phases.isEmpty else { continue }
+
+            var runPhase = phases[0].phase
+            var path = Path()
+            var started = false
+
+            func commitRun() {
+                guard started else { return }
+                let color = phaseColor3D(runPhase)
+                let lw: Double = runPhase == .awake ? 4.0 : 5.0
+                context.stroke(path,
+                               with: .color(color.opacity(0.25)),
+                               style: StrokeStyle(lineWidth: lw + 4, lineCap: .round, lineJoin: .round))
+                context.stroke(path,
+                               with: .color(color.opacity(0.9)),
+                               style: StrokeStyle(lineWidth: lw, lineCap: .round, lineJoin: .round))
+                path = Path()
+                started = false
+            }
+
+            for (i, phase) in phases.enumerated() {
+                if phase.phase != runPhase {
+                    let pt = helixPoint(day: record.day, hour: phase.hour,
+                                        cx: cx, cy: cy, fov: fov, elevation: elevation,
+                                        helixRadius: helixRadius, helixHeight: helixHeight,
+                                        turnsTotal: turnsTotal)
+                    path.addLine(to: pt)
+                    commitRun()
+                    runPhase = phase.phase
+                }
+                let pt = helixPoint(day: record.day, hour: phase.hour,
+                                    cx: cx, cy: cy, fov: fov, elevation: elevation,
+                                    helixRadius: helixRadius, helixHeight: helixHeight,
+                                    turnsTotal: turnsTotal)
+                if !started { path.move(to: pt); started = true }
+                else { path.addLine(to: pt) }
+                if i == phases.count - 1 {
+                    let ptEnd = helixPoint(day: record.day, hour: period,
+                                           cx: cx, cy: cy, fov: fov, elevation: elevation,
+                                           helixRadius: helixRadius, helixHeight: helixHeight,
+                                           turnsTotal: turnsTotal)
+                    path.addLine(to: ptEnd)
+                    commitRun()
+                }
+            }
+        }
+    }
+
+    private func helixPoint(day: Int, hour: Double,
+                             cx: Double, cy: Double, fov: Double, elevation: Double,
+                             helixRadius: Double, helixHeight: Double,
+                             turnsTotal: Double) -> CGPoint {
+        let t = Double(day) + hour / period
+        let angle = t * 2 * .pi - .pi / 2
+        let frac = t / turnsTotal
+        let z = (frac - 0.5) * helixHeight
+        let px = helixRadius * cos(angle)
+        let py = helixRadius * sin(angle)
+        return project(px, 0, py + z, cx: cx, cy: cy, fov: fov, elevation: elevation)
+    }
+
+    private func phaseColor3D(_ phase: SleepPhase) -> Color {
+        switch phase {
+        case .deep:  return Color(hex: "3a7bd5")
+        case .rem:   return Color(hex: "a855f7")
+        case .light: return Color(hex: "60a5fa")
+        case .awake: return Color(hex: "f5c842")
+        }
+    }
+}

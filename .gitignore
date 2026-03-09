@@ -1,0 +1,20 @@
+# Xcode build artifacts
+*.xcuserstate
+xcuserdata/
+DerivedData/
+*.xccheckout
+*.moved-aside
+*.hmap
+*.ipa
+*.xcarchive
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# Icon source folders (not needed in repo)
+Icon Exports/
+Icon Exports 2/
+
+# macOS
+.DS_Store

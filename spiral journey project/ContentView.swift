@@ -1,66 +1,68 @@
-//
-//  ContentView.swift
-//  spiral journey project
-//
-//  Created by Carlos Perea Gallego on 8/3/26.
-//
-
 import SwiftUI
-import SwiftData
 
 struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
+    @Environment(\.languageBundle) private var bundle
+    @Environment(SpiralStore.self) private var store
+    @State private var selectedTab: AppTab = .spiral
 
     var body: some View {
-        NavigationSplitView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
-                    }
+        TabView(selection: $selectedTab) {
+            SpiralTab(selectedTab: $selectedTab)
+                .tabItem {
+                    Label(AppTab.spiral.label(bundle), systemImage: AppTab.spiral.icon)
                 }
-                .onDelete(perform: deleteItems)
-            }
-#if os(macOS)
-            .navigationSplitViewColumnWidth(min: 180, ideal: 200)
-#endif
-            .toolbar {
-#if os(iOS)
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
+                .tag(AppTab.spiral)
+
+            AnalysisTab()
+                .tabItem {
+                    Label(AppTab.trends.label(bundle), systemImage: AppTab.trends.icon)
                 }
-#endif
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
+                .tag(AppTab.trends)
+
+            CoachTab()
+                .tabItem {
+                    Label(AppTab.coach.label(bundle), systemImage: AppTab.coach.icon)
                 }
-            }
-        } detail: {
-            Text("Select an item")
+                .tag(AppTab.coach)
+
+            SettingsTab()
+                .tabItem {
+                    Label(AppTab.settings.label(bundle), systemImage: AppTab.settings.icon)
+                }
+                .tag(AppTab.settings)
+        }
+        .tint(SpiralColors.accent)
+        .preferredColorScheme(store.appearance.colorScheme)
+    }
+}
+
+// MARK: - Tab enum
+
+enum AppTab: CaseIterable {
+    case spiral, trends, coach, settings
+
+    func label(_ bundle: Bundle) -> String {
+        switch self {
+        case .spiral:   return String(localized: "tab.spiral",   bundle: bundle)
+        case .trends:   return String(localized: "tab.trends",   bundle: bundle)
+        case .coach:    return String(localized: "tab.coach",    bundle: bundle)
+        case .settings: return String(localized: "tab.settings", bundle: bundle)
         }
     }
 
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
-            }
+    var icon: String {
+        switch self {
+        case .spiral:   return "moon.stars.fill"
+        case .trends:   return "chart.line.uptrend.xyaxis"
+        case .coach:    return "lightbulb.min.fill"
+        case .settings: return "gear"
         }
     }
 }
 
 #Preview {
     ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
+        .environment(SpiralStore())
+        .environment(HealthKitManager())
+        .preferredColorScheme(.dark)
 }

@@ -1,32 +1,36 @@
-//
-//  spiral_journey_projectApp.swift
-//  spiral journey project
-//
-//  Created by Carlos Perea Gallego on 8/3/26.
-//
-
 import SwiftUI
-import SwiftData
 
 @main
 struct spiral_journey_projectApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
+    @State private var store = SpiralStore()
+    @State private var healthKit = HealthKitManager.shared
 
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environment(store)
+                .environment(healthKit)
+                .environment(\.locale, Locale(identifier: store.language.localeIdentifier))
+                .environment(\.languageBundle, languageBundle(for: store.language.localeIdentifier))
+                .task {
+                    // Receive events and episodes logged on the Apple Watch
+                    #if os(iOS)
+                    WatchConnectivityManager.shared.onEventReceived = { event in
+                        store.addEvent(event)
+                    }
+                    WatchConnectivityManager.shared.onEpisodeReceived = { episode in
+                        store.mergeHealthKitEpisodes([episode])
+                    }
+                    #endif
+                    #if !targetEnvironment(simulator)
+                    await healthKit.requestAuthorization()
+                    if healthKit.isAuthorized {
+                        let episodes = await healthKit.fetchRecentSleepEpisodes(days: store.numDays)
+                        store.mergeHealthKitEpisodes(episodes)
+                    }
+                    #endif
+                }
         }
-        .modelContainer(sharedModelContainer)
     }
 }
