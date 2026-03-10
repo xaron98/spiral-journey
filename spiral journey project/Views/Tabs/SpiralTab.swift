@@ -120,6 +120,7 @@ struct SpiralTab: View {
                                 .padding(.horizontal, 16)
                                 .frame(width: screen.size.width,
                                        height: screen.size.height * 0.57)
+                                .reportFrame(\.spiralArea)
 
                                 // Sleep log button — top right over spiral
                                 Button { handleLogButton() } label: {
@@ -136,12 +137,14 @@ struct SpiralTab: View {
                                 .buttonStyle(.plain)
                                 .padding(.top, 8)
                                 .padding(.trailing, 24)
+                                .reportFrame(\.moonButton)
                             }
 
                             // ── Cursor time bar ──────────────────────────────────────
                             cursorBar
                                 .padding(.horizontal, 20)
                                 .padding(.top, 6)
+                                .reportFrame(\.cursorBar)
 
                             if !store.records.isEmpty {
                                 // ── Rhythm state card ────────────────────────────────
@@ -302,6 +305,7 @@ struct SpiralTab: View {
                 .foregroundStyle(SpiralColors.accentDim)
             }
             .buttonStyle(.plain)
+            .reportFrame(\.eventsBtn)
         }
     }
 
@@ -361,42 +365,44 @@ struct SpiralTab: View {
 
     private var rhythmStateHeadline: String {
         guard let c = store.analysis.consistency else {
-            return "Registra más noches"
+            return String(localized: "spiral.rhythm.noData", bundle: bundle)
         }
         switch c.label {
-        case .veryStable:   return "Tu ritmo está muy estable"
-        case .stable:       return "Tu ritmo está estable"
-        case .variable:     return "Tu ritmo es variable"
-        case .disorganized: return "Tu ritmo está desorganizado"
-        case .insufficient: return "Pocos datos por ahora"
+        case .veryStable:   return String(localized: "spiral.rhythm.veryStable",   bundle: bundle)
+        case .stable:       return String(localized: "spiral.rhythm.stable",        bundle: bundle)
+        case .variable:     return String(localized: "spiral.rhythm.variable",      bundle: bundle)
+        case .disorganized: return String(localized: "spiral.rhythm.disorganized",  bundle: bundle)
+        case .insufficient: return String(localized: "spiral.rhythm.insufficient",  bundle: bundle)
         }
     }
 
     private var rhythmStateSubtitle: String {
         let stats = store.analysis.stats
         guard let c = store.analysis.consistency else {
-            return "Añade al menos 2 noches para ver el análisis"
+            return String(localized: "spiral.rhythm.subtitle.noData", bundle: bundle)
         }
         // Prioritize global shifts
         if !c.globalShiftDays.isEmpty {
             let n = c.globalShiftDays.count
-            return "Cambio de horario detectado en \(n) noche\(n > 1 ? "s" : "") · toca para ver el detalle"
+            let plural = n > 1 ? "s" : ""
+            return String(format: String(localized: "spiral.rhythm.subtitle.shift", bundle: bundle), n, plural)
         }
         // Social jetlag
         if stats.socialJetlag > 60 {
             let min = Int(stats.socialJetlag)
-            return "Te acuestas \(min) min más tarde los fines de semana"
+            return String(format: String(localized: "spiral.rhythm.subtitle.jetlag", bundle: bundle), min)
         }
         // Bedtime variability
         let bedStd = stats.stdBedtime > 0 ? stats.stdBedtime : stats.stdAcrophase
         if bedStd > 1.0 {
-            return String(format: "Tu hora de acostarte varía ±%.1fh noche a noche", bedStd)
+            return String(format: String(localized: "spiral.rhythm.subtitle.variability", bundle: bundle), bedStd)
         }
         // Good case
         if c.deltaVsPreviousWeek.map({ $0 >= 2 }) == true {
-            return "Mejor que la semana pasada · sigue así"
+            return String(localized: "spiral.rhythm.subtitle.improving", bundle: bundle)
         }
-        return "\(c.nightsUsed) noches analizadas · consistencia \(c.label.displayText.lowercased())"
+        return String(format: String(localized: "spiral.rhythm.subtitle.stable", bundle: bundle),
+                      c.nightsUsed, c.label.displayText.lowercased())
     }
 
     // MARK: - Human Stats Row (replaces miniStatsRow)
@@ -407,25 +413,28 @@ struct SpiralTab: View {
         let durationVal  = s.meanSleepDuration > 0 ? String(format: "%.1fh", s.meanSleepDuration) : "--"
         let durationSub  = durationSubtitle(s.meanSleepDuration)
         let driftVal     = driftValue(s)
-        let driftSub     = "variación de horario"
+        let driftSub     = String(localized: "spiral.stats.variationSub", bundle: bundle)
         let stabilityVal = s.rhythmStability > 0 ? String(format: "%.0f%%", s.rhythmStability * 100) : "--"
         let stabilitySub = stabilitySubtitle(s.rhythmStability)
 
         return HStack(spacing: 8) {
-            HumanStatCard(label: "Dormiste", value: durationVal, sub: durationSub,
+            HumanStatCard(label: String(localized: "spiral.stats.slept",    bundle: bundle),
+                          value: durationVal, sub: durationSub,
                           color: durationColor(s.meanSleepDuration))
-            HumanStatCard(label: "Variación", value: driftVal, sub: driftSub,
+            HumanStatCard(label: String(localized: "spiral.stats.variation", bundle: bundle),
+                          value: driftVal, sub: driftSub,
                           color: driftColor(s.stdBedtime > 0 ? s.stdBedtime : s.stdAcrophase))
-            HumanStatCard(label: "Ritmo", value: stabilityVal, sub: stabilitySub,
+            HumanStatCard(label: String(localized: "spiral.stats.rhythm",   bundle: bundle),
+                          value: stabilityVal, sub: stabilitySub,
                           color: stabilityColor(s.rhythmStability))
         }
     }
 
     private func durationSubtitle(_ h: Double) -> String {
-        if h <= 0 { return "media" }
-        if h >= 7 { return "bien" }
-        if h >= 6 { return "algo corto" }
-        return "insuficiente"
+        if h <= 0 { return String(localized: "spiral.stats.durationSub.avg",         bundle: bundle) }
+        if h >= 7 { return String(localized: "spiral.stats.durationSub.good",         bundle: bundle) }
+        if h >= 6 { return String(localized: "spiral.stats.durationSub.slightlyShort", bundle: bundle) }
+        return String(localized: "spiral.stats.durationSub.insufficient", bundle: bundle)
     }
 
     private func driftValue(_ s: SleepStats) -> String {
@@ -448,10 +457,10 @@ struct SpiralTab: View {
     }
 
     private func stabilitySubtitle(_ v: Double) -> String {
-        if v <= 0    { return "ritmo circadiano" }
-        if v >= 0.75 { return "fuerte" }
-        if v >= 0.5  { return "moderado" }
-        return "débil"
+        if v <= 0    { return String(localized: "spiral.stats.rhythmSub.circadian", bundle: bundle) }
+        if v >= 0.75 { return String(localized: "spiral.stats.rhythmSub.strong",    bundle: bundle) }
+        if v >= 0.5  { return String(localized: "spiral.stats.rhythmSub.moderate",  bundle: bundle) }
+        return String(localized: "spiral.stats.rhythmSub.weak", bundle: bundle)
     }
 
     private func durationColor(_ h: Double) -> Color {
@@ -522,17 +531,18 @@ struct SpiralTab: View {
                 if plan.isEnabled {
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(spacing: 6) {
-                            Text("Objetivo \(RephaseCalculator.formattedTargetWake(plan))")
+                            Text(String(format: String(localized: "rephase.spiral.wake", bundle: bundle),
+                                        RephaseCalculator.formattedTargetWake(plan)))
                                 .font(.system(size: 12, weight: .semibold, design: .monospaced))
                                 .foregroundStyle(SpiralColors.awakeSleep)
                             Text("·")
                                 .foregroundStyle(SpiralColors.muted)
-                            Text(RephaseCalculator.delayString(plan: plan, meanAcrophase: meanAcrophase))
+                            Text(RephaseCalculator.delayString(plan: plan, meanAcrophase: meanAcrophase, bundle: bundle))
                                 .font(.system(size: 11, design: .monospaced))
                                 .foregroundStyle(SpiralColors.muted)
                         }
                         if meanAcrophase > 0 {
-                            Text(RephaseCalculator.todayActionText(plan: plan, meanAcrophase: meanAcrophase))
+                            Text(RephaseCalculator.todayActionText(plan: plan, meanAcrophase: meanAcrophase, bundle: bundle))
                                 .font(.system(size: 11))
                                 .foregroundStyle(SpiralColors.text.opacity(0.7))
                         }
@@ -720,7 +730,8 @@ struct EventSheetView: View {
                     Text(String(localized: "events.log.title", bundle: bundle))
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(SpiralColors.text)
-                    Text("en \(SleepStatistics.formatHour(cursorAbsHour.truncatingRemainder(dividingBy: 24)))")
+                    Text(String(format: String(localized: "events.logAt", bundle: bundle),
+                                SleepStatistics.formatHour(cursorAbsHour.truncatingRemainder(dividingBy: 24))))
                         .font(.system(size: 11, design: .monospaced))
                         .foregroundStyle(SpiralColors.muted)
                 }

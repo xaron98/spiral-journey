@@ -28,15 +28,15 @@ struct PRCChartView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 6) {
                     ForEach(EventType.allCases, id: \.self) { type in
-                        PillButton(label: type.label, isActive: selectedModel == type) {
+                        PillButton(label: localizedEventLabel(type), isActive: selectedModel == type) {
                             selectedModel = type
                         }
                     }
                 }
             }
 
-            if let model = PhaseResponse.models[selectedModel] {
-                Text(model.label)
+            if PhaseResponse.models[selectedModel] != nil {
+                Text(localizedEventLabel(selectedModel))
                     .font(.system(size: 9, design: .monospaced))
                     .foregroundStyle(SpiralColors.muted)
             }
@@ -105,6 +105,17 @@ struct PRCChartView: View {
             }
         }
         .panelStyle()
+    }
+
+    private func localizedEventLabel(_ type: EventType) -> String {
+        switch type {
+        case .light:       return String(localized: "event.type.light",       bundle: bundle)
+        case .exercise:    return String(localized: "event.type.exercise",    bundle: bundle)
+        case .melatonin:   return String(localized: "event.type.melatonin",   bundle: bundle)
+        case .caffeine:    return String(localized: "event.type.caffeine",    bundle: bundle)
+        case .screenLight: return String(localized: "event.type.screenLight", bundle: bundle)
+        case .alcohol:     return String(localized: "event.type.alcohol",     bundle: bundle)
+        }
     }
 
     private func legendZone(color: Color, label: String) -> some View {

@@ -28,6 +28,20 @@ enum AppLanguage: String, Codable, CaseIterable {
         default:  return rawValue
         }
     }
+
+    /// Best match for the device's preferred languages. Falls back to .en.
+    static var systemMatch: AppLanguage {
+        for tag in Locale.preferredLanguages {
+            let prefix = tag.lowercased()
+            if prefix.hasPrefix("zh") { return .zh }
+            if prefix.hasPrefix("ca") { return .ca }
+            if prefix.hasPrefix("ar") { return .ar }
+            for lang in AppLanguage.allCases {
+                if prefix.hasPrefix(lang.rawValue) { return lang }
+            }
+        }
+        return .en
+    }
 }
 
 enum AppAppearance: String, Codable, CaseIterable {
@@ -77,7 +91,7 @@ final class SpiralStore {
     var showGrid: Bool = true {
         didSet { save() }
     }
-    var language: AppLanguage = .en {
+    var language: AppLanguage = .systemMatch {
         didSet {
             save()
             #if os(iOS)
@@ -105,6 +119,12 @@ final class SpiralStore {
     var rephasePlan: RephasePlan = RephasePlan() {
         didSet { save() }
     }
+    var hasCompletedOnboarding: Bool = false {
+        didSet { save() }
+    }
+    var hasShownWelcome: Bool = false {
+        didSet { save() }
+    }
 
     // MARK: - Computed State
 
@@ -126,6 +146,7 @@ final class SpiralStore {
         #else
         let launchedKey = "spiral-journey-has-launched-v2"
         if !UserDefaults.standard.bool(forKey: launchedKey) {
+            // Fresh install — wipe any leftover dev/beta data
             UserDefaults.standard.removeObject(forKey: "spiral-journey-store")
             UserDefaults.standard.set(true, forKey: launchedKey)
         }
@@ -224,6 +245,8 @@ final class SpiralStore {
         language = .en
         appearance = .dark
         rephasePlan = RephasePlan()
+        hasCompletedOnboarding = false
+        hasShownWelcome = false
         records = []
         analysis = AnalysisResult()
     }
@@ -231,6 +254,10 @@ final class SpiralStore {
     // MARK: - Persistence
 
     private let storageKey = "spiral-journey-store"
+
+    /// Increment this when the onboarding flow changes significantly.
+    /// Any stored version below this number will replay the welcome + tutorial.
+    private let currentOnboardingVersion = 1
 
     private struct Stored: Codable {
         var sleepEpisodes: [SleepEpisode]
@@ -245,6 +272,9 @@ final class SpiralStore {
         var language: AppLanguage?
         var appearance: AppAppearance?
         var rephasePlan: RephasePlan?
+        var hasCompletedOnboarding: Bool?
+        var hasShownWelcome: Bool?
+        var onboardingVersion: Int?
     }
 
     private func save() {
@@ -260,7 +290,10 @@ final class SpiralStore {
             showGrid: showGrid,
             language: language,
             appearance: appearance,
-            rephasePlan: rephasePlan
+            rephasePlan: rephasePlan,
+            hasCompletedOnboarding: hasCompletedOnboarding,
+            hasShownWelcome: hasShownWelcome,
+            onboardingVersion: currentOnboardingVersion
         )
         if let data = try? JSONEncoder().encode(stored) {
             UserDefaults.standard.set(data, forKey: storageKey)
@@ -282,5 +315,13 @@ final class SpiralStore {
         if let lang = stored.language { language = lang }
         if let app  = stored.appearance { appearance = app }
         if let rp   = stored.rephasePlan { rephasePlan = rp }
+
+        // Only restore onboarding state if the stored version matches current.
+        // If version is missing or outdated, the flags stay false → tutorial replays.
+        let savedVersion = stored.onboardingVersion ?? 0
+        if savedVersion >= currentOnboardingVersion {
+            if let hco = stored.hasCompletedOnboarding { hasCompletedOnboarding = hco }
+            if let hsw = stored.hasShownWelcome { hasShownWelcome = hsw }
+        }
     }
 }

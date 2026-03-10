@@ -20,31 +20,31 @@ struct StatsPanelView: View {
             PanelTitle(title: String(localized: "stats.title", bundle: bundle))
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
-                StatCard("Acrophase",
+                StatCard(String(localized: "stats.card.acrophase", bundle: bundle),
                          value: SleepStatistics.formatHour(stats.meanAcrophase),
                          sub: String(localized: "stats.acrophase.sub", bundle: bundle))
-                StatCard("Acro σ",
+                StatCard(String(localized: "stats.card.acroSigma", bundle: bundle),
                          value: String(format: "±%.1fh", stats.stdAcrophase),
                          sub: String(localized: "stats.acroSigma.sub", bundle: bundle))
-                StatCard("Amplitude",
+                StatCard(String(localized: "stats.card.amplitude", bundle: bundle),
                          value: String(format: "%.2f", stats.meanAmplitude),
                          sub: String(localized: "stats.amplitude.sub", bundle: bundle))
-                StatCard("Rhythm",
+                StatCard(String(localized: "stats.card.rhythm", bundle: bundle),
                          value: String(format: "%.0f%%", stats.rhythmStability * 100),
                          sub: String(localized: "stats.rhythm.sub", bundle: bundle))
-                StatCard("SRI",
+                StatCard(String(localized: "stats.card.sri", bundle: bundle),
                          value: String(format: "%.0f%%", stats.sri),
                          sub: String(localized: "stats.sri.sub", bundle: bundle))
-                StatCard("Social JL",
+                StatCard(String(localized: "stats.card.socialJL", bundle: bundle),
                          value: String(format: "%.0f min", stats.socialJetlag),
                          sub: String(localized: "stats.socialJL.sub", bundle: bundle))
-                StatCard("Wknd Amp",
+                StatCard(String(localized: "stats.card.wkndAmp", bundle: bundle),
                          value: String(format: "%.2f", stats.weekendAmp),
                          sub: String(format: "%.0f%% drop", max(0, stats.ampDrop)))
-                StatCard("Sleep",
+                StatCard(String(localized: "stats.card.sleep", bundle: bundle),
                          value: String(format: "%.1fh", stats.meanSleepDuration),
                          sub: String(localized: "stats.sleep.sub", bundle: bundle))
-                StatCard("R²",
+                StatCard(String(localized: "stats.card.r2", bundle: bundle),
                          value: String(format: "%.2f", stats.meanR2),
                          sub: String(localized: "stats.r2.sub", bundle: bundle))
             }

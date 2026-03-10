@@ -18,19 +18,19 @@ enum RephaseIntensity: String, Codable, CaseIterable {
         }
     }
 
-    var displayName: String {
+    func displayName(bundle: Bundle = .main) -> String {
         switch self {
-        case .suave:  return "Suave"
-        case .normal: return "Normal"
-        case .firme:  return "Firme"
+        case .suave:  return NSLocalizedString("rephase.intensity.suave.name",  bundle: bundle, comment: "")
+        case .normal: return NSLocalizedString("rephase.intensity.normal.name", bundle: bundle, comment: "")
+        case .firme:  return NSLocalizedString("rephase.intensity.firme.name",  bundle: bundle, comment: "")
         }
     }
 
-    var description: String {
+    func intensityDescription(bundle: Bundle = .main) -> String {
         switch self {
-        case .suave:  return "~15 min/día"
-        case .normal: return "~30 min/día"
-        case .firme:  return "~45 min/día"
+        case .suave:  return NSLocalizedString("rephase.intensity.suave.desc",  bundle: bundle, comment: "")
+        case .normal: return NSLocalizedString("rephase.intensity.normal.desc", bundle: bundle, comment: "")
+        case .firme:  return NSLocalizedString("rephase.intensity.firme.desc",  bundle: bundle, comment: "")
         }
     }
 }
@@ -117,16 +117,18 @@ enum RephaseCalculator {
 
     // MARK: - Display strings
 
-    /// Short status string for the pill, e.g. "+2h 05m retrasado" or "En objetivo".
-    static func delayString(plan: RephasePlan, meanAcrophase: Double) -> String {
+    /// Short status string for the pill, e.g. "+2h 05m delayed" or "On target".
+    static func delayString(plan: RephasePlan, meanAcrophase: Double, bundle: Bundle = .main) -> String {
         guard plan.isEnabled, meanAcrophase > 0 else { return "" }
         let delay = currentDelayMinutes(plan: plan, meanAcrophase: meanAcrophase)
-        if abs(delay) < 5 { return "En objetivo" }
+        if abs(delay) < 5 { return NSLocalizedString("rephase.delay.onTarget", bundle: bundle, comment: "") }
         let sign  = delay > 0 ? "+" : "-"
         let mins  = abs(Int(delay.rounded()))
         let h     = mins / 60
         let m     = mins % 60
-        let label = delay > 0 ? "retrasado" : "adelantado"
+        let label = delay > 0
+            ? NSLocalizedString("rephase.delay.late",  bundle: bundle, comment: "")
+            : NSLocalizedString("rephase.delay.early", bundle: bundle, comment: "")
         if h > 0 {
             return "\(sign)\(h)h \(String(format: "%02d", m))m \(label)"
         } else {
@@ -134,12 +136,12 @@ enum RephaseCalculator {
         }
     }
 
-    /// Today's action string, e.g. "Adelanta 30 min esta noche".
-    static func todayActionText(plan: RephasePlan, meanAcrophase: Double) -> String {
+    /// Today's action string, e.g. "Advance 30 min tonight".
+    static func todayActionText(plan: RephasePlan, meanAcrophase: Double, bundle: Bundle = .main) -> String {
         let adj = dailyAdjustmentMinutes(plan: plan, meanAcrophase: meanAcrophase)
-        if adj < 1 { return "Mantén tu horario habitual" }
+        if adj < 1 { return NSLocalizedString("rephase.action.maintain", bundle: bundle, comment: "") }
         let mins = Int(adj.rounded())
-        return "Adelanta \(mins) min esta noche"
+        return String(format: NSLocalizedString("rephase.action.advance", bundle: bundle, comment: ""), mins)
     }
 
     /// Target wake time formatted as HH:mm string.

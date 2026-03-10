@@ -6,6 +6,8 @@ import SpiralKit
 /// Pinch gesture controls elevation (logarithmic zoom):
 ///   - Pinch out → look from above (flat, like the 2D view)
 ///   - Pinch in  → look from the side (full 3D helix depth)
+/// When `externalElevation` / `externalAzimuth` bindings are provided,
+/// the view uses those values instead of its own state (used by WeekComparisonCard).
 struct Spiral3DView: View {
 
     let records: [SleepRecord]
@@ -14,32 +16,40 @@ struct Spiral3DView: View {
     let period: Double
     let maxReachedTurns: Double
 
+    /// Optional external bindings for synchronized control
+    var externalElevation: Binding<Double>? = nil
+    var externalAzimuth: Binding<Double>? = nil
+
     // Elevation angle in radians: 0 = side-on, π/2 = top-down (2D)
     @State private var elevation: Double = 0.55       // start ~31° from side
     @State private var baseElevation: Double = 0.55
     @GestureState private var pinchScale: CGFloat = 1.0
 
+    private var currentElevation: Double {
+        externalElevation?.wrappedValue ?? clampElevation(elevation * Double(pinchScale))
+    }
+    private var currentAzimuth: Double {
+        externalAzimuth?.wrappedValue ?? 0.0
+    }
+
     var body: some View {
-        GeometryReader { geo in
-            Canvas { context, size in
-                let elev = clampElevation(elevation * Double(pinchScale))
-                drawHelix(context: context, size: size, elevation: elev)
-            }
-            .background(SpiralColors.bg)
-            .clipShape(RoundedRectangle(cornerRadius: 16))
-            .gesture(
-                MagnifyGesture()
-                    .updating($pinchScale) { value, state, _ in
-                        // Logarithmic mapping: pinch scale → elevation
-                        // scale > 1 (pinch out) → more top-down → higher elevation
-                        state = value.magnification
-                    }
-                    .onEnded { value in
-                        elevation = clampElevation(elevation * Double(value.magnification))
-                        baseElevation = elevation
-                    }
-            )
+        Canvas { context, size in
+            drawHelix(context: context, size: size,
+                      elevation: currentElevation,
+                      azimuth: currentAzimuth)
         }
+        .background(SpiralColors.bg)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .gesture(
+            MagnifyGesture()
+                .updating($pinchScale) { value, state, _ in
+                    state = value.magnification
+                }
+                .onEnded { value in
+                    elevation = clampElevation(elevation * Double(value.magnification))
+                    baseElevation = elevation
+                }
+        )
     }
 
     // MARK: - Elevation clamp
@@ -52,25 +62,31 @@ struct Spiral3DView: View {
     // MARK: - 3D projection
 
     /// Project a 3D point (x, y, z) to 2D canvas using perspective.
-    /// Camera is at elevation `elev` above the XZ plane, looking at origin.
+    /// Camera is at elevation `elev` above the XZ plane, rotated by `azimuth` around Y axis.
     private func project(_ x: Double, _ y: Double, _ z: Double,
                          cx: Double, cy: Double,
-                         fov: Double, elevation elev: Double) -> CGPoint {
+                         fov: Double, elevation elev: Double, azimuth az: Double) -> CGPoint {
+        // Rotate around Y axis by azimuth (horizontal spin)
+        let cosA = cos(az)
+        let sinA = sin(az)
+        let rx = x * cosA + z * sinA
+        let rz0 = -x * sinA + z * cosA
+
         // Rotate around X axis by elevation
         let cosE = cos(elev)
         let sinE = sin(elev)
-        let ry = y * cosE - z * sinE
-        let rz = y * sinE + z * cosE
+        let ry = y * cosE - rz0 * sinE
+        let rz = y * sinE + rz0 * cosE
 
         // Perspective divide
         let camDist = fov
         let scale = camDist / (camDist + rz)
-        return CGPoint(x: cx + x * scale, y: cy - ry * scale)
+        return CGPoint(x: cx + rx * scale, y: cy - ry * scale)
     }
 
     // MARK: - Drawing
 
-    private func drawHelix(context: GraphicsContext, size: CGSize, elevation: Double) {
+    private func drawHelix(context: GraphicsContext, size: CGSize, elevation: Double, azimuth: Double = 0.0) {
         let cx = size.width / 2
         let cy = size.height / 2
         let fov = size.height * 1.5   // perspective distance
@@ -78,9 +94,9 @@ struct Spiral3DView: View {
         let turns = max(maxReachedTurns, 1.0)
         let scaleDays = max(1, Int(ceil(turns)))
 
-        // Helix parameters
-        let helixRadius = min(size.width, size.height) * 0.32
-        let helixHeight = min(size.width, size.height) * 0.7   // total vertical span
+        // Helix parameters — radius based on width, height spans the full canvas height
+        let helixRadius = size.width * 0.30
+        let helixHeight = size.height * 0.85   // total vertical span
         let turnsTotal = turns
 
         // Draw guide rings (faint circles at each day boundary)
@@ -94,7 +110,7 @@ struct Spiral3DView: View {
                 let angle = Double(i) / Double(steps) * 2 * .pi - .pi / 2
                 let px = helixRadius * cos(angle)
                 let py = helixRadius * sin(angle)
-                let pt = project(px, 0, py + z, cx: cx, cy: cy, fov: fov, elevation: elevation)
+                let pt = project(px, 0, py + z, cx: cx, cy: cy, fov: fov, elevation: elevation, azimuth: azimuth)
                 if i == 0 { ringPath.move(to: pt) } else { ringPath.addLine(to: pt) }
             }
             ringPath.closeSubpath()
@@ -110,8 +126,8 @@ struct Spiral3DView: View {
             let angle = Double(i) / Double(axisSteps) * 2 * .pi - .pi / 2
             let px = helixRadius * cos(angle)
             let py = helixRadius * sin(angle)
-            let top = project(px, 0, py + helixHeight * 0.5, cx: cx, cy: cy, fov: fov, elevation: elevation)
-            let bot = project(px, 0, py - helixHeight * 0.5, cx: cx, cy: cy, fov: fov, elevation: elevation)
+            let top = project(px, 0, py + helixHeight * 0.5, cx: cx, cy: cy, fov: fov, elevation: elevation, azimuth: azimuth)
+            let bot = project(px, 0, py - helixHeight * 0.5, cx: cx, cy: cy, fov: fov, elevation: elevation, azimuth: azimuth)
             var p = Path()
             p.move(to: bot); p.addLine(to: top)
             context.stroke(p, with: .color(SpiralColors.border.opacity(0.15)), lineWidth: 0.4)
@@ -127,7 +143,7 @@ struct Spiral3DView: View {
             let z = (frac - 0.5) * helixHeight
             let px = helixRadius * cos(angle)
             let py = helixRadius * sin(angle)
-            let pt = project(px, 0, py + z, cx: cx, cy: cy, fov: fov, elevation: elevation)
+            let pt = project(px, 0, py + z, cx: cx, cy: cy, fov: fov, elevation: elevation, azimuth: azimuth)
             if i == 0 { backbone.move(to: pt) } else { backbone.addLine(to: pt) }
         }
         context.stroke(backbone,
@@ -139,13 +155,13 @@ struct Spiral3DView: View {
 
         // Draw sleep/wake colored overlay
         drawPhaseOverlay(context: context, size: size, cx: cx, cy: cy,
-                         fov: fov, elevation: elevation,
+                         fov: fov, elevation: elevation, azimuth: azimuth,
                          helixRadius: helixRadius, helixHeight: helixHeight,
                          turnsTotal: turnsTotal)
     }
 
     private func drawPhaseOverlay(context: GraphicsContext, size: CGSize,
-                                  cx: Double, cy: Double, fov: Double, elevation: Double,
+                                  cx: Double, cy: Double, fov: Double, elevation: Double, azimuth: Double,
                                   helixRadius: Double, helixHeight: Double, turnsTotal: Double) {
         for record in records {
             let phases = record.phases
@@ -172,7 +188,7 @@ struct Spiral3DView: View {
             for (i, phase) in phases.enumerated() {
                 if phase.phase != runPhase {
                     let pt = helixPoint(day: record.day, hour: phase.hour,
-                                        cx: cx, cy: cy, fov: fov, elevation: elevation,
+                                        cx: cx, cy: cy, fov: fov, elevation: elevation, azimuth: azimuth,
                                         helixRadius: helixRadius, helixHeight: helixHeight,
                                         turnsTotal: turnsTotal)
                     path.addLine(to: pt)
@@ -180,14 +196,14 @@ struct Spiral3DView: View {
                     runPhase = phase.phase
                 }
                 let pt = helixPoint(day: record.day, hour: phase.hour,
-                                    cx: cx, cy: cy, fov: fov, elevation: elevation,
+                                    cx: cx, cy: cy, fov: fov, elevation: elevation, azimuth: azimuth,
                                     helixRadius: helixRadius, helixHeight: helixHeight,
                                     turnsTotal: turnsTotal)
                 if !started { path.move(to: pt); started = true }
                 else { path.addLine(to: pt) }
                 if i == phases.count - 1 {
                     let ptEnd = helixPoint(day: record.day, hour: period,
-                                           cx: cx, cy: cy, fov: fov, elevation: elevation,
+                                           cx: cx, cy: cy, fov: fov, elevation: elevation, azimuth: azimuth,
                                            helixRadius: helixRadius, helixHeight: helixHeight,
                                            turnsTotal: turnsTotal)
                     path.addLine(to: ptEnd)
@@ -198,7 +214,7 @@ struct Spiral3DView: View {
     }
 
     private func helixPoint(day: Int, hour: Double,
-                             cx: Double, cy: Double, fov: Double, elevation: Double,
+                             cx: Double, cy: Double, fov: Double, elevation: Double, azimuth: Double,
                              helixRadius: Double, helixHeight: Double,
                              turnsTotal: Double) -> CGPoint {
         let t = Double(day) + hour / period
@@ -207,7 +223,7 @@ struct Spiral3DView: View {
         let z = (frac - 0.5) * helixHeight
         let px = helixRadius * cos(angle)
         let py = helixRadius * sin(angle)
-        return project(px, 0, py + z, cx: cx, cy: cy, fov: fov, elevation: elevation)
+        return project(px, 0, py + z, cx: cx, cy: cy, fov: fov, elevation: elevation, azimuth: azimuth)
     }
 
     private func phaseColor3D(_ phase: SleepPhase) -> Color {

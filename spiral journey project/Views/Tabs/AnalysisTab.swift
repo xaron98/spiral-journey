@@ -28,6 +28,13 @@ struct AnalysisTab: View {
                     driftTrendCard
                     durationTrendCard
 
+                    // ── Week vs Week comparison ───────────────────────────────
+                    WeekComparisonCard(
+                        records: store.records,
+                        spiralType: store.spiralType,
+                        period: store.period
+                    )
+
                     // ── Trend arrows (engine output) ─────────────────────────
                     let trends = store.analysis.trends
                     if !trends.improving.isEmpty || !trends.deteriorating.isEmpty {
@@ -99,7 +106,7 @@ struct AnalysisTab: View {
         let delta = cons?.deltaVsPreviousWeek
 
         return TrendDimensionCard(
-            title: "Consistencia del ritmo",
+            title: String(localized: "analysis.trend.consistency", bundle: bundle),
             value: cons != nil ? "\(score)" : "--",
             valueUnit: "/100",
             description: consistencyDescription(label: label, delta: delta),
@@ -111,16 +118,19 @@ struct AnalysisTab: View {
     private func consistencyDescription(label: ConsistencyLabel, delta: Double?) -> String {
         var base: String
         switch label {
-        case .veryStable:   base = "Tu horario de sueño es muy regular"
-        case .stable:       base = "Tu horario de sueño es bastante regular"
-        case .variable:     base = "Tu horario de sueño tiene bastante variación"
-        case .disorganized: base = "Tu horario de sueño es muy irregular"
-        case .insufficient: base = "Necesitas más noches para ver la tendencia"
+        case .veryStable:   base = String(localized: "analysis.trend.consistency.veryStable",   bundle: bundle)
+        case .stable:       base = String(localized: "analysis.trend.consistency.stable",       bundle: bundle)
+        case .variable:     base = String(localized: "analysis.trend.consistency.variable",     bundle: bundle)
+        case .disorganized: base = String(localized: "analysis.trend.consistency.disorganized", bundle: bundle)
+        case .insufficient: base = String(localized: "analysis.trend.consistency.insufficient", bundle: bundle)
         }
         if let d = delta {
             let change = abs(Int(d))
-            base += d >= 2 ? " · \(change) puntos mejor que la semana pasada" :
-                    d <= -2 ? " · \(change) puntos peor que la semana pasada" : ""
+            if d >= 2 {
+                base += " · " + String(format: String(localized: "analysis.trend.consistency.better", bundle: bundle), change)
+            } else if d <= -2 {
+                base += " · " + String(format: String(localized: "analysis.trend.consistency.worse", bundle: bundle), change)
+            }
         }
         return base
     }
@@ -137,30 +147,30 @@ struct AnalysisTab: View {
 
         if std <= 0 {
             value = "--"
-            desc = "Sin datos de desplazamiento"
+            desc = String(localized: "analysis.trend.drift.noData",          bundle: bundle)
             color = SpiralColors.muted
             trend = .neutral
         } else if std < 0.5 {
             value = String(format: "±%.0fm", std * 60)
-            desc = "Tu hora de sueño es muy estable noche a noche"
+            desc = String(localized: "analysis.trend.drift.veryStable",      bundle: bundle)
             color = SpiralColors.good
             trend = .up
         } else if std < 1.0 {
             value = String(format: "±%.0fm", std * 60)
-            desc = "Hay algo de variación en tu hora de acostarte"
+            desc = String(localized: "analysis.trend.drift.someVariation",   bundle: bundle)
             color = SpiralColors.moderate
             trend = .neutral
         } else {
             value = String(format: "±%.1fh", std)
-            desc = "Tu hora de sueño varía significativamente"
+            desc = String(localized: "analysis.trend.drift.significant",     bundle: bundle)
             color = SpiralColors.poor
             trend = .down
         }
 
-        let jetlagNote = jetlag > 45 ? String(format: " · Te acuestas ~%.0f min más tarde los fines de semana", jetlag) : ""
+        let jetlagNote = jetlag > 45 ? " · " + String(format: String(localized: "analysis.trend.drift.jetlagNote", bundle: bundle), jetlag) : ""
 
         return TrendDimensionCard(
-            title: "Desplazamiento horario",
+            title: String(localized: "analysis.trend.drift", bundle: bundle),
             value: value,
             valueUnit: "",
             description: desc + jetlagNote,
@@ -179,27 +189,27 @@ struct AnalysisTab: View {
         let trend: TrendDirection
 
         if dur <= 0 {
-            desc = "Sin datos de duración"
+            desc = String(localized: "analysis.trend.duration.noData",        bundle: bundle)
             color = SpiralColors.muted
             trend = .neutral
         } else if dur >= 7 && dur <= 9 {
-            desc = "Dentro del rango recomendado (7–9 h)"
+            desc = String(localized: "analysis.trend.duration.optimal",       bundle: bundle)
             color = SpiralColors.good
             trend = .up
         } else if dur >= 6 {
-            desc = "Ligeramente por debajo de lo recomendado"
+            desc = String(localized: "analysis.trend.duration.slightlyShort", bundle: bundle)
             color = SpiralColors.moderate
             trend = .neutral
         } else {
-            desc = "Significativamente por debajo de lo recomendado"
+            desc = String(localized: "analysis.trend.duration.tooShort",      bundle: bundle)
             color = SpiralColors.poor
             trend = .down
         }
 
         return TrendDimensionCard(
-            title: "Duración media",
+            title: String(localized: "analysis.trend.duration", bundle: bundle),
             value: value,
-            valueUnit: "media",
+            valueUnit: String(localized: "analysis.trend.duration.unit", bundle: bundle),
             description: desc,
             trend: trend,
             accentColor: color
@@ -210,7 +220,7 @@ struct AnalysisTab: View {
 
     private func trendArrowsCard(_ trends: TrendAnalysis) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            PanelTitle(title: "Evolución reciente")
+            PanelTitle(title: String(localized: "analysis.recentTrends", bundle: bundle))
             ForEach(trends.deteriorating) { t in trendRow(t, color: SpiralColors.poor,  arrow: "arrow.down") }
             ForEach(trends.improving)     { t in trendRow(t, color: SpiralColors.good,  arrow: "arrow.up") }
         }
@@ -226,7 +236,10 @@ struct AnalysisTab: View {
             HStack(spacing: 6) {
                 Image(systemName: showFullAnalysis ? "chevron.up" : "chevron.down")
                     .font(.system(size: 10, weight: .medium))
-                Text(showFullAnalysis ? "Ocultar análisis completo" : "Ver análisis completo")
+                Text(showFullAnalysis
+                    ? String(localized: "analysis.fullAnalysis.hide", bundle: bundle)
+                    : String(localized: "analysis.fullAnalysis.show", bundle: bundle)
+                )
                     .font(.system(size: 12, weight: .medium, design: .monospaced))
             }
             .foregroundStyle(SpiralColors.accentDim)

@@ -247,7 +247,7 @@ struct CoachTab: View {
 
         // Rephase mode takes priority when active
         if store.rephasePlan.isEnabled, stats.meanAcrophase > 0 {
-            return RephaseCalculator.todayActionText(plan: store.rephasePlan, meanAcrophase: stats.meanAcrophase)
+            return RephaseCalculator.todayActionText(plan: store.rephasePlan, meanAcrophase: stats.meanAcrophase, bundle: bundle)
         }
 
         if stats.socialJetlag > 60 {

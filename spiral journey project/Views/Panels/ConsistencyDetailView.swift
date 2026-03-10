@@ -9,6 +9,7 @@ struct ConsistencyDetailView: View {
     let records: [SleepRecord]
 
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.languageBundle) private var bundle
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -39,7 +40,7 @@ struct ConsistencyDetailView: View {
             .padding(.top, 16)
         }
         .background(SpiralColors.bg.ignoresSafeArea())
-        .navigationTitle("Consistencia")
+        .navigationTitle(String(localized: "consistency.title", bundle: bundle))
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
     }
@@ -78,7 +79,7 @@ struct ConsistencyDetailView: View {
             // Confidence + nights used
             HStack(spacing: 8) {
                 confidenceBadge
-                Text("\(consistency.nightsUsed) noches")
+                Text(String(format: String(localized: "consistency.nights", bundle: bundle), consistency.nightsUsed))
                     .font(.system(size: 11, design: .monospaced))
                     .foregroundStyle(SpiralColors.muted)
             }
@@ -90,9 +91,9 @@ struct ConsistencyDetailView: View {
 
     private var confidenceBadge: some View {
         let (label, color): (String, Color) = switch consistency.confidence {
-        case .high:   ("Alta confianza",  Color(hex: "5bffa8"))
-        case .medium: ("Confianza media", Color(hex: "f5c842"))
-        case .low:    ("Pocos datos",     Color(hex: "f05050"))
+        case .high:   (String(localized: "consistency.confidence.high",   bundle: bundle), Color(hex: "5bffa8"))
+        case .medium: (String(localized: "consistency.confidence.medium", bundle: bundle), Color(hex: "f5c842"))
+        case .low:    (String(localized: "consistency.confidence.low",    bundle: bundle), Color(hex: "f05050"))
         }
         return Text(label)
             .font(.system(size: 10, weight: .medium))
@@ -107,33 +108,33 @@ struct ConsistencyDetailView: View {
 
     private var breakdownSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            sectionHeader("Desglose de métricas")
+            sectionHeader(String(localized: "consistency.breakdown.title", bundle: bundle))
 
             VStack(spacing: 8) {
                 BreakdownRow(
-                    label: "Hora de dormir",
+                    label: String(localized: "consistency.breakdown.sleepOnset", bundle: bundle),
                     value: consistency.breakdown.sleepOnsetRegularity,
                     weight: "30%"
                 )
                 BreakdownRow(
-                    label: "Hora de despertar",
+                    label: String(localized: "consistency.breakdown.wakeTime", bundle: bundle),
                     value: consistency.breakdown.wakeTimeRegularity,
                     weight: "25%"
                 )
                 BreakdownRow(
-                    label: "Patrón de fragmentación",
+                    label: String(localized: "consistency.breakdown.fragmentation", bundle: bundle),
                     value: consistency.breakdown.fragmentationPatternSimilarity,
                     weight: "25%"
                 )
                 BreakdownRow(
-                    label: "Duración del sueño",
+                    label: String(localized: "consistency.breakdown.duration", bundle: bundle),
                     value: consistency.breakdown.sleepDurationStability,
                     weight: "10%"
                 )
 
                 let recLabel = consistency.breakdown.recoveryFromRealData
-                    ? "Recuperación (HRV/FC)"
-                    : "Recuperación (proxy)"
+                    ? String(localized: "consistency.breakdown.recovery.real",  bundle: bundle)
+                    : String(localized: "consistency.breakdown.recovery.proxy", bundle: bundle)
                 BreakdownRow(
                     label: recLabel,
                     value: consistency.breakdown.recoveryStability,
@@ -150,10 +151,10 @@ struct ConsistencyDetailView: View {
     private var weeklyHeatmapSection: some View {
         let nights = recentNights(count: consistency.nightsUsed)
         return VStack(alignment: .leading, spacing: 12) {
-            sectionHeader("Últimas \(consistency.nightsUsed) noches")
+            sectionHeader(String(format: String(localized: "consistency.heatmap.title", bundle: bundle), consistency.nightsUsed))
 
             if nights.isEmpty {
-                Text("Sin datos disponibles")
+                Text(String(localized: "consistency.heatmap.noData", bundle: bundle))
                     .font(.system(size: 12))
                     .foregroundStyle(SpiralColors.muted)
             } else {
@@ -172,7 +173,7 @@ struct ConsistencyDetailView: View {
 
     private var insightsSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            sectionHeader("Insights detectados")
+            sectionHeader(String(localized: "consistency.insights.title", bundle: bundle))
 
             ForEach(consistency.insights) { insight in
                 InsightDetailCard(insight: insight)
@@ -186,11 +187,11 @@ struct ConsistencyDetailView: View {
 
     private func comparisonSection(delta: Double) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            sectionHeader("Esta semana vs semana anterior")
+            sectionHeader(String(localized: "consistency.comparison.title", bundle: bundle))
 
             HStack(spacing: 0) {
                 // Current week
-                weekBlock(label: "Esta semana", score: consistency.score, isCurrent: true)
+                weekBlock(label: String(localized: "consistency.comparison.thisWeek", bundle: bundle), score: consistency.score, isCurrent: true)
 
                 // Arrow + delta
                 VStack(spacing: 4) {
@@ -205,7 +206,7 @@ struct ConsistencyDetailView: View {
 
                 // Previous week
                 let prevScore = max(0, min(100, consistency.score - Int(delta)))
-                weekBlock(label: "Semana anterior", score: prevScore, isCurrent: false)
+                weekBlock(label: String(localized: "consistency.comparison.prevWeek", bundle: bundle), score: prevScore, isCurrent: false)
             }
         }
         .padding(14)
@@ -308,6 +309,9 @@ private struct WeeklyNightGrid: View {
     let localDisruptionDays: [Int]
     let globalShiftDays: [Int]
 
+    @Environment(\.languageBundle) private var bundle
+    @Environment(\.locale) private var locale
+
     var body: some View {
         VStack(spacing: 6) {
             // Header row: day labels
@@ -330,9 +334,9 @@ private struct WeeklyNightGrid: View {
 
             // Legend
             HStack(spacing: 12) {
-                LegendDot(color: Color(hex: "5bffa8"), label: "Normal")
-                LegendDot(color: Color(hex: "f5c842"), label: "Disrupción local")
-                LegendDot(color: Color(hex: "f05050"), label: "Cambio global")
+                LegendDot(color: Color(hex: "5bffa8"), label: String(localized: "consistency.legend.normal",          bundle: bundle))
+                LegendDot(color: Color(hex: "f5c842"), label: String(localized: "consistency.legend.localDisruption", bundle: bundle))
+                LegendDot(color: Color(hex: "f05050"), label: String(localized: "consistency.legend.globalShift",     bundle: bundle))
                 Spacer()
             }
             .padding(.top, 4)
@@ -342,7 +346,7 @@ private struct WeeklyNightGrid: View {
     private func dayLabel(_ date: Date) -> String {
         let fmt = DateFormatter()
         fmt.dateFormat = "EE"
-        fmt.locale = Locale(identifier: "es")
+        fmt.locale = locale
         return fmt.string(from: date).prefix(2).uppercased()
     }
 }

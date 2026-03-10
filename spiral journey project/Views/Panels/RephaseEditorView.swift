@@ -8,6 +8,7 @@ struct RephaseEditorView: View {
 
     @Environment(SpiralStore.self) private var store
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.languageBundle) private var bundle
 
     // Local copy of the plan; committed to store on Save.
     @State private var plan: RephasePlan
@@ -45,22 +46,22 @@ struct RephaseEditorView: View {
                         spiralSection
 
                         // ── Wake time picker ────────────────────────────────
-                        sectionCard(title: "Hora objetivo de despertar") {
+                        sectionCard(title: String(localized: "rephase.section.wakeTarget", bundle: bundle)) {
                             wakeTimePicker
                         }
 
                         // ── Sleep duration ──────────────────────────────────
-                        sectionCard(title: "Duración objetivo") {
+                        sectionCard(title: String(localized: "rephase.section.duration", bundle: bundle)) {
                             durationStepper
                         }
 
                         // ── Bedtime row ─────────────────────────────────────
-                        sectionCard(title: "Hora de dormir objetivo") {
+                        sectionCard(title: String(localized: "rephase.section.bedtime", bundle: bundle)) {
                             bedtimeRow
                         }
 
                         // ── Intensity ───────────────────────────────────────
-                        sectionCard(title: "Ritmo de ajuste") {
+                        sectionCard(title: String(localized: "rephase.section.intensity", bundle: bundle)) {
                             intensitySelector
                         }
 
@@ -73,15 +74,15 @@ struct RephaseEditorView: View {
                     .padding(.top, 12)
                 }
             }
-            .navigationTitle("Modo Rephase")
+            .navigationTitle(String(localized: "rephase.title", bundle: bundle))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancelar") { dismiss() }
+                    Button(String(localized: "rephase.cancel", bundle: bundle)) { dismiss() }
                         .foregroundStyle(SpiralColors.muted)
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Guardar") { commitAndDismiss() }
+                    Button(String(localized: "rephase.save", bundle: bundle)) { commitAndDismiss() }
                         .foregroundStyle(SpiralColors.accent)
                         .fontWeight(.semibold)
                 }
@@ -163,15 +164,15 @@ struct RephaseEditorView: View {
             // Legend overlay at bottom of spiral
             HStack(spacing: 16) {
                 legendLine(color: SpiralColors.awakeSleep,
-                           label: "Despertar \(RephaseCalculator.formattedTargetWake(plan))")
+                           label: String(format: String(localized: "rephase.spiral.wake", bundle: bundle), RephaseCalculator.formattedTargetWake(plan)))
                 legendLine(color: Color(hex: "7c3aed"),
-                           label: "Dormir \(RephaseCalculator.formattedTargetBed(plan))")
+                           label: String(format: String(localized: "rephase.spiral.sleep", bundle: bundle), RephaseCalculator.formattedTargetBed(plan)))
             }
             .padding(.bottom, 10)
 
             // Drag hint
             if !isDraggingWake {
-                Text("Arrastra en la espiral para mover el objetivo")
+                Text(String(localized: "rephase.spiral.dragHint", bundle: bundle))
                     .font(.system(size: 9))
                     .foregroundStyle(SpiralColors.muted.opacity(0.6))
                     .padding(.bottom, 36)
@@ -230,7 +231,7 @@ struct RephaseEditorView: View {
 
     private var durationStepper: some View {
         HStack {
-            Text(String(format: "%.1f horas", plan.targetSleepDuration))
+            Text(String(format: String(localized: "rephase.duration.hours", bundle: bundle), plan.targetSleepDuration))
                 .font(.system(size: 17, weight: .medium, design: .monospaced))
                 .foregroundStyle(SpiralColors.text)
             Spacer()
@@ -252,7 +253,9 @@ struct RephaseEditorView: View {
                     Text(RephaseCalculator.formattedTargetBed(plan))
                         .font(.system(size: 24, weight: .ultraLight, design: .monospaced))
                         .foregroundStyle(Color(hex: "a78bfa"))
-                    Text(plan.manualBedtimeEnabled ? "Manual" : "Calculado automáticamente")
+                    Text(plan.manualBedtimeEnabled
+                         ? String(localized: "rephase.bedtime.manual", bundle: bundle)
+                         : String(localized: "rephase.bedtime.auto",   bundle: bundle))
                         .font(.system(size: 10))
                         .foregroundStyle(SpiralColors.muted)
                 }
@@ -305,10 +308,10 @@ struct RephaseEditorView: View {
                     withAnimation(.easeOut(duration: 0.15)) { plan.intensity = i }
                 } label: {
                     VStack(spacing: 3) {
-                        Text(i.displayName)
+                        Text(i.displayName(bundle: bundle))
                             .font(.system(size: 13, weight: .semibold))
                             .foregroundStyle(isSelected ? SpiralColors.bg : SpiralColors.text)
-                        Text(i.description)
+                        Text(i.intensityDescription(bundle: bundle))
                             .font(.system(size: 10))
                             .foregroundStyle(isSelected ? SpiralColors.bg.opacity(0.7) : SpiralColors.muted)
                     }
@@ -335,8 +338,9 @@ struct RephaseEditorView: View {
                 Image(systemName: nights == nil ? "checkmark.circle" : "calendar.badge.clock")
                     .font(.system(size: 15))
                     .foregroundStyle(nights == nil ? SpiralColors.good : SpiralColors.accentDim)
-                Text(nights.map { "Objetivo alcanzable en ~\($0) noche\($0 == 1 ? "" : "s")" }
-                    ?? "Ya estás en tu objetivo")
+                Text(nights.map { n in
+                    String(format: String(localized: "rephase.eta.goal", bundle: bundle), n, n == 1 ? "" : "s")
+                } ?? String(localized: "rephase.eta.achieved", bundle: bundle))
                     .font(.system(size: 13))
                     .foregroundStyle(SpiralColors.muted)
                 Spacer()

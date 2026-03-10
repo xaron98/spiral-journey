@@ -13,6 +13,37 @@ struct InputTab: View {
     @State private var cursorAbsHour:  Double = 0
     @State private var showEventPanel  = false
 
+    /// Returns the bedtime/wakeup hours for `day` from stored episodes, or nil if none exist.
+    private func storedHours(for day: Int) -> (bedtime: Double, wakeup: Double)? {
+        let eps = store.sleepEpisodes.filter { Int($0.start / 24) == day }
+        guard let ep = eps.first else { return nil }
+        let bedtime = ep.start.truncatingRemainder(dividingBy: 24)
+        let rawWakeup = ep.end.truncatingRemainder(dividingBy: 24)
+        // Keep wakeup in [3,15] range expected by the slider
+        let wakeup = rawWakeup < 3 ? rawWakeup + 24 : rawWakeup
+        return (bedtime, wakeup)
+    }
+
+    /// Updates sliders to reflect stored data (or sensible defaults) for `day`, with animation.
+    private func syncSliders(to day: Int) {
+        let bedtime: Double
+        let wakeup: Double
+        if let stored = storedHours(for: day) {
+            bedtime = stored.bedtime
+            wakeup  = stored.wakeup
+        } else {
+            // Default: current wall-clock hour rounded to nearest 0.25, clamped to slider ranges
+            let now = Calendar.current.dateComponents([.hour, .minute], from: Date())
+            let currentHour = Double(now.hour ?? 23) + Double(now.minute ?? 30) / 60.0
+            bedtime = min(max(currentHour, 18), 30)
+            wakeup  = 7.0
+        }
+        withAnimation(.easeInOut(duration: 0.4)) {
+            fellAsleepHour = bedtime
+            wokeUpHour     = wakeup
+        }
+    }
+
     private var currentAbsStart: Double {
         Double(selectedDay) * 24 + fellAsleepHour
     }
@@ -111,6 +142,8 @@ struct InputTab: View {
         }
         .background(SpiralColors.bg.ignoresSafeArea())
         .navigationTitle("Input")
+        .onAppear { syncSliders(to: selectedDay) }
+        .onChange(of: selectedDay) { syncSliders(to: selectedDay) }
     }
 
     private func timeRow(label: String, value: Binding<Double>, range: ClosedRange<Double>) -> some View {
