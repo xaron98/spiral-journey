@@ -237,7 +237,7 @@ private struct StudySourcesCard: View {
                             .lineSpacing(2)
                             .fixedSize(horizontal: false, vertical: true)
                     }
-                    if source.0 != sources.last!.0 {
+                    if sources.last.map({ $0.0 != source.0 }) == true {
                         Divider().background(SpiralColors.border.opacity(0.5))
                     }
                 }

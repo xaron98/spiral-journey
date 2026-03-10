@@ -5,16 +5,17 @@ import SpiralKit
 struct Spiral3DTab: View {
 
     @Environment(SpiralStore.self) private var store
+    @Environment(\.languageBundle) private var bundle
     @State private var maxReachedTurns: Double = 1.0
 
     var body: some View {
         VStack(spacing: 0) {
             VStack(spacing: 2) {
-                Text("HELIX 3D")
+                Text(String(localized: "helix3d.title", bundle: bundle))
                     .font(.system(size: 18, weight: .light, design: .monospaced))
                     .tracking(6)
                     .foregroundStyle(SpiralColors.accent)
-                Text("PINCH PARA ZOOM PERSPECTIVA")
+                Text(String(localized: "helix3d.hint", bundle: bundle))
                     .font(.system(size: 9, design: .monospaced))
                     .tracking(2)
                     .foregroundStyle(SpiralColors.muted)
@@ -37,7 +38,7 @@ struct Spiral3DTab: View {
             HStack {
                 Image(systemName: "arrow.down.left.and.arrow.up.right")
                     .font(.system(size: 10))
-                Text("pellizca para cambiar perspectiva")
+                Text(String(localized: "helix3d.hint", bundle: bundle))
                     .font(.system(size: 10, design: .monospaced))
             }
             .foregroundStyle(SpiralColors.muted)
