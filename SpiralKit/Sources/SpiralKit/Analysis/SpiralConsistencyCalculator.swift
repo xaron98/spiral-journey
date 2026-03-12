@@ -196,9 +196,7 @@ public enum SpiralConsistencyCalculator {
         let meanOnset = circularMean(onsets)
         let meanWake  = mean(wakes)
         let sdOnset   = circularSD(onsets)
-        let sdWake    = standardDeviation(wakes)
-
-        for (i, night) in nights.enumerated() {
+        for (_, night) in nights.enumerated() {
             let dayIdx = night.day
             let onsetDiff = abs(circularDiff(night.bedtimeHour, meanOnset))
             let wakeDiff  = abs(night.wakeupHour - meanWake)
@@ -221,7 +219,6 @@ public enum SpiralConsistencyCalculator {
 
             // ── Local disruption: fragmentation concentrated in ≤25% of night arc ─
             let awakeVec = awakeVector(night)
-            let nightDuration = max(night.sleepDuration, 1.0)
             // Find contiguous awake bins
             let localBins = contiguousAwakeBins(awakeVec, threshold: 0.4)
             if let widest = localBins.max(by: { $0.count < $1.count }) {
