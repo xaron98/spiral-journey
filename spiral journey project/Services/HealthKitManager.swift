@@ -17,6 +17,10 @@ final class HealthKitManager {
 
     private let sleepType = HKObjectType.categoryType(forIdentifier: .sleepAnalysis)!
 
+    /// Called whenever new sleep data arrives in HealthKit (e.g. after a Watch sleep session).
+    var onNewSleepData: (() -> Void)?
+    private var observerQuery: HKObserverQuery?
+
     // MARK: - Authorization
 
     var isAvailable: Bool { HKHealthStore.isHealthDataAvailable() }
@@ -33,6 +37,25 @@ final class HealthKitManager {
         } catch {
             errorMessage = String(format: String(localized: "healthkit.error.accessFailed"), error.localizedDescription)
         }
+    }
+
+    // MARK: - Observer Query (live updates from Watch / Health app)
+
+    /// Start listening for new sleep data written to HealthKit.
+    /// Fires `onNewSleepData` whenever the Watch (or any other source) adds sleep samples.
+    func startObservingNewSleep() {
+        guard isAvailable, observerQuery == nil else { return }
+        let query = HKObserverQuery(sampleType: sleepType, predicate: nil) { [weak self] _, completionHandler, error in
+            guard error == nil else { completionHandler(); return }
+            DispatchQueue.main.async {
+                self?.onNewSleepData?()
+            }
+            completionHandler()
+        }
+        observerQuery = query
+        store.execute(query)
+        // Enable background delivery so the callback fires even when the app is backgrounded.
+        store.enableBackgroundDelivery(for: sleepType, frequency: .immediate) { _, _ in }
     }
 
     // MARK: - Sleep Data Query
@@ -68,38 +91,47 @@ final class HealthKitManager {
                     return value != .inBed
                 }
 
-                // Merge overlapping/adjacent samples into contiguous episodes.
+                // Convert each HealthKit sample to a SleepEpisode preserving its phase.
+                // Apple Watch records short per-stage samples (deep/core/REM/awake) — keeping
+                // them separate lets ManualDataConverter render each phase with its own color.
+                // Deduplication uses sample UUID so re-fetches are stable.
                 let sorted = sleepSamples.sorted { $0.startDate < $1.startDate }
                 var episodes: [SleepEpisode] = []
 
                 for sample in sorted {
-                    // Compute hours relative to the store's epoch (day 0 = store.startDate)
                     let absStart = sample.startDate.absoluteHour(from: epoch)
                     let absEnd   = sample.endDate.absoluteHour(from: epoch)
                     guard absEnd > absStart, absStart >= 0 else { continue }
 
-                    // Merge if gap to previous episode < 30 min
-                    if let last = episodes.last, absStart - last.end < 0.5 {
-                        episodes[episodes.count - 1] = SleepEpisode(
-                            id:    last.id,
-                            start: last.start,
-                            end:   max(last.end, absEnd),
-                            source: .healthKit,
-                            healthKitSampleID: last.healthKitSampleID
-                        )
-                    } else {
-                        episodes.append(SleepEpisode(
-                            start: absStart,
-                            end:   absEnd,
-                            source: .healthKit,
-                            healthKitSampleID: sample.uuid.uuidString
-                        ))
+                    let hkValue = HKCategoryValueSleepAnalysis(rawValue: sample.value)
+                    let phase: SleepPhase?
+                    switch hkValue {
+                    case .asleepDeep:  phase = .deep
+                    case .asleepREM:   phase = .rem
+                    case .asleepCore:  phase = .light
+                    case .awake:       phase = .awake
+                    default:           phase = nil  // asleepUnspecified → falls back to .deep
                     }
+
+                    episodes.append(SleepEpisode(
+                        start: absStart,
+                        end:   absEnd,
+                        source: .healthKit,
+                        healthKitSampleID: sample.uuid.uuidString,
+                        phase: phase
+                    ))
                 }
                 continuation.resume(returning: episodes)
             }
             self.store.execute(query)
         }
+    }
+
+    /// Re-fetch recent sleep data and call the given handler with results.
+    /// Convenience wrapper used by the observer callback and manual refresh button.
+    func refreshRecentSleep(days: Int, epoch: Date) async -> [SleepEpisode] {
+        guard isAuthorized else { return [] }
+        return await fetchRecentSleepEpisodes(days: days, epoch: epoch)
     }
 
     /// Fetch sleep episodes for the last N days, anchored to the given epoch (store.startDate).
@@ -109,6 +141,31 @@ final class HealthKitManager {
         // Search from epoch or (end - days), whichever is earlier, to capture all data
         let searchStart = min(epoch, calendar.date(byAdding: .day, value: -days, to: end) ?? epoch)
         return await fetchSleepEpisodes(from: searchStart, to: end, epoch: epoch)
+    }
+
+    /// Import HealthKit sleep data into the store, automatically adjusting startDate
+    /// to the earliest detected sleep session. This fixes the common case where
+    /// startDate = today but all sleep occurred yesterday or earlier.
+    ///
+    /// Returns the adjusted epoch so the caller can update store.startDate.
+    func importAndAdjustEpoch(days: Int) async -> (episodes: [SleepEpisode], epoch: Date)? {
+        guard isAuthorized, isAvailable else { return nil }
+        let calendar = Calendar.current
+        let end = Date()
+        guard let searchStart = calendar.date(byAdding: .day, value: -days, to: end) else { return nil }
+
+        // First pass: raw fetch with a temporary epoch = searchStart to find all samples
+        let rawEpisodes = await fetchSleepEpisodes(from: searchStart, to: end, epoch: searchStart)
+        guard !rawEpisodes.isEmpty else { return nil }
+
+        // Compute the real epoch: start of the day containing the earliest sleep
+        let earliestAbsHour = rawEpisodes.map(\.start).min() ?? 0
+        let earliestDate = searchStart.addingTimeInterval(earliestAbsHour * 3600)
+        let realEpoch = calendar.startOfDay(for: earliestDate)
+
+        // Second pass: re-fetch with the correct epoch so absolute hours are right
+        let episodes = await fetchSleepEpisodes(from: searchStart, to: end, epoch: realEpoch)
+        return (episodes, realEpoch)
     }
 }
 

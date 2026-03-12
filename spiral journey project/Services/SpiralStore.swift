@@ -77,10 +77,30 @@ final class SpiralStore {
         didSet { save() }
     }
     var spiralType: SpiralType = .logarithmic {
-        didSet { save() }
+        didSet {
+            save()
+            #if os(iOS)
+            WatchConnectivityManager.shared.sendSettings(
+                language: language.localeIdentifier,
+                appearance: appearance.rawValue,
+                spiralType: spiralType.rawValue,
+                period: period
+            )
+            #endif
+        }
     }
     var period: Double = 24.0 {
-        didSet { save() }
+        didSet {
+            save()
+            #if os(iOS)
+            WatchConnectivityManager.shared.sendSettings(
+                language: language.localeIdentifier,
+                appearance: appearance.rawValue,
+                spiralType: spiralType.rawValue,
+                period: period
+            )
+            #endif
+        }
     }
     var linkGrowthToTau: Bool = false {
         didSet { save() }
@@ -194,7 +214,9 @@ final class SpiralStore {
                     events: evts,
                     analysis: newAnalysis,
                     language: self.language.localeIdentifier,
-                    appearance: self.appearance.rawValue
+                    appearance: self.appearance.rawValue,
+                    spiralType: self.spiralType.rawValue,
+                    period: self.period
                 )
                 #endif
             }

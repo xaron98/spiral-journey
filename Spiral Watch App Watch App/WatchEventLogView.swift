@@ -15,12 +15,16 @@ struct WatchEventLogView: View {
         return Double(cal.component(.hour, from: now)) + Double(cal.component(.minute, from: now)) / 60.0
     }
 
+    private var app: String { store.appearance }
+
     var body: some View {
+        ZStack {
+            SpiralColors.bg(app).ignoresSafeArea()
         ScrollView {
             VStack(spacing: 8) {
                 Text(String(localized: "watch.events.logEvent", bundle: bundle))
                     .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                    .foregroundStyle(SpiralColors.text)
+                    .foregroundStyle(SpiralColors.text(app))
 
                 // 2-column grid
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 6) {
@@ -39,8 +43,10 @@ struct WatchEventLogView: View {
             }
             .padding(.horizontal, 6)
         }
-        .background(SpiralColors.bg)
+        .scrollContentBackground(.hidden)
+        .background(Color.clear)
         .navigationTitle(String(localized: "watch.events.title", bundle: bundle))
+        } // ZStack
     }
 
     private func eventButton(_ type: EventType) -> some View {
@@ -53,20 +59,27 @@ struct WatchEventLogView: View {
                 withAnimation { showConfirmation = false }
             }
         } label: {
-            VStack(spacing: 3) {
+            VStack(spacing: 4) {
                 Image(systemName: type.sfSymbol)
-                    .font(.system(size: 16))
+                    .font(.system(size: 18))
                     .foregroundStyle(Color(hex: type.hexColor))
                 Text(type.label)
-                    .font(.system(size: 7, design: .monospaced))
-                    .foregroundStyle(SpiralColors.muted)
+                    .font(.system(size: 7, weight: .medium, design: .monospaced))
+                    .foregroundStyle(SpiralColors.text(app))
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 8)
-            .background(SpiralColors.surface)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .padding(.vertical, 10)
+            .background(.ultraThinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .strokeBorder(
+                        Color(hex: type.hexColor).opacity(0.35),
+                        lineWidth: 1
+                    )
+            )
         }
         .buttonStyle(.plain)
     }

@@ -6,7 +6,9 @@ struct InputTab: View {
 
     @Environment(SpiralStore.self) private var store
     @Environment(\.languageBundle) private var bundle
+    @Environment(HealthKitManager.self) private var healthKit
 
+    @State private var isRefreshingHK = false
     @State private var fellAsleepHour: Double = 23.5
     @State private var wokeUpHour:     Double = 7.0
     @State private var selectedDay:    Int    = 0
@@ -71,6 +73,46 @@ struct InputTab: View {
                     onSelectDay: { if let d = $0 { selectedDay = d } }
                 )
                 .frame(height: 300)
+
+                // HealthKit sync button — lets the user manually pull latest Watch sleep data
+                if healthKit.isAuthorized {
+                    Button {
+                        guard !isRefreshingHK else { return }
+                        isRefreshingHK = true
+                        Task {
+                            if let result = await healthKit.importAndAdjustEpoch(days: store.numDays) {
+                                if result.epoch < store.startDate {
+                                    store.startDate = result.epoch
+                                }
+                                store.mergeHealthKitEpisodes(result.episodes)
+                            }
+                            isRefreshingHK = false
+                        }
+                    } label: {
+                        HStack(spacing: 8) {
+                            if isRefreshingHK {
+                                ProgressView().scaleEffect(0.7)
+                            } else {
+                                Image(systemName: "arrow.clockwise.heart.fill")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(SpiralColors.poor)
+                            }
+                            Text(String(localized: "input.syncHealthKit", bundle: bundle))
+                                .font(.system(size: 12, weight: .medium, design: .monospaced))
+                                .foregroundStyle(SpiralColors.text)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 9))
+                                .foregroundStyle(SpiralColors.muted)
+                        }
+                        .padding(12)
+                        .background(SpiralColors.surface.opacity(0.5))
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(SpiralColors.border.opacity(0.4), lineWidth: 0.8))
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(isRefreshingHK)
+                }
 
                 // Sleep logging panel
                 VStack(alignment: .leading, spacing: 12) {

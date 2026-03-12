@@ -1,7 +1,32 @@
 import Foundation
 import Observation
-import HealthKit
+import WatchConnectivity
 import SpiralKit
+
+// MARK: - Slim record for WatchConnectivity transfer
+
+/// Mirrors WatchConnectivityManager.WatchSlimRecord on the iOS side.
+/// Decodes the compact payload sent from iPhone and reconstructs full SleepRecord objects.
+struct WatchSlimRecord: Codable {
+    var day: Int
+    var date: Date
+    var isWeekend: Bool
+    var bedtimeHour: Double
+    var wakeupHour: Double
+    var sleepDuration: Double
+    var phases: [PhaseInterval]
+    var driftMinutes: Double
+
+    func toSleepRecord() -> SleepRecord {
+        SleepRecord(
+            day: day, date: date, isWeekend: isWeekend,
+            bedtimeHour: bedtimeHour, wakeupHour: wakeupHour,
+            sleepDuration: sleepDuration, phases: phases,
+            hourlyActivity: [], cosinor: .empty,
+            driftMinutes: driftMinutes
+        )
+    }
+}
 
 /// Lightweight observable store for the Watch app.
 /// Starts empty. User logs sleep with the Digital Crown, or data arrives from iPhone.
@@ -18,6 +43,12 @@ final class WatchStore {
     var language: String = "en"
     /// Appearance synced from iPhone ("dark", "light", "system").
     var appearance: String = "dark"
+    /// Spiral type synced from iPhone ("archimedean" or "logarithmic").
+    var spiralType: SpiralType = .archimedean
+    /// Circadian period synced from iPhone (hours, typically 24.0).
+    var period: Double = 24.0
+    /// Depth scale for perspective projection, synced from iPhone. Default 1.5.
+    var depthScale: Double = 1.5
 
     // Stored episodes (persisted locally)
     private var episodes: [SleepEpisode] = []
@@ -25,8 +56,8 @@ final class WatchStore {
         for: Calendar.current.date(byAdding: .day, value: -6, to: Date()) ?? Date()
     )
 
-    /// True when no episodes have been logged yet.
-    var isEmpty: Bool { episodes.isEmpty }
+    /// True when there is no data at all (neither from iPhone nor locally logged).
+    var isEmpty: Bool { records.isEmpty && episodes.isEmpty }
 
     // Computed shortcuts
     var compositeScore: Int { analysis.composite }
@@ -41,11 +72,24 @@ final class WatchStore {
 
     init() {
         #if targetEnvironment(simulator)
-        // Simulator always starts completely fresh on every launch
+        // Simulator: load sample sleep episodes so the spiral renders with colors
         if let bundleID = Bundle.main.bundleIdentifier {
             UserDefaults.standard.removePersistentDomain(forName: bundleID)
         }
         UserDefaults.standard.synchronize()
+        let simStart = Calendar.current.date(byAdding: .day, value: -13, to: Calendar.current.startOfDay(for: Date())) ?? Date()
+        startDate = simStart
+        // 14 nights with slight natural variation in bedtime/wakeup
+        let bedtimes:  [Double] = [23.0, 23.5, 0.0, 23.0, 23.5, 1.0, 0.5,
+                                    22.5, 23.0, 23.5, 0.0, 23.0, 23.5, 0.0]
+        let durations: [Double] = [7.5,  8.0,  7.0,  7.5,  8.0,  6.5, 7.0,
+                                    8.5,  7.5,  8.0,  7.5,  7.0,  8.0, 7.5]
+        for i in 0..<14 {
+            let base = Double(i) * 24.0
+            let bed = base + bedtimes[i]
+            episodes.append(SleepEpisode(start: bed, end: bed + durations[i], source: .manual))
+        }
+        recompute()
         #else
         let launchedKey = "watchstore-has-launched-v2"
         if !UserDefaults.standard.bool(forKey: launchedKey) {
@@ -59,29 +103,30 @@ final class WatchStore {
 
     // MARK: - Data Loading
 
-    /// Called from .task in ContentView. Tries HealthKit on device; simulator starts empty.
+    /// Called from .task in ContentView.
+    /// Reads any context that was already delivered by the iPhone before the app opened,
+    /// then waits for live updates via WatchConnectivity.
     func loadData() async {
         isLoading = true
         defer { isLoading = false }
 
-        // If we already have locally-stored episodes, use them
-        if !episodes.isEmpty {
-            recompute()
-            return
-        }
+        // Note: WCSession.default.receivedApplicationContext may be empty here if the
+        // session hasn't activated yet. The onSessionActivated callback in ContentView
+        // will call loadFromReceivedContext() once activation completes.
+        loadFromReceivedContext()
+    }
 
-        #if targetEnvironment(simulator)
-        // Start completely empty — let the user log via Crown
-        return
-        #else
-        let hkEpisodes = await fetchHealthKitEpisodes(days: 14)
-        if !hkEpisodes.isEmpty {
-            startDate = Calendar.current.date(byAdding: .day, value: -14, to: Date()) ?? Date()
-            episodes = hkEpisodes
-            recompute()
+    /// Reads receivedApplicationContext and applies it if non-empty.
+    /// Safe to call multiple times — after activation, after receiving new context.
+    func loadFromReceivedContext() {
+        let received = WCSession.default.receivedApplicationContext
+        if !received.isEmpty {
+            updateFromContext(received)
+        } else {
+            if !episodes.isEmpty { recompute() }
+            // Context empty — ask iPhone to push fresh data if reachable.
+            WatchConnectivityManager.shared.requestDataFromPhone()
         }
-        // No fallback to sample data — start empty if HealthKit has nothing
-        #endif
     }
 
     // MARK: - Episode management
@@ -124,9 +169,13 @@ final class WatchStore {
            let decoded = try? JSONDecoder().decode(AnalysisResult.self, from: data) {
             analysis = decoded
         }
-        if let data = context["recordsJSON"] as? Data,
-           let decoded = try? JSONDecoder().decode([SleepRecord].self, from: data) {
-            records = decoded
+        if let data = context["recordsJSON"] as? Data {
+            // Try slim format first (new), fall back to full SleepRecord (legacy)
+            if let slim = try? JSONDecoder().decode([WatchSlimRecord].self, from: data) {
+                records = slim.map { $0.toSleepRecord() }
+            } else if let full = try? JSONDecoder().decode([SleepRecord].self, from: data) {
+                records = full
+            }
         }
         if let data = context["eventsJSON"] as? Data,
            let decoded = try? JSONDecoder().decode([CircadianEvent].self, from: data) {
@@ -134,12 +183,20 @@ final class WatchStore {
         }
         if let lang = context["language"] as? String {
             language = lang
-            saveToDefaults()
         }
         if let app = context["appearance"] as? String {
             appearance = app
-            saveToDefaults()
         }
+        if let st = context["spiralType"] as? String, let decoded = SpiralType(rawValue: st) {
+            spiralType = decoded
+        }
+        if let p = context["period"] as? Double {
+            period = p
+        }
+        if let d = context["depthScale"] as? Double {
+            depthScale = d
+        }
+        saveToDefaults()
     }
 
     /// Append an event logged on the watch and send it to the iPhone.
@@ -157,11 +214,14 @@ final class WatchStore {
         var startDate: Date
         var language: String?
         var appearance: String?
+        var spiralType: SpiralType?
+        var period: Double?
     }
 
     private func saveToDefaults() {
         let stored = Stored(episodes: episodes, startDate: startDate,
-                            language: language, appearance: appearance)
+                            language: language, appearance: appearance,
+                            spiralType: spiralType, period: period)
         if let data = try? JSONEncoder().encode(stored) {
             UserDefaults.standard.set(data, forKey: defaultsKey)
         }
@@ -174,66 +234,9 @@ final class WatchStore {
         startDate = stored.startDate
         if let lang = stored.language { language = lang }
         if let app  = stored.appearance { appearance = app }
+        if let st   = stored.spiralType { spiralType = st }
+        if let p    = stored.period { period = p }
         if !episodes.isEmpty { recompute() }
     }
 
-    // MARK: - HealthKit
-
-    private func fetchHealthKitEpisodes(days: Int) async -> [SleepEpisode] {
-        guard HKHealthStore.isHealthDataAvailable() else { return [] }
-
-        let hkStore = HKHealthStore()
-        let sleepType = HKObjectType.categoryType(forIdentifier: .sleepAnalysis)!
-
-        do {
-            try await hkStore.requestAuthorization(toShare: [], read: [sleepType])
-        } catch {
-            return []
-        }
-
-        let end = Date()
-        guard let start = Calendar.current.date(byAdding: .day, value: -days, to: end) else { return [] }
-
-        let predicate = HKQuery.predicateForSamples(withStart: start, end: end, options: .strictStartDate)
-        let sort = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)
-
-        return await withCheckedContinuation { continuation in
-            let query = HKSampleQuery(
-                sampleType: sleepType,
-                predicate: predicate,
-                limit: HKObjectQueryNoLimit,
-                sortDescriptors: [sort]
-            ) { _, samples, _ in
-                guard let samples = samples as? [HKCategorySample] else {
-                    continuation.resume(returning: [])
-                    return
-                }
-                let sleepOnly = samples.filter {
-                    HKCategoryValueSleepAnalysis(rawValue: $0.value) != .inBed
-                }
-                var eps: [SleepEpisode] = []
-                for s in sleepOnly.sorted(by: { $0.startDate < $1.startDate }) {
-                    let absStart = s.startDate.timeIntervalSince(start) / 3600
-                    let absEnd   = s.endDate.timeIntervalSince(start) / 3600
-                    guard absEnd > absStart else { continue }
-                    if let last = eps.last, absStart - last.end < 0.5 {
-                        eps[eps.count - 1] = SleepEpisode(
-                            id: last.id, start: last.start,
-                            end: max(last.end, absEnd),
-                            source: .healthKit,
-                            healthKitSampleID: last.healthKitSampleID
-                        )
-                    } else {
-                        eps.append(SleepEpisode(
-                            start: absStart, end: absEnd,
-                            source: .healthKit,
-                            healthKitSampleID: s.uuid.uuidString
-                        ))
-                    }
-                }
-                continuation.resume(returning: eps)
-            }
-            hkStore.execute(query)
-        }
-    }
 }

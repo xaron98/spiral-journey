@@ -11,6 +11,8 @@ final class WatchConnectivityManager: NSObject, WCSessionDelegate, @unchecked Se
     static let shared = WatchConnectivityManager()
     var onEventReceived: ((CircadianEvent) -> Void)?
     var onEpisodeReceived: ((SleepEpisode) -> Void)?
+    /// Called when Watch explicitly requests a fresh data push.
+    var onDataRequested: (() -> Void)?
 
     private override init() {
         super.init()
@@ -23,7 +25,8 @@ final class WatchConnectivityManager: NSObject, WCSessionDelegate, @unchecked Se
     // MARK: - Send full analysis context to Watch
 
     func sendAnalysis(records: [SleepRecord], events: [CircadianEvent], analysis: AnalysisResult,
-                      language: String? = nil, appearance: String? = nil) {
+                      language: String? = nil, appearance: String? = nil,
+                      spiralType: String? = nil, period: Double? = nil) {
         guard WCSession.default.activationState == .activated,
               WCSession.default.isWatchAppInstalled else { return }
 
@@ -32,9 +35,10 @@ final class WatchConnectivityManager: NSObject, WCSessionDelegate, @unchecked Se
         if let data = try? JSONEncoder().encode(analysis) {
             context["analysisJSON"] = data
         }
-        // Only send last 30 records to keep context small
-        let recentRecords = Array(records.suffix(30))
-        if let data = try? JSONEncoder().encode(recentRecords) {
+        // Send slim records (no hourlyActivity/cosinor) to stay within the 65 KB context limit.
+        // This allows sending far more days of history than the old 30-record cap.
+        let slim = records.map { WatchSlimRecord(from: $0) }
+        if let data = try? JSONEncoder().encode(slim) {
             context["recordsJSON"] = data
         }
         if let data = try? JSONEncoder().encode(events) {
@@ -46,21 +50,62 @@ final class WatchConnectivityManager: NSObject, WCSessionDelegate, @unchecked Se
         if let appearance {
             context["appearance"] = appearance
         }
+        if let spiralType {
+            context["spiralType"] = spiralType
+        }
+        if let period {
+            context["period"] = period
+        }
 
         try? WCSession.default.updateApplicationContext(context)
     }
 
+    // MARK: - Slim record type for Watch transfer
+
+    /// Minimal representation of a SleepRecord for Watch transfer.
+    /// Omits hourlyActivity and cosinor to keep payload within WatchConnectivity's 65 KB limit.
+    struct WatchSlimRecord: Codable {
+        var day: Int
+        var date: Date
+        var isWeekend: Bool
+        var bedtimeHour: Double
+        var wakeupHour: Double
+        var sleepDuration: Double
+        var phases: [PhaseInterval]
+        var driftMinutes: Double
+
+        init(from r: SleepRecord) {
+            day = r.day; date = r.date; isWeekend = r.isWeekend
+            bedtimeHour = r.bedtimeHour; wakeupHour = r.wakeupHour
+            sleepDuration = r.sleepDuration; phases = r.phases
+            driftMinutes = r.driftMinutes
+        }
+
+        func toSleepRecord() -> SleepRecord {
+            SleepRecord(
+                day: day, date: date, isWeekend: isWeekend,
+                bedtimeHour: bedtimeHour, wakeupHour: wakeupHour,
+                sleepDuration: sleepDuration, phases: phases,
+                hourlyActivity: [], cosinor: .empty,
+                driftMinutes: driftMinutes
+            )
+        }
+    }
+
     // MARK: - Send settings-only update to Watch
 
-    /// Sends just language and appearance without re-encoding full analysis data.
-    /// Call this when the user changes language or appearance in Settings.
-    func sendSettings(language: String, appearance: String) {
+    /// Sends just settings (language, appearance, spiralType, period) without re-encoding full analysis data.
+    /// Call this when the user changes a setting.
+    func sendSettings(language: String, appearance: String,
+                      spiralType: String? = nil, period: Double? = nil) {
         guard WCSession.default.activationState == .activated,
               WCSession.default.isWatchAppInstalled else { return }
         // Merge into the existing application context so data keys are preserved.
         var context = WCSession.default.applicationContext
         context["language"]   = language
         context["appearance"] = appearance
+        if let spiralType { context["spiralType"] = spiralType }
+        if let period { context["period"] = period }
         try? WCSession.default.updateApplicationContext(context)
     }
 
@@ -84,6 +129,10 @@ final class WatchConnectivityManager: NSObject, WCSessionDelegate, @unchecked Se
         if let data = message["newEpisode"] as? Data,
            let episode = try? JSONDecoder().decode(SleepEpisode.self, from: data) {
             Task { @MainActor in self.onEpisodeReceived?(episode) }
+        }
+        // Watch is requesting a fresh data push (e.g. after reinstall or empty context)
+        if message["requestData"] != nil {
+            Task { @MainActor in self.onDataRequested?() }
         }
     }
 }

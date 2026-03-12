@@ -48,15 +48,27 @@ struct ContentView: View {
                         key: OnboardingFramesKey.self,
                         value: {
                             var f = OnboardingFrames()
-                            // Tab bar: 49pt above bottom safe area, in global coordinates
                             let globalFrame = geo.frame(in: .global)
-                            let tabH: CGFloat = 49 + geo.safeAreaInsets.bottom
-                            f.tabBar = CGRect(
-                                x: globalFrame.minX,
-                                y: globalFrame.maxY - tabH,
-                                width: globalFrame.width,
-                                height: tabH
-                            )
+                            let isPad = UIDevice.current.userInterfaceIdiom == .pad
+                            if isPad {
+                                // On iPad, TabView renders tabs at the top
+                                let tabH: CGFloat = 70
+                                f.tabBar = CGRect(
+                                    x: globalFrame.minX,
+                                    y: globalFrame.minY,
+                                    width: globalFrame.width,
+                                    height: tabH
+                                )
+                            } else {
+                                // Tab bar: 49pt above bottom safe area, in global coordinates
+                                let tabH: CGFloat = 49 + geo.safeAreaInsets.bottom
+                                f.tabBar = CGRect(
+                                    x: globalFrame.minX,
+                                    y: globalFrame.maxY - tabH,
+                                    width: globalFrame.width,
+                                    height: tabH
+                                )
+                            }
                             return f
                         }()
                     )

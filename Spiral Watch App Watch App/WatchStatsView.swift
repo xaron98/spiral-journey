@@ -7,7 +7,11 @@ struct WatchStatsView: View {
     @Environment(WatchStore.self) private var store
     @Environment(\.languageBundle) private var bundle
 
+    private var app: String { store.appearance }
+
     var body: some View {
+        ZStack {
+            SpiralColors.bg(app).ignoresSafeArea()
         ScrollView {
             VStack(spacing: 8) {
 
@@ -15,7 +19,7 @@ struct WatchStatsView: View {
                 ZStack {
                     Circle()
                         .trim(from: 0, to: 0.75)
-                        .stroke(SpiralColors.border, lineWidth: 7)
+                        .stroke(SpiralColors.border(app), lineWidth: 7)
                         .rotationEffect(.degrees(135))
 
                     Circle()
@@ -30,7 +34,7 @@ struct WatchStatsView: View {
                             .foregroundStyle(scoreColor)
                         Text(scoreLabel)
                             .font(.system(size: 8))
-                            .foregroundStyle(SpiralColors.muted)
+                            .foregroundStyle(SpiralColors.muted(app))
                     }
                 }
                 .frame(width: 80, height: 80)
@@ -39,9 +43,9 @@ struct WatchStatsView: View {
                 // Consistency glance (shown only when data is available)
                 if let cons = store.analysis.consistency {
                     consistencyGlance(cons)
-                    Divider().background(SpiralColors.border)
+                    Divider().background(SpiralColors.border(app))
                 } else {
-                    Divider().background(SpiralColors.border)
+                    Divider().background(SpiralColors.border(app))
                 }
 
                 statRow("SRI",        value: String(format: "%.0f%%", store.sri))
@@ -50,8 +54,10 @@ struct WatchStatsView: View {
             }
             .padding(.horizontal, 6)
         }
-        .background(SpiralColors.bg)
+        .scrollContentBackground(.hidden)
+        .background(Color.clear)
         .navigationTitle(String(localized: "watch.stats.title", bundle: bundle))
+        } // ZStack
     }
 
     private var scoreColor: Color {
@@ -77,7 +83,7 @@ struct WatchStatsView: View {
             // Mini ring
             ZStack {
                 Circle()
-                    .stroke(SpiralColors.border, lineWidth: 3)
+                    .stroke(SpiralColors.border(app), lineWidth: 3)
                 Circle()
                     .trim(from: 0, to: CGFloat(cons.score) / 100)
                     .stroke(Color(hex: cons.label.hexColor),
@@ -89,7 +95,7 @@ struct WatchStatsView: View {
             VStack(alignment: .leading, spacing: 1) {
                 Text("Consistencia")
                     .font(.system(size: 8, design: .monospaced))
-                    .foregroundStyle(SpiralColors.muted)
+                    .foregroundStyle(SpiralColors.muted(app))
                 Text(cons.label.displayText)
                     .font(.system(size: 9, weight: .semibold))
                     .foregroundStyle(Color(hex: cons.label.hexColor))
@@ -108,11 +114,11 @@ struct WatchStatsView: View {
         HStack {
             Text(label)
                 .font(.system(size: 10, design: .monospaced))
-                .foregroundStyle(SpiralColors.muted)
+                .foregroundStyle(SpiralColors.muted(app))
             Spacer()
             Text(value)
                 .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                .foregroundStyle(SpiralColors.text)
+                .foregroundStyle(SpiralColors.text(app))
         }
     }
 

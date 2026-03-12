@@ -20,7 +20,11 @@ struct SpiralTab: View {
     @State private var maxReachedTurns: Double = 1.0
     @State private var visibleDays: Double = 1
     @State private var liveVisibleDays: Double = 1
-    private let minVisibleDays: Double = 1
+    @State private var pinchBaseVisibleDays: Double = 1
+    private let minVisibleDays: Double = 0.15
+    @State private var pinchStarted: Bool = false
+    // Zoom slider: normalised 0→1 in log-space. Derived from visibleDays when not dragging.
+    @State private var zoomNorm: Double = 1.0
     @State private var spiralType: SpiralType = .archimedean
     @State private var showEventSheet = false
 
@@ -93,28 +97,51 @@ struct SpiralTab: View {
                                             cursorAbsHour = newHour
                                             let newTurns = newHour / store.period
                                             if newTurns > maxReachedTurns {
+                                                // Cursor advanced past the frontier — expand zoom to follow.
                                                 let wasAtMax = visibleDays >= maxReachedTurns * 0.95
                                                 maxReachedTurns = newTurns
                                                 if wasAtMax {
                                                     visibleDays = newTurns
                                                     liveVisibleDays = newTurns
+                                                    if !pinchStarted {
+                                                        pinchBaseVisibleDays = newTurns
+                                                        zoomNorm = 1.0
+                                                    }
                                                 }
+                                            } else if !pinchStarted {
+                                                // Cursor moved back into history — contract zoom to match cursor position.
+                                                let target = max(minVisibleDays, newTurns)
+                                                visibleDays = target
+                                                liveVisibleDays = target
+                                                pinchBaseVisibleDays = target
                                             }
                                         }
                                 )
                                 .simultaneousGesture(
-                                    MagnifyGesture(minimumScaleDelta: 0.03)
+                                    MagnifyGesture(minimumScaleDelta: 0.01)
                                         .onChanged { value in
-                                            liveVisibleDays = max(minVisibleDays, min(maxReachedTurns, visibleDays / Double(value.magnification)))
+                                            // Capture base once at gesture start.
+                                            if !pinchStarted {
+                                                pinchStarted = true
+                                                pinchBaseVisibleDays = visibleDays
+                                            }
+                                            let clamped = max(minVisibleDays, min(maxReachedTurns, pinchBaseVisibleDays / Double(value.magnification)))
+                                            liveVisibleDays = clamped
+                                            visibleDays     = clamped
+                                            zoomNorm        = visibleDaysToNorm(clamped)
                                         }
-                                        .onEnded { value in
-                                            visibleDays = max(minVisibleDays, min(maxReachedTurns, visibleDays / Double(value.magnification)))
-                                            liveVisibleDays = visibleDays
+                                        .onEnded { _ in
+                                            pinchStarted = false
+                                            pinchBaseVisibleDays = visibleDays
+                                            zoomNorm = visibleDaysToNorm(visibleDays)
                                         }
                                 )
                                 .onTapGesture(count: 2) {
                                     withAnimation(.easeOut(duration: 0.3)) {
-                                        visibleDays = maxReachedTurns; liveVisibleDays = maxReachedTurns
+                                        visibleDays = maxReachedTurns
+                                        liveVisibleDays = maxReachedTurns
+                                        pinchBaseVisibleDays = maxReachedTurns
+                                        zoomNorm = 1.0
                                     }
                                 }
                                 .padding(.horizontal, 16)
@@ -206,13 +233,13 @@ struct SpiralTab: View {
         .onChange(of: store.sleepEpisodes.count) { _, count in
             if count == 0 {
                 cursorAbsHour = 0; maxReachedTurns = 1.0
-                visibleDays = 1.0; liveVisibleDays = 1.0
+                visibleDays = 1.0; liveVisibleDays = 1.0; pinchBaseVisibleDays = 1.0
             } else {
                 let lastEnd = store.sleepEpisodes.map(\.end).max() ?? 0
                 let needed  = max(1.0, lastEnd / store.period)
                 if needed > maxReachedTurns {
                     maxReachedTurns = needed
-                    visibleDays = needed; liveVisibleDays = needed
+                    visibleDays = needed; liveVisibleDays = needed; pinchBaseVisibleDays = needed
                 }
             }
         }
@@ -602,17 +629,37 @@ struct SpiralTab: View {
         }
     }
 
+    // MARK: - Zoom slider helpers (log-space mapping)
+
+    /// Convert visibleDays → normalised slider value [0,1] in log space.
+    private func visibleDaysToNorm(_ vd: Double) -> Double {
+        let lo = log(minVisibleDays)
+        let hi = log(max(maxReachedTurns, minVisibleDays + 0.01))
+        guard hi > lo else { return 1.0 }
+        return (log(max(vd, minVisibleDays)) - lo) / (hi - lo)
+    }
+
+    /// Convert normalised slider value [0,1] → visibleDays.
+    private func normToVisibleDays(_ n: Double) -> Double {
+        let lo = log(minVisibleDays)
+        let hi = log(max(maxReachedTurns, minVisibleDays + 0.01))
+        return exp(lo + n * (hi - lo))
+    }
+
     // MARK: - Init
 
     private func initCursor() {
         if store.sleepEpisodes.isEmpty {
             cursorAbsHour = 0; maxReachedTurns = 1.0
-            visibleDays = 1.0; liveVisibleDays = 1.0
+            visibleDays = 1.0; liveVisibleDays = 1.0; pinchBaseVisibleDays = 1.0
+            zoomNorm = visibleDaysToNorm(1.0)
         } else {
             let lastEnd = store.sleepEpisodes.map(\.end).max() ?? 0
             cursorAbsHour = min(lastEnd, Double(store.numDays) * store.period)
             maxReachedTurns = max(1.0, cursorAbsHour / store.period)
             visibleDays = maxReachedTurns; liveVisibleDays = maxReachedTurns
+            pinchBaseVisibleDays = maxReachedTurns
+            zoomNorm = 1.0  // fully zoomed out = slider at max
         }
     }
 

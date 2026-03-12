@@ -7,12 +7,8 @@ struct WatchContentView: View {
     @Environment(WatchStore.self) private var store
     @State private var selectedTab = 0
 
-    private var colorScheme: ColorScheme? {
-        switch store.appearance {
-        case "light":  return .light
-        case "dark":   return .dark
-        default:       return nil
-        }
+    private var colorScheme: ColorScheme {
+        store.appearance == "light" ? .light : .dark
     }
 
     var body: some View {
@@ -26,14 +22,21 @@ struct WatchContentView: View {
             WatchEventLogView()
                 .tag(3)
         }
+        .environment(\.colorScheme, colorScheme)
         // Do NOT use .page style — that steals the Digital Crown.
         // Standard tab bar style leaves the Crown free for digitalCrownRotation.
-        .preferredColorScheme(colorScheme)
         .task {
-            await store.loadData()
+            // Register callbacks BEFORE loadData so updates that arrive
+            // during or immediately after WCSession activation are not missed.
             WatchConnectivityManager.shared.onContextReceived = { context in
                 store.updateFromContext(context)
             }
+            // Re-read receivedApplicationContext once activation completes.
+            // loadData() may run before the session is active and see an empty dict.
+            WatchConnectivityManager.shared.onSessionActivated = {
+                store.loadFromReceivedContext()
+            }
+            await store.loadData()
         }
     }
 }

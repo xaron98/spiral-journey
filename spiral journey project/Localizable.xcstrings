@@ -124,59 +124,6 @@
         }
       }
     },
-    "analysis.charts.prc" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PRC"
-          }
-        },
-        "ca" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PRC"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PRC"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PRC"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PRC"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PRC"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PRC"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PRC"
-          }
-        }
-      }
-    },
     "analysis.charts.title" : {
       "localizations" : {
         "ar" : {
@@ -1737,165 +1684,6 @@
         }
       }
     },
-    "analysis.weekComparison.better" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "أفضل"
-          }
-        },
-        "ca" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Millor"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Besser"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Better"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mejor"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mieux"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "改善"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "改善"
-          }
-        }
-      }
-    },
-    "analysis.weekComparison.consistency" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "الاتساق"
-          }
-        },
-        "ca" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Consistència"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Konsistenz"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Consistency"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Consistencia"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Constance"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "一貫性"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "一致性"
-          }
-        }
-      }
-    },
-    "analysis.weekComparison.duration" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "المدة"
-          }
-        },
-        "ca" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Durada"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dauer"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Duration"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Duración"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Durée"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "時間"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "时长"
-          }
-        }
-      }
-    },
     "analysis.weekComparison.needMoreData" : {
       "localizations" : {
         "ar" : {
@@ -2100,59 +1888,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "本周 vs 上周"
-          }
-        }
-      }
-    },
-    "analysis.weekComparison.worse" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "أسوأ"
-          }
-        },
-        "ca" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pitjor"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Schlechter"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Worse"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Peor"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pire"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "悪化"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "变差"
           }
         }
       }
@@ -7297,6 +7032,58 @@
     "Input" : {
       "comment" : "The title of the input view.",
       "isCommentAutoGenerated" : true
+    },
+    "input.syncHealthKit" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مزامنة بيانات النوم من Apple Health"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sincronitzar son des d'Apple Health"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schlafdaten von Apple Health abrufen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sync sleep from Apple Health"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sincronizar sueño desde Apple Health"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synchroniser le sommeil depuis Apple Santé"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Healthから睡眠データを同期"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从Apple健康同步睡眠数据"
+          }
+        }
+      }
     },
     "input.addEpisode" : {
       "localizations" : {
@@ -12699,6 +12486,30 @@
         }
       }
     },
+    "settings.data.importHealthKit" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "استيراد من Apple Health (بداية جديدة)" } },
+        "ca" : { "stringUnit" : { "state" : "translated", "value" : "Importar des d'Apple Health (nova start)" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Aus Apple Health importieren (Neustart)" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Import from Apple Health (fresh start)" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Importar de Apple Health (empezar desde cero)" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Importer depuis Apple Santé (nouveau départ)" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Apple Healthからインポート（リセット）" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "从Apple健康导入（全新开始）" } }
+      }
+    },
+    "settings.data.importing" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "جاري الاستيراد..." } },
+        "ca" : { "stringUnit" : { "state" : "translated", "value" : "Important..." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Importiere..." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Importing..." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Importando..." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Import en cours..." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "インポート中..." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "导入中..." } }
+      }
+    },
     "settings.data.resetAll" : {
       "localizations" : {
         "ar" : {
@@ -13379,59 +13190,6 @@
       "comment" : "The title of the full-screen conclusions report sheet.",
       "isCommentAutoGenerated" : true
     },
-    "spiral.conclusions.button" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "عرض الاستنتاجات"
-          }
-        },
-        "ca" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Veure Conclusions"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Auswertung anzeigen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "View Conclusions"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ver Conclusiones"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Voir les conclusions"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "結論を見る"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "查看结论"
-          }
-        }
-      }
-    },
     "spiral.controls.archimedean" : {
       "localizations" : {
         "ar" : {
@@ -13480,59 +13238,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "阿基米德"
-          }
-        }
-      }
-    },
-    "spiral.controls.biomarkers" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "المؤشرات الحيوية"
-          }
-        },
-        "ca" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Biomarcadors"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Biomarker"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Biomarkers"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Biomarcadores"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Biomarqueurs"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "バイオマーカー"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "生物标志物"
           }
         }
       }
@@ -13845,59 +13550,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "控制"
-          }
-        }
-      }
-    },
-    "spiral.controls.twoProcess" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "نموذج العمليتين"
-          }
-        },
-        "ca" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "2 Processos"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "2-Prozess"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "2-Process"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "2 Procesos"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "2 Processus"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "2プロセス"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "双过程"
           }
         }
       }
@@ -15406,112 +15058,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "作息变化"
-          }
-        }
-      }
-    },
-    "spiral.subtitle" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "متتبع دورة النوم والاستيقاظ"
-          }
-        },
-        "ca" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SEGUIMENT DEL CICLE SON · VIGÍLIA"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SCHLAF · WACH ZYKLUS TRACKER"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SLEEP · WAKE CYCLE TRACKER"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SEGUIMIENTO DEL CICLO SUEÑO · VIGILIA"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SUIVI DU CYCLE SOMMEIL · ÉVEIL"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "睡眠・覚醒サイクル トラッカー"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "睡眠 · 觉醒周期追踪"
-          }
-        }
-      }
-    },
-    "spiral.title" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SPIRAL JOURNEY"
-          }
-        },
-        "ca" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ESPIRAL JOURNEY"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SPIRAL JOURNEY"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SPIRAL JOURNEY"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ESPIRAL JOURNEY"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SPIRAL JOURNEY"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SPIRAL JOURNEY"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SPIRAL JOURNEY"
           }
         }
       }

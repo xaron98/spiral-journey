@@ -35,6 +35,8 @@ struct SpiralView: View {
     var targetBedHour: Double? = nil
     /// Whether to draw day ring and radial hour-line guides.
     var showGrid: Bool = true
+    /// Inner radius of the spiral in points. Scale down for smaller screens (e.g. Watch: ~15).
+    var startRadius: Double = 75
 
 
     @State private var canvasSize: CGSize = .zero
@@ -49,7 +51,7 @@ struct SpiralView: View {
                     maxDays: scaleDays,
                     width: Double(size.width),
                     height: Double(size.height),
-                    startRadius: 20,
+                    startRadius: startRadius,
                     spiralType: spiralType,
                     period: period,
                     linkGrowthToTau: linkGrowthToTau
@@ -198,9 +200,11 @@ struct SpiralView: View {
 
     private func drawDayRings(context: GraphicsContext, geo: SpiralGeometry, fromTurns: Double = 0, upToTurns: Double, size: CGSize) {
         for ring in geo.dayRings() where ring.day > 0 && Double(ring.day) >= fromTurns - 1 && Double(ring.day) <= upToTurns {
+            let ringOpac = weekWindowOpacity(turns: Double(ring.day))
+            guard ringOpac > 0.01 else { continue }
             let color = ring.isWeekBoundary
-                ? Color.white.opacity(0.18)
-                : Color.white.opacity(0.09)
+                ? Color.white.opacity(0.18 * ringOpac)
+                : Color.white.opacity(0.09 * ringOpac)
             let lw: CGFloat = ring.isWeekBoundary ? 0.8 : 0.4
 
             var path = Path()
@@ -233,6 +237,32 @@ struct SpiralView: View {
             let lw: CGFloat    = isMajor ? 1.0 : 0.6
             context.stroke(path, with: .color(Color.white.opacity(opacity)), lineWidth: lw)
             h += minorStep
+        }
+    }
+
+    /// Opacity for a turn `t` based on which "week window" is in focus.
+    ///
+    /// Focus week = the 7-turn window ending at `visibleDays` (or `cursorTurns`).
+    /// - Turns in the focus week [focusEnd-7 … focusEnd]:  opacity 1.0
+    /// - Turns in the previous week [focusEnd-14 … focusEnd-7]: opacity 0.4
+    /// - Turns older than 2 weeks from focus:  opacity 0.0
+    ///
+    /// Transition between bands is softened over ±0.5 turns to avoid a hard cut.
+    private func weekWindowOpacity(turns t: Double) -> Double {
+        let focusEnd   = visibleDays ?? cursorTurns ?? Double(numDaysHint)
+        let focusStart = focusEnd - 7.0          // start of focus week
+
+        // Soft-step helper: ramps 0→1 over [edge-half … edge+half]
+        func softStep(_ x: Double, edge: Double, half: Double = 0.5) -> Double {
+            max(0.0, min(1.0, (x - (edge - half)) / (2 * half)))
+        }
+
+        if t >= focusStart {
+            // Focus week: full opacity (with a small ramp-in from focusStart)
+            return softStep(t, edge: focusStart + 0.5)
+        } else {
+            // Older than 2 weeks: invisible
+            return 0.0
         }
     }
 
@@ -291,10 +321,15 @@ struct SpiralView: View {
         var path = Path()
         var first = true
 
+        var flushTurn: Double = 0
+
         func flush() {
             guard !first else { return }
-            context.stroke(path, with: .color(Color(hex: "2e3248")),
-                           style: StrokeStyle(lineWidth: 6, lineCap: .round, lineJoin: .round))
+            let opac = weekWindowOpacity(turns: flushTurn)
+            if opac > 0.01 {
+                context.stroke(path, with: .color(Color(hex: "2e3248").opacity(opac)),
+                               style: StrokeStyle(lineWidth: 6, lineCap: .round, lineJoin: .round))
+            }
             path = Path(); first = true
         }
 
@@ -306,6 +341,7 @@ struct SpiralView: View {
                 if d >= upToTurns { break }
                 d += step; continue
             }
+            flushTurn = t
             let pt = project(turns: t, geo: geo, size: size)
             if first { path.move(to: pt); first = false } else { path.addLine(to: pt) }
             if d >= upToTurns { break }
@@ -315,62 +351,92 @@ struct SpiralView: View {
     }
 
     private func drawDataPoints(context: GraphicsContext, geo: SpiralGeometry, fromTurns: Double = 0, size: CGSize) {
-        // Global cut-off in turns (shared with drawSpiralPath via dataEndTurns())
         let globalCutTurns = dataEndTurns(geo: geo)
+
+        // Collect all runs first, then draw awake passes first and sleep on top,
+        // so sleep round caps always paint over awake round caps at shared endpoints.
+        struct Run {
+            var phase: SleepPhase
+            var points: [(t: Double, pt: CGPoint)]
+            var prevPhase: SleepPhase?
+            var nextPhase: SleepPhase?
+        }
+
+        func isSleep(_ p: SleepPhase) -> Bool { p != .awake }
+
+        func drawRun(_ run: Run) {
+            guard run.points.count >= 2 else { return }
+            let color = phaseColor(run.phase)
+            let tMid  = (run.points.first!.t + run.points.last!.t) * 0.5
+            let sc    = perspectiveScale(turns: tMid, geo: geo)
+            let lw    = max(3.0, min(sc * 20.0, 28.0))
+            let opac  = weekWindowOpacity(turns: tMid)
+            guard opac > 0.01 else { return }
+
+            // Flat only at sleep→sleep interior joints; round everywhere else.
+            let capStart = !(isSleep(run.phase) && run.prevPhase != nil && isSleep(run.prevPhase!))
+            let capEnd   = !(isSleep(run.phase) && run.nextPhase != nil && isSleep(run.nextPhase!))
+
+            var path = Path()
+            path.move(to: run.points[0].pt)
+            for rp in run.points.dropFirst() { path.addLine(to: rp.pt) }
+            context.stroke(path, with: .color(color.opacity(opac)),
+                           style: StrokeStyle(lineWidth: lw, lineCap: .butt, lineJoin: .round))
+            if capStart {
+                let r = lw * 0.5; let pt = run.points[0].pt
+                context.fill(Circle().path(in: CGRect(x: pt.x - r, y: pt.y - r, width: lw, height: lw)),
+                             with: .color(color.opacity(opac)))
+            }
+            if capEnd {
+                let r = lw * 0.5; let pt = run.points[run.points.count - 1].pt
+                context.fill(Circle().path(in: CGRect(x: pt.x - r, y: pt.y - r, width: lw, height: lw)),
+                             with: .color(color.opacity(opac)))
+            }
+        }
 
         for record in records {
             let dayT = Double(record.day)
             guard dayT + 1.0 >= fromTurns else { continue }
             let phases = record.phases
             guard !phases.isEmpty else { continue }
-
-            // Per-day cut-off: the minimum of the global cut and the end of this day.
             let cutTurns = min(globalCutTurns, dayT + 1.0)
 
-            var runPhase = phases[0].phase
-            // Accumulate (turn, point) pairs so we can use per-point perspective scale.
+            // Build all runs for this record.
+            var runs: [Run] = []
+            var runPhase  = phases[0].phase
             var runPoints: [(t: Double, pt: CGPoint)] = []
+            var prevPhase: SleepPhase? = nil
 
-            func commitRun() {
+            func flushRun(nextPhase: SleepPhase?) {
                 guard runPoints.count >= 2 else { runPoints.removeAll(); return }
-                let color = phaseColor(runPhase)
-                // Draw as short segments each scaled by the perspective at that point.
-                for i in 1..<runPoints.count {
-                    let t0 = runPoints[i - 1].t
-                    let t1 = runPoints[i].t
-                    let tMid = (t0 + t1) * 0.5
-                    // Base width 20pt at full scale (scale≈1 at outermost turn).
-                    // Clamp so inner turns don't go below 3pt (still visible but thin).
-                    let sc  = perspectiveScale(turns: tMid, geo: geo)
-                    let lw  = max(3.0, min(sc * 20.0, 28.0))
-                    var seg = Path()
-                    seg.move(to: runPoints[i - 1].pt)
-                    seg.addLine(to: runPoints[i].pt)
-                    context.stroke(seg, with: .color(color),
-                                   style: StrokeStyle(lineWidth: lw, lineCap: .round, lineJoin: .round))
-                }
+                runs.append(Run(phase: runPhase, points: runPoints, prevPhase: prevPhase, nextPhase: nextPhase))
                 runPoints.removeAll()
             }
 
             for (i, phase) in phases.enumerated() {
                 let t = dayT + phase.hour / geo.period
                 if t > cutTurns { break }
-
                 if phase.phase != runPhase {
-                    let tEdge = t
-                    runPoints.append((tEdge, project(turns: tEdge, geo: geo, size: size)))
-                    commitRun()
-                    runPhase = phase.phase
+                    let edgePt = project(turns: t, geo: geo, size: size)
+                    runPoints.append((t, edgePt))
+                    flushRun(nextPhase: phase.phase)
+                    prevPhase = runPhase
+                    runPhase  = phase.phase
+                    runPoints.append((t, edgePt))
+                } else {
+                    runPoints.append((t, project(turns: t, geo: geo, size: size)))
                 }
-                runPoints.append((t, project(turns: t, geo: geo, size: size)))
-
                 if i == phases.count - 1 {
                     let tEnd = min(cutTurns, dayT + 1.0)
                     runPoints.append((tEnd, project(turns: tEnd, geo: geo, size: size)))
-                    commitRun()
+                    flushRun(nextPhase: nil)
                 }
             }
-            commitRun()
+            flushRun(nextPhase: nil)
+
+            // Draw awake runs first, sleep runs on top so sleep caps always win.
+            for run in runs where !isSleep(run.phase) { drawRun(run) }
+            for run in runs where  isSleep(run.phase) { drawRun(run) }
         }
     }
 
@@ -550,7 +616,7 @@ struct SpiralView: View {
         let geo = SpiralGeometry(
             totalDays: scaleDays, maxDays: scaleDays,
             width: Double(size.width), height: Double(size.height),
-            startRadius: 20, spiralType: spiralType, period: period,
+            startRadius: startRadius, spiralType: spiralType, period: period,
             linkGrowthToTau: linkGrowthToTau
         )
         var bestDay: Int? = nil

@@ -48,10 +48,13 @@ struct OnboardingOverlayView: View {
                              tooltipBelow: true)
 
         case .sleepLog:
-            let r = frames.moonButton.isEmpty
+            let raw = frames.moonButton.isEmpty
                 ? CGRect(x: screenSize.width - 80, y: 80, width: 64, height: 64)
                 : frames.moonButton.insetBy(dx: -8, dy: -8)
-            return Highlight(rect: r, cornerRadius: r.width / 2,
+            // Force square so the highlight is a perfect circle
+            let side = max(raw.width, raw.height)
+            let r = CGRect(x: raw.midX - side / 2, y: raw.midY - side / 2, width: side, height: side)
+            return Highlight(rect: r, cornerRadius: side / 2,
                              tooltipAnchorY: r.maxY + 4,
                              tooltipBelow: true)
 
@@ -74,12 +77,21 @@ struct OnboardingOverlayView: View {
                              tooltipBelow: true)
 
         case .tabs:
-            let r = frames.tabBar.isEmpty
-                ? CGRect(x: 0, y: screenSize.height - 83, width: screenSize.width, height: 83)
-                : frames.tabBar
+            let isPad = UIDevice.current.userInterfaceIdiom == .pad
+            let r: CGRect
+            if !frames.tabBar.isEmpty {
+                r = frames.tabBar
+            } else if isPad {
+                // On iPad, TabView renders tabs at the top
+                r = CGRect(x: 0, y: 0, width: screenSize.width, height: 70)
+            } else {
+                r = CGRect(x: 0, y: screenSize.height - 83, width: screenSize.width, height: 83)
+            }
+            let tooltipBelow = isPad && frames.tabBar.isEmpty ? true : false
+            let anchorY = tooltipBelow ? r.maxY + 8 : r.minY - 8
             return Highlight(rect: r, cornerRadius: 0,
-                             tooltipAnchorY: r.minY - 8,
-                             tooltipBelow: false)
+                             tooltipAnchorY: anchorY,
+                             tooltipBelow: tooltipBelow)
         }
     }
 

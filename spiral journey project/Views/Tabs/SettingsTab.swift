@@ -8,6 +8,7 @@ struct SettingsTab: View {
     @Environment(HealthKitManager.self) private var healthKit
     @Environment(\.languageBundle) private var bundle
     @State private var isRefreshing = false
+    @State private var isImporting = false
 
     var body: some View {
         @Bindable var store = store
@@ -135,8 +136,12 @@ struct SettingsTab: View {
                             Button {
                                 isRefreshing = true
                                 Task {
-                                    let episodes = await healthKit.fetchRecentSleepEpisodes(days: store.numDays, epoch: store.startDate)
-                                    store.mergeHealthKitEpisodes(episodes)
+                                    if let result = await healthKit.importAndAdjustEpoch(days: store.numDays) {
+                                        if result.epoch < store.startDate {
+                                            store.startDate = result.epoch
+                                        }
+                                        store.mergeHealthKitEpisodes(result.episodes)
+                                    }
                                     isRefreshing = false
                                 }
                             } label: {
@@ -202,6 +207,35 @@ struct SettingsTab: View {
                             .foregroundStyle(SpiralColors.poor)
                     }
                     .buttonStyle(.plain)
+
+                    // Fresh start: wipe everything and import directly from HealthKit
+                    if healthKit.isAuthorized {
+                        Button {
+                            isImporting = true
+                            Task {
+                                store.resetAllData()
+                                if let result = await healthKit.importAndAdjustEpoch(days: store.numDays) {
+                                    store.startDate = result.epoch
+                                    store.mergeHealthKitEpisodes(result.episodes)
+                                }
+                                isImporting = false
+                            }
+                        } label: {
+                            HStack {
+                                if isImporting { ProgressView().scaleEffect(0.7) }
+                                Label(
+                                    isImporting
+                                        ? String(localized: "settings.data.importing", bundle: bundle)
+                                        : String(localized: "settings.data.importHealthKit", bundle: bundle),
+                                    systemImage: "arrow.clockwise.heart.fill"
+                                )
+                                .font(.system(size: 11, design: .monospaced))
+                                .foregroundStyle(SpiralColors.poor)
+                            }
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(isImporting)
+                    }
 
                     Button(role: .destructive) {
                         store.resetAllData()

@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "swift-best-practices": {
+      "source": "secondsky/claude-skills",
+      "sourceType": "github",
+      "computedHash": "084dc29498a5085a85a711cf1f82d15376d950f3f7fba11bd1391dc8d1772956"
+    }
+  }
+}

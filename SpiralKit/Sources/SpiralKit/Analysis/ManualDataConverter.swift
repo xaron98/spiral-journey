@@ -56,12 +56,21 @@ public enum ManualDataConverter {
             let bedtime  = mainSleep.map { $0.start.truncatingRemainder(dividingBy: 24) } ?? 23.5
             let wakeup   = mainSleep.map { $0.end.truncatingRemainder(dividingBy: 24) }   ?? 7.0
 
-            // Phase intervals at 15-min resolution
+            // Phase intervals at 15-min resolution.
+            // If the covering episode carries a HealthKit phase, use it directly.
+            // Manual episodes (phase == nil) fall back to .deep while sleeping.
             var phases: [PhaseInterval] = []
             var t = 0.0
             while t < 24 {
-                let sleeping = isSleeping(at: dayStart + t)
-                phases.append(PhaseInterval(hour: t, phase: sleeping ? .deep : .awake, timestamp: dayStart + t))
+                let absT = dayStart + t
+                let coveringEpisode = episodes.first { ep in absT >= ep.start && absT < ep.end }
+                let phase: SleepPhase
+                if let ep = coveringEpisode {
+                    phase = ep.phase ?? .deep
+                } else {
+                    phase = .awake
+                }
+                phases.append(PhaseInterval(hour: t, phase: phase, timestamp: absT))
                 t += 0.25
             }
 
