@@ -55,7 +55,11 @@ final class HealthKitManager {
         observerQuery = query
         store.execute(query)
         // Enable background delivery so the callback fires even when the app is backgrounded.
-        store.enableBackgroundDelivery(for: sleepType, frequency: .immediate) { _, _ in }
+        store.enableBackgroundDelivery(for: sleepType, frequency: .immediate) { success, error in
+            if let error {
+                print("[HealthKit] Background delivery failed: \(error.localizedDescription)")
+            }
+        }
     }
 
     // MARK: - Sleep Data Query

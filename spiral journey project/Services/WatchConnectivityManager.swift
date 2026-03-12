@@ -124,15 +124,15 @@ final class WatchConnectivityManager: NSObject, WCSessionDelegate, @unchecked Se
                              didReceiveMessage message: [String: Any]) {
         if let data = message["newEvent"] as? Data,
            let event = try? JSONDecoder().decode(CircadianEvent.self, from: data) {
-            Task { @MainActor in self.onEventReceived?(event) }
+            Task { [weak self] @MainActor in self?.onEventReceived?(event) }
         }
         if let data = message["newEpisode"] as? Data,
            let episode = try? JSONDecoder().decode(SleepEpisode.self, from: data) {
-            Task { @MainActor in self.onEpisodeReceived?(episode) }
+            Task { [weak self] @MainActor in self?.onEpisodeReceived?(episode) }
         }
         // Watch is requesting a fresh data push (e.g. after reinstall or empty context)
         if message["requestData"] != nil {
-            Task { @MainActor in self.onDataRequested?() }
+            Task { [weak self] @MainActor in self?.onDataRequested?() }
         }
     }
 }

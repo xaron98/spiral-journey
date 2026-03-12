@@ -93,7 +93,7 @@ struct WatchStatsView: View {
             .frame(width: 20, height: 20)
 
             VStack(alignment: .leading, spacing: 1) {
-                Text("Consistencia")
+                Text(String(localized: "watch.stats.consistency", bundle: bundle))
                     .font(.system(size: 8, design: .monospaced))
                     .foregroundStyle(SpiralColors.muted(app))
                 Text(cons.label.displayText)

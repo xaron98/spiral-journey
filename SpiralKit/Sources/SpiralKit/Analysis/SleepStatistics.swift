@@ -46,8 +46,8 @@ public enum SleepStatistics {
             let sinMean = mean(hours.map { sin($0 * toRad) })
             let cosMean = mean(hours.map { cos($0 * toRad) })
             let R = sqrt(sinMean * sinMean + cosMean * cosMean)  // mean resultant length
-            let R_clamped = min(max(R, 0), 1)
-            return sqrt(-2.0 * log(R_clamped)) / toRad           // back to hours
+            let R_clamped = min(max(R, 1e-9), 1)
+            return sqrt(max(-2.0 * log(R_clamped), 0)) / toRad   // back to hours
         }
 
         let acrophases = records.map(\.cosinor.acrophase)

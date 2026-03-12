@@ -159,9 +159,9 @@ enum RephaseCalculator {
     /// Circular difference (hours) from `a` to `b`, in range (-12, +12].
     /// Positive = b is later than a on the 24-hour clock.
     private static func circularDiffHours(from a: Double, to b: Double) -> Double {
-        var diff = b - a
-        while diff >  12 { diff -= 24 }
-        while diff <= -12 { diff += 24 }
+        var diff = (b - a).truncatingRemainder(dividingBy: 24)
+        if diff > 12 { diff -= 24 }
+        if diff <= -12 { diff += 24 }
         return diff
     }
 

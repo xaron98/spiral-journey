@@ -24,6 +24,26 @@ struct StatCardModifier: ViewModifier {
     }
 }
 
+struct CardBackgroundModifier: ViewModifier {
+    var cornerRadius: CGFloat = 16
+    var hasMaterial: Bool = true
+    var borderOpacity: Double = 0.4
+
+    func body(content: Content) -> some View {
+        content.background(
+            ZStack {
+                if hasMaterial {
+                    RoundedRectangle(cornerRadius: cornerRadius).fill(.ultraThinMaterial)
+                }
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .fill(SpiralColors.surface.opacity(0.35))
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .stroke(SpiralColors.border.opacity(borderOpacity), lineWidth: 0.8)
+            }
+        )
+    }
+}
+
 // MARK: - View Extensions
 
 extension View {
@@ -33,6 +53,11 @@ extension View {
 
     func statCardStyle() -> some View {
         modifier(StatCardModifier())
+    }
+
+    /// Reusable card background with material, tinted surface, and border stroke.
+    func cardBackground(cornerRadius: CGFloat = 16, hasMaterial: Bool = true, borderOpacity: Double = 0.4) -> some View {
+        modifier(CardBackgroundModifier(cornerRadius: cornerRadius, hasMaterial: hasMaterial, borderOpacity: borderOpacity))
     }
 }
 
