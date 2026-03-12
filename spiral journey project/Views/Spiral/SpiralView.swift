@@ -152,7 +152,6 @@ struct SpiralView: View {
 
     private func drawSpiral(context: GraphicsContext, size: CGSize, geo: SpiralGeometry, upToTurns: Double? = nil) {
         let totalT  = upToTurns ?? Double(geo.totalDays)
-        let vd      = visibleDays ?? totalT
         // Clip drawing to turns visible in front of camera (turns 0…maxVisible)
         let maxVisible = min(totalT, cameraMaxVisibleTurn(geo: geo))
 
