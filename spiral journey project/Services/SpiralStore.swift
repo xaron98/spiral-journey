@@ -200,10 +200,11 @@ final class SpiralStore {
         let n   = max(neededDays, 1)
         let sd  = startDate
         let evts = events
-        Task.detached(priority: .userInitiated) {
+        Task.detached(priority: .userInitiated) { [weak self] in
             let newRecords = ManualDataConverter.convert(episodes: eps, numDays: n, startDate: sd)
             let newAnalysis = ConclusionsEngine.generate(from: newRecords)
-            await MainActor.run {
+            await MainActor.run { [weak self] in
+                guard let self else { return }
                 self.records = newRecords
                 self.analysis = newAnalysis
                 self.isProcessing = false

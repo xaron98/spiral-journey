@@ -26,13 +26,17 @@ final class WatchConnectivityManager: NSObject, WCSessionDelegate, @unchecked Se
     func sendEvent(_ event: CircadianEvent) {
         guard WCSession.default.isReachable,
               let data = try? JSONEncoder().encode(event) else { return }
-        WCSession.default.sendMessage(["newEvent": data], replyHandler: nil, errorHandler: nil)
+        WCSession.default.sendMessage(["newEvent": data], replyHandler: nil) { error in
+            print("[WatchConnectivity] Failed to send event: \(error.localizedDescription)")
+        }
     }
 
     func sendEpisode(_ episode: SleepEpisode) {
         guard WCSession.default.isReachable,
               let data = try? JSONEncoder().encode(episode) else { return }
-        WCSession.default.sendMessage(["newEpisode": data], replyHandler: nil, errorHandler: nil)
+        WCSession.default.sendMessage(["newEpisode": data], replyHandler: nil) { error in
+            print("[WatchConnectivity] Failed to send episode: \(error.localizedDescription)")
+        }
     }
 
     // MARK: - Request data from iPhone
@@ -42,7 +46,9 @@ final class WatchConnectivityManager: NSObject, WCSessionDelegate, @unchecked Se
     func requestDataFromPhone() {
         guard WCSession.default.activationState == .activated,
               WCSession.default.isReachable else { return }
-        WCSession.default.sendMessage(["requestData": true], replyHandler: nil, errorHandler: nil)
+        WCSession.default.sendMessage(["requestData": true], replyHandler: nil) { error in
+            print("[WatchConnectivity] Failed to request data: \(error.localizedDescription)")
+        }
     }
 
     // MARK: - WCSessionDelegate

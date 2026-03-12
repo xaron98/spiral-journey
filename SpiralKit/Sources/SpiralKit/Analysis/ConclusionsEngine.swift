@@ -17,7 +17,8 @@ public enum ConclusionsEngine {
     }
 
     private static func mapScore(_ v: Double, inLo: Double, inHi: Double) -> Double {
-        clamp((v - inLo) / (inHi - inLo) * 100, 0, 100)
+        guard inHi != inLo else { return 50 }
+        return clamp((v - inLo) / (inHi - inLo) * 100, 0, 100)
     }
 
     /// Duration score: 7-8h = 100, tapering to 0 below 4h or above 10h.

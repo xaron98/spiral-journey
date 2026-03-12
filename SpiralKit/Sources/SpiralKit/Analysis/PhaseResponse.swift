@@ -9,11 +9,18 @@ import Foundation
 /// Reference: Khalsa et al. (2003). A Phase Response Curve to Single Bright Light Pulses.
 public enum PhaseResponse {
 
+    // MARK: - Helpers
+
+    /// Normalize circadian hour to [0, 24) range.
+    private static func normalizeCircadianHour(_ h: Double) -> Double {
+        ((h.truncatingRemainder(dividingBy: 24)) + 24).truncatingRemainder(dividingBy: 24)
+    }
+
     // MARK: - Individual PRC Functions
 
     /// Light PRC (Type 1 — weak resetting). ~10,000 lux bright light.
     public static func light(_ circadianHour: Double) -> Double {
-        let ct = ((circadianHour.truncatingRemainder(dividingBy: 24)) + 24).truncatingRemainder(dividingBy: 24)
+        let ct = normalizeCircadianHour(circadianHour)
         if ct >= 2 && ct <= 10 {
             return 0.05 * sin(((ct - 2) / 8) * Double.pi)
         }
@@ -28,7 +35,7 @@ public enum PhaseResponse {
 
     /// Exercise PRC — weaker than light (~50%).
     public static func exercise(_ circadianHour: Double) -> Double {
-        let ct = ((circadianHour.truncatingRemainder(dividingBy: 24)) + 24).truncatingRemainder(dividingBy: 24)
+        let ct = normalizeCircadianHour(circadianHour)
         if ct >= 4 && ct <= 12 { return 0 }
         if ct > 12 && ct <= 20 {
             return -0.5 * sin(((ct - 12) / 8) * Double.pi)
@@ -44,7 +51,7 @@ public enum PhaseResponse {
 
     /// Caffeine PRC — blocks adenosine, delays phase. Reference: Burke et al. (2015).
     public static func caffeine(_ circadianHour: Double) -> Double {
-        let ct = ((circadianHour.truncatingRemainder(dividingBy: 24)) + 24).truncatingRemainder(dividingBy: 24)
+        let ct = normalizeCircadianHour(circadianHour)
         if ct >= 14 && ct <= 22 {
             return -0.6 * sin(((ct - 14) / 8) * Double.pi)
         }
@@ -58,7 +65,7 @@ public enum PhaseResponse {
 
     /// Alcohol PRC — delays phase, disrupts second half of sleep.
     public static func alcohol(_ circadianHour: Double) -> Double {
-        let ct = ((circadianHour.truncatingRemainder(dividingBy: 24)) + 24).truncatingRemainder(dividingBy: 24)
+        let ct = normalizeCircadianHour(circadianHour)
         if ct >= 18 || ct < 2 {
             let adjusted = ct >= 18 ? ct - 18 : ct + 6
             return -0.4 * sin((adjusted / 8) * Double.pi)
@@ -68,7 +75,7 @@ public enum PhaseResponse {
 
     // MARK: - Model Registry
 
-    public struct PRCModel: @unchecked Sendable {
+    public struct PRCModel: Sendable {
         public let fn: @Sendable (Double) -> Double
         public let label: String
         public let hexColor: String

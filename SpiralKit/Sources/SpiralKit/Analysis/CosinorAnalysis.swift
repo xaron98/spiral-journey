@@ -123,7 +123,7 @@ public enum CosinorAnalysis {
         let cosMean = acrophases.map { cos($0 * toRad) }.reduce(0, +) / Double(acrophases.count)
         let R = min(max(sqrt(sinMean * sinMean + cosMean * cosMean), 0), 1)
         // Circular std in hours; R=1 → std=0 (perfect), R~0 → std large
-        let stdHours = R > 0 ? sqrt(-2.0 * log(R)) / toRad : 12.0
+        let stdHours = R > 1e-9 ? sqrt(max(-2.0 * log(R), 0)) / toRad : 12.0
         // Map: std=0 → 1.0 (100%), std=6h → 0 (complete disorder)
         return max(0, min(1, 1 - stdHours / 6.0))
     }
