@@ -21,6 +21,11 @@ struct SettingsTab: View {
         }
     }
 
+    private func chronotypeLabel(_ ct: Chronotype) -> String {
+        let key = "chronotype.result.\(ct.rawValue)"
+        return String(localized: String.LocalizationValue(key), bundle: bundle)
+    }
+
     private func formatHour(_ h: Double) -> String {
         let total = Int((h * 60).rounded())
         let hh = (total / 60) % 24
@@ -348,6 +353,42 @@ struct SettingsTab: View {
                         Label(String(localized: "settings.data.resetAll", bundle: bundle), systemImage: "arrow.counterclockwise")
                             .font(.system(size: 11, design: .monospaced))
                             .foregroundStyle(SpiralColors.poor)
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                // ── Chronotype ─────────────────────────────────────────────
+                SettingsSection(title: String(localized: "settings.chronotype.title", bundle: bundle), icon: "person.crop.circle") {
+                    if let ct = store.chronotypeResult {
+                        HStack(spacing: 8) {
+                            Text(ct.chronotype.emoji)
+                                .font(.system(size: 20))
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(chronotypeLabel(ct.chronotype))
+                                    .font(.system(size: 12, weight: .medium, design: .monospaced))
+                                    .foregroundStyle(SpiralColors.text)
+                                Text(String(
+                                    format: String(localized: "settings.chronotype.score", bundle: bundle),
+                                    ct.totalScore
+                                ))
+                                .font(.system(size: 10, design: .monospaced))
+                                .foregroundStyle(SpiralColors.muted)
+                            }
+                            Spacer()
+                        }
+                    }
+
+                    Button {
+                        store.hasCompletedChronotype = false
+                    } label: {
+                        Label(
+                            store.chronotypeResult != nil
+                                ? String(localized: "settings.chronotype.retake", bundle: bundle)
+                                : String(localized: "settings.chronotype.take", bundle: bundle),
+                            systemImage: "arrow.counterclockwise"
+                        )
+                        .font(.system(size: 11, design: .monospaced))
+                        .foregroundStyle(SpiralColors.accent)
                     }
                     .buttonStyle(.plain)
                 }

@@ -80,16 +80,25 @@ struct ContentView: View {
             )
 
             // ── Tutorial overlay — sits above TabView, below WelcomeScreen ──
-            if store.hasShownWelcome && !store.hasCompletedOnboarding {
+            if store.hasShownWelcome && store.hasCompletedChronotype && !store.hasCompletedOnboarding {
                 OnboardingOverlayView(frames: onboardingFrames)
                     .transition(.opacity)
                     .zIndex(5)
             }
 
+            // ── Chronotype questionnaire — between welcome and tutorial ──
+            if store.hasShownWelcome && !store.hasCompletedChronotype {
+                ChronotypeQuestionnaireView {
+                    store.hasCompletedChronotype = true
+                }
+                .transition(.opacity)
+                .zIndex(8)
+            }
+
             // ── Welcome screen — shown before everything else ─────────────
             if !store.hasShownWelcome {
                 WelcomeScreenView {
-                    // On Continue: switch to Spiral tab, fade out welcome, then show tutorial
+                    // On Continue: switch to Spiral tab, fade out welcome, then show chronotype
                     selectedTab = .spiral
                     store.hasShownWelcome = true
                 }
@@ -98,6 +107,7 @@ struct ContentView: View {
             }
         }
         .animation(.easeInOut(duration: 0.35), value: store.hasShownWelcome)
+        .animation(.easeInOut(duration: 0.35), value: store.hasCompletedChronotype)
         .animation(.easeInOut(duration: 0.35), value: store.hasCompletedOnboarding)
         // When onboarding resets (e.g. Reset All Data), jump back to Spiral tab
         .onChange(of: store.hasShownWelcome) { _, newVal in
