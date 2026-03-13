@@ -39,7 +39,13 @@ struct SpiralView: View {
     var startRadius: Double = 75
 
 
+    @Environment(\.colorScheme) private var colorScheme
     @State private var canvasSize: CGSize = .zero
+
+    /// Grid line base color — white in dark mode, dark ink in light mode.
+    private var gridColor: Color {
+        colorScheme == .dark ? Color.white : Color(red: 0.1, green: 0.1, blue: 0.2)
+    }
 
     var body: some View {
         GeometryReader { geo in
@@ -167,7 +173,7 @@ struct SpiralView: View {
         if showTwoProcess {
             drawTwoProcess(context: context, geo: geo, size: size)
         }
-        // 5. Data points (phase strokes)
+        // 5. Data points (phase strokes with gradient color — E)
         drawDataPoints(context: context, geo: geo, size: size)
         // 6. Cosinor overlay
         if showCosinor {
@@ -179,7 +185,7 @@ struct SpiralView: View {
         if showBiomarkers {
             drawBiomarkers(context: context, geo: geo, size: size)
         }
-        // 9. Hour labels — always visible
+        // D. Hour labels with pill background
         drawHourLabels(context: context, geo: geo, size: size)
         // 10. Selected day ring
         if let day = selectedDay {
@@ -197,13 +203,49 @@ struct SpiralView: View {
         drawTargetMarkers(context: context, geo: geo, upToTurns: maxVisible)
     }
 
+    // MARK: - B: Radial vignette background
+
+    /// Draws a soft radial gradient centered on the spiral: slightly lighter at center,
+    /// fading to pure darkness at the edges — makes the spiral feel like it floats in space.
+    private func drawRadialBackground(context: GraphicsContext, geo: SpiralGeometry, size: CGSize) {
+        let center = CGPoint(x: geo.cx, y: geo.cy)
+        let outerR = max(size.width, size.height) * 0.72
+
+        // Inner glow: a faint indigo halo where the spiral lives
+        let innerGlow = Path(ellipseIn: CGRect(
+            x: center.x - outerR * 0.55, y: center.y - outerR * 0.55,
+            width: outerR * 1.1, height: outerR * 1.1))
+        context.fill(innerGlow, with: .radialGradient(
+            Gradient(colors: [
+                Color(hex: "1a1535").opacity(0.55),
+                Color.clear
+            ]),
+            center: center,
+            startRadius: 0,
+            endRadius: outerR * 0.55
+        ))
+
+        // Outer vignette: dark overlay at the canvas corners
+        let fullRect = Path(CGRect(x: 0, y: 0, width: size.width, height: size.height))
+        context.fill(fullRect, with: .radialGradient(
+            Gradient(colors: [
+                Color.clear,
+                Color.black.opacity(0.45)
+            ]),
+            center: center,
+            startRadius: outerR * 0.45,
+            endRadius: outerR
+        ))
+    }
+
     private func drawDayRings(context: GraphicsContext, geo: SpiralGeometry, fromTurns: Double = 0, upToTurns: Double, size: CGSize) {
         for ring in geo.dayRings() where ring.day > 0 && Double(ring.day) >= fromTurns - 1 && Double(ring.day) <= upToTurns {
             let ringOpac = weekWindowOpacity(turns: Double(ring.day))
             guard ringOpac > 0.01 else { continue }
+            let gridScale = colorScheme == .dark ? 1.0 : 1.3
             let color = ring.isWeekBoundary
-                ? Color.white.opacity(0.18 * ringOpac)
-                : Color.white.opacity(0.09 * ringOpac)
+                ? gridColor.opacity(0.22 * ringOpac * gridScale)
+                : gridColor.opacity(0.11 * ringOpac * gridScale)
             let lw: CGFloat = ring.isWeekBoundary ? 0.8 : 0.4
 
             var path = Path()
@@ -232,9 +274,10 @@ struct SpiralView: View {
             var path = Path()
             path.move(to: CGPoint(x: geo.cx, y: geo.cy))
             path.addLine(to: CGPoint(x: geo.cx + canvasEdge * cos(angle), y: geo.cy + canvasEdge * sin(angle)))
-            let opacity: Double = isMajor ? 0.18 : 0.09
+            let gridScale = colorScheme == .dark ? 1.0 : 1.3
+            let opacity: Double = isMajor ? 0.22 * gridScale : 0.11 * gridScale
             let lw: CGFloat    = isMajor ? 1.0 : 0.6
-            context.stroke(path, with: .color(Color.white.opacity(opacity)), lineWidth: lw)
+            context.stroke(path, with: .color(gridColor.opacity(opacity)), lineWidth: lw)
             h += minorStep
         }
     }
@@ -326,7 +369,10 @@ struct SpiralView: View {
             guard !first else { return }
             let opac = weekWindowOpacity(turns: flushTurn)
             if opac > 0.01 {
-                context.stroke(path, with: .color(Color(hex: "2e3248").opacity(opac)),
+                let pathColor = colorScheme == .dark
+                    ? Color(hex: "2e3248").opacity(opac)
+                    : Color(red: 0.7, green: 0.72, blue: 0.78).opacity(opac)
+                context.stroke(path, with: .color(pathColor),
                                style: StrokeStyle(lineWidth: 6, lineCap: .round, lineJoin: .round))
             }
             path = Path(); first = true
@@ -349,6 +395,69 @@ struct SpiralView: View {
         flush()
     }
 
+    // MARK: - A: Glow pass (drawn under crisp phase strokes)
+
+    /// Draws a wide, very soft stroke under each sleep segment — creates a luminous halo effect.
+    private func drawDataGlow(context: GraphicsContext, geo: SpiralGeometry, fromTurns: Double = 0, size: CGSize) {
+        let globalCutTurns = dataEndTurns(geo: geo)
+
+        for record in records {
+            let dayT = Double(record.day)
+            guard dayT + 1.0 >= fromTurns else { continue }
+            let phases = record.phases
+            guard !phases.isEmpty else { continue }
+            let cutTurns = min(globalCutTurns, dayT + 1.0)
+
+            var runPhase  = phases[0].phase
+            var runPoints: [(t: Double, pt: CGPoint)] = []
+
+            func flushGlow() {
+                guard runPhase != .awake, runPoints.count >= 2 else {
+                    runPoints.removeAll(); return
+                }
+                let color = phaseGlowColor(runPhase)
+                let opac  = weekWindowOpacity(turns: runPoints[0].t)
+                guard opac > 0.01 else { runPoints.removeAll(); return }
+                // Draw two glow layers: wide soft outer + tighter inner
+                for (glowLW, glowOpac) in [(38.0, 0.12), (22.0, 0.18)] as [(Double, Double)] {
+                    for i in 0..<(runPoints.count - 1) {
+                        let p0   = runPoints[i]
+                        let p1   = runPoints[i + 1]
+                        let tSeg = (p0.t + p1.t) * 0.5
+                        let sc   = perspectiveScale(turns: tSeg, geo: geo)
+                        let lw   = max(glowLW * 0.5, min(sc * glowLW, glowLW * 1.4))
+                        var seg = Path()
+                        seg.move(to: p0.pt)
+                        seg.addLine(to: p1.pt)
+                        context.stroke(seg, with: .color(color.opacity(glowOpac * opac)),
+                                       style: StrokeStyle(lineWidth: lw, lineCap: .round))
+                    }
+                }
+                runPoints.removeAll()
+            }
+
+            for (i, phase) in phases.enumerated() {
+                let t = dayT + phase.hour / geo.period
+                if t > cutTurns { break }
+                if phase.phase != runPhase {
+                    let edgePt = project(turns: t, geo: geo, size: size)
+                    runPoints.append((t, edgePt))
+                    flushGlow()
+                    runPhase = phase.phase
+                    runPoints.append((t, edgePt))
+                } else {
+                    runPoints.append((t, project(turns: t, geo: geo, size: size)))
+                }
+                if i == phases.count - 1 {
+                    let tEnd = min(cutTurns, dayT + 1.0)
+                    runPoints.append((tEnd, project(turns: tEnd, geo: geo, size: size)))
+                    flushGlow()
+                }
+            }
+            flushGlow()
+        }
+    }
+
     private func drawDataPoints(context: GraphicsContext, geo: SpiralGeometry, fromTurns: Double = 0, size: CGSize) {
         let globalCutTurns = dataEndTurns(geo: geo)
 
@@ -364,24 +473,34 @@ struct SpiralView: View {
 
         func drawRun(_ run: Run) {
             guard run.points.count >= 2 else { return }
-            let color = phaseColor(run.phase)
             let opac  = weekWindowOpacity(turns: run.points[0].t)
             guard opac > 0.01 else { return }
 
-            // Draw segment-by-segment with .round caps so each segment's rounded ends
-            // overlap the next one seamlessly — no gaps, and lw tracks perspective
-            // smoothly even across the long awake arc.
+            // E: Draw segment-by-segment with interpolated color gradient.
+            // For sleep phases, the final 20% of each run blends toward the next phase color.
+            // Awake arcs use a plain solid stroke (original behavior).
+            let baseColor = phaseColor(run.phase)
+            let nextColor = run.nextPhase.map { phaseColor($0) } ?? baseColor
+
             for i in 0..<(run.points.count - 1) {
                 let p0   = run.points[i]
                 let p1   = run.points[i + 1]
                 let tSeg = (p0.t + p1.t) * 0.5
                 let sc   = perspectiveScale(turns: tSeg, geo: geo)
                 let lw   = max(3.0, min(sc * 20.0, 28.0))
+                // Blend toward nextColor in the final 20% of sleep runs
+                let isSleepRun = run.phase != .awake
+                let progress = (isSleepRun && run.points.count > 2)
+                    ? Double(i) / Double(run.points.count - 2)
+                    : 0.0
+                let segColor = (isSleepRun && progress > 0.8)
+                    ? blendColor(baseColor, nextColor, t: (progress - 0.8) / 0.2)
+                    : baseColor
 
                 var seg = Path()
                 seg.move(to: p0.pt)
                 seg.addLine(to: p1.pt)
-                context.stroke(seg, with: .color(color.opacity(opac)),
+                context.stroke(seg, with: .color(segColor.opacity(opac)),
                                style: StrokeStyle(lineWidth: lw, lineCap: .round))
             }
 
@@ -398,7 +517,7 @@ struct SpiralView: View {
                 let lw = max(3.0, min(sc * 20.0, 28.0))
                 let r  = lw * 0.5; let pt = run.points[0].pt
                 context.fill(Circle().path(in: CGRect(x: pt.x - r, y: pt.y - r, width: lw, height: lw)),
-                             with: .color(color.opacity(opac)))
+                             with: .color(baseColor.opacity(opac)))
             }
             if capEnd {
                 let tLast = run.points[run.points.count - 1].t
@@ -406,7 +525,7 @@ struct SpiralView: View {
                 let lw = max(3.0, min(sc * 20.0, 28.0))
                 let r  = lw * 0.5; let pt = run.points[run.points.count - 1].pt
                 context.fill(Circle().path(in: CGRect(x: pt.x - r, y: pt.y - r, width: lw, height: lw)),
-                             with: .color(color.opacity(opac)))
+                             with: .color(nextColor.opacity(opac)))
             }
         }
 
@@ -574,8 +693,8 @@ struct SpiralView: View {
             let displayH = Int(h.rounded()) % 24
             let resolved = context.resolve(
                 Text(String(format: "%02d", displayH))
-                    .font(.system(size: 9, design: .monospaced))
-                    .foregroundStyle(SpiralColors.muted)
+                    .font(.system(size: 9, weight: .medium, design: .monospaced))
+                    .foregroundStyle(SpiralColors.subtle)
             )
             context.draw(resolved, at: pt)
             h += step
@@ -658,5 +777,35 @@ struct SpiralView: View {
         case .light: return Color(hex: "c4b5fd")  // lila (sueño ligero)
         case .awake: return Color(hex: "fbbf24")  // ámbar cálido (vigilia)
         }
+    }
+
+    /// Glow color per phase — slightly more saturated/warm than the crisp stroke color.
+    private func phaseGlowColor(_ phase: SleepPhase) -> Color {
+        switch phase {
+        case .deep:  return Color(hex: "6d28d9")  // deep indigo glow
+        case .rem:   return Color(hex: "8b5cf6")  // violet glow
+        case .light: return Color(hex: "a78bfa")  // soft purple glow
+        case .awake: return Color(hex: "fbbf24")  // amber (unused — awake excluded from glow)
+        }
+    }
+
+    /// Linear interpolation between two SwiftUI Colors in RGB space.
+    private func blendColor(_ a: Color, _ b: Color, t: Double) -> Color {
+        // Resolve to CGColor for component access
+        #if canImport(UIKit)
+        let ca = UIColor(a).cgColor
+        let cb = UIColor(b).cgColor
+        #else
+        let ca = NSColor(a).cgColor
+        let cb = NSColor(b).cgColor
+        #endif
+        let compsA = ca.components ?? [0, 0, 0, 1]
+        let compsB = cb.components ?? [0, 0, 0, 1]
+        let n = min(compsA.count, compsB.count)
+        guard n >= 3 else { return t < 0.5 ? a : b }
+        let r = compsA[0] + (compsB[0] - compsA[0]) * t
+        let g = compsA[1] + (compsB[1] - compsA[1]) * t
+        let bl = compsA[2] + (compsB[2] - compsA[2]) * t
+        return Color(red: Double(r), green: Double(g), blue: Double(bl))
     }
 }

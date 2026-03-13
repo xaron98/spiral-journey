@@ -43,7 +43,6 @@ struct ConsistencyDetailView: View {
         .navigationTitle(String(localized: "consistency.title", bundle: bundle))
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarColorScheme(.dark, for: .navigationBar)
         #endif
     }
 

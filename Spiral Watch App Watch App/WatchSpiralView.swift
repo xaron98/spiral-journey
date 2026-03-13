@@ -97,18 +97,6 @@ struct WatchSpiralView: View {
                 .buttonStyle(.plain)
                 .padding(.top, 42).padding(.trailing, 8)
 
-                // Bottom: cursor time — centered horizontally, above the tab dots
-                VStack {
-                    Spacer()
-                    let hh = Int(cursorAbsHour) % 24
-                    let mm = Int((cursorAbsHour - Double(Int(cursorAbsHour))) * 60)
-                    Text(String(format: "%02d:%02d", hh, mm))
-                        .font(.system(size: 10, weight: .semibold, design: .monospaced))
-                        .foregroundStyle(markingState == .sleeping ? SpiralColors.sleep : SpiralColors.accent)
-                        .padding(.bottom, 10)
-                }
-                .frame(maxWidth: .infinity, alignment: .center)
-
                 if flashConfirm {
                     VStack {
                         Spacer()
@@ -121,6 +109,22 @@ struct WatchSpiralView: View {
                         .padding(.bottom, 20)
                     }
                     .transition(.opacity)
+                }
+
+                // Time label — bottom-left, just inside safe area
+                VStack(spacing: 0) {
+                    Spacer()
+                    HStack(spacing: 0) {
+                        let hh = Int(cursorAbsHour) % 24
+                        let mm = Int((cursorAbsHour - Double(Int(cursorAbsHour))) * 60)
+                        Text(String(format: "%02d:%02d", hh, mm))
+                            .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                            .foregroundStyle(markingState == .sleeping ? SpiralColors.sleep : SpiralColors.accent)
+                            .allowsHitTesting(false)
+                            .padding(.leading, 26)
+                            .padding(.bottom, 6)
+                        Spacer()
+                    }
                 }
             }
         }

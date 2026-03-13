@@ -202,11 +202,6 @@ struct SpiralTab: View {
                                 rephasePill
                                     .padding(.horizontal, 16)
                                     .padding(.top, 8)
-
-                                // ── Micro-coach action card ───────────────────────────
-                                microCoachCard
-                                    .padding(.horizontal, 16)
-                                    .padding(.top, 6)
                                     .padding(.bottom, screen.safeAreaInsets.bottom + 80)
                             } else {
                                 // Empty state hint
@@ -384,7 +379,7 @@ struct SpiralTab: View {
                     .foregroundStyle(SpiralColors.text)
                 Text(currentDateString)
                     .font(.system(size: 11, design: .monospaced))
-                    .foregroundStyle(SpiralColors.muted)
+                    .foregroundStyle(SpiralColors.subtle)
             }
             Spacer()
         }
@@ -436,7 +431,7 @@ struct SpiralTab: View {
         return HStack(spacing: 8) {
             Text(df.string(from: date))
                 .font(.system(size: 11, design: .monospaced))
-                .foregroundStyle(SpiralColors.muted)
+                .foregroundStyle(SpiralColors.subtle)
             Text(timeStr)
                 .font(.system(size: 16, weight: .semibold, design: .monospaced))
                 .foregroundStyle(SpiralColors.text)
@@ -454,7 +449,7 @@ struct SpiralTab: View {
                             .font(.system(size: 10, design: .monospaced))
                     }
                 }
-                .foregroundStyle(SpiralColors.accentDim)
+                .foregroundStyle(SpiralColors.accent)
             }
             .buttonStyle(.plain)
             .reportFrame(\.eventsBtn)
@@ -501,7 +496,7 @@ struct SpiralTab: View {
                 Spacer()
                 Image(systemName: "chevron.right")
                     .font(.system(size: 10))
-                    .foregroundStyle(SpiralColors.muted)
+                    .foregroundStyle(SpiralColors.subtle)
             }
             .padding(14)
             .background(
@@ -630,40 +625,6 @@ struct SpiralTab: View {
     }
 
     // MARK: - Micro Coach Card (replaces InsightCard)
-
-    /// 1 action card: what to do today, based on top recommendation.
-    @ViewBuilder
-    private var microCoachCard: some View {
-        if let rec = store.analysis.recommendations.first {
-            HStack(spacing: 12) {
-                Image(systemName: "lightbulb.min")
-                    .font(.system(size: 18))
-                    .foregroundStyle(SpiralColors.accent)
-                    .frame(width: 24)
-
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(String(localized: "coach.action.eyebrow", bundle: bundle))
-                        .font(.system(size: 9, weight: .medium))
-                        .foregroundStyle(SpiralColors.muted)
-                        .textCase(.uppercase)
-                    Text(localizedRecTitle(rec))
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(SpiralColors.text)
-                        .lineLimit(2)
-                }
-                Spacer()
-            }
-            .padding(14)
-            .background(
-                ZStack {
-                    RoundedRectangle(cornerRadius: 14).fill(.ultraThinMaterial)
-                    RoundedRectangle(cornerRadius: 14).fill(SpiralColors.accent.opacity(0.05))
-                    RoundedRectangle(cornerRadius: 14).stroke(SpiralColors.accent.opacity(0.2), lineWidth: 0.8)
-                }
-            )
-        }
-    }
-
     // MARK: - Rephase Pill
 
     /// Compact rephase status pill shown on Home when rephase mode is active,
@@ -696,7 +657,7 @@ struct SpiralTab: View {
                         if meanAcrophase > 0 {
                             Text(RephaseCalculator.todayActionText(plan: plan, meanAcrophase: meanAcrophase, bundle: bundle))
                                 .font(.system(size: 11))
-                                .foregroundStyle(SpiralColors.text.opacity(0.7))
+                                .foregroundStyle(SpiralColors.muted)
                         }
                     }
                 } else {
@@ -708,7 +669,7 @@ struct SpiralTab: View {
                 Spacer()
                 Image(systemName: "chevron.right")
                     .font(.system(size: 10))
-                    .foregroundStyle(SpiralColors.muted)
+                    .foregroundStyle(SpiralColors.subtle)
             }
             .padding(.horizontal, 14)
             .padding(.vertical, plan.isEnabled ? 10 : 8)
@@ -724,14 +685,6 @@ struct SpiralTab: View {
             )
         }
         .buttonStyle(.plain)
-    }
-
-    // MARK: - Recommendation localization helper
-
-    private func localizedRecTitle(_ rec: Recommendation) -> String {
-        guard let key = rec.key else { return rec.title }
-        let localized = NSLocalizedString("rec.\(key.rawValue).title", bundle: bundle, comment: "")
-        return localized == "rec.\(key.rawValue).title" ? rec.title : localized
     }
 
     // MARK: - Log button
@@ -946,8 +899,8 @@ struct HumanStatCard: View {
     var body: some View {
         VStack(spacing: 3) {
             Text(label)
-                .font(.system(size: 8, weight: .medium))
-                .foregroundStyle(SpiralColors.muted)
+                .font(.system(size: 8, weight: .semibold))
+                .foregroundStyle(SpiralColors.subtle)
                 .textCase(.uppercase)
                 .lineLimit(1)
             Text(value)
@@ -956,8 +909,8 @@ struct HumanStatCard: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
             Text(sub)
-                .font(.system(size: 9))
-                .foregroundStyle(color.opacity(0.7))
+                .font(.system(size: 9, weight: .medium))
+                .foregroundStyle(SpiralColors.muted)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
         }
@@ -965,9 +918,9 @@ struct HumanStatCard: View {
         .padding(.vertical, 12)
         .background(
             ZStack {
-                RoundedRectangle(cornerRadius: 12).fill(.ultraThinMaterial)
-                RoundedRectangle(cornerRadius: 12).fill(color.opacity(0.05))
-                RoundedRectangle(cornerRadius: 12).stroke(color.opacity(0.15), lineWidth: 0.6)
+                RoundedRectangle(cornerRadius: 12).fill(SpiralColors.surface)
+                RoundedRectangle(cornerRadius: 12).fill(color.opacity(0.12))
+                RoundedRectangle(cornerRadius: 12).stroke(color.opacity(0.45), lineWidth: 1.0)
             }
         )
     }
@@ -1160,7 +1113,7 @@ private struct GlassEventButton: View {
                     .foregroundStyle(Color(hex: type.hexColor))
                 Text(type.label)
                     .font(.system(size: 8, weight: .medium, design: .monospaced))
-                    .foregroundStyle(SpiralColors.muted)
+                    .foregroundStyle(SpiralColors.subtle)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
             }

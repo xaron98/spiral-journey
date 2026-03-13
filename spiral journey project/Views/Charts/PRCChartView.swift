@@ -3,9 +3,13 @@ import Charts
 import SpiralKit
 
 /// Interactive Phase Response Curve chart.
+/// Pass `events` to overlay the user's real logged events as dots on the curve.
 struct PRCChartView: View {
 
+    var events: [CircadianEvent] = []
+
     @State private var selectedModel: EventType = .light
+    @State private var showHelp = false
     @Environment(\.languageBundle) private var bundle
 
     private struct PRCPoint: Identifiable {
@@ -20,9 +24,38 @@ struct PRCChartView: View {
         }
     }
 
+    /// User events matching the selected model, with their PRC response value.
+    private var userEventPoints: [(hour: Double, response: Double)] {
+        events
+            .filter { $0.type == selectedModel }
+            .compactMap { event -> (Double, Double)? in
+                let h = event.absoluteHour.truncatingRemainder(dividingBy: 24)
+                guard let r = PhaseResponse.models[selectedModel]?.fn(h) else { return nil }
+                return (h, r)
+            }
+    }
+
+    private var curveColor: Color {
+        Color(hex: PhaseResponse.models[selectedModel]?.hexColor ?? "5bffa8")
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            PanelTitle(title: String(localized: "prc.title", bundle: bundle))
+            HStack {
+                PanelTitle(title: String(localized: "prc.title", bundle: bundle))
+                Spacer()
+                Button {
+                    showHelp = true
+                } label: {
+                    Image(systemName: "questionmark.circle")
+                        .font(.system(size: 15))
+                        .foregroundStyle(SpiralColors.subtle)
+                }
+                .buttonStyle(.plain)
+            }
+            .sheet(isPresented: $showHelp) {
+                PRCHelpSheet(bundle: bundle)
+            }
 
             // Model selector
             ScrollView(.horizontal, showsIndicators: false) {
@@ -35,10 +68,14 @@ struct PRCChartView: View {
                 }
             }
 
-            if PhaseResponse.models[selectedModel] != nil {
-                Text(localizedEventLabel(selectedModel))
+            // Reference label
+            HStack(spacing: 4) {
+                Image(systemName: "info.circle")
+                    .font(.system(size: 8))
+                    .foregroundStyle(SpiralColors.subtle)
+                Text(String(localized: "prc.reference.label", bundle: bundle))
                     .font(.system(size: 9, design: .monospaced))
-                    .foregroundStyle(SpiralColors.muted)
+                    .foregroundStyle(SpiralColors.subtle)
             }
 
             Chart {
@@ -61,10 +98,7 @@ struct PRCChartView: View {
                     )
                     .foregroundStyle(
                         LinearGradient(
-                            colors: [
-                                Color(hex: PhaseResponse.models[selectedModel]?.hexColor ?? "5bffa8").opacity(0.3),
-                                Color(hex: PhaseResponse.models[selectedModel]?.hexColor ?? "5bffa8").opacity(0)
-                            ],
+                            colors: [curveColor.opacity(0.3), curveColor.opacity(0)],
                             startPoint: .top, endPoint: .bottom
                         )
                     )
@@ -72,8 +106,24 @@ struct PRCChartView: View {
                         x: .value("Hour", point.hour),
                         y: .value("Response", point.response)
                     )
-                    .foregroundStyle(Color(hex: PhaseResponse.models[selectedModel]?.hexColor ?? "5bffa8"))
+                    .foregroundStyle(curveColor)
                     .lineStyle(StrokeStyle(lineWidth: 1.5))
+                }
+
+                // User event dots — overlaid on the curve
+                ForEach(Array(userEventPoints.enumerated()), id: \.offset) { _, pt in
+                    PointMark(
+                        x: .value("Hour", pt.hour),
+                        y: .value("Response", pt.response)
+                    )
+                    .foregroundStyle(.white)
+                    .symbolSize(28)
+                    PointMark(
+                        x: .value("Hour", pt.hour),
+                        y: .value("Response", pt.response)
+                    )
+                    .foregroundStyle(curveColor)
+                    .symbolSize(16)
                 }
             }
             .chartXScale(domain: 0...24)
@@ -96,12 +146,15 @@ struct PRCChartView: View {
                 }
             }
             .chartBackground { _ in SpiralColors.bg }
-            .frame(height: 100)
+            .frame(height: 110)
 
             HStack(spacing: 12) {
                 legendZone(color: SpiralColors.poor,     label: String(localized: "prc.delay", bundle: bundle))
                 legendZone(color: SpiralColors.good,     label: String(localized: "prc.advance", bundle: bundle))
                 legendZone(color: SpiralColors.muted,    label: String(localized: "prc.dead", bundle: bundle))
+                if !userEventPoints.isEmpty {
+                    legendDot(color: curveColor, label: String(localized: "prc.your.events", bundle: bundle))
+                }
             }
         }
         .panelStyle()
@@ -124,6 +177,110 @@ struct PRCChartView: View {
             Text(label)
                 .font(.system(size: 8, design: .monospaced))
                 .foregroundStyle(SpiralColors.muted)
+        }
+    }
+
+    private func legendDot(color: Color, label: String) -> some View {
+        HStack(spacing: 4) {
+            Circle().fill(color).frame(width: 7, height: 7)
+            Text(label)
+                .font(.system(size: 8, design: .monospaced))
+                .foregroundStyle(SpiralColors.muted)
+        }
+    }
+}
+
+// MARK: - PRC Help Sheet
+
+private struct PRCHelpSheet: View {
+    let bundle: Bundle
+    @Environment(\.dismiss) private var dismiss
+
+    private struct HelpSection: Identifiable {
+        let id = UUID()
+        let icon: String
+        let iconColor: Color
+        let title: String
+        let body: String
+    }
+
+    private var sections: [HelpSection] {
+        [
+            HelpSection(
+                icon: "clock.arrow.2.circlepath",
+                iconColor: SpiralColors.accent,
+                title: NSLocalizedString("prc.help.what.title", bundle: bundle, comment: ""),
+                body: NSLocalizedString("prc.help.what.body", bundle: bundle, comment: "")
+            ),
+            HelpSection(
+                icon: "arrow.up.circle.fill",
+                iconColor: SpiralColors.good,
+                title: NSLocalizedString("prc.help.advance.title", bundle: bundle, comment: ""),
+                body: NSLocalizedString("prc.help.advance.body", bundle: bundle, comment: "")
+            ),
+            HelpSection(
+                icon: "arrow.down.circle.fill",
+                iconColor: SpiralColors.poor,
+                title: NSLocalizedString("prc.help.delay.title", bundle: bundle, comment: ""),
+                body: NSLocalizedString("prc.help.delay.body", bundle: bundle, comment: "")
+            ),
+            HelpSection(
+                icon: "minus.circle.fill",
+                iconColor: SpiralColors.subtle,
+                title: NSLocalizedString("prc.help.dead.title", bundle: bundle, comment: ""),
+                body: NSLocalizedString("prc.help.dead.body", bundle: bundle, comment: "")
+            ),
+            HelpSection(
+                icon: "lightbulb.fill",
+                iconColor: SpiralColors.moderate,
+                title: NSLocalizedString("prc.help.use.title", bundle: bundle, comment: ""),
+                body: NSLocalizedString("prc.help.use.body", bundle: bundle, comment: "")
+            ),
+        ]
+    }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(sections) { section in
+                        HStack(alignment: .top, spacing: 14) {
+                            Image(systemName: section.icon)
+                                .font(.system(size: 18))
+                                .foregroundStyle(section.iconColor)
+                                .frame(width: 26)
+                                .padding(.top, 1)
+                            VStack(alignment: .leading, spacing: 5) {
+                                Text(section.title)
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundStyle(SpiralColors.text)
+                                Text(section.body)
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(SpiralColors.muted)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                    .lineSpacing(3)
+                            }
+                        }
+                        .padding(.vertical, 14)
+                        .padding(.horizontal, 20)
+                        Divider()
+                            .background(SpiralColors.border)
+                            .padding(.horizontal, 20)
+                    }
+                }
+                .padding(.bottom, 20)
+            }
+            .background(SpiralColors.bg.ignoresSafeArea())
+            .navigationTitle(NSLocalizedString("prc.help.sheet.title", bundle: bundle, comment: ""))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(NSLocalizedString("stats.glossary.done", bundle: bundle, comment: "")) {
+                        dismiss()
+                    }
+                    .foregroundStyle(SpiralColors.accent)
+                }
+            }
         }
     }
 }

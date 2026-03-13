@@ -6,6 +6,7 @@ struct StatsPanelView: View {
 
     let records: [SleepRecord]
     @Environment(\.languageBundle) private var bundle
+    @State private var showGlossary = false
 
     private var stats: SleepStats {
         SleepStatistics.calculateStats(records)
@@ -17,7 +18,21 @@ struct StatsPanelView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            PanelTitle(title: String(localized: "stats.title", bundle: bundle))
+            HStack {
+                PanelTitle(title: String(localized: "stats.title", bundle: bundle))
+                Spacer()
+                Button {
+                    showGlossary = true
+                } label: {
+                    Image(systemName: "questionmark.circle")
+                        .font(.system(size: 15))
+                        .foregroundStyle(SpiralColors.subtle)
+                }
+                .buttonStyle(.plain)
+            }
+            .sheet(isPresented: $showGlossary) {
+                StatsGlossarySheet(bundle: bundle)
+            }
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
                 StatCard(String(localized: "stats.card.acrophase", bundle: bundle),
@@ -61,6 +76,114 @@ struct StatsPanelView: View {
     }
 }
 
+// MARK: - Stats Glossary Sheet
+
+private struct StatsGlossarySheet: View {
+    let bundle: Bundle
+    @Environment(\.dismiss) private var dismiss
+
+    private struct GlossaryItem: Identifiable {
+        let id = UUID()
+        let term: String
+        let definition: String
+        let icon: String
+    }
+
+    private var items: [GlossaryItem] {
+        [
+            GlossaryItem(
+                term: NSLocalizedString("stats.card.acrophase", bundle: bundle, comment: ""),
+                definition: NSLocalizedString("stats.glossary.acrophase", bundle: bundle, comment: ""),
+                icon: "clock"
+            ),
+            GlossaryItem(
+                term: NSLocalizedString("stats.card.acroSigma", bundle: bundle, comment: ""),
+                definition: NSLocalizedString("stats.glossary.acroSigma", bundle: bundle, comment: ""),
+                icon: "plusminus"
+            ),
+            GlossaryItem(
+                term: NSLocalizedString("stats.card.amplitude", bundle: bundle, comment: ""),
+                definition: NSLocalizedString("stats.glossary.amplitude", bundle: bundle, comment: ""),
+                icon: "waveform"
+            ),
+            GlossaryItem(
+                term: NSLocalizedString("stats.card.rhythm", bundle: bundle, comment: ""),
+                definition: NSLocalizedString("stats.glossary.rhythm", bundle: bundle, comment: ""),
+                icon: "repeat"
+            ),
+            GlossaryItem(
+                term: NSLocalizedString("stats.card.sri", bundle: bundle, comment: ""),
+                definition: NSLocalizedString("stats.glossary.sri", bundle: bundle, comment: ""),
+                icon: "calendar"
+            ),
+            GlossaryItem(
+                term: NSLocalizedString("stats.card.socialJL", bundle: bundle, comment: ""),
+                definition: NSLocalizedString("stats.glossary.socialJL", bundle: bundle, comment: ""),
+                icon: "calendar.badge.exclamationmark"
+            ),
+            GlossaryItem(
+                term: NSLocalizedString("stats.card.wkndAmp", bundle: bundle, comment: ""),
+                definition: NSLocalizedString("stats.glossary.wkndAmp", bundle: bundle, comment: ""),
+                icon: "moon.stars"
+            ),
+            GlossaryItem(
+                term: NSLocalizedString("stats.card.sleep", bundle: bundle, comment: ""),
+                definition: NSLocalizedString("stats.glossary.sleep", bundle: bundle, comment: ""),
+                icon: "bed.double"
+            ),
+            GlossaryItem(
+                term: NSLocalizedString("stats.card.r2", bundle: bundle, comment: ""),
+                definition: NSLocalizedString("stats.glossary.r2", bundle: bundle, comment: ""),
+                icon: "chart.line.uptrend.xyaxis"
+            ),
+        ]
+    }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(items) { item in
+                        VStack(alignment: .leading, spacing: 6) {
+                            HStack(spacing: 8) {
+                                Image(systemName: item.icon)
+                                    .font(.system(size: 13))
+                                    .foregroundStyle(SpiralColors.accent)
+                                    .frame(width: 20)
+                                Text(item.term)
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundStyle(SpiralColors.text)
+                            }
+                            Text(item.definition)
+                                .font(.system(size: 12))
+                                .foregroundStyle(SpiralColors.muted)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .lineSpacing(2)
+                                .padding(.leading, 28)
+                        }
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 20)
+                        Divider()
+                            .background(SpiralColors.border)
+                            .padding(.horizontal, 20)
+                    }
+                }
+            }
+            .background(SpiralColors.bg.ignoresSafeArea())
+            .navigationTitle(NSLocalizedString("stats.glossary.title", bundle: bundle, comment: ""))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(NSLocalizedString("stats.glossary.done", bundle: bundle, comment: "")) {
+                        dismiss()
+                    }
+                    .foregroundStyle(SpiralColors.accent)
+                }
+            }
+        }
+    }
+}
+
 private struct SignatureBadge: View {
     let signature: DisorderSignature
 
@@ -77,7 +200,7 @@ private struct SignatureBadge: View {
                     Spacer()
                     Text(String(format: "%.0f%%", signature.confidence * 100))
                         .font(.system(size: 9, design: .monospaced))
-                        .foregroundStyle(SpiralColors.muted)
+                        .foregroundStyle(SpiralColors.subtle)
                 }
                 Text(signature.description)
                     .font(.system(size: 9))

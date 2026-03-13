@@ -9,6 +9,8 @@ struct SettingsTab: View {
     @Environment(\.languageBundle) private var bundle
     @State private var isRefreshing = false
     @State private var isImporting = false
+    @State private var showClearManualConfirm = false
+    @State private var showResetAllConfirm = false
 
     // MARK: - Helpers
 
@@ -294,14 +296,24 @@ struct SettingsTab: View {
                         Spacer()
                     }
                     Button(role: .destructive) {
-                        store.sleepEpisodes.removeAll { $0.source == .manual }
-                        store.recompute()
+                        showClearManualConfirm = true
                     } label: {
                         Label(String(localized: "settings.data.clearManual", bundle: bundle), systemImage: "trash")
                             .font(.system(size: 11, design: .monospaced))
                             .foregroundStyle(SpiralColors.poor)
                     }
                     .buttonStyle(.plain)
+                    .confirmationDialog(
+                        String(localized: "settings.confirm.title", bundle: bundle),
+                        isPresented: $showClearManualConfirm,
+                        titleVisibility: .visible
+                    ) {
+                        Button(String(localized: "settings.confirm.yes", bundle: bundle), role: .destructive) {
+                            store.sleepEpisodes.removeAll { $0.source == .manual }
+                            store.recompute()
+                        }
+                        Button(String(localized: "settings.confirm.cancel", bundle: bundle), role: .cancel) {}
+                    }
 
                     // Fresh start: wipe everything and import directly from HealthKit
                     if healthKit.isAuthorized {
@@ -333,13 +345,23 @@ struct SettingsTab: View {
                     }
 
                     Button(role: .destructive) {
-                        store.resetAllData()
+                        showResetAllConfirm = true
                     } label: {
                         Label(String(localized: "settings.data.resetAll", bundle: bundle), systemImage: "arrow.counterclockwise")
                             .font(.system(size: 11, design: .monospaced))
                             .foregroundStyle(SpiralColors.poor)
                     }
                     .buttonStyle(.plain)
+                    .confirmationDialog(
+                        String(localized: "settings.confirm.title", bundle: bundle),
+                        isPresented: $showResetAllConfirm,
+                        titleVisibility: .visible
+                    ) {
+                        Button(String(localized: "settings.confirm.yes", bundle: bundle), role: .destructive) {
+                            store.resetAllData()
+                        }
+                        Button(String(localized: "settings.confirm.cancel", bundle: bundle), role: .cancel) {}
+                    }
                 }
 
                 // ── About ───────────────────────────────────────────────────
@@ -352,6 +374,11 @@ struct SettingsTab: View {
                         .font(.system(size: 10))
                         .foregroundStyle(SpiralColors.muted)
                         .lineSpacing(3)
+                    Text(String(localized: "settings.about.philosophy", bundle: bundle))
+                        .font(.system(size: 10))
+                        .foregroundStyle(SpiralColors.muted)
+                        .lineSpacing(3)
+                        .padding(.top, 4)
                 }
             }
             .padding(.horizontal, 16)

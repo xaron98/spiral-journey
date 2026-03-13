@@ -9,8 +9,10 @@ enum SpiralColors {
     static let bg          = Color("SpiralBg")
     static let surface     = Color("SpiralSurface")
     static let border      = Color("SpiralBorder")
-    static let muted       = Color("SpiralMuted")
-    static let text        = Color("SpiralText")
+    static let text        = Color("SpiralText")       // Primary — titles, values, headlines
+    static let muted       = Color("SpiralMuted")      // Secondary — card body, subtitles, descriptions
+    static let subtle      = Color("SpiralSubtle")     // Tertiary — eyebrows, units, axis labels
+    static let faint       = Color("SpiralFaint")      // Quaternary — date lines, placeholders, microcopy
     static let accent      = Color("SpiralAccent")
     static let accentDim   = Color("SpiralAccentDim")
 

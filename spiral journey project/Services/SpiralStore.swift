@@ -2,6 +2,7 @@ import Foundation
 import Observation
 import SwiftUI
 import SpiralKit
+import WidgetKit
 
 // MARK: - App Preferences
 
@@ -166,11 +167,13 @@ final class SpiralStore {
             UserDefaults.standard.removePersistentDomain(forName: bundleID)
         }
         UserDefaults.standard.synchronize()
+        UserDefaults(suiteName: Self.appGroupID)?.removeObject(forKey: "spiral-journey-store")
         #else
         let launchedKey = "spiral-journey-has-launched-v2"
         if !UserDefaults.standard.bool(forKey: launchedKey) {
             // Fresh install — wipe any leftover dev/beta data
             UserDefaults.standard.removeObject(forKey: "spiral-journey-store")
+            UserDefaults(suiteName: Self.appGroupID)?.removeObject(forKey: "spiral-journey-store")
             UserDefaults.standard.set(true, forKey: launchedKey)
         }
         #endif
@@ -267,6 +270,7 @@ final class SpiralStore {
     func resetAllData() {
         UserDefaults.standard.removeObject(forKey: "spiral-journey-has-launched")
         UserDefaults.standard.removeObject(forKey: storageKey)
+        sharedDefaults.removeObject(forKey: storageKey)
         sleepEpisodes = []
         events = []
         startDate = Calendar.current.startOfDay(for: Date())
@@ -288,6 +292,10 @@ final class SpiralStore {
     // MARK: - Persistence
 
     private let storageKey = "spiral-journey-store"
+    private static let appGroupID = "group.xaron.spiral-journey-project"
+    private var sharedDefaults: UserDefaults {
+        UserDefaults(suiteName: Self.appGroupID) ?? .standard
+    }
 
     /// Increment this when the onboarding flow changes significantly.
     /// Any stored version below this number will replay the welcome + tutorial.
@@ -332,13 +340,20 @@ final class SpiralStore {
             onboardingVersion: currentOnboardingVersion
         )
         if let data = try? JSONEncoder().encode(stored) {
-            UserDefaults.standard.set(data, forKey: storageKey)
+            sharedDefaults.set(data, forKey: storageKey)
+            WidgetCenter.shared.reloadAllTimelines()
         }
     }
 
     private func load() {
-        guard let data = UserDefaults.standard.data(forKey: storageKey),
-              let stored = try? JSONDecoder().decode(Stored.self, from: data) else { return }
+        // Prefer the shared App Group suite; migrate from standard if needed.
+        var data = sharedDefaults.data(forKey: storageKey)
+        if data == nil, let legacy = UserDefaults.standard.data(forKey: storageKey) {
+            // First launch after migration — copy legacy data to shared suite.
+            sharedDefaults.set(legacy, forKey: storageKey)
+            data = legacy
+        }
+        guard let data, let stored = try? JSONDecoder().decode(Stored.self, from: data) else { return }
         sleepEpisodes = stored.sleepEpisodes
         events = stored.events
         startDate = stored.startDate

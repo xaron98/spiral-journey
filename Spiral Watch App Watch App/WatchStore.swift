@@ -2,6 +2,7 @@ import Foundation
 import Observation
 import WatchConnectivity
 import SpiralKit
+import HealthKit
 
 // MARK: - Slim record for WatchConnectivity transfer
 
@@ -140,6 +141,55 @@ final class WatchStore {
             // Context empty — ask iPhone to push fresh data if reachable.
             WatchConnectivityManager.shared.requestDataFromPhone()
         }
+    }
+
+    // MARK: - HealthKit Sync
+
+    /// Fetch recent sleep from HealthKit, merge into local episodes (dedup by HK UUID),
+    /// recompute, and persist. Only used when no iPhone data has arrived (standalone mode).
+    func refreshFromHealthKit() async {
+        let hk = WatchHealthKitManager.shared
+        guard hk.isAuthorized else { return }
+        // If the iPhone has already sent records, don't overwrite with a different HK epoch.
+        // HealthKit is only the data source when the Watch runs without an iPhone.
+        guard records.isEmpty else { return }
+
+        let calendar = Calendar.current
+        let searchDays = 30
+
+        // Step 1: raw fetch using searchStart as a temporary epoch to locate all samples.
+        let searchStart = calendar.date(byAdding: .day, value: -searchDays, to: Date()) ?? Date()
+        let rawEpisodes = await hk.fetchRecentSleepEpisodes(days: searchDays, epoch: searchStart)
+        guard !rawEpisodes.isEmpty else { return }
+
+        // Step 2: derive the correct epoch = start of the day containing the earliest sleep.
+        let earliestAbsHour = rawEpisodes.map(\.start).min() ?? 0
+        let earliestDate = searchStart.addingTimeInterval(earliestAbsHour * 3600)
+        let correctEpoch = calendar.startOfDay(for: earliestDate)
+
+        // Step 3: re-fetch with the correct epoch so absolute hours are stable.
+        let hkEpisodes = await hk.fetchRecentSleepEpisodes(days: searchDays + 2, epoch: correctEpoch)
+        guard !hkEpisodes.isEmpty else { return }
+
+        // Align startDate to the correct epoch so manual and HK episodes share the same timeline.
+        startDate = correctEpoch
+        mergeHealthKitEpisodes(hkEpisodes)
+        recompute()
+        saveToDefaults()
+    }
+
+    /// Merge HealthKit-sourced episodes into the local list, replacing any existing
+    /// episodes with the same HealthKit sample UUID to avoid duplicates on re-fetch.
+    private func mergeHealthKitEpisodes(_ incoming: [SleepEpisode]) {
+        // Remove old HealthKit episodes that are covered by the new fetch.
+        let incomingIDs = Set(incoming.compactMap(\.healthKitSampleID))
+        episodes.removeAll { $0.source == .healthKit && $0.healthKitSampleID.map { incomingIDs.contains($0) } == true }
+
+        // Also remove stale HealthKit episodes that were deleted from Health app
+        // (keep only manual episodes + the fresh HK batch).
+        episodes.removeAll { $0.source == .healthKit }
+        episodes.append(contentsOf: incoming)
+        episodes.sort { $0.start < $1.start }
     }
 
     // MARK: - Episode management

@@ -10,6 +10,9 @@ struct ContentView: View {
         @Bindable var store = store
 
         ZStack(alignment: .center) {
+            // ── Global background ─────────────────────────────────────────────
+            SpiralColors.bg.ignoresSafeArea()
+
             // ── Main app ─────────────────────────────────────────────────────
             TabView(selection: $selectedTab) {
                 SpiralTab(selectedTab: $selectedTab)

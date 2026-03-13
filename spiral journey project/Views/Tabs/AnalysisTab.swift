@@ -67,7 +67,7 @@ struct AnalysisTab: View {
                         StatsPanelView(records: store.records)
                         if showDrift          { DriftChartView(records: store.records) }
                         if showSlidingCosinor { SlidingCosinorView(records: store.records) }
-                        if showPRC            { PRCChartView() }
+                        if showPRC            { PRCChartView(events: store.events) }
                         if showActogram       { ActogramView(records: store.records) }
                         chartToggles
                     }
@@ -91,7 +91,7 @@ struct AnalysisTab: View {
                     .foregroundStyle(SpiralColors.text)
                 Text(String(format: String(localized: "analysis.header.subtitle", bundle: bundle), store.numDays))
                     .font(.system(size: 11, design: .monospaced))
-                    .foregroundStyle(SpiralColors.muted)
+                    .foregroundStyle(SpiralColors.subtle)
             }
             Spacer()
         }
@@ -243,7 +243,7 @@ struct AnalysisTab: View {
                 )
                     .font(.system(size: 12, weight: .medium, design: .monospaced))
             }
-            .foregroundStyle(SpiralColors.accentDim)
+            .foregroundStyle(SpiralColors.accent)
             .padding(.vertical, 10)
             .frame(maxWidth: .infinity)
             .background(
@@ -289,13 +289,13 @@ struct AnalysisTab: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text("Spiral Journey")
                     .font(.system(size: 11, design: .monospaced))
-                    .foregroundStyle(SpiralColors.muted)
+                    .foregroundStyle(SpiralColors.subtle)
                 Text(localizedScoreLabel)
                     .font(.system(size: 20, weight: .semibold))
                     .foregroundStyle(Color(hex: store.analysis.hexColor))
                 Text(String(localized: "conclusions.score.composite", bundle: bundle))
                     .font(.system(size: 10))
-                    .foregroundStyle(SpiralColors.muted)
+                    .foregroundStyle(SpiralColors.subtle)
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -338,7 +338,7 @@ struct AnalysisTab: View {
                 .foregroundStyle(SpiralColors.text)
             Text(String(localized: "analysis.empty.subtitle", bundle: bundle))
                 .font(.system(size: 12))
-                .foregroundStyle(SpiralColors.muted)
+                .foregroundStyle(SpiralColors.subtle)
                 .multilineTextAlignment(.center)
         }
         .padding(.top, 80)
@@ -370,7 +370,7 @@ struct AnalysisTab: View {
                 .frame(width: 14)
             VStack(alignment: .leading, spacing: 1) {
                 Text(localizedTrendLabel(t)).font(.system(size: 11, weight: .medium)).foregroundStyle(SpiralColors.text)
-                Text(localizedTrendDetail(t)).font(.system(size: 9)).foregroundStyle(SpiralColors.muted)
+                Text(localizedTrendDetail(t)).font(.system(size: 9)).foregroundStyle(SpiralColors.subtle)
             }
         }
     }
@@ -416,8 +416,8 @@ struct TrendDimensionCard: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
-                    .font(.system(size: 11, weight: .medium, design: .monospaced))
-                    .foregroundStyle(SpiralColors.muted)
+                    .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                    .foregroundStyle(SpiralColors.subtle)
                     .textCase(.uppercase)
 
                 HStack(alignment: .firstTextBaseline, spacing: 3) {
@@ -427,7 +427,7 @@ struct TrendDimensionCard: View {
                     if !valueUnit.isEmpty {
                         Text(valueUnit)
                             .font(.system(size: 11))
-                            .foregroundStyle(SpiralColors.muted)
+                            .foregroundStyle(SpiralColors.subtle)
                     }
                 }
 
@@ -497,11 +497,11 @@ struct CategoryRow: View {
                         .foregroundStyle(statusColor)
                     Text("\(category.score)")
                         .font(.system(size: 9, design: .monospaced))
-                        .foregroundStyle(SpiralColors.muted)
+                        .foregroundStyle(SpiralColors.subtle)
                 }
                 Text(localizedDetail)
                     .font(.system(size: 9))
-                    .foregroundStyle(SpiralColors.muted)
+                    .foregroundStyle(SpiralColors.subtle)
                     .lineLimit(2)
             }
         }

@@ -7644,49 +7644,49 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "نمط التجزؤ"
+            "value" : "انقطاعات النوم"
           }
         },
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Patró de fragmentació"
+            "value" : "Interrupcions del son"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fragmentierungsmuster"
+            "value" : "Schlafunterbrechungen"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fragmentation pattern"
+            "value" : "Sleep interruptions"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Patrón de fragmentación"
+            "value" : "Interrupciones del sueño"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Schéma de fragmentation"
+            "value" : "Interruptions de sommeil"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "断片化パターン"
+            "value" : "睡眠の中断"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "碎片化模式"
+            "value" : "睡眠中断"
           }
         }
       }
@@ -7696,49 +7696,49 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "التعافي (بديل)"
+            "value" : "جودة الاستعادة"
           }
         },
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Recuperació (proxy)"
+            "value" : "Qualitat de recuperació"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Erholung (Proxy)"
+            "value" : "Erholungsqualität"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Recovery (proxy)"
+            "value" : "Recovery quality"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Recuperación (proxy)"
+            "value" : "Calidad de recuperación"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Récupération (proxy)"
+            "value" : "Qualité de récupération"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "回復 (代替)"
+            "value" : "回復の質"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "恢复 (代理)"
+            "value" : "恢复质量"
           }
         }
       }
@@ -11883,49 +11883,49 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "المنطقة الميتة"
+            "value" : "المنطقة المحايدة"
           }
         },
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zona morta"
+            "value" : "Zona neutra"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Toter Bereich"
+            "value" : "Neutrale Zone"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dead zone"
+            "value" : "Neutral zone"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zona muerta"
+            "value" : "Zona neutra"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zone morte"
+            "value" : "Zone neutre"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "不感帯"
+            "value" : "中立ゾーン"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无效区"
+            "value" : "中性区域"
           }
         }
       }
@@ -15032,6 +15032,58 @@
         }
       }
     },
+    "settings.about.philosophy" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "صُمِّم Spiral Journey لمساعدتك على فهم إيقاعك بشكل أفضل، لا لتصبح مهووساً به. إذا أدّت التطبيق وظيفتها، ستحتاج إليها أقل وأقل."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey està pensada per ajudar-te a entendre millor el teu ritme, no per obsessionar-te'n. Si l'app compleix la seva funció, hauries de necessitar-la cada vegada menys."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey soll dir helfen, deinen Rhythmus besser zu verstehen – nicht, dich damit zu besessen. Wenn die App ihren Zweck erfüllt, solltest du sie immer weniger brauchen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey is designed to help you understand your rhythm better, not to obsess over it. If the app does its job, you should need it less and less."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey está pensada para ayudarte a entender mejor tu ritmo, no para obsesionarte con él. Si la app cumple su función, deberías necesitarla cada vez menos."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey est conçue pour t'aider à mieux comprendre ton rythme, pas pour en devenir obsédé. Si l'app remplit son rôle, tu en auras de moins en moins besoin."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journeyはあなたのリズムをよりよく理解するためのものであり、それに執着するためのものではありません。アプリが機能を果たせば、使う頻度はどんどん減るはずです。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey 旨在帮助你更好地了解自己的节律，而不是让你为此着迷。如果这款应用发挥了作用，你应该越来越少地需要它。"
+          }
+        }
+      }
+    },
     "settings.about.title" : {
       "localizations" : {
         "ar" : {
@@ -15756,6 +15808,162 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "教练模式"
+          }
+        }
+      }
+    },
+    "settings.confirm.cancel" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إلغاء"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel·lar"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbrechen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancelar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Annuler"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "キャンセル"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取消"
+          }
+        }
+      }
+    },
+    "settings.confirm.title" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "هل أنت متأكد؟"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Segur que vols esborrar les dades?"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bist du sicher, dass du die Daten löschen möchtest?"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Are you sure you want to delete the data?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Seguro que quieres borrar los datos?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Êtes-vous sûr de vouloir supprimer les données ?"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本当にデータを削除しますか？"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "确定要删除数据吗？"
+          }
+        }
+      }
+    },
+    "settings.confirm.yes" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نعم، احذف"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sí, esborra"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ja, löschen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yes, delete"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sí, borrar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oui, supprimer"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "はい、削除"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "是，删除"
           }
         }
       }
@@ -20725,6 +20933,294 @@
     "Zero" : {
       "comment" : "Label for the zero mark on the circadian phase drift chart.",
       "isCommentAutoGenerated" : true
+    },
+    "prc.help.sheet.title" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "Cómo leer este gráfico" } },
+        "ca" : { "stringUnit" : { "state" : "translated", "value" : "Com llegir aquest gràfic" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Diagramm verstehen" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "How to read this chart" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cómo leer este gráfico" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Comment lire ce graphique" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "グラフの読み方" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "如何读取此图表" } }
+      }
+    },
+    "prc.help.what.title" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "ما هو منحنى الاستجابة للطور؟" } },
+        "ca" : { "stringUnit" : { "state" : "translated", "value" : "Què és la Corba de Resposta de Fase?" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Was ist die Phasenantwortkurve?" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "What is the Phase Response Curve?" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "¿Qué es la Curva de Respuesta de Fase?" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Qu'est-ce que la courbe de réponse de phase ?" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "位相反応曲線とは？" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "什么是相位反应曲线？" } }
+      }
+    },
+    "prc.help.what.body" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "يُظهر كيف يؤثر منبّه معين (ضوء، كافيين، تمرين…) على ساعتك الداخلية بحسب وقت تطبيقه. نفس القهوة في الساعة 8 صباحاً وفي الساعة 10 مساءً لها تأثيرات مختلفة تماماً على دورة نومك." } },
+        "ca" : { "stringUnit" : { "state" : "translated", "value" : "Mostra com un estímul (llum, cafeïna, exercici…) afecta el teu rellotge intern segons l'hora del dia en què l'apliquis. El mateix cafè a les 8h del matí i a les 22h té efectes completament diferents sobre el teu cicle de son." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Zeigt, wie ein Reiz (Licht, Koffein, Sport…) je nach Tageszeit deine innere Uhr beeinflusst. Derselbe Kaffee um 8 Uhr morgens und um 22 Uhr hat völlig unterschiedliche Auswirkungen auf deinen Schlaf-Wach-Zyklus." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Shows how a stimulus (light, caffeine, exercise…) affects your internal clock depending on the time of day you apply it. The same coffee at 8am and 10pm has completely different effects on your sleep cycle." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Muestra cómo un estímulo (luz, cafeína, ejercicio…) afecta a tu reloj interno según la hora del día en que lo apliques. El mismo café a las 8h de la mañana y a las 22h tiene efectos completamente distintos sobre tu ciclo de sueño." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Montre comment un stimulus (lumière, caféine, exercice…) affecte votre horloge interne selon l'heure à laquelle vous l'appliquez. Le même café à 8h du matin et à 22h a des effets complètement différents sur votre cycle de sommeil." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "光、カフェイン、運動などの刺激が、適用する時間帯によって体内時計にどう影響するかを示します。朝8時と夜10時の同じコーヒーは、睡眠サイクルに全く異なる影響を与えます。" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "显示刺激（光线、咖啡因、运动…）根据一天中施加的时间如何影响你的体内时钟。早上8点和晚上10点喝同样的咖啡对睡眠周期有完全不同的影响。" } }
+      }
+    },
+    "prc.help.advance.title" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "المنحنى للأعلى ← يُقدِّم الساعة" } },
+        "ca" : { "stringUnit" : { "state" : "translated", "value" : "Corba cap amunt → avança el rellotge" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Kurve nach oben → Uhr vorverschieben" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Curve up → advances the clock" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Curva hacia arriba → adelanta el reloj" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Courbe vers le haut → avance l'horloge" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "曲線上向き → 時計を前進させる" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "曲线向上 → 提前时钟" } }
+      }
+    },
+    "prc.help.advance.body" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "عندما يرتفع المنحنى فوق الصفر، يساعدك هذا المنبّه في ذلك الوقت على النوم مبكراً. مثال: الضوء الساطع في الصباح الباكر يُقدِّم ساعتك ويجعلك تشعر بالنعاس أبكر في الليل." } },
+        "ca" : { "stringUnit" : { "state" : "translated", "value" : "Quan la corba puja per sobre de zero, aquell estímul en aquell horari t'ajuda a dormir més d'hora. Exemple: llum brillant a primera hora del matí avança el teu rellotge i fa que tinguis son abans de nit." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Wenn die Kurve über null steigt, hilft dir dieser Reiz zu diesem Zeitpunkt, früher einzuschlafen. Beispiel: Helles Licht am frühen Morgen verschiebt deine innere Uhr vor und lässt dich abends früher müde werden." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "When the curve rises above zero, that stimulus at that time helps you sleep earlier. Example: bright light early in the morning advances your clock and makes you feel sleepy earlier at night." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cuando la curva sube por encima de cero, ese estímulo en ese horario te ayuda a dormir más temprano. Ejemplo: luz brillante a primera hora de la mañana adelanta tu reloj y hace que tengas sueño antes por la noche." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Quand la courbe monte au-dessus de zéro, ce stimulus à cette heure vous aide à dormir plus tôt. Exemple : une lumière vive tôt le matin avance votre horloge et vous donne envie de dormir plus tôt le soir." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "曲線がゼロより上に上がると、その時間帯のその刺激が早く眠るのを助けます。例：早朝の明るい光は時計を前進させ、夜に早く眠気を感じさせます。" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "当曲线升至零以上时，该时间段的该刺激有助于你更早入睡。例如：清晨的明亮光线会提前你的时钟，让你在晚上更早感到困倦。" } }
+      }
+    },
+    "prc.help.delay.title" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "المنحنى للأسفل ← يُؤخِّر الساعة" } },
+        "ca" : { "stringUnit" : { "state" : "translated", "value" : "Corba cap avall → endarrereix el rellotge" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Kurve nach unten → Uhr verzögern" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Curve down → delays the clock" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Curva hacia abajo → retrasa el reloj" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Courbe vers le bas → retarde l'horloge" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "曲線下向き → 時計を遅らせる" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "曲线向下 → 延迟时钟" } }
+      }
+    },
+    "prc.help.delay.body" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "عندما ينخفض المنحنى تحت الصفر، يدفع هذا المنبّه ساعتك إلى وقت متأخر: يصعب عليك النوم وتستيقظ متأخراً في اليوم التالي. ضوء الشاشة ليلاً هو الحالة الأكثر شيوعاً والأكثر ضرراً." } },
+        "ca" : { "stringUnit" : { "state" : "translated", "value" : "Quan la corba baixa per sota de zero, aquell estímul empeny el teu rellotge cap a més tard: et costa més adormir-te i et despertes més tard l'endemà. La llum de pantalla de nit és el cas més comú i més perjudicial." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Wenn die Kurve unter null fällt, verschiebt dieser Reiz deine innere Uhr nach hinten: Du schläfst schwerer ein und wachst am nächsten Tag später auf. Bildschirmlicht am Abend ist der häufigste und schädlichste Fall." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "When the curve drops below zero, that stimulus pushes your clock later: you find it harder to fall asleep and wake up later the next day. Screen light at night is the most common and most damaging case." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cuando la curva baja por debajo de cero, ese estímulo empuja tu reloj hacia más tarde: te cuesta más dormirte y te despiertas más tarde al día siguiente. La luz de pantalla por la noche es el caso más común y el más perjudicial." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Quand la courbe descend en dessous de zéro, ce stimulus pousse votre horloge vers plus tard : vous avez du mal à vous endormir et vous réveillez plus tard le lendemain. La lumière des écrans la nuit est le cas le plus courant et le plus néfaste." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "曲線がゼロより下に下がると、その刺激が時計を遅らせます：眠りにくくなり、翌日遅く目覚めます。夜のスクリーン光は最も一般的で最も有害なケースです。" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "当曲线降至零以下时，该刺激会推迟你的时钟：你更难入睡，第二天醒得更晚。夜晚的屏幕光是最常见也是最有害的情况。" } }
+      }
+    },
+    "prc.help.dead.title" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "قريب من الصفر ← المنطقة المحايدة" } },
+        "ca" : { "stringUnit" : { "state" : "translated", "value" : "Prop de zero → zona neutra" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Nahe null → neutrale Zone" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Near zero → neutral zone" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cerca de cero → zona neutra" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Près de zéro → zone neutre" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ゼロ付近 → 中立ゾーン" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "接近零 → 中性区域" } }
+      }
+    },
+    "prc.help.dead.body" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "في المنطقة المسطحة، لا يكاد المنبّه يؤثر على ساعتك بغض النظر عن الكمية المستخدمة. بالنسبة للضوء، يكون هذا عادةً في منتصف فترة ما بعد الظهر." } },
+        "ca" : { "stringUnit" : { "state" : "translated", "value" : "A la zona plana, l'estímul té poc o cap efecte sobre el teu rellotge, independentment de la quantitat que en facis servir. Per a la llum, sol ser a mitja tarda." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "In der flachen Zone hat der Reiz kaum oder keinen Einfluss auf deine innere Uhr, egal wie viel du verwendest. Bei Licht ist das meist am frühen Nachmittag." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "In the flat zone, the stimulus has little or no effect on your clock, regardless of how much you use. For light, this is typically mid-afternoon." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "En la zona plana, el estímulo tiene poco o ningún efecto sobre tu reloj, independientemente de la cantidad que uses. Para la luz, suele ser a mediados de la tarde." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Dans la zone plate, le stimulus a peu ou pas d'effet sur votre horloge, quelle que soit la quantité utilisée. Pour la lumière, c'est généralement en milieu d'après-midi." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "平坦なゾーンでは、どれだけ使っても刺激は体内時計にほとんど影響しません。光の場合、これは通常午後中頃です。" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "在平坦区域，无论使用多少，该刺激对你的时钟几乎没有影响。对于光线，这通常是下午中段。" } }
+      }
+    },
+    "prc.help.use.title" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "كيف تستخدمه عملياً" } },
+        "ca" : { "stringUnit" : { "state" : "translated", "value" : "Com usar-lo a la pràctica" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Praktische Anwendung" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "How to use it in practice" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cómo usarlo en la práctica" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Comment l'utiliser en pratique" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "実際の使い方" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "如何在实践中使用" } }
+      }
+    },
+    "prc.help.use.body" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "إذا أردت النوم مبكراً: ابحث عن ضوء ساطع في الصباح (المنطقة الخضراء) وتجنب الشاشات ليلاً (المنطقة الحمراء). إذا أردت النوم متأخراً: افعل العكس. سجّل أحداثك في اللولب لترى في أي منطقة من المنحنى تقع." } },
+        "ca" : { "stringUnit" : { "state" : "translated", "value" : "Si vols dormir abans: busca llum brillant al matí (zona verda) i evita pantalles de nit (zona vermella). Si vols dormir més tard: fes el contrari. Registra els teus events a l'espiral per veure exactament en quina zona de la corba cauen." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Wenn du früher schlafen möchtest: Suche morgens helles Licht (grüne Zone) und vermeide abends Bildschirme (rote Zone). Wenn du später schlafen möchtest: mache das Gegenteil. Erfasse deine Ereignisse in der Spirale, um genau zu sehen, in welche Zone der Kurve sie fallen." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "If you want to sleep earlier: seek bright light in the morning (green zone) and avoid screens at night (red zone). If you want to sleep later: do the opposite. Log your events on the spiral to see exactly which zone of the curve they fall in." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Si quieres dormir antes: busca luz brillante por la mañana (zona verde) y evita pantallas por la noche (zona roja). Si quieres dormir más tarde: haz lo contrario. Registra tus eventos en la espiral para ver exactamente en qué zona de la curva caen." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Si vous voulez dormir plus tôt : cherchez une lumière vive le matin (zone verte) et évitez les écrans la nuit (zone rouge). Si vous voulez dormir plus tard : faites le contraire. Enregistrez vos événements sur la spirale pour voir exactement dans quelle zone de la courbe ils tombent." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "早く眠りたい場合：朝に明るい光を浴びて（緑ゾーン）、夜はスクリーンを避けてください（赤ゾーン）。遅く眠りたい場合は逆にしてください。スパイラルにイベントを記録して、曲線のどのゾーンに当たるか確認しましょう。" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "如果想早点睡：早上寻找明亮光线（绿色区域），晚上避免屏幕（红色区域）。如果想晚点睡：做相反的事。在螺旋上记录你的事件，看看它们落在曲线的哪个区域。" } }
+      }
+    },
+    "prc.reference.label" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "نموذج مرجعي علمي — ليس بياناتك الشخصية" } },
+        "ca" : { "stringUnit" : { "state" : "translated", "value" : "Model de referència científica — no les teves dades personals" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Wissenschaftliches Referenzmodell — keine persönlichen Daten" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Scientific reference model — not your personal data" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Modelo de referencia científica — no son tus datos personales" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Modèle de référence scientifique — pas vos données personnelles" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "科学的参照モデル — 個人データではありません" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "科学参考模型 — 非个人数据" } }
+      }
+    },
+    "prc.your.events" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "أحداثك" } },
+        "ca" : { "stringUnit" : { "state" : "translated", "value" : "Els teus events" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Deine Ereignisse" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Your events" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Tus eventos" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Vos événements" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "あなたのイベント" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "你的事件" } }
+      }
+    },
+    "stats.glossary.title" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "مصطلحات الإحصاءات" } },
+        "ca" : { "stringUnit" : { "state" : "translated", "value" : "Glossari d'estadístiques" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Statistik-Glossar" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Stats Glossary" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Glosario de estadísticas" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Glossaire des statistiques" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "統計用語集" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "统计词汇表" } }
+      }
+    },
+    "stats.glossary.done" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "تم" } },
+        "ca" : { "stringUnit" : { "state" : "translated", "value" : "Fet" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Fertig" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Done" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Listo" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "OK" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "完了" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "完成" } }
+      }
+    },
+    "stats.glossary.acrophase" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "وقت ذروة نشاطك اليومي. الفترة التي يكون فيها جسمك أكثر يقظة وأداءً. في نمط النوم الصحي، تقع عادةً بين الساعة 14:00 و18:00." } },
+        "ca" : { "stringUnit" : { "state" : "translated", "value" : "Hora del pic d'activitat del teu ritme circadià. Quan el teu cos és més actiu i alerta. En un patró saludable, sol caure entre les 14:00 i les 18:00." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Zeitpunkt des Aktivitätsgipfels deines circadianen Rhythmus. Wann dein Körper am wachsten und leistungsfähigsten ist. Bei einem gesunden Muster liegt er meist zwischen 14:00 und 18:00 Uhr." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The time of peak activity in your circadian rhythm. When your body is most alert and productive. In a healthy pattern, it usually falls between 14:00 and 18:00." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "La hora de máxima actividad de tu ritmo circadiano. Cuando tu cuerpo está más alerta y productivo. En un patrón saludable, suele caer entre las 14:00 y las 18:00." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "L'heure du pic d'activité de votre rythme circadien. Quand votre corps est le plus alerte et productif. Dans un schéma sain, elle se situe généralement entre 14h00 et 18h00." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "概日リズムの活動ピーク時刻。体が最も覚醒し生産的な時間帯。健康なパターンでは通常14:00〜18:00の間に現れます。" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "昼夜节律活动峰值时间。身体最警觉、最有效率的时刻。健康模式下通常在14:00至18:00之间。" } }
+      }
+    },
+    "stats.glossary.acroSigma" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "مدى تفاوت وقت الذروة من يوم لآخر. الانحراف المعياري ≤ 1 ساعة يدل على انتظام جيد؛ فوق ساعتين يشير إلى عدم انتظام ملحوظ." } },
+        "ca" : { "stringUnit" : { "state" : "translated", "value" : "Quant varia l'hora del pic d'un dia a l'altre. Una desviació ≤ 1 hora indica bona regularitat; per sobre de 2 hores suggereix irregularitat notable." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Wie sehr die Gipfelzeit von Tag zu Tag schwankt. Eine Standardabweichung ≤ 1 Stunde zeigt gute Regelmäßigkeit; über 2 Stunden deutet auf erhebliche Unregelmäßigkeit hin." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "How much the peak time varies from day to day. A standard deviation ≤ 1 hour indicates good regularity; above 2 hours suggests notable irregularity." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cuánto varía la hora del pico de un día a otro. Una desviación estándar ≤ 1 hora indica buena regularidad; por encima de 2 horas sugiere irregularidad notable." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Variation de l'heure du pic d'un jour à l'autre. Un écart-type ≤ 1 heure indique une bonne régularité ; au-dessus de 2 heures, il y a une irrégularité notable." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ピーク時刻の日々のばらつき。標準偏差≤1時間は規則性が良好、2時間超は不規則性が顕著。" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "峰值时间每天的变化程度。标准差≤1小时表示规律性好；超过2小时表示不规律性明显。" } }
+      }
+    },
+    "stats.glossary.amplitude" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "قوة إشارة الساعة البيولوجية الداخلية. قيمة أعلى تعني تباين واضح بين اليقظة والنوم. الأمراض أو التوتر أو قلة ضوء النهار تقلل من هذه القيمة." } },
+        "ca" : { "stringUnit" : { "state" : "translated", "value" : "La força del senyal del teu rellotge intern. Un valor més alt significa un contrast clar entre l'estat d'alerta i el son. Les malalties, l'estrès o la poca llum diürna redueixen aquest valor." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Die Stärke des Signals deiner inneren Uhr. Ein höherer Wert bedeutet einen klaren Kontrast zwischen Wach- und Schlafphase. Krankheit, Stress oder wenig Tageslicht verringern diesen Wert." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The strength of your internal clock's signal. A higher value means a clear contrast between alertness and sleep. Illness, stress, or low daylight reduce this value." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "La fuerza de la señal de tu reloj interno. Un valor mayor significa un contraste claro entre alerta y sueño. La enfermedad, el estrés o poca luz diurna reducen este valor." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "La force du signal de votre horloge interne. Une valeur plus élevée signifie un contraste net entre l'éveil et le sommeil. La maladie, le stress ou peu de lumière du jour réduisent cette valeur." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "体内時計の信号強度。値が高いほど覚醒と睡眠の明確なコントラストがあります。病気、ストレス、日照不足でこの値は低下します。" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "体内时钟信号的强度。值越高表示清醒与睡眠之间的对比越明显。疾病、压力或日照不足会降低此值。" } }
+      }
+    },
+    "stats.glossary.rhythm" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "مدى ثبات دورة النشاط والراحة اليومية على مدار الأسابيع. النسب المئوية العالية تدل على إيقاع منتظم ومتوقع." } },
+        "ca" : { "stringUnit" : { "state" : "translated", "value" : "Estabilitat del cicle activitat-descans al llarg de les setmanes. Percentatges alts indiquen un ritme regular i predictible." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Stabilität des Aktivitäts-Ruhe-Zyklus über Wochen. Hohe Prozentwerte deuten auf einen gleichmäßigen, vorhersehbaren Rhythmus hin." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Stability of your activity-rest cycle across weeks. High percentages indicate a regular, predictable rhythm." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Estabilidad del ciclo actividad-descanso a lo largo de las semanas. Porcentajes altos indican un ritmo regular y predecible." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Stabilité du cycle activité-repos au fil des semaines. Des pourcentages élevés indiquent un rythme régulier et prévisible." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "数週間にわたる活動-休息サイクルの安定性。高い割合は規則的で予測可能なリズムを示します。" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "数周内活动-休息周期的稳定性。高百分比表示有规律、可预测的节律。" } }
+      }
+    },
+    "stats.glossary.sri" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "مؤشر انتظام النوم: مقياس علمي لمدى تشابه أنماط نومك من يوم لآخر. فوق 85% ممتاز؛ ما بين 70-85% جيد؛ أقل من 70% يستحق التحسين." } },
+        "ca" : { "stringUnit" : { "state" : "translated", "value" : "Índex de Regularitat del Son: mesura científica de com es repeteix el teu patró de son cada dia. Per sobre del 85% és excel·lent; 70-85% és bo; per sota del 70% val la pena millorar." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Sleep Regularity Index: wissenschaftliches Maß dafür, wie ähnlich dein Schlafmuster von Tag zu Tag ist. Über 85% ist ausgezeichnet; 70-85% ist gut; unter 70% lohnt sich eine Verbesserung." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sleep Regularity Index: scientific measure of how similar your sleep pattern is day to day. Above 85% is excellent; 70-85% is good; below 70% is worth improving." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Índice de Regularidad del Sueño: medida científica de cuánto se repite tu patrón de sueño cada día. Por encima del 85% es excelente; 70-85% es bueno; por debajo del 70% vale la pena mejorar." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Indice de Régularité du Sommeil : mesure scientifique de la similitude de votre schéma de sommeil d'un jour à l'autre. Au-dessus de 85% est excellent ; 70-85% est bon ; en dessous de 70% mérite d'être amélioré." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "睡眠規則性指数：毎日の睡眠パターンの類似度を測る科学的指標。85%超は優秀、70-85%は良好、70%未満は改善の余地あり。" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "睡眠规律性指数：衡量睡眠模式每天相似程度的科学指标。85%以上优秀，70-85%良好，70%以下值得改善。" } }
+      }
+    },
+    "stats.glossary.socialJL" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "الفارق بين أوقات النوم في أيام العمل وأيام العطلة. أشبه بتغيير المنطقة الزمنية كل أسبوع. فوق 60 دقيقة يمكن أن يؤثر سلباً على مستوى طاقتك ومزاجك." } },
+        "ca" : { "stringUnit" : { "state" : "translated", "value" : "Diferència entre els horaris de son en dies laborables i caps de setmana. Com canviar de zona horària cada setmana. Per sobre de 60 minuts pot afectar negativament l'energia i l'humor." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Unterschied zwischen Schlafzeiten an Werktagen und am Wochenende. Wie ein Zeitzonenwechsel jede Woche. Über 60 Minuten kann sich negativ auf Energie und Stimmung auswirken." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The difference between sleep timing on workdays vs. weekends. Like changing time zones every week. Above 60 minutes can negatively affect your energy and mood." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "La diferencia entre los horarios de sueño en días laborables y fines de semana. Como cambiar de zona horaria cada semana. Por encima de 60 minutos puede afectar negativamente la energía y el estado de ánimo." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "La différence entre les horaires de sommeil les jours de travail et le week-end. Comme changer de fuseau horaire chaque semaine. Au-dessus de 60 minutes, cela peut affecter négativement votre énergie et votre humeur." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "平日と週末の睡眠時刻の差。毎週タイムゾーンを変えるようなもの。60分超ではエネルギーと気分に悪影響が出ることがあります。" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "工作日与周末睡眠时间的差异。就像每周换时区一样。超过60分钟可能对精力和情绪产生负面影响。" } }
+      }
+    },
+    "stats.glossary.wkndAmp" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "قوة إشارة الساعة البيولوجية خلال عطلة نهاية الأسبوع. إذا كانت أضعف بكثير من الأيام العادية، فقد يعني ذلك ضعف ضبط الساعة البيولوجية في أيام الراحة." } },
+        "ca" : { "stringUnit" : { "state" : "translated", "value" : "La força del senyal circadià durant el cap de setmana. Si és molt més feble que els dies laborables, pot indicar una sincronització del rellotge deficient els dies de descans." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Die Stärke des circadianen Signals am Wochenende. Wenn es deutlich schwächer als an Werktagen ist, könnte das auf eine schlechte Uhr-Synchronisierung an Ruhetagen hindeuten." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The strength of the circadian signal on weekends. If much weaker than weekdays, it may indicate poor clock entrainment on rest days." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "La fuerza de la señal circadiana durante el fin de semana. Si es mucho más débil que en días laborables, puede indicar un mal anclaje del reloj en los días de descanso." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "La force du signal circadien pendant le week-end. Si beaucoup plus faible qu'en semaine, cela peut indiquer un mauvais entraînement de l'horloge les jours de repos." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "週末の概日信号強度。平日より大幅に低い場合、休息日の体内時計の同期が不十分な可能性があります。" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "周末昼夜节律信号的强度。若明显弱于工作日，可能表明休息日体内时钟的同步性较差。" } }
+      }
+    },
+    "stats.glossary.sleep" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "متوسط مدة نومك عبر جميع السجلات المحفوظة. البالغون يحتاجون عادةً بين 7 و9 ساعات. أقل من 6.5 ساعة بشكل منتظم يرتبط بتراجع الأداء والصحة." } },
+        "ca" : { "stringUnit" : { "state" : "translated", "value" : "Durada mitjana del teu son a través de tots els registres guardats. Els adults necessiten normalment entre 7 i 9 hores. Menys de 6,5 hores regularment s'associa a un rendiment i una salut reduïts." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Durchschnittliche Schlafdauer über alle gespeicherten Aufzeichnungen. Erwachsene benötigen normalerweise 7-9 Stunden. Weniger als 6,5 Stunden regelmäßig ist mit schlechterer Leistung und Gesundheit verbunden." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Average sleep duration across all saved records. Adults typically need 7-9 hours. Less than 6.5 hours regularly is associated with reduced performance and health." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Duración media del sueño a través de todos los registros guardados. Los adultos suelen necesitar entre 7 y 9 horas. Menos de 6,5 horas de forma regular se asocia con menor rendimiento y salud." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Durée moyenne du sommeil sur tous les enregistrements sauvegardés. Les adultes ont généralement besoin de 7 à 9 heures. Moins de 6,5 heures régulièrement est associé à des performances et une santé réduites." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "保存された全記録の平均睡眠時間。成人は通常7〜9時間必要です。6.5時間未満が続くとパフォーマンスと健康に悪影響があります。" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "所有保存记录的平均睡眠时长。成年人通常需要7-9小时。长期少于6.5小时与表现下降和健康问题相关。" } }
+      }
+    },
+    "stats.glossary.r2" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "مدى ملاءمة نمط نومك لنموذج الإيقاع اليومي الرياضي (تحليل الكوسينور). قيمة ≥ 0.6 تعني إيقاع متسق؛ أقل من 0.3 يعني إيقاع ضعيف أو غائب." } },
+        "ca" : { "stringUnit" : { "state" : "translated", "value" : "Com d'ajustat és el teu patró de son a un model matemàtic de ritme diari (anàlisi cosinor). Un valor ≥ 0,6 significa un ritme consistent; per sota de 0,3 significa un ritme feble o absent." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Wie gut dein Schlafmuster zu einem mathematischen Tagesrhythmusmodell passt (Cosinor-Analyse). Ein Wert ≥ 0,6 bedeutet einen konsistenten Rhythmus; unter 0,3 bedeutet einen schwachen oder fehlenden Rhythmus." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "How well your sleep pattern fits a mathematical daily rhythm model (cosinor analysis). A value ≥ 0.6 means a consistent rhythm; below 0.3 means a weak or absent rhythm." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Qué tan bien se ajusta tu patrón de sueño a un modelo matemático de ritmo diario (análisis cosinor). Un valor ≥ 0,6 significa un ritmo consistente; por debajo de 0,3 significa un ritmo débil o ausente." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "À quel point votre schéma de sommeil correspond à un modèle mathématique de rythme quotidien (analyse cosinor). Une valeur ≥ 0,6 signifie un rythme cohérent ; en dessous de 0,3, le rythme est faible ou absent." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "睡眠パターンが数学的な日周リズムモデル（コサイノル解析）にどれだけ適合するか。≥0.6は一貫したリズム、0.3未満は弱いまたは存在しないリズム。" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "睡眠模式与数学日周期节律模型（余弦分析）的拟合程度。≥0.6表示节律一致；低于0.3表示节律微弱或缺失。" } }
+      }
     }
   },
   "version" : "1.1"

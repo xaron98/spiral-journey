@@ -19,7 +19,12 @@ struct StatCardModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .padding(12)
-            .background(SpiralColors.bg)
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: 8).fill(SpiralColors.bg)
+                    RoundedRectangle(cornerRadius: 8).stroke(SpiralColors.border.opacity(0.6), lineWidth: 0.8)
+                }
+            )
             .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 }
@@ -78,8 +83,8 @@ struct StatCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(label.uppercased())
-                .font(.system(size: 9, weight: .medium, design: .monospaced))
-                .foregroundStyle(SpiralColors.muted)
+                .font(.system(size: 9, weight: .semibold, design: .monospaced))
+                .foregroundStyle(SpiralColors.subtle)
                 .lineLimit(1)
             Text(value)
                 .font(.system(size: 16, weight: .semibold, design: .monospaced))
@@ -88,7 +93,7 @@ struct StatCard: View {
             if let sub {
                 Text(sub)
                     .font(.system(size: 9, design: .monospaced))
-                    .foregroundStyle(SpiralColors.accentDim)
+                    .foregroundStyle(SpiralColors.accent)
             }
         }
         .statCardStyle()
@@ -101,8 +106,8 @@ struct PanelTitle: View {
     let title: String
     var body: some View {
         Text(title.uppercased())
-            .font(.system(size: 10, weight: .medium, design: .monospaced))
-            .foregroundStyle(SpiralColors.muted)
+            .font(.system(size: 10, weight: .semibold, design: .monospaced))
+            .foregroundStyle(SpiralColors.subtle)
             .tracking(2)
     }
 }

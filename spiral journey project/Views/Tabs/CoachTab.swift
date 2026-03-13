@@ -40,7 +40,7 @@ struct CoachTab: View {
                     .foregroundStyle(SpiralColors.text)
                 Text(String(localized: "coach.header.subtitle", bundle: bundle))
                     .font(.system(size: 11, design: .monospaced))
-                    .foregroundStyle(SpiralColors.muted)
+                    .foregroundStyle(SpiralColors.subtle)
             }
             Spacer()
             Image(systemName: "lightbulb.min.fill")
@@ -88,7 +88,7 @@ struct CoachTab: View {
             Label {
                 Text(String(localized: "coach.action.eyebrow", bundle: bundle))
                     .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(SpiralColors.muted)
+                    .foregroundStyle(SpiralColors.subtle)
                     .textCase(.uppercase)
             } icon: {
                 Image(systemName: "calendar.badge.checkmark")
@@ -104,7 +104,7 @@ struct CoachTab: View {
             if let outcome, !outcome.isEmpty {
                 Text(outcome)
                     .font(.system(size: 11))
-                    .foregroundStyle(SpiralColors.muted)
+                    .foregroundStyle(SpiralColors.subtle)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -138,6 +138,7 @@ struct CoachTab: View {
                     .font(.system(size: 12))
                     .foregroundStyle(SpiralColors.muted)
                     .fixedSize(horizontal: false, vertical: true)
+                    .lineSpacing(2)
             }
             .padding(12)
             .background(
@@ -163,7 +164,7 @@ struct CoachTab: View {
                 .foregroundStyle(SpiralColors.text)
             Text(String(localized: "coach.empty.subtitle", bundle: bundle))
                 .font(.system(size: 12))
-                .foregroundStyle(SpiralColors.muted)
+                .foregroundStyle(SpiralColors.subtle)
                 .multilineTextAlignment(.center)
         }
         .padding(.top, 80)
@@ -390,7 +391,7 @@ private struct CoachSectionCard: View {
             Label {
                 Text(eyebrow)
                     .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(SpiralColors.muted)
+                    .foregroundStyle(SpiralColors.subtle)
                     .textCase(.uppercase)
             } icon: {
                 Image(systemName: icon)

@@ -154,12 +154,13 @@ struct InputTab: View {
                         store.recompute()
                     } label: {
                         Label(String(localized: "input.addEpisode", bundle: bundle), systemImage: "plus.circle.fill")
-                            .font(.system(size: 12, weight: .medium, design: .monospaced))
+                            .font(.system(size: 13, weight: .semibold, design: .monospaced))
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 10)
-                            .background(SpiralColors.accentDim)
-                            .foregroundStyle(SpiralColors.accent)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .padding(.vertical, 12)
+                            .background(SpiralColors.accent)
+                            .foregroundStyle(.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                            .shadow(color: SpiralColors.accent.opacity(0.5), radius: 8, x: 0, y: 3)
                     }
                     .buttonStyle(.plain)
                 }
