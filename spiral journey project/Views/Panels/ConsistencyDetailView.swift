@@ -41,8 +41,10 @@ struct ConsistencyDetailView: View {
         }
         .background(SpiralColors.bg.ignoresSafeArea())
         .navigationTitle(String(localized: "consistency.title", bundle: bundle))
+        #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
+        #endif
     }
 
     // MARK: - Hero

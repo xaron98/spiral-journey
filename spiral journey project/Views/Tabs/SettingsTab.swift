@@ -10,6 +10,24 @@ struct SettingsTab: View {
     @State private var isRefreshing = false
     @State private var isImporting = false
 
+    // MARK: - Helpers
+
+    private func coachModeLabel(_ mode: CoachMode) -> String {
+        switch mode {
+        case .generalHealth:    return String(localized: "settings.coachMode.generalHealth", bundle: bundle)
+        case .shiftWork:        return String(localized: "settings.coachMode.shiftWork", bundle: bundle)
+        case .customSchedule:   return String(localized: "settings.coachMode.customSchedule", bundle: bundle)
+        case .rephase:          return String(localized: "settings.coachMode.rephase", bundle: bundle)
+        }
+    }
+
+    private func formatHour(_ h: Double) -> String {
+        let total = Int((h * 60).rounded())
+        let hh = (total / 60) % 24
+        let mm = total % 60
+        return String(format: "%02d:%02d", hh, mm)
+    }
+
     var body: some View {
         @Bindable var store = store
 
@@ -105,6 +123,83 @@ struct SettingsTab: View {
                     }
                     .toggleStyle(.button)
                     .tint(SpiralColors.accentDim)
+                }
+
+                // ── Coach Mode ──────────────────────────────────────────────
+                SettingsSection(title: String(localized: "settings.coachMode.title", bundle: bundle), icon: "lightbulb.min") {
+                    // Mode picker
+                    HStack(spacing: 6) {
+                        ForEach(CoachMode.allCases, id: \.self) { mode in
+                            PillButton(
+                                label: coachModeLabel(mode),
+                                isActive: store.sleepGoal.mode == mode && !store.rephasePlan.isEnabled
+                            ) {
+                                var goal = store.sleepGoal
+                                goal.mode = mode
+                                store.sleepGoal = goal
+                            }
+                            .disabled(store.rephasePlan.isEnabled)
+                        }
+                    }
+
+                    if store.rephasePlan.isEnabled {
+                        // Rephase mode is managed in the Rephase Editor
+                        HStack(spacing: 6) {
+                            Image(systemName: "info.circle")
+                                .font(.system(size: 10))
+                                .foregroundStyle(SpiralColors.accent)
+                            Text(String(localized: "settings.coachMode.rephaseNote", bundle: bundle))
+                                .font(.system(size: 10))
+                                .foregroundStyle(SpiralColors.muted)
+                        }
+                    } else if store.sleepGoal.mode == .shiftWork || store.sleepGoal.mode == .customSchedule {
+                        // Bed / wake pickers
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Text(String(localized: "settings.coachMode.targetBed", bundle: bundle))
+                                    .font(.system(size: 10, design: .monospaced))
+                                    .foregroundStyle(SpiralColors.muted)
+                                Spacer()
+                                Text(formatHour(store.sleepGoal.targetBedHour))
+                                    .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                                    .foregroundStyle(SpiralColors.accent)
+                            }
+                            Slider(
+                                value: Binding(
+                                    get: { store.sleepGoal.targetBedHour },
+                                    set: { v in var g = store.sleepGoal; g.targetBedHour = v; store.sleepGoal = g }
+                                ),
+                                in: 0...23.75, step: 0.25
+                            ).tint(SpiralColors.accent)
+
+                            HStack {
+                                Text(String(localized: "settings.coachMode.targetWake", bundle: bundle))
+                                    .font(.system(size: 10, design: .monospaced))
+                                    .foregroundStyle(SpiralColors.muted)
+                                Spacer()
+                                Text(formatHour(store.sleepGoal.targetWakeHour))
+                                    .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                                    .foregroundStyle(SpiralColors.accent)
+                            }
+                            Slider(
+                                value: Binding(
+                                    get: { store.sleepGoal.targetWakeHour },
+                                    set: { v in var g = store.sleepGoal; g.targetWakeHour = v; store.sleepGoal = g }
+                                ),
+                                in: 0...23.75, step: 0.25
+                            ).tint(SpiralColors.accent)
+                        }
+                    } else {
+                        // General health note
+                        HStack(spacing: 6) {
+                            Image(systemName: "info.circle")
+                                .font(.system(size: 10))
+                                .foregroundStyle(SpiralColors.accent)
+                            Text(String(localized: "settings.coachMode.generalHealthNote", bundle: bundle))
+                                .font(.system(size: 10))
+                                .foregroundStyle(SpiralColors.muted)
+                        }
+                    }
                 }
 
                 // ── HealthKit ───────────────────────────────────────────────
@@ -248,6 +343,7 @@ struct SettingsTab: View {
                 }
 
                 // ── About ───────────────────────────────────────────────────
+
                 SettingsSection(title: String(localized: "settings.about.title", bundle: bundle), icon: "info.circle") {
                     Text("Spiral Journey")
                         .font(.system(size: 12, weight: .semibold, design: .monospaced))

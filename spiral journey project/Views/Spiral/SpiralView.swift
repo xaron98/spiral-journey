@@ -352,8 +352,7 @@ struct SpiralView: View {
     private func drawDataPoints(context: GraphicsContext, geo: SpiralGeometry, fromTurns: Double = 0, size: CGSize) {
         let globalCutTurns = dataEndTurns(geo: geo)
 
-        // Collect all runs first, then draw awake passes first and sleep on top,
-        // so sleep round caps always paint over awake round caps at shared endpoints.
+        // A run is a maximal sequence of 15-min phase intervals sharing the same SleepPhase.
         struct Run {
             var phase: SleepPhase
             var points: [(t: Double, pt: CGPoint)]
@@ -366,28 +365,46 @@ struct SpiralView: View {
         func drawRun(_ run: Run) {
             guard run.points.count >= 2 else { return }
             let color = phaseColor(run.phase)
-            let tMid  = (run.points.first!.t + run.points.last!.t) * 0.5
-            let sc    = perspectiveScale(turns: tMid, geo: geo)
-            let lw    = max(3.0, min(sc * 20.0, 28.0))
-            let opac  = weekWindowOpacity(turns: tMid)
+            let opac  = weekWindowOpacity(turns: run.points[0].t)
             guard opac > 0.01 else { return }
 
-            // Flat only at sleep→sleep interior joints; round everywhere else.
-            let capStart = !(isSleep(run.phase) && run.prevPhase != nil && isSleep(run.prevPhase!))
-            let capEnd   = !(isSleep(run.phase) && run.nextPhase != nil && isSleep(run.nextPhase!))
+            // Draw segment-by-segment with .round caps so each segment's rounded ends
+            // overlap the next one seamlessly — no gaps, and lw tracks perspective
+            // smoothly even across the long awake arc.
+            for i in 0..<(run.points.count - 1) {
+                let p0   = run.points[i]
+                let p1   = run.points[i + 1]
+                let tSeg = (p0.t + p1.t) * 0.5
+                let sc   = perspectiveScale(turns: tSeg, geo: geo)
+                let lw   = max(3.0, min(sc * 20.0, 28.0))
 
-            var path = Path()
-            path.move(to: run.points[0].pt)
-            for rp in run.points.dropFirst() { path.addLine(to: rp.pt) }
-            context.stroke(path, with: .color(color.opacity(opac)),
-                           style: StrokeStyle(lineWidth: lw, lineCap: .butt, lineJoin: .round))
+                var seg = Path()
+                seg.move(to: p0.pt)
+                seg.addLine(to: p1.pt)
+                context.stroke(seg, with: .color(color.opacity(opac)),
+                               style: StrokeStyle(lineWidth: lw, lineCap: .round))
+            }
+
+            // For sleep runs, paint a round cap at the true start of the sleep block
+            // (when previous phase is awake or this is the very first point on the spiral)
+            // and at the true end. Awake runs don't need caps — sleep caps cover the joint.
+            guard isSleep(run.phase) else { return }
+            let capStart = run.prevPhase == nil || !isSleep(run.prevPhase!)
+            let capEnd   = run.nextPhase == nil || !isSleep(run.nextPhase!)
+
             if capStart {
-                let r = lw * 0.5; let pt = run.points[0].pt
+                let tFirst = run.points[0].t
+                let sc = perspectiveScale(turns: tFirst, geo: geo)
+                let lw = max(3.0, min(sc * 20.0, 28.0))
+                let r  = lw * 0.5; let pt = run.points[0].pt
                 context.fill(Circle().path(in: CGRect(x: pt.x - r, y: pt.y - r, width: lw, height: lw)),
                              with: .color(color.opacity(opac)))
             }
             if capEnd {
-                let r = lw * 0.5; let pt = run.points[run.points.count - 1].pt
+                let tLast = run.points[run.points.count - 1].t
+                let sc = perspectiveScale(turns: tLast, geo: geo)
+                let lw = max(3.0, min(sc * 20.0, 28.0))
+                let r  = lw * 0.5; let pt = run.points[run.points.count - 1].pt
                 context.fill(Circle().path(in: CGRect(x: pt.x - r, y: pt.y - r, width: lw, height: lw)),
                              with: .color(color.opacity(opac)))
             }
@@ -433,7 +450,7 @@ struct SpiralView: View {
             }
             flushRun(nextPhase: nil)
 
-            // Draw awake runs first, sleep runs on top so sleep caps always win.
+            // Draw awake runs first, sleep runs on top so sleep caps always win at joints.
             for run in runs where !isSleep(run.phase) { drawRun(run) }
             for run in runs where  isSleep(run.phase) { drawRun(run) }
         }

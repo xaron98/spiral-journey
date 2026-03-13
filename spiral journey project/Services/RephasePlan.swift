@@ -68,6 +68,22 @@ struct RephasePlan: Codable {
     }
 }
 
+// MARK: - SleepGoal Bridge
+
+extension RephasePlan {
+    /// Convert the active rephase plan into a `SleepGoal` for CoachEngine evaluation.
+    func asSleepGoal() -> SleepGoal {
+        SleepGoal(
+            mode: .rephase,
+            targetBedHour: derivedTargetBedHour,
+            targetWakeHour: targetWakeHour,
+            targetDuration: targetSleepDuration,
+            toleranceMinutes: 60,
+            rephaseStepMinutes: intensity.minutesPerDay
+        )
+    }
+}
+
 // MARK: - Rephase Calculator
 
 /// Stateless calculator for rephase-mode metrics.

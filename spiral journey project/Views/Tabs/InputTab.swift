@@ -172,18 +172,17 @@ struct InputTab: View {
 
                 // Events
                 EventPanelView(
-                    events: Binding(
-                        get: { store.events },
-                        set: { store.events = $0 }
-                    ),
-                    cursorAbsoluteHour: cursorAbsHour
+                    events: store.events,
+                    cursorAbsoluteHour: cursorAbsHour,
+                    onAdd: { store.addEvent($0) },
+                    onRemove: { store.removeEvent(id: $0) }
                 )
             }
             .padding(.horizontal, 16)
             .padding(.bottom, 20)
         }
         .background(SpiralColors.bg.ignoresSafeArea())
-        .navigationTitle("Input")
+        .navigationTitle(String(localized: "Input", bundle: bundle))
         .onAppear { syncSliders(to: selectedDay) }
         .onChange(of: selectedDay) { syncSliders(to: selectedDay) }
     }

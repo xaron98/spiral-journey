@@ -4,6 +4,82 @@ import Foundation
 /// Port of src/utils/manualData.js from the Spiral Journey web project.
 public enum ManualDataConverter {
 
+    // MARK: - Sleep Block Grouping
+
+    /// A contiguous block of sleep (gap tolerance: 5 min) with its constituent episodes.
+    private struct SleepBlock {
+        var start: Double
+        var end: Double
+        var episodes: [SleepEpisode]
+        var duration: Double { end - start }
+
+        /// True if this block has no useful stage variety.
+        /// Covers two cases from Apple Watch:
+        ///   1. `asleepUnspecified` samples → phase == nil
+        ///   2. A nap/second block recorded as a single continuous `asleepCore` sample
+        ///      → all episodes have phase == .light with no deep or REM segments.
+        /// In both cases the block would render as a single flat colour; synthesizing
+        /// a sleep cycle gives the user meaningful visual information instead.
+        var lacksStageDetail: Bool {
+            let nonAwake = episodes.filter { $0.phase != .awake }
+            guard !nonAwake.isEmpty else { return false }
+            // No stage data at all
+            if nonAwake.allSatisfy({ $0.phase == nil }) { return true }
+            // All episodes share the exact same phase (e.g. all .light)
+            let firstPhase = nonAwake.first?.phase
+            return nonAwake.allSatisfy { $0.phase == firstPhase }
+        }
+    }
+
+    /// Group a sorted list of episodes into contiguous sleep blocks.
+    /// Episodes within `gapTolerance` hours of each other are merged into one block.
+    private static func groupIntoBlocks(_ episodes: [SleepEpisode], gapTolerance: Double = 5.0 / 60.0) -> [SleepBlock] {
+        var blocks: [SleepBlock] = []
+        for ep in episodes {
+            if var last = blocks.last, ep.start <= last.end + gapTolerance {
+                last.end = max(last.end, ep.end)
+                last.episodes.append(ep)
+                blocks[blocks.count - 1] = last
+            } else {
+                blocks.append(SleepBlock(start: ep.start, end: ep.end, episodes: [ep]))
+            }
+        }
+        return blocks
+    }
+
+    // MARK: - Synthetic Sleep Cycle
+
+    /// Synthesize a realistic sleep stage for a given offset within a sleep block.
+    /// Uses a simplified 90-minute NREM/REM cycle model:
+    ///   - Minutes  0-15  of cycle: light (transition into sleep)
+    ///   - Minutes 15-50  of cycle: deep (slow-wave, dominant early in the night)
+    ///   - Minutes 50-75  of cycle: light (transition out of slow-wave)
+    ///   - Minutes 75-90  of cycle: REM
+    ///
+    /// Deep sleep weight diminishes with each successive cycle (realistic architecture).
+    private static func syntheticPhase(offsetHours: Double, blockDurationHours: Double) -> SleepPhase {
+        let cycleLength = 1.5 // 90 minutes
+        let offsetInCycle = offsetHours.truncatingRemainder(dividingBy: cycleLength)
+        let cycleIndex = Int(offsetHours / cycleLength)
+
+        // Deep sleep becomes less dominant in later cycles (realistic)
+        let deepEndFraction: Double = max(0.15, 0.55 - Double(cycleIndex) * 0.10)
+        let deepEnd = cycleLength * deepEndFraction
+        let lightTransitionEnd = cycleLength * 0.18
+
+        if offsetInCycle < lightTransitionEnd {
+            return .light
+        } else if offsetInCycle < deepEnd {
+            return .deep
+        } else if offsetInCycle < cycleLength * 0.85 {
+            return .light
+        } else {
+            return .rem
+        }
+    }
+
+    // MARK: - Converter
+
     /// Convert sleep episodes into an array of SleepRecord objects (one per day).
     /// - Parameters:
     ///   - episodes: Array of SleepEpisode with start/end as absolute hours from day 0 00:00
@@ -17,6 +93,9 @@ public enum ManualDataConverter {
     ) -> [SleepRecord] {
         let calendar = Calendar.current
         var records: [SleepRecord] = []
+
+        // Pre-group all episodes into contiguous blocks for efficient lookup.
+        let allBlocks = groupIntoBlocks(episodes.sorted { $0.start < $1.start })
 
         for day in 0..<numDays {
             let dayStart = Double(day) * 24
@@ -35,30 +114,35 @@ public enum ManualDataConverter {
                 hourlyActivity.append(HourlyActivity(hour: h, activity: sleeping ? 0.05 : 0.95))
             }
 
-            // Find main sleep episode overlapping this day
-            var mainSleep: SleepEpisode? = nil
+            // Find the main sleep block overlapping this day (largest total overlap).
+            // For HealthKit data, episodes are per-stage samples — group them into blocks
+            // first so we pick the longest *sleep session*, not the longest stage sample.
+            var mainBlock: SleepBlock? = nil
             var totalSleep = 0.0
-            var mainOverlap = 0.0
+            var mainBlockOverlap = 0.0
 
-            for ep in episodes {
-                let overlapStart = max(ep.start, dayStart)
-                let overlapEnd   = min(ep.end, dayStart + 24)
+            for block in allBlocks {
+                let overlapStart = max(block.start, dayStart)
+                let overlapEnd   = min(block.end, dayStart + 24)
                 let overlap = max(0, overlapEnd - overlapStart)
                 if overlap > 0 {
                     totalSleep += overlap
-                    if overlap > mainOverlap {
-                        mainOverlap = overlap
-                        mainSleep = ep
+                    if overlap > mainBlockOverlap {
+                        mainBlockOverlap = overlap
+                        mainBlock = block
                     }
                 }
             }
 
-            let bedtime  = mainSleep.map { $0.start.truncatingRemainder(dividingBy: 24) } ?? 23.5
-            let wakeup   = mainSleep.map { $0.end.truncatingRemainder(dividingBy: 24) }   ?? 7.0
+            let bedtime = mainBlock.map { $0.start.truncatingRemainder(dividingBy: 24) } ?? 23.5
+            let wakeup  = mainBlock.map { $0.end.truncatingRemainder(dividingBy: 24) }   ?? 7.0
 
             // Phase intervals at 15-min resolution.
             // If the covering episode carries a HealthKit phase, use it directly.
-            // Manual episodes (phase == nil) fall back to .deep while sleeping.
+            // For blocks with no stage detail (e.g. Apple Watch naps recorded as a single
+            // asleepUnspecified or uniform asleepCore sample), synthesize a realistic
+            // 90-min NREM/REM cycle so the block shows varied colors instead of flat lilac.
+            // Manual episodes (phase == nil, no HK source) fall back to .deep.
             var phases: [PhaseInterval] = []
             var t = 0.0
             while t < 24 {
@@ -66,7 +150,21 @@ public enum ManualDataConverter {
                 let coveringEpisode = episodes.first { ep in absT >= ep.start && absT < ep.end }
                 let phase: SleepPhase
                 if let ep = coveringEpisode {
-                    phase = ep.phase ?? .deep
+                    if ep.source == .healthKit,
+                       let block = allBlocks.first(where: { absT >= $0.start && absT < $0.end }),
+                       block.lacksStageDetail {
+                        // HealthKit block with no stage variety (all asleepUnspecified or all
+                        // same phase like asleepCore) — synthesize a realistic sleep cycle
+                        // so the block shows varied colours instead of a flat stripe.
+                        let offsetInBlock = absT - block.start
+                        phase = syntheticPhase(offsetHours: offsetInBlock, blockDurationHours: block.duration)
+                    } else if let explicitPhase = ep.phase {
+                        // HealthKit block with real per-stage data — use it directly.
+                        phase = explicitPhase
+                    } else {
+                        // Manual entry — solid deep (existing behaviour).
+                        phase = .deep
+                    }
                 } else {
                     phase = .awake
                 }

@@ -75,7 +75,9 @@ struct RephaseEditorView: View {
                 }
             }
             .navigationTitle(String(localized: "rephase.title", bundle: bundle))
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(String(localized: "rephase.cancel", bundle: bundle)) { dismiss() }

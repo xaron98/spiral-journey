@@ -77,7 +77,11 @@ struct OnboardingOverlayView: View {
                              tooltipBelow: true)
 
         case .tabs:
+            #if os(iOS)
             let isPad = UIDevice.current.userInterfaceIdiom == .pad
+            #else
+            let isPad = false
+            #endif
             let r: CGRect
             if !frames.tabBar.isEmpty {
                 r = frames.tabBar

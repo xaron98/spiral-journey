@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		840E5A9C2F5D238100339438 /* Spiral Watch App Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 840E5A7C2F5D238000339438 /* Spiral Watch App Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		840E5A9C2F5D238100339438 /* Spiral Watch App Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 840E5A7C2F5D238000339438 /* Spiral Watch App Watch App.app */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		840E5AB72F5D263600339438 /* SpiralKit in Frameworks */ = {isa = PBXBuildFile; productRef = 840E5AB62F5D263600339438 /* SpiralKit */; };
 		AA000003AAAAAAAA00000003 /* SpiralKit in Frameworks */ = {isa = PBXBuildFile; productRef = AA000002AAAAAAAA00000002 /* SpiralKit */; };
 /* End PBXBuildFile section */
@@ -508,6 +508,7 @@
 		};
 		840E5A9B2F5D238100339438 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
+			platformFilter = ios;
 			target = 840E5A7B2F5D238000339438 /* Spiral Watch App Watch App */;
 			targetProxy = 840E5A9A2F5D238100339438 /* PBXContainerItemProxy */;
 		};

@@ -24,18 +24,28 @@ final class WatchConnectivityManager: NSObject, WCSessionDelegate, @unchecked Se
     // MARK: - Send to iPhone
 
     func sendEvent(_ event: CircadianEvent) {
-        guard WCSession.default.isReachable,
-              let data = try? JSONEncoder().encode(event) else { return }
-        WCSession.default.sendMessage(["newEvent": data], replyHandler: nil) { error in
-            print("[WatchConnectivity] Failed to send event: \(error.localizedDescription)")
+        guard let data = try? JSONEncoder().encode(event) else { return }
+        let payload: [String: Any] = ["newEvent": data]
+        if WCSession.default.isReachable {
+            // iPhone is awake — fast path. On failure fall through to transferUserInfo.
+            WCSession.default.sendMessage(payload, replyHandler: nil) { _ in
+                WCSession.default.transferUserInfo(payload)
+            }
+        } else {
+            // iPhone not reachable — guaranteed background delivery.
+            WCSession.default.transferUserInfo(payload)
         }
     }
 
     func sendEpisode(_ episode: SleepEpisode) {
-        guard WCSession.default.isReachable,
-              let data = try? JSONEncoder().encode(episode) else { return }
-        WCSession.default.sendMessage(["newEpisode": data], replyHandler: nil) { error in
-            print("[WatchConnectivity] Failed to send episode: \(error.localizedDescription)")
+        guard let data = try? JSONEncoder().encode(episode) else { return }
+        let payload: [String: Any] = ["newEpisode": data]
+        if WCSession.default.isReachable {
+            WCSession.default.sendMessage(payload, replyHandler: nil) { _ in
+                WCSession.default.transferUserInfo(payload)
+            }
+        } else {
+            WCSession.default.transferUserInfo(payload)
         }
     }
 

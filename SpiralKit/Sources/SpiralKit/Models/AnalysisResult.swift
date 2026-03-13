@@ -212,6 +212,9 @@ public struct AnalysisResult: Codable, Sendable {
     /// Spiral Consistency Score — pattern stability over the last 7 (or 30) nights.
     /// nil when there is insufficient data (< 2 nights with sleep).
     public var consistency: SpiralConsistencyScore?
+    /// The single most important coaching insight for the current goal.
+    /// nil when the analysis was produced without a SleepGoal (backward compatible).
+    public var coachInsight: CoachInsight?
 
     public init(
         composite: Int = 0,
@@ -223,7 +226,8 @@ public struct AnalysisResult: Codable, Sendable {
         recommendations: [Recommendation] = [],
         signatures: [DisorderSignature] = [],
         stats: SleepStats = SleepStats(),
-        consistency: SpiralConsistencyScore? = nil
+        consistency: SpiralConsistencyScore? = nil,
+        coachInsight: CoachInsight? = nil
     ) {
         self.composite = composite
         self.label = label
@@ -235,5 +239,6 @@ public struct AnalysisResult: Codable, Sendable {
         self.signatures = signatures
         self.stats = stats
         self.consistency = consistency
+        self.coachInsight = coachInsight
     }
 }

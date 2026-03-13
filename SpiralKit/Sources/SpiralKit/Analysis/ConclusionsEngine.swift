@@ -261,9 +261,23 @@ public enum ConclusionsEngine {
         var recs: [Recommendation] = []
 
         let dur  = safe(stats.meanSleepDuration)
-        let sri  = safe(stats.sri)
+        let acro = safe(stats.meanAcrophase)
+        // SRI is only meaningful when ≥2 records exist; value of 0 can be a
+        // data-insufficiency artifact rather than genuinely low regularity.
+        let sri  = stats.sri > 0 ? safe(stats.sri) : 100.0
         let jl   = safe(stats.socialJetlag)
         let stab = safe(stats.rhythmStability)
+
+        // Delayed phase — detectable even from a single record.
+        // Takes priority over generic "consistent schedule" advice because
+        // the schedule may already BE consistent, just consistently too late.
+        let isDelayedPhase = acro > 18.5 || signatures.contains(where: { $0.id == "dswpd" })
+        if isDelayedPhase {
+            recs.append(Recommendation(priority: 1,
+                title: "Advance circadian phase",
+                text: "Your sleep timing is significantly delayed. Bright morning light (10,000 lux or sunlight) for 20-30 min on waking is the most effective treatment. Shift bedtime 15 min earlier every 2 days. Avoid blue light after 21:00.",
+                key: .advancePhase))
+        }
 
         if dur > 0 && dur < 6.5 {
             recs.append(Recommendation(priority: 1,
@@ -277,16 +291,20 @@ public enum ConclusionsEngine {
                 key: .improveDuration, args: [dur]))
         }
 
-        if sri < 60 {
-            recs.append(Recommendation(priority: 1,
-                title: "Maintain consistent schedules",
-                text: "Your regularity is low. Set a fixed wake-up time (even on weekends) with less than 30 minutes variation.",
-                key: .consistentSchedule))
-        } else if sri < 80 {
-            recs.append(Recommendation(priority: 3,
-                title: "Stabilize sleep schedules",
-                text: "Good regularity, but room to improve. Reduce the weekday/weekend difference to under 1 hour.",
-                key: .stabilizeSchedule))
+        // Only flag low regularity when we have enough data (sri > 0 means ≥2 records)
+        // and the issue isn't just delayed phase (which needs phase-advance, not generic schedule advice)
+        if !isDelayedPhase {
+            if sri < 60 {
+                recs.append(Recommendation(priority: 1,
+                    title: "Maintain consistent schedules",
+                    text: "Your regularity is low. Set a fixed wake-up time (even on weekends) with less than 30 minutes variation.",
+                    key: .consistentSchedule))
+            } else if sri < 80 {
+                recs.append(Recommendation(priority: 3,
+                    title: "Stabilize sleep schedules",
+                    text: "Good regularity, but room to improve. Reduce the weekday/weekend difference to under 1 hour.",
+                    key: .stabilizeSchedule))
+            }
         }
 
         if jl > 90 {
@@ -313,13 +331,8 @@ public enum ConclusionsEngine {
                 key: .reinforceZeitgebers))
         }
 
-        if let topSig = signatures.first(where: { $0.id != "normal" }) {
+        if let topSig = signatures.first(where: { $0.id != "normal" && $0.id != "dswpd" }) {
             switch topSig.id {
-            case "dswpd":
-                recs.append(Recommendation(priority: 2,
-                    title: "Advance circadian phase",
-                    text: "Delayed phase pattern detected. Bright morning light (10,000 lux) for 30 min on waking is the most effective treatment. Avoid blue light after 21:00.",
-                    key: .advancePhase))
             case "n24swd":
                 recs.append(Recommendation(priority: 1,
                     title: "Stabilize circadian period",
@@ -355,7 +368,22 @@ public enum ConclusionsEngine {
 
     // MARK: - Full Report
 
+    /// Generate the complete analysis result evaluated against the provided SleepGoal.
+    /// The result's `coachInsight` is populated based on the goal mode.
+    public static func generate(from records: [SleepRecord], goal: SleepGoal) -> AnalysisResult {
+        var result = generate(from: records)
+        let meaningful = records.filter { $0.sleepDuration >= 3.0 }
+        result.coachInsight = CoachEngine.evaluate(
+            records: meaningful.isEmpty ? records : meaningful,
+            stats: result.stats,
+            goal: goal,
+            consistency: result.consistency
+        )
+        return result
+    }
+
     /// Generate the complete analysis result from a set of sleep records.
+    /// `coachInsight` will be `nil`; use `generate(from:goal:)` to populate it.
     public static func generate(from records: [SleepRecord]) -> AnalysisResult {
         // Only use records with meaningful sleep (≥3h) for statistics and analysis.
         // Stub records (< 3h) are artefacts of ManualDataConverter when an episode crosses midnight.

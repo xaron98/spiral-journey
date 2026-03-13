@@ -4,8 +4,10 @@ import SpiralKit
 /// Event logging panel — records zeitgeber events at a given spiral position.
 struct EventPanelView: View {
 
-    @Binding var events: [CircadianEvent]
+    let events: [CircadianEvent]
     let cursorAbsoluteHour: Double
+    let onAdd: (CircadianEvent) -> Void
+    let onRemove: (UUID) -> Void
     @Environment(\.languageBundle) private var bundle
 
     var body: some View {
@@ -25,8 +27,7 @@ struct EventPanelView: View {
                             absoluteHour: cursorAbsoluteHour,
                             timestamp: Date()
                         )
-                        events.append(event)
-                        events.sort { $0.absoluteHour < $1.absoluteHour }
+                        onAdd(event)
                     }
                 }
             }
@@ -57,7 +58,7 @@ struct EventPanelView: View {
                         }
 
                         Button {
-                            events.removeAll { $0.id == event.id }
+                            onRemove(event.id)
                         } label: {
                             Image(systemName: "xmark")
                                 .font(.system(size: 8))

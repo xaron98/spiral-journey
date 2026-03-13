@@ -139,6 +139,9 @@ final class SpiralStore {
     var rephasePlan: RephasePlan = RephasePlan() {
         didSet { save() }
     }
+    var sleepGoal: SleepGoal = .generalHealthDefault {
+        didSet { save() }
+    }
     var hasCompletedOnboarding: Bool = false {
         didSet { save() }
     }
@@ -200,9 +203,10 @@ final class SpiralStore {
         let n   = max(neededDays, 1)
         let sd  = startDate
         let evts = events
+        let activeGoal = rephasePlan.isEnabled ? rephasePlan.asSleepGoal() : sleepGoal
         Task.detached(priority: .userInitiated) { [weak self] in
             let newRecords = ManualDataConverter.convert(episodes: eps, numDays: n, startDate: sd)
-            let newAnalysis = ConclusionsEngine.generate(from: newRecords)
+            let newAnalysis = ConclusionsEngine.generate(from: newRecords, goal: activeGoal)
             await MainActor.run { [weak self] in
                 guard let self else { return }
                 self.records = newRecords
@@ -217,7 +221,8 @@ final class SpiralStore {
                     language: self.language.localeIdentifier,
                     appearance: self.appearance.rawValue,
                     spiralType: self.spiralType.rawValue,
-                    period: self.period
+                    period: self.period,
+                    startDate: sd
                 )
                 #endif
             }
@@ -241,6 +246,9 @@ final class SpiralStore {
     func addEvent(_ event: CircadianEvent) {
         events.append(event)
         events.sort { $0.absoluteHour < $1.absoluteHour }
+        #if os(iOS)
+        WatchConnectivityManager.shared.sendEvents(events)
+        #endif
     }
 
     func removeEpisode(id: UUID) {
@@ -250,6 +258,9 @@ final class SpiralStore {
 
     func removeEvent(id: UUID) {
         events.removeAll { $0.id == id }
+        #if os(iOS)
+        WatchConnectivityManager.shared.sendEvents(events)
+        #endif
     }
 
     /// Wipe all user data and reset to factory defaults.
@@ -295,6 +306,7 @@ final class SpiralStore {
         var language: AppLanguage?
         var appearance: AppAppearance?
         var rephasePlan: RephasePlan?
+        var sleepGoal: SleepGoal?
         var hasCompletedOnboarding: Bool?
         var hasShownWelcome: Bool?
         var onboardingVersion: Int?
@@ -314,6 +326,7 @@ final class SpiralStore {
             language: language,
             appearance: appearance,
             rephasePlan: rephasePlan,
+            sleepGoal: sleepGoal,
             hasCompletedOnboarding: hasCompletedOnboarding,
             hasShownWelcome: hasShownWelcome,
             onboardingVersion: currentOnboardingVersion
@@ -334,10 +347,11 @@ final class SpiralStore {
         period = stored.period
         linkGrowthToTau = stored.linkGrowthToTau
         if let ds   = stored.depthScale  { depthScale = ds }
-        if let sg   = stored.showGrid { showGrid = sg }
-        if let lang = stored.language { language = lang }
-        if let app  = stored.appearance { appearance = app }
+        if let grid = stored.showGrid    { showGrid = grid }
+        if let lang = stored.language    { language = lang }
+        if let app  = stored.appearance  { appearance = app }
         if let rp   = stored.rephasePlan { rephasePlan = rp }
+        if let sg   = stored.sleepGoal   { sleepGoal = sg }
 
         // Only restore onboarding state if the stored version matches current.
         // If version is missing or outdated, the flags stay false → tutorial replays.

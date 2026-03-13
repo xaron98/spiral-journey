@@ -34,6 +34,16 @@ struct SpiralTab: View {
     @State private var showEventSheet2 = false
     // Rephase editor sheet
     @State private var showRephaseEditor = false
+    #if os(macOS)
+    // Frame of the spiral area in global coordinates — used to position the drag overlay.
+    @State private var spiralFrameGlobal: CGRect = .zero
+    // True until the first onChanged of a new gesture has been processed.
+    @State private var macDragIsNew: Bool = true
+    // Global location of the previous onChanged event — used for incremental delta.
+    @State private var macDragPrevLocation: CGPoint = .zero
+    // Projected spiral-local point of the cursor at the previous event.
+    @State private var macDragPrevProjected: CGPoint = .zero
+    #endif
 
     var body: some View {
         @Bindable var store = store
@@ -73,6 +83,9 @@ struct SpiralTab: View {
                                     depthScale: store.depthScale,
                                     showGrid: store.showGrid
                                 )
+                                #if !os(macOS)
+                                // On macOS the overlay outside the ScrollView handles all cursor
+                                // drag interactions. This gesture is iOS/iPadOS only.
                                 .simultaneousGesture(
                                     DragGesture(minimumDistance: 0)
                                         .onChanged { value in
@@ -117,6 +130,7 @@ struct SpiralTab: View {
                                             }
                                         }
                                 )
+                                #endif
                                 .simultaneousGesture(
                                     MagnifyGesture(minimumScaleDelta: 0.01)
                                         .onChanged { value in
@@ -210,8 +224,117 @@ struct SpiralTab: View {
                             }
                         }
                     }
+                    #if os(macOS)
+                    // Transparent drag overlay positioned over the spiral area.
+                    // Placed outside the ScrollView so the scroll view never intercepts
+                    // the drag. Coordinates are converted to the spiral's local space
+                    // before passing to nearestHour.
+                    if spiralFrameGlobal != .zero {
+                        Color(white: 0, opacity: 0.001)
+                            .frame(width: spiralFrameGlobal.width,
+                                   height: spiralFrameGlobal.height)
+                            .position(x: spiralFrameGlobal.midX,
+                                      y: spiralFrameGlobal.midY)
+                            .contentShape(Rectangle())
+                            .gesture(
+                                DragGesture(minimumDistance: 0, coordinateSpace: .global)
+                                    .onChanged { value in
+                                        if macDragIsNew {
+                                            macDragIsNew = false
+                                            macDragPrevLocation = value.location
+                                            return
+                                        }
+
+                                        // Compute incremental mouse delta (screen points).
+                                        let dx = value.location.x - macDragPrevLocation.x
+                                        let dy = value.location.y - macDragPrevLocation.y
+                                        macDragPrevLocation = value.location
+
+                                        // Advance cursorAbsHour using the tangent of the spiral
+                                        // at the current position. This maps each pixel of mouse
+                                        // movement to the correct number of hours along the curve,
+                                        // responding to every tiny movement without any search.
+                                        let spiralSize = CGSize(width: screen.size.width - 32,
+                                                                height: screen.size.width - 32)
+                                        let scaleDays = max(1, Int(ceil(maxReachedTurns)))
+                                        let maxHours  = Double(maxDays) * store.period
+                                        let hoursStep = tangentHoursPerPixel(
+                                            atHour: cursorAbsHour,
+                                            spiralSize: spiralSize,
+                                            scaleDays: scaleDays,
+                                            period: store.period,
+                                            spiralType: store.spiralType,
+                                            linkGrowthToTau: store.linkGrowthToTau,
+                                            mouseDx: dx, mouseDy: dy
+                                        )
+                                        let newHour = max(0, min(maxHours, cursorAbsHour + hoursStep))
+                                        cursorAbsHour = newHour
+                                        let newTurns = newHour / store.period
+                                        if newTurns > maxReachedTurns {
+                                            let wasAtMax = visibleDays >= maxReachedTurns * 0.95
+                                            maxReachedTurns = newTurns
+                                            if wasAtMax {
+                                                visibleDays = newTurns; liveVisibleDays = newTurns
+                                                if !pinchStarted { pinchBaseVisibleDays = newTurns; zoomNorm = 1.0 }
+                                            }
+                                        } else if !pinchStarted {
+                                            let target = max(minVisibleDays, newTurns)
+                                            visibleDays = target; liveVisibleDays = target
+                                            pinchBaseVisibleDays = target
+                                        }
+                                    }
+                                    .onEnded { _ in
+                                        macDragIsNew = true
+                                    }
+                            )
+                            // Arrow keys for fine-grained cursor movement.
+                            .focusable()
+                            .focusEffectDisabled()
+                            .onKeyPress(phases: [.down, .repeat]) { press in
+                                let isShift = press.modifiers.contains(.shift)
+                                let stepHours: Double = isShift ? 1.0 : 0.25
+                                let maxHours = min((maxReachedTurns + 1.5) * store.period,
+                                                   Double(maxDays) * store.period)
+                                switch press.key {
+                                case .leftArrow:
+                                    let newHour = max(0, cursorAbsHour - stepHours)
+                                    cursorAbsHour = newHour
+                                    if !pinchStarted {
+                                        let target = max(minVisibleDays, newHour / store.period)
+                                        visibleDays = target; liveVisibleDays = target
+                                        pinchBaseVisibleDays = target
+                                    }
+                                    return .handled
+                                case .rightArrow:
+                                    let newHour = min(maxHours, cursorAbsHour + stepHours)
+                                    cursorAbsHour = newHour
+                                    let newTurns = newHour / store.period
+                                    if newTurns > maxReachedTurns {
+                                        let wasAtMax = visibleDays >= maxReachedTurns * 0.95
+                                        maxReachedTurns = newTurns
+                                        if wasAtMax {
+                                            visibleDays = newTurns; liveVisibleDays = newTurns
+                                            if !pinchStarted { pinchBaseVisibleDays = newTurns; zoomNorm = 1.0 }
+                                        }
+                                    } else if !pinchStarted {
+                                        let target = max(minVisibleDays, newTurns)
+                                        visibleDays = target; liveVisibleDays = target
+                                        pinchBaseVisibleDays = target
+                                    }
+                                    return .handled
+                                default:
+                                    return .ignored
+                                }
+                            }
+                    }
+                    #endif
                 }
                 .ignoresSafeArea()
+                #if os(macOS)
+                .onPreferenceChange(OnboardingFramesKey.self) { frames in
+                    spiralFrameGlobal = frames.spiralArea
+                }
+                #endif
             }
             .navigationDestination(isPresented: $showConsistencyDetail) {
                 if let consistency = store.analysis.consistency {
@@ -219,9 +342,15 @@ struct SpiralTab: View {
                 }
             }
             .sheet(isPresented: $showEventSheet2) {
-                EventSheetView(events: $store.events, cursorAbsHour: cursorAbsHour, bundle: bundle)
-                    .presentationDetents([.medium])
-                    .presentationDragIndicator(.visible)
+                EventSheetView(
+                    events: store.events,
+                    cursorAbsHour: cursorAbsHour,
+                    bundle: bundle,
+                    onAdd: { store.addEvent($0) },
+                    onRemove: { store.removeEvent(id: $0) }
+                )
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.visible)
             }
             .sheet(isPresented: $showRephaseEditor) {
                 RephaseEditorView(plan: store.rephasePlan)
@@ -258,10 +387,6 @@ struct SpiralTab: View {
                     .foregroundStyle(SpiralColors.muted)
             }
             Spacer()
-            // Current time
-            Text(currentTimeString)
-                .font(.system(size: 22, weight: .ultraLight, design: .monospaced))
-                .foregroundStyle(SpiralColors.accent)
         }
     }
 
@@ -663,6 +788,74 @@ struct SpiralTab: View {
         }
     }
 
+    // MARK: - Projection helpers (macOS drag tracking)
+
+    #if os(macOS)
+    /// Returns how many hours to advance the cursor given a mouse delta (dx, dy).
+    /// Projects two nearby points on the spiral (current and current+epsilon) to screen
+    /// space, computes the tangent direction, then takes the dot product with the mouse
+    /// delta.  This gives sub-pixel sensitivity with no search loop.
+    private func tangentHoursPerPixel(
+        atHour absHour: Double,
+        spiralSize: CGSize,
+        scaleDays: Int,
+        period: Double,
+        spiralType: SpiralType,
+        linkGrowthToTau: Bool,
+        mouseDx: Double, mouseDy: Double
+    ) -> Double {
+        let eps = 0.25  // hours — small enough to be smooth
+        let p0  = projectedPoint(forHour: absHour,       spiralSize: spiralSize, scaleDays: scaleDays, period: period, spiralType: spiralType, linkGrowthToTau: linkGrowthToTau)
+        let p1  = projectedPoint(forHour: absHour + eps, spiralSize: spiralSize, scaleDays: scaleDays, period: period, spiralType: spiralType, linkGrowthToTau: linkGrowthToTau)
+        let tx = p1.x - p0.x  // tangent vector (eps hours → tx,ty pixels)
+        let ty = p1.y - p0.y
+        let lenSq = tx*tx + ty*ty
+        guard lenSq > 1e-9 else { return 0 }
+        // Project mouse delta onto the tangent, then scale to hours.
+        let dot = mouseDx * tx + mouseDy * ty
+        return dot / lenSq * eps  // hours
+    }
+
+    /// Returns the spiral-local screen point where `absHour` is projected,
+    /// using the same perspective math as `nearestHour` / SpiralView.
+    private func projectedPoint(
+        forHour absHour: Double,
+        spiralSize: CGSize,
+        scaleDays: Int,
+        period: Double,
+        spiralType: SpiralType,
+        linkGrowthToTau: Bool
+    ) -> CGPoint {
+        let geo = SpiralGeometry(
+            totalDays: scaleDays, maxDays: scaleDays,
+            width: Double(spiralSize.width), height: Double(spiralSize.height),
+            startRadius: 20, spiralType: spiralType,
+            period: period, linkGrowthToTau: linkGrowthToTau
+        )
+        let totalT   = max(maxReachedTurns, 0.5)
+        let margin   = 0.35
+        let tRef     = totalT + margin
+        let visible  = max(liveVisibleDays + margin, 1.0 + margin)
+        let zStep    = geo.maxRadius * store.depthScale
+        let focalLen = geo.maxRadius * 1.2
+        let tTarget  = min(visible, tRef)
+        let rTarget  = max(geo.radius(turns: min(tTarget, totalT)), 1.0)
+        let wzTarget = (tRef - tTarget) * zStep
+        let dzTarget = focalLen * rTarget / geo.maxRadius
+        let camZ     = wzTarget - dzTarget
+
+        let t   = absHour / period
+        let day = Int(t)
+        let hr  = (t - Double(day)) * geo.period
+        let flat = geo.point(day: day, hour: hr)
+        let wx   = flat.x - geo.cx; let wy = flat.y - geo.cy
+        let wz   = (tRef - t) * zStep
+        let safeDz = max(wz - camZ, focalLen * 0.05)
+        let scale  = focalLen / safeDz
+        return CGPoint(x: geo.cx + wx * scale, y: geo.cy + wy * scale)
+    }
+    #endif
+
     // MARK: - Nearest hour (with perspective projection matching SpiralView)
 
     private func nearestHour(
@@ -673,7 +866,9 @@ struct SpiralTab: View {
         period: Double,
         spiralType: SpiralType,
         linkGrowthToTau: Bool,
-        totalHours: Double
+        totalHours: Double,
+        searchAll: Bool = false,
+        searchRadius: Double? = nil
     ) -> Double {
         let geo = SpiralGeometry(
             totalDays: scaleDays, maxDays: scaleDays,
@@ -704,11 +899,28 @@ struct SpiralTab: View {
             return CGPoint(x: geo.cx + wx * scale, y: geo.cy + wy * scale)
         }
 
-        // Restrict search to ±0.6 turns around the current cursor position.
+        // Restrict search to a window around the current cursor position.
+        // On macOS we use two radii:
+        //  • isFirst=true  (new gesture / click): ±0.5 turns — lets the cursor snap to
+        //    wherever you click within the current arm without jumping to a different arm.
+        //  • isFirst=false (ongoing drag): ±2.0 turns — wide enough that fast mouse drags
+        //    never escape the window.
+        // searchAll keeps the parameter signature but is no longer used on macOS.
         let cursorTurns = cursorAbsHour / period
-        let searchRadius = 0.6
-        let searchFrom = max(0, cursorTurns - searchRadius) * period
-        let searchTo   = min(totalHours, (cursorTurns + searchRadius) * period)
+        let searchFrom: Double
+        let searchTo: Double
+        if searchAll {
+            searchFrom = 0
+            searchTo   = totalHours
+        } else {
+            #if os(macOS)
+            let radius = searchRadius ?? 2.0
+            #else
+            let radius = searchRadius ?? 0.6
+            #endif
+            searchFrom = max(0, cursorTurns - radius) * period
+            searchTo   = min(totalHours, (cursorTurns + radius) * period)
+        }
 
         var best = cursorAbsHour; var bestDist = Double.infinity
         var h = searchFrom
@@ -765,9 +977,11 @@ struct HumanStatCard: View {
 
 /// Sheet with full event grid — accessed via the + icon in the cursor bar.
 struct EventSheetView: View {
-    @Binding var events: [CircadianEvent]
+    let events: [CircadianEvent]
     let cursorAbsHour: Double
     let bundle: Bundle
+    let onAdd: (CircadianEvent) -> Void
+    let onRemove: (UUID) -> Void
 
     var body: some View {
         VStack(spacing: 0) {
@@ -788,7 +1002,8 @@ struct EventSheetView: View {
             .padding(.top, 20)
             .padding(.bottom, 16)
 
-            EventGridView(events: $events, cursorAbsHour: cursorAbsHour, bundle: bundle)
+            EventGridView(events: events, cursorAbsHour: cursorAbsHour, bundle: bundle,
+                          onAdd: onAdd, onRemove: onRemove)
                 .padding(.horizontal, 16)
 
             Spacer()
@@ -853,9 +1068,11 @@ struct InsightCard: View {
 
 /// Compact 3×2 glass-style event button grid shown below the spiral.
 struct EventGridView: View {
-    @Binding var events: [CircadianEvent]
+    let events: [CircadianEvent]
     let cursorAbsHour: Double
     let bundle: Bundle
+    let onAdd: (CircadianEvent) -> Void
+    let onRemove: (UUID) -> Void
     @State private var showLog = false
 
     private let columns = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
@@ -870,8 +1087,7 @@ struct EventGridView: View {
                             absoluteHour: cursorAbsHour,
                             timestamp: Date()
                         )
-                        events.append(event)
-                        events.sort { $0.absoluteHour < $1.absoluteHour }
+                        onAdd(event)
                     }
                 }
             }
@@ -908,7 +1124,7 @@ struct EventGridView: View {
                                 .font(.system(size: 9, design: .monospaced))
                                 .foregroundStyle(SpiralColors.muted)
                             Button {
-                                events.removeAll { $0.id == event.id }
+                                onRemove(event.id)
                             } label: {
                                 Image(systemName: "xmark")
                                     .font(.system(size: 7))

@@ -59,6 +59,19 @@ final class WatchStore {
     /// True when there is no data at all (neither from iPhone nor locally logged).
     var isEmpty: Bool { records.isEmpty && episodes.isEmpty }
 
+    /// The cursor position (absolute hours on the spiral timeline) as set by WatchSpiralView.
+    /// WatchSpiralView writes this whenever the cursor moves or is initialised.
+    /// WatchEventLogView reads it so events are placed at the cursor, not wall-clock time.
+    var cursorAbsoluteHour: Double = 0
+
+    /// Current wall-clock time expressed as absolute hours on the spiral timeline
+    /// (hours elapsed since startDate midnight). Kept for fallback use.
+    var currentAbsoluteHour: Double {
+        let now = Date()
+        let seconds = now.timeIntervalSince(startDate)
+        return seconds / 3600.0
+    }
+
     // Computed shortcuts
     var compositeScore: Int { analysis.composite }
     var sri: Double { analysis.stats.sri }
@@ -177,9 +190,17 @@ final class WatchStore {
                 records = full
             }
         }
-        if let data = context["eventsJSON"] as? Data,
+        if let data = context["eventsReplace"] as? Data,
            let decoded = try? JSONDecoder().decode([CircadianEvent].self, from: data) {
-            events = decoded
+            // Authoritative replace from iPhone (add or delete) — use the list as-is.
+            events = decoded.sorted { $0.absoluteHour < $1.absoluteHour }
+        } else if let data = context["eventsJSON"] as? Data,
+           let decoded = try? JSONDecoder().decode([CircadianEvent].self, from: data) {
+            // Background context (applicationContext on startup) — merge to keep any
+            // locally-logged events not yet echoed back from iPhone.
+            let knownIDs = Set(decoded.map { $0.id })
+            let localOnly = events.filter { !knownIDs.contains($0.id) }
+            events = (decoded + localOnly).sorted { $0.absoluteHour < $1.absoluteHour }
         }
         if let lang = context["language"] as? String {
             language = lang
@@ -196,12 +217,18 @@ final class WatchStore {
         if let d = context["depthScale"] as? Double {
             depthScale = d
         }
+        // Sync startDate from iPhone so absoluteHour values in events and records
+        // are interpreted on the same timeline reference on both devices.
+        if let ts = context["startDate"] as? Double {
+            startDate = Date(timeIntervalSince1970: ts)
+        }
         saveToDefaults()
     }
 
     /// Append an event logged on the watch and send it to the iPhone.
     func logEvent(_ event: CircadianEvent) {
         events.append(event)
+        saveToDefaults()
         WatchConnectivityManager.shared.sendEvent(event)
     }
 
@@ -216,12 +243,14 @@ final class WatchStore {
         var appearance: String?
         var spiralType: SpiralType?
         var period: Double?
+        var events: [CircadianEvent]?
     }
 
     private func saveToDefaults() {
         let stored = Stored(episodes: episodes, startDate: startDate,
                             language: language, appearance: appearance,
-                            spiralType: spiralType, period: period)
+                            spiralType: spiralType, period: period,
+                            events: events)
         if let data = try? JSONEncoder().encode(stored) {
             UserDefaults.standard.set(data, forKey: defaultsKey)
         }
@@ -236,6 +265,7 @@ final class WatchStore {
         if let app  = stored.appearance { appearance = app }
         if let st   = stored.spiralType { spiralType = st }
         if let p    = stored.period { period = p }
+        if let evs  = stored.events { events = evs }
         if !episodes.isEmpty { recompute() }
     }
 

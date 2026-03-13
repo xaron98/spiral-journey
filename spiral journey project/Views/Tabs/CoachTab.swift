@@ -53,7 +53,7 @@ struct CoachTab: View {
     // MARK: - Insight Card (qué está pasando)
 
     private var insightCard: some View {
-        let insight = primaryInsight
+        let insight = resolvedInsight
         return CoachSectionCard(
             eyebrow: String(localized: "coach.insight.eyebrow", bundle: bundle),
             title: insight.title,
@@ -79,7 +79,11 @@ struct CoachTab: View {
     // MARK: - Action Card (qué hacer hoy)
 
     private var actionCard: some View {
-        let action = todayAction
+        let action = resolvedAction
+        let outcome: String? = {
+            guard let ci = store.analysis.coachInsight, !ci.expectedOutcome.isEmpty else { return nil }
+            return localizedCoachString("coach.issue.\(ci.issueKey.rawValue).outcome", fallback: ci.expectedOutcome, args: ci.args)
+        }()
         return VStack(alignment: .leading, spacing: 10) {
             Label {
                 Text(String(localized: "coach.action.eyebrow", bundle: bundle))
@@ -96,6 +100,13 @@ struct CoachTab: View {
                 .font(.system(size: 17, weight: .semibold))
                 .foregroundStyle(SpiralColors.text)
                 .fixedSize(horizontal: false, vertical: true)
+
+            if let outcome, !outcome.isEmpty {
+                Text(outcome)
+                    .font(.system(size: 11))
+                    .foregroundStyle(SpiralColors.muted)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(16)
@@ -172,64 +183,73 @@ struct CoachTab: View {
         let color: Color
     }
 
-    private var primaryInsight: CoachContent {
-        let stats = store.analysis.stats
-        let consistency = store.analysis.consistency
-
-        // Global shift first (most urgent)
-        if let c = consistency, !c.globalShiftDays.isEmpty {
-            let n = c.globalShiftDays.count
-            return CoachContent(
-                title: loc("coach.insight.shift.title"),
-                body: String(format: loc("coach.insight.shift.body"), n),
-                icon: "arrow.left.and.right.circle",
-                color: SpiralColors.poor
-            )
+    /// Maps a `CoachSeverity` to the appropriate UI color.
+    private func color(for severity: CoachSeverity) -> Color {
+        switch severity {
+        case .urgent:   return SpiralColors.poor
+        case .moderate: return SpiralColors.moderate
+        case .mild:     return SpiralColors.accent
+        case .info:     return SpiralColors.good
         }
-
-        // High social jetlag
-        if stats.socialJetlag > 60 {
-            let min = Int(stats.socialJetlag)
-            return CoachContent(
-                title: loc("coach.insight.jetlag.title"),
-                body: String(format: loc("coach.insight.jetlag.body"), min),
-                icon: "calendar.badge.exclamationmark",
-                color: SpiralColors.moderate
-            )
-        }
-
-        // High variability
-        let bedStd = stats.stdBedtime > 0 ? stats.stdBedtime : stats.stdAcrophase
-        if bedStd > 1.0 {
-            return CoachContent(
-                title: loc("coach.insight.irregular.title"),
-                body: String(format: loc("coach.insight.irregular.body"), bedStd),
-                icon: "waveform.path.ecg",
-                color: SpiralColors.moderate
-            )
-        }
-
-        // Short sleep
-        if stats.meanSleepDuration > 0 && stats.meanSleepDuration < 6.5 {
-            return CoachContent(
-                title: loc("coach.insight.short.title"),
-                body: String(format: loc("coach.insight.short.body"), stats.meanSleepDuration),
-                icon: "bed.double",
-                color: SpiralColors.poor
-            )
-        }
-
-        // All good
-        return CoachContent(
-            title: loc("coach.insight.good.title"),
-            body: loc("coach.insight.good.body"),
-            icon: "checkmark.circle",
-            color: SpiralColors.good
-        )
     }
 
+    /// Maps a `CoachIssueKey` to a system image name.
+    private func icon(for issue: CoachIssueKey) -> String {
+        switch issue {
+        case .delayedPhase:                return "moon.circle"
+        case .advancedPhase:               return "sunrise.circle"
+        case .splitSleep:                  return "moon.haze"
+        case .socialJetlag:                return "calendar.badge.exclamationmark"
+        case .irregularSchedule:           return "waveform.path.ecg"
+        case .insufficientDuration:        return "bed.double"
+        case .fragmentedSleep:             return "waveform.badge.exclamationmark"
+        case .sufficientButMisaligned:     return "arrow.left.and.right.circle"
+        case .maintenance:                 return "checkmark.circle"
+        case .offTargetForShift:           return "deskclock"
+        case .offTargetForCustomSchedule:  return "calendar.badge.clock"
+        case .rephaseInProgress:           return "arrow.clockwise.circle"
+        case .insufficientData:            return "moon.zzz"
+        }
+    }
+
+    /// Primary insight sourced from `coachInsight` when available, with legacy fallback.
+    private var resolvedInsight: CoachContent {
+        if let ci = store.analysis.coachInsight {
+            let localTitle = localizedCoachString("coach.issue.\(ci.issueKey.rawValue).title", fallback: ci.title, args: ci.args)
+            let localReason = localizedCoachString("coach.issue.\(ci.issueKey.rawValue).reason", fallback: ci.reason, args: ci.args)
+            return CoachContent(title: localTitle, body: localReason, icon: icon(for: ci.issueKey), color: color(for: ci.severity))
+        }
+        return legacyInsight
+    }
+
+    /// Today's action sourced from `coachInsight` when available, with legacy fallback.
+    private var resolvedAction: String {
+        // Rephase mode takes priority when active
+        if store.rephasePlan.isEnabled, store.analysis.stats.meanAcrophase > 0 {
+            return RephaseCalculator.todayActionText(plan: store.rephasePlan, meanAcrophase: store.analysis.stats.meanAcrophase, bundle: bundle)
+        }
+        if let ci = store.analysis.coachInsight {
+            return localizedCoachString("coach.issue.\(ci.issueKey.rawValue).action", fallback: ci.action, args: ci.args)
+        }
+        return legacyAction
+    }
+
+    /// Resolve a coach localization key with optional format args; falls back to English `fallback`.
+    private func localizedCoachString(_ key: String, fallback: String, args: [Double]) -> String {
+        let raw = NSLocalizedString(key, bundle: bundle, comment: "")
+        let resolved = raw == key ? fallback : raw   // key == raw means no translation found
+        guard !args.isEmpty else { return resolved }
+        switch args.count {
+        case 1: return String(format: resolved, args[0])
+        case 2: return String(format: resolved, args[0], args[1])
+        case 3: return String(format: resolved, args[0], args[1], args[2])
+        default: return resolved
+        }
+    }
+
+    // MARK: - Habit Card logic (unchanged — driven by recommendations engine)
+
     private var primaryHabit: CoachContent {
-        // Use top recommendation from the engine
         if let rec = store.analysis.recommendations.first {
             let localizedTitle = localizedRecTitle(rec)
             let localizedText  = localizedRecText(rec)
@@ -243,14 +263,82 @@ struct CoachTab: View {
         )
     }
 
-    private var todayAction: String {
-        let stats = store.analysis.stats
-
-        // Rephase mode takes priority when active
-        if store.rephasePlan.isEnabled, stats.meanAcrophase > 0 {
-            return RephaseCalculator.todayActionText(plan: store.rephasePlan, meanAcrophase: stats.meanAcrophase, bundle: bundle)
+    private var trendContextText: String {
+        let trends = store.analysis.trends
+        if let t = trends.deteriorating.first {
+            return String(format: loc("coach.trend.deteriorating"), t.detail)
         }
+        if store.analysis.stats.socialJetlag > 45 {
+            return loc("coach.trend.socialJetlag")
+        }
+        return ""
+    }
 
+    // MARK: - Legacy fallbacks (used only when coachInsight is nil)
+
+    private var legacyInsight: CoachContent {
+        let stats = store.analysis.stats
+        let consistency = store.analysis.consistency
+
+        if let c = consistency, !c.globalShiftDays.isEmpty {
+            let n = c.globalShiftDays.count
+            return CoachContent(
+                title: loc("coach.insight.shift.title"),
+                body: String(format: loc("coach.insight.shift.body"), n),
+                icon: "arrow.left.and.right.circle",
+                color: SpiralColors.poor
+            )
+        }
+        if stats.socialJetlag > 60 {
+            let min = Int(stats.socialJetlag)
+            return CoachContent(
+                title: loc("coach.insight.jetlag.title"),
+                body: String(format: loc("coach.insight.jetlag.body"), min),
+                icon: "calendar.badge.exclamationmark",
+                color: SpiralColors.moderate
+            )
+        }
+        let bedStd = stats.stdBedtime > 0 ? stats.stdBedtime : stats.stdAcrophase
+        if bedStd > 1.0 {
+            return CoachContent(
+                title: loc("coach.insight.irregular.title"),
+                body: String(format: loc("coach.insight.irregular.body"), bedStd),
+                icon: "waveform.path.ecg",
+                color: SpiralColors.moderate
+            )
+        }
+        if stats.meanSleepDuration > 0 && stats.meanSleepDuration < 6.5 {
+            return CoachContent(
+                title: loc("coach.insight.short.title"),
+                body: String(format: loc("coach.insight.short.body"), stats.meanSleepDuration),
+                icon: "bed.double",
+                color: SpiralColors.poor
+            )
+        }
+        if stats.meanAcrophase > 18.5 {
+            let bedApprox = SleepStatistics.formatHour(stats.meanAcrophase - 8)
+            let wakeApprox = SleepStatistics.formatHour(stats.meanAcrophase - 8 + stats.meanSleepDuration)
+            return CoachContent(
+                title: loc("coach.insight.delayed.title"),
+                body: String(format: loc("coach.insight.delayed.body"), bedApprox, wakeApprox),
+                icon: "moon.circle",
+                color: SpiralColors.moderate
+            )
+        }
+        return CoachContent(
+            title: loc("coach.insight.good.title"),
+            body: loc("coach.insight.good.body"),
+            icon: "checkmark.circle",
+            color: SpiralColors.good
+        )
+    }
+
+    private var legacyAction: String {
+        let stats = store.analysis.stats
+        if stats.meanAcrophase > 18.5 {
+            let lightTime = SleepStatistics.formatHour(stats.meanAcrophase - 8 + 0.5)
+            return String(format: loc("coach.action.morningLight"), lightTime)
+        }
         if stats.socialJetlag > 60 {
             let advance = Int(min(stats.socialJetlag / 7, 20))
             return String(format: loc("coach.action.advanceBedtime"), advance)
@@ -267,17 +355,6 @@ struct CoachTab: View {
             return loc("coach.action.keepSchedule")
         }
         return loc("coach.action.chooseTime")
-    }
-
-    private var trendContextText: String {
-        let trends = store.analysis.trends
-        if let t = trends.deteriorating.first {
-            return String(format: loc("coach.trend.deteriorating"), t.detail)
-        }
-        if store.analysis.stats.socialJetlag > 45 {
-            return loc("coach.trend.socialJetlag")
-        }
-        return ""
     }
 
     private func localizedRecTitle(_ rec: Recommendation) -> String {

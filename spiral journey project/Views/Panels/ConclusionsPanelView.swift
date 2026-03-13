@@ -52,9 +52,11 @@ struct ConclusionsPanelView: View {
             }
             .background(SpiralColors.bg.ignoresSafeArea())
             .navigationTitle("Spiral Journey")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .automatic) {
                     Button(String(localized: "conclusions.done", bundle: bundle)) { isPresented = false }
                         .foregroundStyle(SpiralColors.accent)
                 }

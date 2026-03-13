@@ -3323,6 +3323,58 @@
         }
       }
     },
+    "coach.action.morningLight" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تعرض لضوء ساطع (شمس أو مصباح 10000 لوكس) في الساعة %@ لمدة 20-30 دقيقة"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exposa't a llum brillant (sol o làmpada 10.000 lux) a les %@ durant 20-30 min"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Helles Licht (Sonne oder 10.000-Lux-Lampe) um %@ Uhr für 20-30 Min. tanken"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get bright light (sunlight or 10,000-lux lamp) at %@ for 20-30 min"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exponte a luz brillante (sol o lámpara 10.000 lux) a las %@ durante 20-30 min"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "S'exposer à une lumière vive (soleil ou lampe 10 000 lux) à %@ pendant 20-30 min"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@に明るい光（日光または10,000ルクスのランプ）を20〜30分浴びましょう"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在%@接受明亮光照（阳光或10000勒克斯灯箱）20-30分钟"
+          }
+        }
+      }
+    },
     "coach.action.sleepEarlier" : {
       "localizations" : {
         "ar" : {
@@ -3735,6 +3787,110 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "基于您最近几晚的数据"
+          }
+        }
+      }
+    },
+    "coach.insight.delayed.body" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "وقت نومك المقدّر %@ والاستيقاظ %@. يشير ذلك إلى تأخر طور النوم. يمكن تقديم الساعة البيولوجية تدريجياً."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hora estimada de dormir %@ i despertar %@. Això indica una fase de son retardada. El rellotge intern es pot avançar gradualment."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geschätzte Schlafzeit %@ und Aufwachzeit %@. Das deutet auf eine verzögerte Schlafphase hin. Die innere Uhr kann schrittweise vorgestellt werden."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estimated sleep around %@ and wake around %@. This suggests a delayed sleep phase. Your internal clock can be gradually shifted earlier."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hora estimada de dormir %@ y despertar %@. Esto indica una fase de sueño retrasada. El reloj interno puede adelantarse gradualmente."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heure de coucher estimée %@ et réveil %@. Cela indique une phase de sommeil retardée. L'horloge interne peut être avancée progressivement."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "推定就寝時刻 %@、起床時刻 %@。これは睡眠位相後退を示しています。体内時計は段階的に早めることができます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "估计入睡时间%@，醒来时间%@。这表明睡眠时相延迟。内部时钟可以逐步提前。"
+          }
+        }
+      }
+    },
+    "coach.insight.delayed.title" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "طور النوم متأخر"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fase de son retardada"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verzögerte Schlafphase"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delayed sleep phase"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fase de sueño retrasada"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phase de sommeil retardée"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "睡眠位相後退"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "睡眠时相延迟"
           }
         }
       }
@@ -4307,6 +4463,2762 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "睡眠时长不足"
+          }
+        }
+      }
+    },
+    "coach.issue.advancedPhase.action" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تعرض للضوء الساطع في المساء (18:00-20:00) وأخّر وقت النوم تدريجياً بـ 15 دقيقة كل أسبوع."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exposa't a llum intensa al vespre (18:00-20:00) i retarda gradualment l'hora d'anar a dormir 15 minuts per setmana."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Setze dich abends (18:00–20:00) hellem Licht aus und verschiebe die Schlafenszeit schrittweise um 15 Minuten pro Woche nach hinten."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get bright light exposure in the evening (18:00–20:00) and gradually delay bedtime by 15 minutes per week."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exponte a luz brillante por la tarde (18:00-20:00) y retrasa gradualmente la hora de dormir 15 minutos por semana."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exposez-vous à une lumière vive le soir (18:00–20:00) et retardez progressivement le coucher de 15 minutes par semaine."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "夕方（18:00～20:00）に明るい光を浴び、毎週15分ずつ就寝時間を遅らせていきましょう。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "傍晚（18:00–20:00）接受强光照射，并每周逐渐将就寝时间推迟15分钟。"
+          }
+        }
+      }
+    },
+    "coach.issue.advancedPhase.outcome" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ستتأخر ساعتك البيولوجية وستصبح أوقات الاستيقاظ المبكرة أقل تكراراً."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El teu rellotge intern es retardarà i els despertars molt prematurs seran menys freqüents."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deine innere Uhr wird sich verzögern und sehr frühe Aufwachzeiten werden seltener."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your internal clock will shift later and very early wake-ups will become less frequent."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu reloj interno se retrasará y los despertares muy tempranos serán menos frecuentes."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre horloge interne se décalera et les réveils très matinaux deviendront moins fréquents."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "体内時計が後ろにずれ、非常に早い目覚めが減少します。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的生物钟将后移，过早醒来的情况会减少。"
+          }
+        }
+      }
+    },
+    "coach.issue.advancedPhase.reason" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "وقت نومك أبكر بكثير مما هو مثالي، وقد تستيقظ مبكراً جداً بشكل لا إرادي."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El teu temps de son és significativament més aviat del que és òptim, i et podries despertar molt d'hora de manera involuntària."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deine Schlafzeit liegt deutlich früher als optimal, und du wachst möglicherweise ungewollt sehr früh auf."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your sleep timing is significantly earlier than optimal, and you may be waking very early involuntarily."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu horario de sueño es significativamente más temprano de lo óptimo, y podrías despertar muy temprano de forma involuntaria."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre horaire de sommeil est bien plus tôt qu'optimal, et vous pourriez vous réveiller très tôt involontairement."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "睡眠時間が最適より大幅に早く、意図せず非常に早く目覚めている可能性があります。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的睡眠时间比最佳时间早得多，可能会不自觉地很早醒来。"
+          }
+        }
+      }
+    },
+    "coach.issue.advancedPhase.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "طور النوم المبكر"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fase del son avançada"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verfrühte Schlafphase"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Advanced Sleep Phase"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fase del sueño adelantada"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phase de sommeil avancée"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "睡眠位相の前進"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "睡眠时相提前"
+          }
+        }
+      }
+    },
+    "coach.issue.delayedPhase.action" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تعرض للضوء الساطع في الصباح (الساعة 07:00-09:00) وتجنب الضوء الأزرق بعد الساعة 21:00."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exposa't a llum intensa al matí (07:00-09:00) i evita la llum blava després de les 21:00."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Setze dich morgens (07:00–09:00) hellem Licht aus und meide blaues Licht nach 21:00."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get bright light exposure in the morning (07:00–09:00) and avoid blue light after 21:00."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exponte a luz brillante por la mañana (07:00-09:00) y evita la luz azul después de las 21:00."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exposez-vous à une lumière vive le matin (07:00–09:00) et évitez la lumière bleue après 21:00."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "朝（07:00～09:00）に明るい光を浴び、21:00以降はブルーライトを避けてください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "早晨（07:00–09:00）接受强光照射，21:00后避免蓝光。"
+          }
+        }
+      }
+    },
+    "coach.issue.delayedPhase.outcome" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "سيتقدم توقيت نومك بمقدار 15-30 دقيقة كل أسبوع مع الالتزام المنتظم."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El teu horari de son avançarà 15-30 minuts per setmana amb consistència."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Schlafrhythmus verschiebt sich bei konsequenter Umsetzung um 15–30 Minuten pro Woche nach vorne."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your sleep timing will advance 15–30 minutes per week with consistent effort."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu horario de sueño avanzará 15-30 minutos por semana con esfuerzo constante."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre horaire de sommeil avancera de 15 à 30 minutes par semaine avec un effort constant."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "継続的な取り組みにより、毎週15〜30分ずつ睡眠タイミングが前進します。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "坚持努力，每周睡眠时间将提前15–30分钟。"
+          }
+        }
+      }
+    },
+    "coach.issue.delayedPhase.reason" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ذروة نشاطك البيولوجي تقع في المساء المتأخر، مما يعني أن ساعتك البيولوجية تعمل متأخرة بشكل ملحوظ عن المعيار الاجتماعي."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El teu pic d'activitat biològica cau tard a la nit, cosa que significa que el teu rellotge intern funciona significativament més tard del que la majoria de programes socials requereixen."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein biologisches Aktivitätsmaximum fällt auf den späten Abend, was bedeutet, dass deine innere Uhr deutlich später als der gesellschaftliche Standard läuft."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your biological activity peak falls in the late evening, meaning your internal clock is running significantly later than most social schedules require."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu pico de actividad biológica cae en la noche avanzada, lo que significa que tu reloj interno funciona significativamente más tarde de lo que la mayoría de los horarios sociales requieren."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre pic d'activité biologique tombe en fin de soirée, ce qui signifie que votre horloge interne fonctionne bien plus tard que la plupart des horaires sociaux ne le requièrent."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "生物学的な活動のピークが深夜に集中しており、体内時計が社会的なスケジュールより大幅に遅れていることを意味します。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的生物活动峰值出现在深夜，说明您的生物钟比大多数社会时间表所需的要晚得多。"
+          }
+        }
+      }
+    },
+    "coach.issue.delayedPhase.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "طور النوم المتأخر"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fase del son retardada"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verzögerte Schlafphase"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delayed Sleep Phase"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fase del sueño retrasada"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phase de sommeil retardée"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "睡眠位相の遅れ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "睡眠时相延迟"
+          }
+        }
+      }
+    },
+    "coach.issue.fragmentedSleep.action" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تجنب الكافيين بعد الساعة 14:00، وقلّل من الكحول، واجعل غرفة النوم باردة ومظلمة وهادئة."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Evita la cafeïna després de les 14:00, redueix l'alcohol i mantén la habitació fresca, fosca i silenciosa."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vermeide Koffein nach 14:00 Uhr, reduziere Alkohol und halte das Schlafzimmer kühl, dunkel und ruhig."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avoid caffeine after 14:00, reduce alcohol, and keep your bedroom cool, dark, and quiet."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Evita la cafeína después de las 14:00, reduce el alcohol y mantén el dormitorio fresco, oscuro y silencioso."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Évitez la caféine après 14:00, réduisez l'alcool et gardez la chambre fraîche, sombre et calme."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "14:00以降のカフェインを避け、アルコールを減らし、寝室を涼しく暗く静かに保ちましょう。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "14:00后避免咖啡因，减少饮酒，保持卧室凉爽、黑暗和安静。"
+          }
+        }
+      }
+    },
+    "coach.issue.fragmentedSleep.outcome" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تحسين البيئة سيُقلّل الاستيقاظ الليلي ويزيد نسبة النوم العميق."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Millorar l'ambient reduirà els despertars nocturns i augmentarà la proporció de son profund."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eine bessere Schlafumgebung wird nächtliche Aufwachzeiten reduzieren und den Tiefschlafanteil erhöhen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Improving the environment will reduce night waking and increase the proportion of deep sleep."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mejorar el ambiente reducirá los despertares nocturnos y aumentará la proporción de sueño profundo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Améliorer l'environnement réduira les réveils nocturnes et augmentera la proportion de sommeil profond."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "環境を改善することで夜間覚醒が減り、深い睡眠の割合が増加します。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "改善睡眠环境将减少夜间觉醒，增加深度睡眠比例。"
+          }
+        }
+      }
+    },
+    "coach.issue.fragmentedSleep.reason" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تحتوي لياليك على انتقالات متعددة بين النوم واليقظة. هذا يُقلّل من كمية نوم الموجة البطيئة ونوم حركة العين السريعة التي تحصل عليها."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les teves nits contenen múltiples transicions son-vigília. Això redueix la quantitat de son d'ones lentes i son REM que obtens."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deine Nächte enthalten mehrere Schlaf-Wach-Übergänge. Das reduziert die Menge an Tiefschlaf und REM-Schlaf, die du bekommst."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your nights contain multiple sleep-wake transitions. This reduces the amount of slow-wave and REM sleep you get."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tus noches contienen múltiples transiciones sueño-vigilia. Esto reduce la cantidad de sueño de ondas lentas y sueño REM que obtienes."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vos nuits contiennent de multiples transitions sommeil-éveil. Cela réduit la quantité de sommeil à ondes lentes et de sommeil paradoxal que vous obtenez."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "夜間に睡眠と覚醒の切り替えが複数回起きています。これにより、徐波睡眠とレム睡眠の量が減少します。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的夜晚包含多次睡眠-清醒切换，减少了慢波睡眠和快速眼动睡眠的量。"
+          }
+        }
+      }
+    },
+    "coach.issue.fragmentedSleep.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نوم متقطع"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Son fragmentat"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fragmentierter Schlaf"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fragmented Sleep"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sueño fragmentado"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sommeil fragmenté"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "断片的な睡眠"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "睡眠碎片化"
+          }
+        }
+      }
+    },
+    "coach.issue.insufficientData.action" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أضف جلسات نوم لعدة ليالٍ يدوياً أو وصّل Apple Health للاستيراد التلقائي."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afegeix sessions de son per a diverses nits manualment o connecta Apple Health per a la importació automàtica."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Füge Schlafeinträge für mehrere Nächte manuell hinzu oder verbinde Apple Health für den automatischen Import."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add sleep sessions for several nights manually or connect Apple Health for automatic import."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agrega sesiones de sueño para varias noches manualmente o conecta Apple Health para la importación automática."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajoutez des sessions de sommeil pour plusieurs nuits manuellement ou connectez Apple Health pour l'importation automatique."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "複数の夜の睡眠セッションを手動で追加するか、自動インポートのためにApple Healthに接続してください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "手动添加几晚的睡眠记录，或连接Apple Health进行自动导入。"
+          }
+        }
+      }
+    },
+    "coach.issue.insufficientData.outcome" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "بعد 3 ليالٍ أو أكثر، ستظهر رؤى شخصية ودقيقة عن إيقاعك اليومي."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Amb 3 o més nits, apareixeran insights precisos i personalitzats sobre el teu ritme circadià."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ab 3 oder mehr Nächten erscheinen genaue, personalisierte Einblicke in deinen Tagesrhythmus."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "With 3 or more nights, accurate personalized insights about your circadian rhythm will appear."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Con 3 o más noches, aparecerán perspectivas precisas y personalizadas sobre tu ritmo circadiano."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avec 3 nuits ou plus, des insights précis et personnalisés sur votre rythme circadien apparaîtront."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "3晩以上のデータがあれば、あなたの概日リズムについての正確な個人化されたインサイトが表示されます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有3晚或更多数据后，关于您昼夜节律的准确个性化见解将会出现。"
+          }
+        }
+      }
+    },
+    "coach.issue.insufficientData.reason" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نحتاج إلى المزيد من بيانات النوم لتقديم تحليل دقيق. سجّل نومك لعدة ليالٍ لبدء الحصول على رؤى شخصية."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Necessitem més dades de son per proporcionar una anàlisi precisa. Registra el teu son durant unes quantes nits per començar a obtenir insights personalitzats."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wir brauchen mehr Schlafdaten für eine genaue Analyse. Erfasse deinen Schlaf mehrere Nächte lang, um personalisierte Erkenntnisse zu erhalten."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We need more sleep data to provide accurate analysis. Track your sleep for a few nights to start receiving personalized insights."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Necesitamos más datos de sueño para proporcionar un análisis preciso. Registra tu sueño durante algunas noches para comenzar a recibir perspectivas personalizadas."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nous avons besoin de plus de données de sommeil pour fournir une analyse précise. Enregistrez votre sommeil pendant quelques nuits pour commencer à recevoir des insights personnalisés."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正確な分析のためにより多くの睡眠データが必要です。個人化されたインサイトを受け取るために数晩睡眠を記録してください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "我们需要更多睡眠数据才能提供准确的分析。记录几晚的睡眠以开始获得个性化见解。"
+          }
+        }
+      }
+    },
+    "coach.issue.insufficientData.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "جمع البيانات..."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recollint dades..."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daten werden gesammelt..."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Collecting Data..."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recopilando datos..."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Collecte de données..."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "データを収集中..."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在收集数据..."
+          }
+        }
+      }
+    },
+    "coach.issue.insufficientDuration.action" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تقدّم بوقت نومك 15 دقيقة كل ليلة حتى تصل إلى هدف مدة النوم."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avança l'hora d'anar a dormir 15 minuts cada nit fins a assolir la durada objectiu del son."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verlege deine Schlafenszeit jede Nacht um 15 Minuten vor, bis du die Ziel-Schlafdauer erreichst."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move your bedtime 15 minutes earlier each night until you reach your target sleep duration."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adelanta tu hora de dormir 15 minutos cada noche hasta alcanzar la duración objetivo del sueño."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avancez votre heure de coucher de 15 minutes chaque nuit jusqu'à atteindre la durée de sommeil cible."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目標睡眠時間に達するまで、毎晩15分ずつ就寝時間を早めましょう。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每晚将就寝时间提前15分钟，直到达到目标睡眠时长。"
+          }
+        }
+      }
+    },
+    "coach.issue.insufficientDuration.outcome" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "زيادة مدة النوم تُحسّن الذاكرة والمزاج والجهاز المناعي خلال أسبوعين."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Augmentar la durada del son millorarà la memòria, l'humor i el sistema immunitari en dues setmanes."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mehr Schlaf verbessert Gedächtnis, Stimmung und Immunsystem innerhalb von zwei Wochen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Increasing sleep duration will improve memory, mood, and immune function within two weeks."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aumentar la duración del sueño mejorará la memoria, el estado de ánimo y la función inmunitaria en dos semanas."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Augmenter la durée du sommeil améliorera la mémoire, l'humeur et la fonction immunitaire en deux semaines."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "睡眠時間を増やすことで、2週間以内に記憶力、気分、免疫機能が改善されます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "增加睡眠时间将在两周内改善记忆力、情绪和免疫功能。"
+          }
+        }
+      }
+    },
+    "coach.issue.insufficientDuration.reason" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "متوسط نومك أقل من الموصى به. تراكم الديون النومية يؤثر على المزاج والتركيز والصحة العامة."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La teva durada de son mitjana és inferior a la recomanada. L'acumulació de deute de son afecta l'humor, la concentració i la salut general."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deine durchschnittliche Schlafdauer liegt unter dem empfohlenen Wert. Aufgebauter Schlafmangel beeinträchtigt Stimmung, Konzentration und allgemeine Gesundheit."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your average sleep duration is below the recommended amount. Accumulated sleep debt affects mood, focus, and overall health."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu duración media de sueño está por debajo de lo recomendado. La deuda de sueño acumulada afecta el estado de ánimo, la concentración y la salud en general."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre durée de sommeil moyenne est inférieure aux recommandations. La dette de sommeil accumulée affecte l'humeur, la concentration et la santé générale."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "平均睡眠時間が推奨量を下回っています。蓄積した睡眠負債は気分、集中力、全体的な健康に影響します。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的平均睡眠时间低于建议量。累积的睡眠债务会影响情绪、注意力和整体健康。"
+          }
+        }
+      }
+    },
+    "coach.issue.insufficientDuration.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مدة نوم قصيرة"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Durada del son insuficient"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unzureichende Schlafdauer"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Insufficient Sleep Duration"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duración del sueño insuficiente"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Durée de sommeil insuffisante"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "睡眠時間の不足"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "睡眠时间不足"
+          }
+        }
+      }
+    },
+    "coach.issue.irregularSchedule.action" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اختر وقتاً ثابتاً للنوم والاستيقاظ والتزم به حتى في عطل نهاية الأسبوع خلال أسبوعين متتاليين."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escull una hora fixa per anar a dormir i despertar-te i mantén-la durant dues setmanes, fins i tot els caps de setmana."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wähle eine feste Schlaf- und Aufwachzeit und halte sie zwei Wochen lang ein – auch am Wochenende."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pick a fixed sleep and wake time and stick to it for two weeks, even on weekends."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elige una hora fija de sueño y vigilia y cúmplela durante dos semanas, incluso los fines de semana."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisissez une heure fixe de coucher et de lever et respectez-la pendant deux semaines, même le week-end."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "就寝・起床時間を決め、週末も含めて2週間守り続けましょう。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择固定的睡眠和起床时间，包括周末，坚持两周。"
+          }
+        }
+      }
+    },
+    "coach.issue.irregularSchedule.outcome" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "بعد أسبوعين من الانتظام، ستلاحظ أنك تستيقظ بشكل تلقائي قبل المنبه وتشعر بمزيد من اليقظة صباحاً."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Després de dues setmanes de regularitat, notaràs que et despertes espontàniament abans del despertador i et sents més despert al matí."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nach zwei Wochen Regelmäßigkeit wirst du merken, dass du vor dem Wecker spontan aufwachst und dich morgens wacher fühlst."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "After two weeks of regularity, you'll notice waking up spontaneously before your alarm and feeling more alert in the morning."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Después de dos semanas de regularidad, notarás que te despiertas espontáneamente antes de la alarma y te sientes más alerta por la mañana."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Après deux semaines de régularité, vous remarquerez que vous vous réveillez spontanément avant votre réveil et vous sentez plus alerte le matin."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2週間の規則正しい生活の後、アラームの前に自然に目覚め、朝の覚醒度が上がることに気づくでしょう。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "规律两周后，您会发现自己在闹钟响之前自然醒来，早晨更加清醒。"
+          }
+        }
+      }
+    },
+    "coach.issue.irregularSchedule.reason" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "وقت نومك يتغير بأكثر من ساعة من ليلة لأخرى. يصعب على الساعة البيولوجية التنبؤ بمواعيد النوم والاستيقاظ مما يُضعف نوعية النوم."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'hora d'anar a dormir varia més d'una hora d'una nit a l'altra. Això dificulta que el rellotge intern anticipi les hores de son i vigília, cosa que redueix la qualitat del son."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deine Schlafenszeit variiert von Nacht zu Nacht um mehr als eine Stunde. Das erschwert es der inneren Uhr, Schlaf- und Wachzeiten vorherzusagen, was die Schlafqualität mindert."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your bedtime varies by more than an hour night to night. This makes it hard for your internal clock to anticipate sleep and wake times, reducing sleep quality."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu hora de dormir varía más de una hora de noche en noche. Esto dificulta que el reloj interno anticipe los horarios de sueño y vigilia, reduciendo la calidad del sueño."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre heure de coucher varie de plus d'une heure d'une nuit à l'autre. Cela rend difficile pour l'horloge interne d'anticiper les heures de sommeil et de réveil, réduisant la qualité du sommeil."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "就寝時間が夜ごとに1時間以上変動しています。これにより体内時計が睡眠・起床時間を予測しにくくなり、睡眠の質が低下します。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您每晚的就寝时间相差超过一小时，使生物钟难以预测睡眠和醒来时间，降低睡眠质量。"
+          }
+        }
+      }
+    },
+    "coach.issue.irregularSchedule.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "جدول نوم غير منتظم"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Horari de son irregular"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unregelmäßiger Schlafrhythmus"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Irregular Sleep Schedule"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Horario de sueño irregular"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Horaire de sommeil irrégulier"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不規則な睡眠スケジュール"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "睡眠时间不规律"
+          }
+        }
+      }
+    },
+    "coach.issue.maintenance.action" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "حافظ على نفس جدول النوم. التعرض للضوء الطبيعي في الصباح يُعزز الثبات."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantén el mateix horari de son. L'exposició a la llum natural al matí reforça l'estabilitat."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Behalte denselben Schlafrhythmus bei. Natürliches Morgenlicht stärkt die Stabilität."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep the same sleep schedule. Natural morning light exposure reinforces stability."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantén el mismo horario de sueño. La exposición a la luz natural por la mañana refuerza la estabilidad."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maintenez le même horaire de sommeil. L'exposition à la lumière naturelle le matin renforce la stabilité."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同じ睡眠スケジュールを維持しましょう。朝の自然光を浴びることで安定性が強化されます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保持相同的睡眠时间表。早晨接受自然光照射可以增强稳定性。"
+          }
+        }
+      }
+    },
+    "coach.issue.maintenance.outcome" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الحفاظ على الانتظام يحمي مكاسبك ويمنع الانتكاس نحو الأنماط غير الصحية."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantenir la regularitat protegeix els teus guanys i prevé la recaiguda en patrons no saludables."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Regelmäßigkeit zu erhalten schützt deine Fortschritte und verhindert einen Rückfall in ungesunde Muster."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maintaining regularity protects your gains and prevents regression toward unhealthy patterns."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantener la regularidad protege tus logros y previene la regresión hacia patrones no saludables."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maintenir la régularité protège vos acquis et prévient une régression vers des schémas non sains."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "規則正しさを維持することで、成果を守り、不健康なパターンへの逆戻りを防ぎます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保持规律性可以巩固成果，防止退回到不健康的睡眠模式。"
+          }
+        }
+      }
+    },
+    "coach.issue.maintenance.reason" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نمط نومك منتظم ومتوافق مع أهدافك. الإيقاع اليومي مستقر وقوي."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El teu patró de son és consistent i s'alinea amb els teus objectius. El ritme circadià és estable i fort."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Schlafmuster ist konsistent und entspricht deinen Zielen. Der Tagesrhythmus ist stabil und stark."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your sleep pattern is consistent and aligns with your goals. Your circadian rhythm is stable and strong."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu patrón de sueño es consistente y se alinea con tus objetivos. Tu ritmo circadiano es estable y fuerte."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre schéma de sommeil est cohérent et s'aligne sur vos objectifs. Votre rythme circadien est stable et fort."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "睡眠パターンは一貫しており、目標に合致しています。概日リズムは安定して強固です。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的睡眠模式稳定，与目标一致。昼夜节律稳定且强健。"
+          }
+        }
+      }
+    },
+    "coach.issue.maintenance.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إيقاع جيد — حافظ عليه"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bon ritme — mantén-lo"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guter Rhythmus — weiter so"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Good Rhythm — Keep It Up"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buen ritmo — mantenlo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bon rythme — continuez"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "良好なリズム — 維持しましょう"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "节律良好 — 继续保持"
+          }
+        }
+      }
+    },
+    "coach.issue.offTargetForCustomSchedule.action" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "راجع الجدول المخصص في الإعدادات وحاول الاقتراب من أوقات النوم والاستيقاظ المستهدفة."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Revisa l'horari personalitzat a la configuració i intenta apropar-te als temps de son i despertar objectius."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Überprüfe den Benutzerzeitplan in den Einstellungen und versuche, die Ziel-Schlaf- und Aufwachzeiten einzuhalten."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Review your custom schedule in Settings and try to align your sleep and wake times with your targets."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Revisa tu horario personalizado en Ajustes e intenta alinear tus horas de sueño y vigilia con tus objetivos."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Consultez votre planning personnalisé dans les Réglages et essayez d'aligner vos heures de sommeil et de réveil sur vos cibles."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定でカスタムスケジュールを確認し、就寝・起床時間を目標に合わせるよう努めましょう。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在设置中查看您的自定义时间表，并尝试将睡眠和起床时间与目标对齐。"
+          }
+        }
+      }
+    },
+    "coach.issue.offTargetForCustomSchedule.outcome" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "التوافق مع الجدول المستهدف سيُحسّن جودة نومك ومستوى طاقتك خلال النهار."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alinear-se amb l'horari objectiu millorarà la qualitat del son i el nivell d'energia durant el dia."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Ausrichtung auf den Zielplan verbessert die Schlafqualität und das Energieniveau tagsüber."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aligning with the target schedule will improve sleep quality and daytime energy levels."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alinearse con el horario objetivo mejorará la calidad del sueño y los niveles de energía diurna."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "S'aligner sur le planning cible améliorera la qualité du sommeil et les niveaux d'énergie diurnes."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目標スケジュールに合わせることで、睡眠の質と日中のエネルギーレベルが向上します。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "与目标时间表对齐将提高睡眠质量和日间能量水平。"
+          }
+        }
+      }
+    },
+    "coach.issue.offTargetForCustomSchedule.reason" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نومك يختلف عن الجدول المخصص الذي ضبطته. الثبات على الجدول المستهدف يُحسّن جودة النوم."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El teu son difereix de l'horari personalitzat que has configurat. Mantenir-se en l'horari objectiu millora la qualitat del son."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Schlaf weicht vom festgelegten Benutzerzeitplan ab. Das Einhalten des Zielplans verbessert die Schlafqualität."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your sleep differs from the custom schedule you set. Staying on the target schedule improves sleep quality."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu sueño difiere del horario personalizado que estableciste. Mantenerse en el horario objetivo mejora la calidad del sueño."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre sommeil diffère du planning personnalisé que vous avez défini. Respecter le planning cible améliore la qualité du sommeil."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定したカスタムスケジュールと睡眠が異なっています。目標スケジュールを維持することで睡眠の質が向上します。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的睡眠与设置的自定义时间表不符。坚持目标时间表可以提高睡眠质量。"
+          }
+        }
+      }
+    },
+    "coach.issue.offTargetForCustomSchedule.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "بعيد عن الجدول المخصص"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fora de l'horari personalitzat"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abweichung vom Benutzerzeitplan"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off Custom Schedule"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fuera del horario personalizado"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hors du planning personnalisé"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "カスタムスケジュール外"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "偏离自定义时间表"
+          }
+        }
+      }
+    },
+    "coach.issue.offTargetForShift.action" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اضبط وقت نومك ليتوافق مع النافذة المستهدفة لوردية عملك، واستخدم قناعاً للعين وستائر معتمة لنوم نهاري جيد."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajusta l'hora de dormir per alinear-te amb la finestra objectiu del teu torn; usa antifaç i cortines opaques per a un bon son diürn."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passe deine Schlafzeit an das Zielfenster deiner Schicht an; nutze Schlafmaske und Verdunkelungsvorhänge für guten Tagesschlaf."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adjust your sleep time to align with your shift target window; use an eye mask and blackout curtains for good daytime sleep."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajusta tu hora de sueño para alinearte con la ventana objetivo de tu turno; usa antifaz y cortinas opacas para un buen sueño diurno."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustez votre heure de sommeil pour vous aligner sur la fenêtre cible de votre quart; utilisez un masque pour les yeux et des rideaux occultants pour un bon sommeil diurne."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "シフトの目標窓に合わせて睡眠時間を調整し、良質な昼間の睡眠のためにアイマスクと遮光カーテンを使用しましょう。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "调整睡眠时间以与班次目标窗口对齐；使用眼罩和遮光窗帘以获得良好的白天睡眠。"
+          }
+        }
+      }
+    },
+    "coach.issue.offTargetForShift.outcome" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "التوافق مع نافذة الوردية يُقلّل التعب أثناء العمل ويُحسّن التعافي."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alinear-se amb la finestra del torn reduirà la fatiga durant el treball i millorarà la recuperació."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Ausrichtung auf das Schichtfenster reduziert die Erschöpfung bei der Arbeit und verbessert die Erholung."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aligning with the shift window will reduce on-shift fatigue and improve recovery."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alinearse con la ventana del turno reducirá la fatiga durante el turno y mejorará la recuperación."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "S'aligner sur la fenêtre de quart réduira la fatigue pendant le quart et améliorera la récupération."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "シフト窓に合わせることで、勤務中の疲労が軽減され、回復が改善されます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "与班次窗口对齐将减少班次期间的疲劳并改善恢复。"
+          }
+        }
+      }
+    },
+    "coach.issue.offTargetForShift.reason" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "وقت نومك يبتعد عن النافذة المستهدفة لوردية عملك. هذا يُصعّب التكيف والشعور بالراحة خلال ساعات العمل."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El teu temps de son s'allunya de la finestra objectiu del teu torn. Això dificulta l'adaptació i sentir-se descansat durant les hores de treball."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deine Schlafzeit weicht vom Zielfenster für deine Schicht ab. Das erschwert die Anpassung und das Ausgeruhtsein während der Arbeitszeiten."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your sleep timing is drifting away from your shift target window. This makes adapting and feeling rested during work hours harder."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu horario de sueño se aleja de la ventana objetivo de tu turno. Esto dificulta la adaptación y sentirse descansado durante las horas de trabajo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'horaire de votre sommeil s'éloigne de la fenêtre cible de votre quart. Cela rend plus difficile l'adaptation et le fait de se sentir reposé pendant les heures de travail."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "睡眠時間がシフトの目標窓からずれています。これにより、勤務時間中の適応と休息感が困難になります。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的睡眠时间偏离了班次目标窗口，使在工作时间内适应和感到休息更加困难。"
+          }
+        }
+      }
+    },
+    "coach.issue.offTargetForShift.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "خارج نافذة وردية العمل"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fora de la finestra del torn"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Außerhalb des Schicht-Fensters"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off Shift Sleep Window"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fuera de la ventana de turno"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hors de la fenêtre de quart"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "シフト睡眠時間外"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "偏离班次睡眠窗口"
+          }
+        }
+      }
+    },
+    "coach.issue.rephaseInProgress.action" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تقدّم بوقت نومك الليلة وفق جدول إعادة الضبط. لا تحذف أياماً — الاستمرارية هي المفتاح."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avança l'hora de dormir d'aquesta nit seguint el calendari de refasament. No et saltes dies — la consistència és la clau."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verlege die heutige Schlafenszeit nach dem Neuausrichtungsplan vor. Überspringe keine Tage — Konsequenz ist der Schlüssel."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Advance tonight's bedtime according to the rephase schedule. Don't skip days — consistency is the key."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adelanta la hora de dormir de esta noche según el plan de refasado. No te saltes días — la consistencia es la clave."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avancez l'heure de coucher de ce soir selon le calendrier de rephasage. Ne sautez pas de jours — la constance est la clé."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "リフェーズスケジュールに従って今夜の就寝時間を早めましょう。日をスキップしないでください — 一貫性が鍵です。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按照重相位时间表提前今晚的就寝时间。不要跳过任何一天——持续性是关键。"
+          }
+        }
+      }
+    },
+    "coach.issue.rephaseInProgress.outcome" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "كل خطوة تقترب بك من هدفك — ستلاحظ تحسناً في جودة النوم كلما اقتربت من النافذة المستهدفة."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cada pas t'acosta a l'objectiu — notaràs una millora en la qualitat del son a mesura que t'acostis a la finestra objectiu."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jeder Schritt bringt dich näher zum Ziel — du wirst eine Verbesserung der Schlafqualität bemerken, je näher du dem Zielfenster kommst."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Each step brings you closer to the target — you'll notice improving sleep quality as you approach the target window."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cada paso te acerca al objetivo — notarás una mejora en la calidad del sueño a medida que te acerques a la ventana objetivo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chaque pas vous rapproche de l'objectif — vous remarquerez une amélioration de la qualité du sommeil au fur et à mesure que vous approchez de la fenêtre cible."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一歩ずつ目標に近づいています — 目標窓に近づくにつれて睡眠の質が改善されていくことに気づくでしょう。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每一步都让您更接近目标——随着接近目标窗口，您会注意到睡眠质量的改善。"
+          }
+        }
+      }
+    },
+    "coach.issue.rephaseInProgress.reason" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لا تزال ساعتك البيولوجية بعيدة عن الهدف. استمر في التقدم التدريجي — التحولات الصغيرة المنتظمة أفضل من القفز الكبير."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El teu rellotge intern encara és lluny de l'objectiu. Continua amb els avanços gradualment — els petits desplaçaments constants funcionen millor que els salts grans."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deine innere Uhr ist noch weit vom Ziel entfernt. Mache weiter mit schrittweisem Voranschreiten — kleine, gleichmäßige Verschiebungen wirken besser als große Sprünge."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your internal clock is still some distance from the target. Keep advancing gradually — small consistent shifts work better than large jumps."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu reloj interno aún está lejos del objetivo. Continúa avanzando gradualmente — los pequeños cambios consistentes funcionan mejor que los saltos grandes."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre horloge interne est encore loin de l'objectif. Continuez à avancer progressivement — les petits décalages constants fonctionnent mieux que les grands sauts."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "体内時計はまだ目標から離れています。段階的に進め続けましょう — 小さく一定のシフトは大きなジャンプより効果的です。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的生物钟距目标还有一段距离。继续逐步推进——小而持续的调整比大幅跳跃更有效。"
+          }
+        }
+      }
+    },
+    "coach.issue.rephaseInProgress.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إعادة ضبط الإيقاع قيد التنفيذ"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refasament en curs"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rhythmus-Neuausrichtung läuft"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rephase In Progress"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refasado en progreso"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rephasage en cours"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "リフェーズ進行中"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重相位进行中"
+          }
+        }
+      }
+    },
+    "coach.issue.socialJetlag.action" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "حاول أن لا يتجاوز اختلاف وقت الاستيقاظ بين عطلة نهاية الأسبوع وأيام العمل 30 دقيقة."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Intenta que la diferència d'hora de despertar entre cap de setmana i dies laborables no superi els 30 minuts."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Versuche, den Unterschied zwischen Wochenend- und Werktags-Aufwachzeit auf maximal 30 Minuten zu begrenzen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try to keep the difference between weekend and weekday wake times within 30 minutes."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Intenta mantener la diferencia entre los horarios de despertar de fin de semana y días laborables dentro de los 30 minutos."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Essayez de maintenir la différence entre les heures de réveil du week-end et des jours ouvrables en dessous de 30 minutes."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "週末と平日の起床時間の差を30分以内に抑えるようにしましょう。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尝试将周末和工作日起床时间的差距控制在30分钟以内。"
+          }
+        }
+      }
+    },
+    "coach.issue.socialJetlag.outcome" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تقليل الفرق سيُحسّن التيقظ في أيام العمل وسيُقلّل الشعور بالتعب المزمن."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reduir la diferència millorarà l'estat d'alerta en els dies laborables i reduirà la fatiga crònica."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eine geringere Differenz verbessert die Wachheit an Werktagen und verringert chronische Müdigkeit."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reducing the gap will improve weekday alertness and reduce chronic fatigue."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reducir la brecha mejorará el estado de alerta en días laborables y reducirá la fatiga crónica."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réduire l'écart améliorera la vigilance en semaine et réduira la fatigue chronique."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "差を縮めることで、平日の集中力が上がり、慢性疲労が軽減されます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "缩小差距将改善工作日的警觉性并减少慢性疲劳。"
+          }
+        }
+      }
+    },
+    "coach.issue.socialJetlag.reason" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يختلف نومك في عطلة نهاية الأسبوع عن أيام العمل بأكثر من ساعة. هذا مثل تغيير منطقة زمنية كل أسبوع."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El teu son cap de setmana difereix dels dies laborables en més d'una hora. Això és com canviar de zona horària cada setmana."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Wochenendschlaf weicht um mehr als eine Stunde von Werktagen ab. Das ist wie wöchentlicher Zeitzonenwechsel."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your weekend sleep differs from weekdays by more than an hour. This is like changing time zones every week."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu sueño de fin de semana difiere de los días laborables en más de una hora. Esto es como cambiar de zona horaria cada semana."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre sommeil du week-end diffère des jours de semaine de plus d'une heure. C'est comme changer de fuseau horaire chaque semaine."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "週末の睡眠が平日と1時間以上異なっています。これは毎週タイムゾーンを変えるようなものです。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的周末睡眠与工作日相差超过一小时，就像每周更换时区一样。"
+          }
+        }
+      }
+    },
+    "coach.issue.socialJetlag.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الجيت لاغ الاجتماعي"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jet lag social"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sozialer Jetlag"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Social Jetlag"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jet lag social"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jet-lag social"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "社会的ジェットラグ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "社会性时差"
+          }
+        }
+      }
+    },
+    "coach.issue.splitSleep.action" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تجنب القيلولة بعد الساعة 15:00 واستهدف فترة نوم رئيسية واحدة متصلة في الليل."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Evita les becaines després de les 15:00 i busca un únic bloc de son nocturn principal i continuat."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vermeide Schlafen nach 15:00 Uhr und strebe einen einzigen zusammenhängenden Hauptschlafblock nachts an."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avoid sleeping after 15:00 and aim for one single consolidated night sleep block."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Evita dormir después de las 15:00 y apunta a un único bloque de sueño nocturno consolidado."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Évitez de dormir après 15:00 et visez un seul bloc de sommeil nocturne consolidé."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "15:00以降の睡眠を避け、夜に一つの統合した睡眠ブロックを目指しましょう。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "避免15:00后睡眠，目标是夜间一个整合的连续睡眠时段。"
+          }
+        }
+      }
+    },
+    "coach.issue.splitSleep.outcome" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تجميع نومك سيُعمّق نومك الليلي ويُقوّي إشارات الساعة البيولوجية."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Consolidar el teu son aprofundirà el son nocturn i enfortirà els senyals del rellotge intern."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Konsolidieren deines Schlafs wird den Nachtschlaf vertiefen und die inneren Uhrsignale stärken."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Consolidating your sleep will deepen night sleep and strengthen internal clock signals."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Consolidar tu sueño profundizará el sueño nocturno y fortalecerá las señales del reloj interno."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Consolider votre sommeil approfondira le sommeil nocturne et renforcera les signaux de l'horloge interne."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "睡眠を統合することで、夜間睡眠が深まり、体内時計のシグナルが強化されます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "整合睡眠将加深夜间睡眠，并强化生物钟信号。"
+          }
+        }
+      }
+    },
+    "coach.issue.splitSleep.reason" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نومك موزع على فترتين رئيسيتيين تفصل بينهما فجوة كبيرة أثناء النهار. هذا النمط يعطل الضغط الداخلي للنوم ويُصعّب تحقيق نوم ليلي عميق."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El teu son es divideix en dos períodes principals amb una bretxa significativa durant el dia. Aquest patró altera la pressió de son interna i dificulta el son nocturn profund."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Schlaf ist in zwei Hauptphasen aufgeteilt, mit einer erheblichen Lücke tagsüber. Dieses Muster stört den inneren Schlafdruck und erschwert tiefen Nachtschlaf."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your sleep is split into two main blocks with a significant gap during the day. This pattern disrupts internal sleep pressure and makes deep night sleep harder to achieve."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu sueño se divide en dos bloques principales con una brecha significativa durante el día. Este patrón altera la presión interna del sueño y dificulta el sueño nocturno profundo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre sommeil est divisé en deux blocs principaux avec une pause significative dans la journée. Ce schéma perturbe la pression interne du sommeil et rend difficile un sommeil nocturne profond."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "睡眠が日中の大きな空白を挟んで2つの主要なブロックに分かれています。このパターンは内部の睡眠圧力を乱し、深い夜間睡眠を困難にします。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的睡眠分为两个主要时段，中间有较长的白天间隔。这种模式会破坏内部睡眠压力，使深度夜间睡眠更难实现。"
+          }
+        }
+      }
+    },
+    "coach.issue.splitSleep.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نوم منقسم"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Son fragmentat"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geteilter Schlaf"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Split Sleep"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sueño dividido"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sommeil fractionné"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分割睡眠"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分段睡眠"
+          }
+        }
+      }
+    },
+    "coach.issue.sufficientButMisaligned.action" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "حاول تقديم وقت نومك تدريجياً بـ 15 دقيقة كل أسبوع نحو نافذة 22:00-06:00."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Intenta avançar gradualment l'hora d'anar a dormir 15 minuts per setmana cap a la finestra 22:00-06:00."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Versuche, deine Schlafenszeit schrittweise um 15 Minuten pro Woche in Richtung 22:00–06:00 vorzuverlegen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try gradually moving your bedtime 15 minutes earlier each week toward the 22:00–06:00 window."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Intenta mover gradualmente tu hora de dormir 15 minutos antes cada semana hacia la ventana 22:00-06:00."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Essayez de déplacer progressivement votre heure de coucher de 15 minutes par semaine vers la fenêtre 22:00–06:00."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "毎週15分ずつ就寝時間を22:00〜06:00の窓に向けて前倒しにしていきましょう。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尝试每周将就寝时间提前15分钟，逐步调整到22:00-06:00的时间窗口。"
+          }
+        }
+      }
+    },
+    "coach.issue.sufficientButMisaligned.outcome" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تحسين التوافق مع الإيقاع اليومي سيزيد جودة النوم ومستوى الطاقة خلال النهار."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Millorar l'alineació amb el ritme circadià augmentarà la qualitat del son i el nivell d'energia durant el dia."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bessere Ausrichtung am Tagesrhythmus wird die Schlafqualität und das Energieniveau tagsüber verbessern."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Better alignment with circadian rhythm will increase sleep quality and daytime energy levels."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Una mejor alineación con el ritmo circadiano aumentará la calidad del sueño y los niveles de energía diurna."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Une meilleure synchronisation avec le rythme circadien améliorera la qualité du sommeil et les niveaux d'énergie diurnes."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "概日リズムとの同期が改善されることで、睡眠の質と日中のエネルギーレベルが向上します。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更好地与昼夜节律同步将提高睡眠质量和日间能量水平。"
+          }
+        }
+      }
+    },
+    "coach.issue.sufficientButMisaligned.reason" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مدة نومك كافية لكن توقيته لا يتوافق مع الإيقاع الطبيعي للضوء والنشاط. قد تشعر بالتعب رغم مدة النوم الكافية."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La durada del teu son és adequada però el temps no s'alinea amb el ritme natural de llum i activitat. Podries sentir-te cansat malgrat dormir prou."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deine Schlafdauer ist ausreichend, aber der Zeitpunkt stimmt nicht mit dem natürlichen Hell-Dunkel-Rhythmus überein. Du könntest dich trotz ausreichend Schlaf müde fühlen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your sleep duration is adequate but the timing doesn't align with the natural light-dark rhythm. You may feel tired despite sleeping enough."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu duración de sueño es adecuada pero el horario no se alinea con el ritmo natural de luz y oscuridad. Podrías sentirte cansado a pesar de dormir suficiente."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre durée de sommeil est adéquate mais le timing n'est pas aligné avec le rythme naturel lumière-obscurité. Vous pourriez vous sentir fatigué malgré un sommeil suffisant."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "睡眠時間は十分ですが、タイミングが自然の明暗リズムと合っていません。十分眠っているにもかかわらず疲れを感じるかもしれません。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的睡眠时长足够，但时间安排与自然光暗节律不匹配，可能即使睡够了也感到疲倦。"
+          }
+        }
+      }
+    },
+    "coach.issue.sufficientButMisaligned.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نوم كافٍ لكن غير منتظم"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Son suficient però desalineat"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ausreichend, aber nicht synchron"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sufficient But Misaligned"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suficiente pero desalineado"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suffisant mais désynchronisé"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "時間は十分だが位相がずれている"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "睡眠充足但时相不对"
           }
         }
       }
@@ -7031,56 +9943,54 @@
     },
     "Input" : {
       "comment" : "The title of the input view.",
-      "isCommentAutoGenerated" : true
-    },
-    "input.syncHealthKit" : {
+      "isCommentAutoGenerated" : true,
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "مزامنة بيانات النوم من Apple Health"
+            "value" : "إدخال"
           }
         },
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sincronitzar son des d'Apple Health"
+            "value" : "Entrada"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Schlafdaten von Apple Health abrufen"
+            "value" : "Eingabe"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sync sleep from Apple Health"
+            "value" : "Input"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sincronizar sueño desde Apple Health"
+            "value" : "Entrada"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Synchroniser le sommeil depuis Apple Santé"
+            "value" : "Saisie"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Apple Healthから睡眠データを同期"
+            "value" : "入力"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "从Apple健康同步睡眠数据"
+            "value" : "输入"
           }
         }
       }
@@ -7445,6 +10355,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "记录睡眠"
+          }
+        }
+      }
+    },
+    "input.syncHealthKit" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مزامنة بيانات النوم من Apple Health"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sincronitzar son des d'Apple Health"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schlafdaten von Apple Health abrufen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sync sleep from Apple Health"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sincronizar sueño desde Apple Health"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synchroniser le sommeil depuis Apple Santé"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Healthから睡眠データを同期"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从Apple健康同步睡眠数据"
           }
         }
       }
@@ -9202,13 +12164,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Delayed phase pattern detected. Bright morning light (10,000 lux) for 30 min on waking is the most effective treatment. Avoid blue light after 21:00."
+            "value" : "Your sleep timing is significantly delayed. Bright morning light (sunlight or 10,000 lux lamp) for 20-30 min on waking is the most effective treatment. Shift bedtime 15 min earlier every 2 days. Avoid blue light after 21:00."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Patrón de fase retrasada detectado. La luz matutina intensa (10.000 lux) durante 30 min al despertar es el tratamiento más eficaz. Evita la luz azul después de las 21:00."
+            "value" : "Tu horario de sueño está significativamente retrasado. La luz matutina intensa (sol o lámpara de 10.000 lux) durante 20-30 min al despertar es el tratamiento más eficaz. Adelanta la hora de dormir 15 min cada 2 días. Evita la luz azul después de las 21:00."
           }
         },
         "fr" : {
@@ -12330,6 +15292,474 @@
         }
       }
     },
+    "settings.coachMode.customSchedule" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "جدول مخصص"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personalitzat"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Benutzerdefiniert"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Custom"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personalizado"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personnalisé"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "カスタム"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自定义"
+          }
+        }
+      }
+    },
+    "settings.coachMode.generalHealth" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "صحة عامة"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salut general"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allgemein"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "General"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "General"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Général"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一般"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一般健康"
+          }
+        }
+      }
+    },
+    "settings.coachMode.generalHealthNote" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يستخدم المرجع الزمني القياسي للإيقاع اليومي (23:00-07:00)"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utilitza la referència circadiana estàndard (23:00-07:00)"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verwendet den Standard-Tagesrhythmus-Referenzrahmen (23:00–07:00)"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uses the standard circadian reference (23:00–07:00)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usa la referencia circadiana estándar (23:00-07:00)"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utilise la référence circadienne standard (23:00-07:00)"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "標準的な概日リズム基準（23:00～07:00）を使用します"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用标准昼夜节律参考（23:00-07:00）"
+          }
+        }
+      }
+    },
+    "settings.coachMode.rephase" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إعادة الضبط"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refasament"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neu ausrichten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rephase"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refasar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rephasage"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "リフェーズ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重相位"
+          }
+        }
+      }
+    },
+    "settings.coachMode.rephaseNote" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يُدار في محرر إعادة ضبط الإيقاع"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gestionat a l'editor de refasament"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wird im Rephase-Editor verwaltet"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Managed in the Rephase Editor"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gestionado en el Editor de Refasado"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Géré dans l'éditeur de rephasage"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "リフェーズエディタで管理されます"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在重相位编辑器中管理"
+          }
+        }
+      }
+    },
+    "settings.coachMode.shiftWork" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "عمل بالورديات"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Torns"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schichtarbeit"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shift"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turnos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quarts"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "シフト"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "轮班"
+          }
+        }
+      }
+    },
+    "settings.coachMode.targetBed" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "وقت النوم المستهدف"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hora d'anar a dormir objectiu"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ziel-Einschlafzeit"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Target Bedtime"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hora de dormir objetivo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heure de coucher cible"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目標就寝時間"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目标就寝时间"
+          }
+        }
+      }
+    },
+    "settings.coachMode.targetWake" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "وقت الاستيقاظ المستهدف"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hora de despertar objectiu"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ziel-Aufwachzeit"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Target Wake Time"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hora de despertar objetivo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heure de réveil cible"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目標起床時間"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目标起床时间"
+          }
+        }
+      }
+    },
+    "settings.coachMode.title" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "وضع المدرب"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mode d'entrenament"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coach-Modus"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coach Mode"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modo coach"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mode coach"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "コーチモード"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "教练模式"
+          }
+        }
+      }
+    },
     "settings.data.clearManual" : {
       "localizations" : {
         "ar" : {
@@ -12488,26 +15918,106 @@
     },
     "settings.data.importHealthKit" : {
       "localizations" : {
-        "ar" : { "stringUnit" : { "state" : "translated", "value" : "استيراد من Apple Health (بداية جديدة)" } },
-        "ca" : { "stringUnit" : { "state" : "translated", "value" : "Importar des d'Apple Health (nova start)" } },
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Aus Apple Health importieren (Neustart)" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Import from Apple Health (fresh start)" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Importar de Apple Health (empezar desde cero)" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Importer depuis Apple Santé (nouveau départ)" } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Apple Healthからインポート（リセット）" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "从Apple健康导入（全新开始）" } }
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "استيراد من Apple Health (بداية جديدة)"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importar des d'Apple Health (nova start)"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aus Apple Health importieren (Neustart)"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import from Apple Health (fresh start)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importar de Apple Health (empezar desde cero)"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importer depuis Apple Santé (nouveau départ)"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Healthからインポート（リセット）"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从Apple健康导入（全新开始）"
+          }
+        }
       }
     },
     "settings.data.importing" : {
       "localizations" : {
-        "ar" : { "stringUnit" : { "state" : "translated", "value" : "جاري الاستيراد..." } },
-        "ca" : { "stringUnit" : { "state" : "translated", "value" : "Important..." } },
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Importiere..." } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Importing..." } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Importando..." } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Import en cours..." } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "インポート中..." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "导入中..." } }
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "جاري الاستيراد..."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Important..."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importiere..."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importing..."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importando..."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import en cours..."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "インポート中..."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导入中..."
+          }
+        }
       }
     },
     "settings.data.resetAll" : {
@@ -17166,6 +20676,48 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "أحدث قيمة: MESOR %1$@ · Amp %2$@ · Acrophase %3$@"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El teu últim: MESOR %1$@ · Amp %2$@ · Acrofase %3$@"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Letzter Wert: MESOR %1$@ · Amp %2$@ · Akrophase %3$@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your latest: MESOR %1$@ · Amp %2$@ · Acrophase %3$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu último: MESOR %1$@ · Amp %2$@ · Acrofase %3$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dernier: MESOR %1$@ · Amp %2$@ · Acrophase %3$@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最新値: MESOR %1$@ · 振幅 %2$@ · 極相 %3$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最新值: MESOR %1$@ · 振幅 %2$@ · 极相 %3$@"
           }
         }
       }

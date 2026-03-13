@@ -26,6 +26,9 @@ struct WatchSpiralView: View {
     @State private var maxReachedTurns: Double = 1.0
     @State private var visibleDays: Double = 1.0
     @State private var storeInitialised = false
+    /// True once the user has physically turned the crown.
+    /// When false, any new data arriving from iPhone is allowed to re-position the cursor.
+    @State private var userHasMovedCrown = false
 
     // Deferred visibleDays: the canvas reads this value so heavy redraws
     // don't block every single crown tick. We batch-flush it via a Task.
@@ -59,6 +62,7 @@ struct WatchSpiralView: View {
 
                 WatchSpiralCanvas(
                     records: store.recentRecords,
+                    events: store.events,
                     cursorAbsHour: cursorAbsHour,
                     sleepStartHour: sleepStartHour,
                     markingColor: markingState == .sleeping ? SpiralColors.sleep : SpiralColors.accent,
@@ -137,19 +141,25 @@ struct WatchSpiralView: View {
         .navigationTitle("")
         .onAppear { initFromStore(); crownFocused = true }
         .onChange(of: store.records.count) { _, _ in
-            // Always re-init when records change (e.g. iPhone sync arrives after launch).
-            initFromStore()
+            handleRecordsChange()
+        }
+        .onChange(of: store.recentRecords.last?.day) { _, _ in
+            // Also re-check when the last day index changes without the count changing
+            // (e.g. iPhone sends records with same count but more recent days).
+            handleRecordsChange()
         }
     }
 
     // MARK: - Crown
 
     private func moveCursor(delta: Double) {
+        userHasMovedCrown = true
         let hourDelta  = markingState == .sleeping ? delta * 0.25 : delta * 0.5
         let turnsDelta = hourDelta / store.period
         let newHour    = cursorAbsHour + hourDelta
         let maxHour    = maxReachedTurns * store.period + 24.0
         cursorAbsHour  = max(0, min(newHour, maxHour))
+        store.cursorAbsoluteHour = cursorAbsHour
 
         // Fire a haptic tick each time the cursor crosses an hour boundary
         let currentHour = Int(cursorAbsHour)
@@ -201,6 +211,23 @@ struct WatchSpiralView: View {
 
     // MARK: - Init
 
+    private func handleRecordsChange() {
+        // Always re-init if the user hasn't manually moved the crown yet.
+        // This ensures the cursor is correctly positioned regardless of whether
+        // records arrived before or after onAppear, and whether the count changed.
+        if !userHasMovedCrown {
+            initFromStore()
+            return
+        }
+        // User has moved the crown — only re-init if genuinely new days arrived
+        // (iPhone sent more history than we had before) or cursor is still at origin.
+        let latestDay = store.recentRecords.map { $0.day }.max() ?? 0
+        let latestTurns = Double(latestDay + 1)
+        if latestTurns > maxReachedTurns + 0.5 || cursorAbsHour == 0 {
+            initFromStore()
+        }
+    }
+
     private func initFromStore() {
         guard !store.isEmpty else {
             cursorAbsHour = 0; maxReachedTurns = 1; visibleDays = 2; deferredVisibleDays = 2
@@ -226,6 +253,7 @@ struct WatchSpiralView: View {
         }
         let endTurns = bestAbsHour / store.period
         cursorAbsHour      = bestAbsHour
+        store.cursorAbsoluteHour = bestAbsHour
         maxReachedTurns    = max(1.0, endTurns)
         // Start with a 5-day window so the focus-fade effect is visible from the first load.
         // The user can scroll back with the crown to reveal older nights progressively.
@@ -233,6 +261,7 @@ struct WatchSpiralView: View {
         deferredVisibleDays = visibleDays
         crownRaw = 0; lastCrownRaw = 0
         storeInitialised = true
+        userHasMovedCrown = false
     }
 }
 
@@ -243,6 +272,7 @@ struct WatchSpiralView: View {
 /// startRadius = 15 instead of 75 so the spiral fits a ~184px Watch screen.
 private struct WatchSpiralCanvas: View {
     let records: [SleepRecord]
+    let events: [CircadianEvent]
     let cursorAbsHour: Double
     let sleepStartHour: Double?
     let markingColor: Color
@@ -369,6 +399,7 @@ private struct WatchSpiralCanvas: View {
             drawRadialLines(context: scaledCtx, geo: geo)
             drawSpiralPath(context: scaledCtx, geo: geo, upToTurns: maxVisible, size: size)
             drawDataPoints(context: scaledCtx, geo: geo, size: size)
+            drawEventMarkers(context: scaledCtx, geo: geo)
             drawSleepArc(context: scaledCtx, geo: geo, size: size)
             drawCursor(context: scaledCtx, geo: geo)
             // Hour labels drawn in the original unscaled context so they stay at screen edge.
@@ -480,26 +511,43 @@ private struct WatchSpiralCanvas: View {
             guard run.points.count >= 2 else { return }
             let color = phaseColor(run.phase)
             let maxLW = max(2.0, geo.spacing * 0.65)
-            let tMid  = (run.points.first!.t + run.points.last!.t) * 0.5
-            let sc    = perspectiveScale(turns: tMid, geo: geo)
-            let lw    = max(1.5, min(sc * maxLW, maxLW))
-            let opac  = weekWindowOpacity(turns: tMid)
+            let opac  = weekWindowOpacity(turns: run.points[0].t)
             guard opac > 0.01 else { return }
 
-            let capStart = !(isSleep(run.phase) && run.prevPhase != nil && isSleep(run.prevPhase!))
-            let capEnd   = !(isSleep(run.phase) && run.nextPhase != nil && isSleep(run.nextPhase!))
+            // Segment-by-segment with .round caps: lw follows perspective smoothly
+            // along the full arc, and rounded ends overlap seamlessly (no gaps).
+            for i in 0..<(run.points.count - 1) {
+                let p0   = run.points[i]
+                let p1   = run.points[i + 1]
+                let tSeg = (p0.t + p1.t) * 0.5
+                let sc   = perspectiveScale(turns: tSeg, geo: geo)
+                let lw   = max(1.5, min(sc * maxLW, maxLW))
 
-            var path = Path()
-            path.move(to: run.points[0].pt)
-            for rp in run.points.dropFirst() { path.addLine(to: rp.pt) }
-            context.stroke(path, with: .color(color.opacity(opac)),
-                           style: StrokeStyle(lineWidth: lw, lineCap: .butt, lineJoin: .round))
+                var seg = Path()
+                seg.move(to: p0.pt)
+                seg.addLine(to: p1.pt)
+                context.stroke(seg, with: .color(color.opacity(opac)),
+                               style: StrokeStyle(lineWidth: lw, lineCap: .round))
+            }
+
+            // Round cap at sleep-block boundaries only (not at internal sleep→sleep joints).
+            // Awake runs skip caps — adjacent sleep caps cover the joint.
+            guard isSleep(run.phase) else { return }
+            let capStart = run.prevPhase == nil || !isSleep(run.prevPhase!)
+            let capEnd   = run.nextPhase == nil || !isSleep(run.nextPhase!)
+
             if capStart {
+                let tFirst = run.points[0].t
+                let sc = perspectiveScale(turns: tFirst, geo: geo)
+                let lw = max(1.5, min(sc * maxLW, maxLW))
                 let r = lw * 0.5; let pt = run.points[0].pt
                 context.fill(Circle().path(in: CGRect(x: pt.x - r, y: pt.y - r, width: lw, height: lw)),
                              with: .color(color.opacity(opac)))
             }
             if capEnd {
+                let tLast = run.points[run.points.count - 1].t
+                let sc = perspectiveScale(turns: tLast, geo: geo)
+                let lw = max(1.5, min(sc * maxLW, maxLW))
                 let r = lw * 0.5; let pt = run.points[run.points.count - 1].pt
                 context.fill(Circle().path(in: CGRect(x: pt.x - r, y: pt.y - r, width: lw, height: lw)),
                              with: .color(color.opacity(opac)))
@@ -547,6 +595,22 @@ private struct WatchSpiralCanvas: View {
             // Draw awake first, sleep on top so sleep caps always win at shared endpoints.
             for run in runs where !isSleep(run.phase) { drawRun(run) }
             for run in runs where  isSleep(run.phase) { drawRun(run) }
+        }
+    }
+
+    private func drawEventMarkers(context: GraphicsContext, geo: SpiralGeometry) {
+        for event in events {
+            let t = event.absoluteHour / geo.period
+            guard Int(t) < geo.totalDays else { continue }
+            let opac = weekWindowOpacity(turns: t)
+            guard opac > 0.01 else { continue }
+            let p = project(turns: t, geo: geo)
+            let color = Color(hex: event.type.hexColor)
+            // Scale dot radius with perspective so near turns are larger, far turns are smaller.
+            let sc = perspectiveScale(turns: t, geo: geo)
+            let r = max(1.0, min(sc * 2.5, 4.0))
+            let rect = CGRect(x: p.x - r, y: p.y - r, width: r * 2, height: r * 2)
+            context.fill(Circle().path(in: rect), with: .color(color.opacity(opac)))
         }
     }
 
@@ -613,6 +677,7 @@ private struct WatchSpiralCanvas: View {
             let eps = [SleepEpisode(start: 23, end: 31, source: .manual)]
             return ManualDataConverter.convert(episodes: eps, numDays: 1)
         }(),
+        events: [],
         cursorAbsHour: 31,
         sleepStartHour: nil,
         markingColor: Color(hex: "a78bfa"),

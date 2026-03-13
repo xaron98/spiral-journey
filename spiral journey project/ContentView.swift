@@ -49,7 +49,11 @@ struct ContentView: View {
                         value: {
                             var f = OnboardingFrames()
                             let globalFrame = geo.frame(in: .global)
+                            #if os(iOS)
                             let isPad = UIDevice.current.userInterfaceIdiom == .pad
+                            #else
+                            let isPad = false
+                            #endif
                             if isPad {
                                 // On iPad, TabView renders tabs at the top
                                 let tabH: CGFloat = 70

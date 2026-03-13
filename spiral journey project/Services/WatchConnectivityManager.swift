@@ -26,7 +26,8 @@ final class WatchConnectivityManager: NSObject, WCSessionDelegate, @unchecked Se
 
     func sendAnalysis(records: [SleepRecord], events: [CircadianEvent], analysis: AnalysisResult,
                       language: String? = nil, appearance: String? = nil,
-                      spiralType: String? = nil, period: Double? = nil) {
+                      spiralType: String? = nil, period: Double? = nil,
+                      startDate: Date? = nil) {
         guard WCSession.default.activationState == .activated,
               WCSession.default.isWatchAppInstalled else { return }
 
@@ -55,6 +56,9 @@ final class WatchConnectivityManager: NSObject, WCSessionDelegate, @unchecked Se
         }
         if let period {
             context["period"] = period
+        }
+        if let startDate {
+            context["startDate"] = startDate.timeIntervalSince1970
         }
 
         try? WCSession.default.updateApplicationContext(context)
@@ -92,6 +96,28 @@ final class WatchConnectivityManager: NSObject, WCSessionDelegate, @unchecked Se
         }
     }
 
+    // MARK: - Send events-only update to Watch
+
+    /// Sends just the events list without re-encoding the full analysis payload.
+    /// Call this after adding or removing an event on iPhone.
+    /// Uses sendMessage for immediate delivery when Watch is reachable,
+    /// falling back to updateApplicationContext for background delivery.
+    func sendEvents(_ events: [CircadianEvent]) {
+        guard WCSession.default.activationState == .activated,
+              WCSession.default.isWatchAppInstalled else { return }
+        guard let data = try? JSONEncoder().encode(events) else { return }
+        // Always update the context so the Watch gets the events on next launch even if not reachable now.
+        var context = WCSession.default.applicationContext
+        context["eventsJSON"] = data
+        try? WCSession.default.updateApplicationContext(context)
+        // If Watch is active and reachable, push via sendMessage for instant delivery.
+        // Use "eventsReplace" key so the Watch does an authoritative replace (not a merge),
+        // which is required for deletions to take effect immediately.
+        if WCSession.default.isReachable {
+            WCSession.default.sendMessage(["eventsReplace": data], replyHandler: nil)
+        }
+    }
+
     // MARK: - Send settings-only update to Watch
 
     /// Sends just settings (language, appearance, spiralType, period) without re-encoding full analysis data.
@@ -122,17 +148,27 @@ final class WatchConnectivityManager: NSObject, WCSessionDelegate, @unchecked Se
 
     nonisolated func session(_ session: WCSession,
                              didReceiveMessage message: [String: Any]) {
-        if let data = message["newEvent"] as? Data,
+        handle(message)
+    }
+
+    // Receive guaranteed-delivery payloads (sent via transferUserInfo when iPhone not reachable).
+    nonisolated func session(_ session: WCSession,
+                             didReceiveUserInfo userInfo: [String: Any]) {
+        handle(userInfo)
+    }
+
+    private nonisolated func handle(_ payload: [String: Any]) {
+        if let data = payload["newEvent"] as? Data,
            let event = try? JSONDecoder().decode(CircadianEvent.self, from: data) {
-            Task { [weak self] @MainActor in self?.onEventReceived?(event) }
+            Task { @MainActor [weak self] in self?.onEventReceived?(event) }
         }
-        if let data = message["newEpisode"] as? Data,
+        if let data = payload["newEpisode"] as? Data,
            let episode = try? JSONDecoder().decode(SleepEpisode.self, from: data) {
-            Task { [weak self] @MainActor in self?.onEpisodeReceived?(episode) }
+            Task { @MainActor [weak self] in self?.onEpisodeReceived?(episode) }
         }
         // Watch is requesting a fresh data push (e.g. after reinstall or empty context)
-        if message["requestData"] != nil {
-            Task { [weak self] @MainActor in self?.onDataRequested?() }
+        if payload["requestData"] != nil {
+            Task { @MainActor [weak self] in self?.onDataRequested?() }
         }
     }
 }

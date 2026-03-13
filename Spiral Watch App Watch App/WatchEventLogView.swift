@@ -10,9 +10,9 @@ struct WatchEventLogView: View {
     @State private var showConfirmation = false
 
     private var currentHour: Double {
-        let cal = Calendar.current
-        let now = Date()
-        return Double(cal.component(.hour, from: now)) + Double(cal.component(.minute, from: now)) / 60.0
+        // Use cursor position so events land exactly where the spiral dot is.
+        // Falls back to wall-clock time if cursor hasn't been initialised yet.
+        store.cursorAbsoluteHour > 0 ? store.cursorAbsoluteHour : store.currentAbsoluteHour
     }
 
     private var app: String { store.appearance }

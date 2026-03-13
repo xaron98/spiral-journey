@@ -117,7 +117,7 @@ private struct CosinorExplainerCard: View {
             if !records.isEmpty {
                 let last = records.last!
                 Divider().background(SpiralColors.border)
-                Text("Your latest: MESOR \(String(format: "%.2f", last.cosinor.mesor)) · Amp \(String(format: "%.2f", last.cosinor.amplitude)) · Acrophase \(SleepStatistics.formatHour(last.cosinor.acrophase))")
+                Text(String(format: NSLocalizedString("Your latest: MESOR %@ · Amp %@ · Acrophase %@", bundle: bundle, comment: ""), String(format: "%.2f", last.cosinor.mesor), String(format: "%.2f", last.cosinor.amplitude), SleepStatistics.formatHour(last.cosinor.acrophase)))
                     .font(.system(size: 9, design: .monospaced))
                     .foregroundStyle(SpiralColors.muted)
             }
