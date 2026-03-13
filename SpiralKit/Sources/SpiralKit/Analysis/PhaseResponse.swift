@@ -73,6 +73,37 @@ public enum PhaseResponse {
         return 0
     }
 
+    /// Meal PRC — food as zeitgeber. Morning meals advance, evening meals delay.
+    /// Reference: Wehrens et al. (2017). Meal Timing Regulates the Human Circadian System.
+    public static func meal(_ circadianHour: Double) -> Double {
+        let ct = normalizeCircadianHour(circadianHour)
+        if ct >= 6 && ct <= 10 {
+            // Morning advance
+            return 0.2 * sin(((ct - 6) / 4) * Double.pi)
+        }
+        if ct >= 18 && ct <= 22 {
+            // Evening delay
+            return -0.3 * sin(((ct - 18) / 4) * Double.pi)
+        }
+        return 0
+    }
+
+    /// Stress PRC — cortisol-mediated bidirectional shift.
+    /// Morning stress advances, evening stress delays (stronger).
+    /// Reference: Cuesta et al. (2015). Glucocorticoids entrain circadian clock.
+    public static func stress(_ circadianHour: Double) -> Double {
+        let ct = normalizeCircadianHour(circadianHour)
+        if ct >= 4 && ct <= 10 {
+            // Morning advance
+            return 0.2 * sin(((ct - 4) / 6) * Double.pi)
+        }
+        if ct >= 16 && ct <= 23 {
+            // Evening/night delay (stronger)
+            return -0.4 * sin(((ct - 16) / 7) * Double.pi)
+        }
+        return 0
+    }
+
     // MARK: - Model Registry
 
     public struct PRCModel: Sendable {
@@ -90,6 +121,8 @@ public enum PhaseResponse {
         .caffeine:    PRCModel(fn: caffeine,     label: "Caffeine",      hexColor: "#c08040", halfLifeDays: 0.5, maxDays: 1),
         .screenLight: PRCModel(fn: screenLight,  label: "Screen Light",  hexColor: "#60a0ff", halfLifeDays: 1,   maxDays: 2),
         .alcohol:     PRCModel(fn: alcohol,      label: "Alcohol",       hexColor: "#e04040", halfLifeDays: 2,   maxDays: 5),
+        .meal:        PRCModel(fn: meal,         label: "Meal",          hexColor: "#7cb342", halfLifeDays: 0.5, maxDays: 1),
+        .stress:      PRCModel(fn: stress,       label: "Stress",        hexColor: "#e57373", halfLifeDays: 1.5, maxDays: 3),
     ]
 
     // MARK: - Impulse Response

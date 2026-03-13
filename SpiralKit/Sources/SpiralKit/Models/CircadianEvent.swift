@@ -8,6 +8,8 @@ public enum EventType: String, Codable, CaseIterable, Sendable {
     case caffeine    = "caffeine"
     case screenLight = "screenLight"
     case alcohol     = "alcohol"
+    case meal        = "meal"
+    case stress      = "stress"
 
     public var label: String {
         switch self {
@@ -17,6 +19,8 @@ public enum EventType: String, Codable, CaseIterable, Sendable {
         case .caffeine:    return "Caffeine"
         case .screenLight: return "Screen Light"
         case .alcohol:     return "Alcohol"
+        case .meal:        return "Meal"
+        case .stress:      return "Stress"
         }
     }
 
@@ -28,6 +32,8 @@ public enum EventType: String, Codable, CaseIterable, Sendable {
         case .caffeine:    return "#c08040"
         case .screenLight: return "#60a0ff"
         case .alcohol:     return "#e04040"
+        case .meal:        return "#7cb342"
+        case .stress:      return "#e57373"
         }
     }
 
@@ -39,6 +45,8 @@ public enum EventType: String, Codable, CaseIterable, Sendable {
         case .caffeine:    return "cup.and.saucer.fill"
         case .screenLight: return "iphone"
         case .alcohol:     return "wineglass"
+        case .meal:        return "fork.knife"
+        case .stress:      return "brain.head.profile"
         }
     }
 }
