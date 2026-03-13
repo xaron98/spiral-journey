@@ -15,6 +15,31 @@ public enum SpiralDistance {
         return angularDist / Double.pi + radialDist * 0.1
     }
 
+    /// Euclidean spiral distance: d = √(α·Δn² + β·(Δθ/π)²)
+    ///
+    /// Uses a proper Euclidean metric that weights radial separation (days)
+    /// and angular separation (phase) independently.
+    /// - Parameters:
+    ///   - alpha: Weight for radial (day) component. Default 1.0.
+    ///   - beta: Weight for angular (phase) component. Default 1.0.
+    /// - Returns: Weighted Euclidean distance on the spiral surface.
+    public static func euclideanDistance(
+        day1: Int, hour1: Double,
+        day2: Int, hour2: Double,
+        period: Double = 24,
+        alpha: Double = 1.0,
+        beta: Double = 1.0
+    ) -> Double {
+        let dn = Double(day1 - day2)
+        // Shortest angular distance on the circle, normalized to [0, 1]
+        let theta1 = (hour1 / period) * 2 * Double.pi
+        let theta2 = (hour2 / period) * 2 * Double.pi
+        var dtheta = abs(theta1 - theta2)
+        if dtheta > Double.pi { dtheta = 2 * Double.pi - dtheta }
+        let angularNorm = dtheta / Double.pi  // 0..1
+        return sqrt(alpha * dn * dn + beta * angularNorm * angularNorm)
+    }
+
     public struct SectorResult: Sendable {
         public let sector: Int
         public let startHour: Double

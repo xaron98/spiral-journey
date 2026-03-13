@@ -77,4 +77,50 @@ public enum TwoProcessModel {
         }
         return result
     }
+
+    // MARK: - Continuous Process S (cross-day propagation)
+
+    /// Compute S and C with sleep-debt memory across days.
+    ///
+    /// Unlike `compute()`, which resets s0 each day, this method propagates
+    /// the final S value of each day as the starting S for the next.
+    /// Captures cumulative sleep debt (e.g., 3 nights of 4h → rising S baseline)
+    /// and recovery dynamics (e.g., long sleep → S drops below baseline).
+    public static func computeContinuous(_ records: [SleepRecord]) -> [TwoProcessPoint] {
+        guard !records.isEmpty else { return [] }
+        var result: [TwoProcessPoint] = []
+        var carryS = 0.15  // initial S at first day's wake
+
+        for d in 0..<records.count {
+            let dayData = records[d]
+            var lastS = carryS
+            var lastAwake = true
+
+            for h in 0..<24 {
+                let actEntry = dayData.hourlyActivity.first { $0.hour == h }
+                let isAwake = actEntry.map { $0.activity >= 0.2 } ?? true
+
+                if isAwake != lastAwake {
+                    // State transition: use current S as new s0
+                    lastAwake = isAwake
+                }
+
+                // Compute S for 1-hour step from lastS
+                let s: Double
+                if isAwake {
+                    s = 1 - (1 - lastS) * exp(-1.0 / tauRise)
+                } else {
+                    s = lastS * exp(-1.0 / tauFall)
+                }
+
+                let c = processC(hour: Double(h), cosinor: dayData.cosinor)
+                result.append(TwoProcessPoint(day: d, hour: h, s: s, c: c, isAwake: isAwake))
+                lastS = s
+            }
+
+            // Carry last hour's S to next day
+            carryS = lastS
+        }
+        return result
+    }
 }

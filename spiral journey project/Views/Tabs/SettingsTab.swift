@@ -80,6 +80,16 @@ struct SettingsTab: View {
                         PillButton(label: String(localized: "spiral.controls.logarithmic", bundle: bundle), isActive: store.spiralType == .logarithmic)  { store.spiralType = .logarithmic }
                     }
 
+                    // Period presets
+                    HStack(spacing: 6) {
+                        PillButton(label: "24h", isActive: abs(store.period - 24.0) < 0.5) {
+                            store.period = 24.0
+                        }
+                        PillButton(label: String(localized: "spiral.controls.weekly", bundle: bundle), isActive: abs(store.period - 168.0) < 1) {
+                            store.period = 168.0
+                        }
+                    }
+
                     // Period slider
                     VStack(alignment: .leading, spacing: 4) {
                         HStack {
@@ -91,7 +101,7 @@ struct SettingsTab: View {
                                 .font(.system(size: 11, weight: .semibold, design: .monospaced))
                                 .foregroundStyle(SpiralColors.accent)
                         }
-                        Slider(value: $store.period, in: 23.0...25.5, step: 0.1).tint(SpiralColors.accent)
+                        Slider(value: $store.period, in: 23.0...168.0, step: 0.1).tint(SpiralColors.accent)
                     }
 
                     // Depth / zoom slider

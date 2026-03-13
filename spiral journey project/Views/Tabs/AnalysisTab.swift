@@ -9,11 +9,13 @@ struct AnalysisTab: View {
     @Environment(SpiralStore.self) private var store
     @Environment(\.languageBundle) private var bundle
 
-    @State private var showFullAnalysis    = false
-    @State private var showDrift          = false
-    @State private var showSlidingCosinor = false
-    @State private var showPRC            = false
-    @State private var showActogram       = false
+    @State private var showFullAnalysis       = false
+    @State private var showDrift             = false
+    @State private var showSlidingCosinor    = false
+    @State private var showPRC               = false
+    @State private var showActogram          = false
+    @State private var showAutocorrelation   = false
+    @State private var showSectorQuality     = false
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -65,10 +67,12 @@ struct AnalysisTab: View {
                             .panelStyle()
                         }
                         StatsPanelView(records: store.records)
-                        if showDrift          { DriftChartView(records: store.records) }
-                        if showSlidingCosinor { SlidingCosinorView(records: store.records) }
-                        if showPRC            { PRCChartView(events: store.events) }
-                        if showActogram       { ActogramView(records: store.records) }
+                        if showDrift            { DriftChartView(records: store.records) }
+                        if showSlidingCosinor  { SlidingCosinorView(records: store.records) }
+                        if showPRC             { PRCChartView(events: store.events) }
+                        if showActogram        { ActogramView(records: store.records) }
+                        if showAutocorrelation { AutocorrelationHeatmapView(records: store.records) }
+                        if showSectorQuality   { SectorQualityHeatmapView(records: store.records) }
                         chartToggles
                     }
                 }
@@ -321,6 +325,10 @@ struct AnalysisTab: View {
                 PillButton(label: String(localized: "spiral.controls.cosinor",  bundle: bundle), isActive: showSlidingCosinor) { showSlidingCosinor.toggle() }
                 PillButton(label: "PRC",                                                          isActive: showPRC)            { showPRC.toggle() }
                 PillButton(label: String(localized: "analysis.charts.actogram", bundle: bundle), isActive: showActogram)       { showActogram.toggle() }
+            }
+            HStack(spacing: 6) {
+                PillButton(label: String(localized: "analysis.charts.autocorrelation.short", bundle: bundle), isActive: showAutocorrelation) { showAutocorrelation.toggle() }
+                PillButton(label: String(localized: "analysis.charts.sectorQuality.short",   bundle: bundle), isActive: showSectorQuality)   { showSectorQuality.toggle() }
             }
         }
         .panelStyle()

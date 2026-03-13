@@ -168,6 +168,8 @@ struct PRCChartView: View {
         case .caffeine:    return String(localized: "event.type.caffeine",    bundle: bundle)
         case .screenLight: return String(localized: "event.type.screenLight", bundle: bundle)
         case .alcohol:     return String(localized: "event.type.alcohol",     bundle: bundle)
+        case .meal:        return String(localized: "event.type.meal",        bundle: bundle)
+        case .stress:      return String(localized: "event.type.stress",      bundle: bundle)
         }
     }
 

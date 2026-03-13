@@ -636,10 +636,31 @@ struct SpiralView: View {
     private func drawBiomarkers(context: GraphicsContext, geo: SpiralGeometry, fromTurns: Double = 0, size: CGSize) {
         for record in records {
             guard Double(record.day) + 1.0 >= fromTurns else { continue }
-            for marker in BiomarkerEstimation.estimate(from: record) {
+            for marker in BiomarkerEstimation.estimatePersonalized(from: record) {
                 let t = Double(record.day) + marker.hour / geo.period
                 let p = project(turns: t, geo: geo, size: size)
                 let color = Color(hex: marker.hexColor)
+
+                // Draw confidence arc if available
+                if let low = marker.confidenceLow, let high = marker.confidenceHigh {
+                    let tLow = Double(record.day) + low / geo.period
+                    let tHigh = Double(record.day) + high / geo.period
+                    let steps = max(8, Int((tHigh - tLow) / 0.02))
+                    var arcPath = Path()
+                    for i in 0...steps {
+                        let frac = Double(i) / Double(steps)
+                        let tArc = tLow + frac * (tHigh - tLow)
+                        let pArc = project(turns: tArc, geo: geo, size: size)
+                        if i == 0 {
+                            arcPath.move(to: CGPoint(x: pArc.x, y: pArc.y))
+                        } else {
+                            arcPath.addLine(to: CGPoint(x: pArc.x, y: pArc.y))
+                        }
+                    }
+                    context.stroke(arcPath, with: .color(color.opacity(0.3)), lineWidth: 4)
+                }
+
+                // Draw diamond marker
                 let s = 5.0
                 var path = Path()
                 path.move(to: CGPoint(x: p.x, y: p.y - s))
