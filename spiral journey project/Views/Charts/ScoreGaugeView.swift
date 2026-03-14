@@ -24,15 +24,17 @@ struct ScoreGaugeView: View {
                 .animation(.easeOut(duration: 1.0), value: animatedProgress)
 
             // Score text
-            VStack(spacing: 2) {
+            VStack(spacing: 1) {
                 Text("\(score)")
                     .font(.system(size: 32, weight: .bold, design: .monospaced))
                     .foregroundStyle(Color(hex: hexColor))
-                Text(label.uppercased())
-                    .font(.system(size: 9, weight: .medium, design: .monospaced))
-                    .tracking(2)
+                Text(label)
+                    .font(.system(size: 8, weight: .medium))
                     .foregroundStyle(SpiralColors.muted)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
             }
+            .padding(.horizontal, 12)
         }
         .onAppear { animatedProgress = progress }
         .onChange(of: score) { animatedProgress = Double($1) / 100 }

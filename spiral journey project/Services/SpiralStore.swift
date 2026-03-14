@@ -178,6 +178,8 @@ final class SpiralStore {
 
     /// True while applying remote CloudKit changes — prevents save() from re-pushing to CloudKit.
     private var isSyncingFromCloud = false
+    /// True during init load — prevents didSet from triggering save() on every property.
+    private var isLoading = false
 
     // MARK: - Computed State
 
@@ -382,7 +384,7 @@ final class SpiralStore {
     }
 
     private func save() {
-        guard !isSyncingFromCloud else { return }
+        guard !isSyncingFromCloud, !isLoading else { return }
         let stored = Stored(
             sleepEpisodes: sleepEpisodes,
             events: events,
@@ -416,6 +418,8 @@ final class SpiralStore {
     }
 
     private func load() {
+        isLoading = true
+        defer { isLoading = false }
         // Prefer the shared App Group suite; migrate from standard if needed.
         var data = sharedDefaults.data(forKey: storageKey)
         if data == nil, let legacy = UserDefaults.standard.data(forKey: storageKey) {

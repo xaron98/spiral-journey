@@ -1,5 +1,8 @@
 import SwiftUI
 import SpiralKit
+#if canImport(UIKit)
+import UIKit
+#endif
 
 /// Trends tab — answers "¿esto es puntual o es patrón?".
 /// Top section: 3 human-readable trend dimensions.
@@ -17,6 +20,7 @@ struct AnalysisTab: View {
     @State private var showAutocorrelation   = false
     @State private var showSectorQuality     = false
     @State private var showHRV               = false
+    @State private var isGeneratingPDF       = false
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -101,34 +105,73 @@ struct AnalysisTab: View {
                     .foregroundStyle(SpiralColors.subtle)
             }
             Spacer()
-            ShareLink(item: pdfReportItem, preview: SharePreview(
-                String(localized: "pdf.share.preview", bundle: bundle),
-                image: Image(systemName: "doc.richtext")
-            )) {
-                Image(systemName: "square.and.arrow.up")
-                    .font(.system(size: 16))
-                    .foregroundStyle(SpiralColors.accent)
+            Button {
+                generateAndSharePDF()
+            } label: {
+                if isGeneratingPDF {
+                    ProgressView()
+                        .controlSize(.small)
+                        .tint(SpiralColors.accent)
+                } else {
+                    Image(systemName: "square.and.arrow.up")
+                        .font(.system(size: 16))
+                        .foregroundStyle(SpiralColors.accent)
+                }
             }
+            .disabled(isGeneratingPDF)
         }
         .padding(.bottom, 4)
     }
 
-    /// Generates the PDF data for the share link.
-    private var pdfReportItem: PDFReportDocument {
-        let df = DateFormatter()
-        df.dateStyle = .medium
-        let startStr = df.string(from: store.startDate)
-        let endStr = df.string(from: Date())
-        let dateRange = "\(startStr) – \(endStr)"
+    /// Generates the PDF off the main thread, then presents the system share sheet.
+    private func generateAndSharePDF() {
+        isGeneratingPDF = true
+        // Capture value-type snapshots so we can leave the main actor.
+        let records     = store.records
+        let analysis    = store.analysis
+        let consistency = store.analysis.consistency
+        let startDate   = store.startDate
+        let numDays     = store.numDays
 
-        let data = PDFReportGenerator.generate(
-            records: store.records,
-            analysis: store.analysis,
-            consistency: store.analysis.consistency,
-            dateRange: dateRange,
-            numDays: store.numDays
-        )
-        return PDFReportDocument(data: data)
+        Task.detached(priority: .userInitiated) {
+            let df = DateFormatter()
+            df.dateStyle = .medium
+            let dateRange = "\(df.string(from: startDate)) – \(df.string(from: Date()))"
+
+            let data = PDFReportGenerator.generate(
+                records: records,
+                analysis: analysis,
+                consistency: consistency,
+                dateRange: dateRange,
+                numDays: numDays
+            )
+
+            let url = FileManager.default.temporaryDirectory
+                .appendingPathComponent("SpiralJourney_SleepReport.pdf")
+            try? data.write(to: url)
+
+            await MainActor.run {
+                isGeneratingPDF = false
+                presentShareSheet(url: url)
+            }
+        }
+    }
+
+    /// Presents UIActivityViewController from the topmost view controller.
+    @MainActor
+    private func presentShareSheet(url: URL) {
+        #if os(iOS)
+        let activityVC = UIActivityViewController(activityItems: [url], applicationActivities: nil)
+        guard let scene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
+              let rootVC = scene.windows.first?.rootViewController else { return }
+        var topVC = rootVC
+        while let presented = topVC.presentedViewController { topVC = presented }
+        if let popover = activityVC.popoverPresentationController {
+            popover.sourceView = topVC.view
+            popover.sourceRect = CGRect(x: topVC.view.bounds.midX, y: 60, width: 0, height: 0)
+        }
+        topVC.present(activityVC, animated: true)
+        #endif
     }
 
     // MARK: - 3 Trend Dimensions

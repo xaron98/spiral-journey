@@ -34,6 +34,15 @@ public enum ConclusionsEngine {
         return .poor
     }
 
+    /// Formats minutes as "Xh Ym" (e.g. 78 → "1h 18m", 45 → "45m").
+    private static func formatMinutesAsHM(_ minutes: Double) -> String {
+        let total = Int(minutes.rounded())
+        if total < 60 { return "\(total)m" }
+        let h = total / 60
+        let m = total % 60
+        return m == 0 ? "\(h)h" : "\(h)h \(m)m"
+    }
+
     // MARK: - Composite Score
 
     /// Composite sleep quality score (0-100).
@@ -137,7 +146,7 @@ public enum ConclusionsEngine {
         else { jlDetailKey = .highJetlag; jlDetail = "High social jetlag — metabolic risk" }
         categories.append(CategoryScore(
             id: "jetlag", label: "Social Jetlag",
-            value: String(format: "%.0f min", jl),
+            value: formatMinutesAsHM(jl),
             score: Int(jetlagSc.rounded()), status: statusOf(jetlagSc), detail: jlDetail,
             labelKey: .jetlag, detailKey: jlDetailKey, detailArgs: [jl]
         ))

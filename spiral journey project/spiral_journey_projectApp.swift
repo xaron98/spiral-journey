@@ -15,6 +15,11 @@ struct spiral_journey_projectApp: App {
                 .environment(\.locale, Locale(identifier: store.language.localeIdentifier))
                 .environment(\.languageBundle, languageBundle(for: store.language.localeIdentifier))
                 .task {
+                    // ① Let the first frame render before doing any work.
+                    //    Without this, the UI appears frozen until the HealthKit
+                    //    permission dialog pops up.
+                    await Task.yield()
+
                     // Receive events and episodes logged on the Apple Watch
                     #if os(iOS)
                     WatchConnectivityManager.shared.onEventReceived = { event in
@@ -36,13 +41,19 @@ struct spiral_journey_projectApp: App {
                     }
                     #endif
 
-                    // Request HealthKit authorization first (shows permission dialog),
-                    // then initialize CloudKit in the background so neither blocks the UI.
+                    // ② Request HealthKit authorization (shows permission dialog).
                     #if !targetEnvironment(simulator)
                     await healthKit.requestAuthorization()
+                    #endif
+
+                    // ③ Initialize CloudKit while the user has just responded to
+                    //    the HealthKit dialog — perceived latency is near zero.
+                    setupCloudSync()
+
+                    // ④ Import HealthKit data + CloudKit fetch — interleaved on the
+                    //    main actor so each `await` yields and the UI stays responsive.
+                    #if !targetEnvironment(simulator)
                     if healthKit.isAuthorized {
-                        // Auto-adjust startDate to cover actual HealthKit data.
-                        // This handles the case where startDate = today but all sleep is from yesterday.
                         if let result = await healthKit.importAndAdjustEpoch(days: store.numDays) {
                             if result.epoch < store.startDate {
                                 store.startDate = result.epoch
@@ -50,7 +61,6 @@ struct spiral_journey_projectApp: App {
                             store.mergeHealthKitEpisodes(result.episodes)
                         }
 
-                        // Observe HealthKit for new sleep (e.g. Apple Watch session just finished).
                         healthKit.onNewSleepData = {
                             Task {
                                 if let result = await healthKit.importAndAdjustEpoch(days: store.numDays) {
@@ -65,20 +75,11 @@ struct spiral_journey_projectApp: App {
                     }
                     #endif
 
-                    // Initialize CloudKit after HealthKit so the permission dialog
-                    // appears immediately without being blocked by CKSyncEngine init.
-                    setupCloudSync()
-
-                    // Upload local data to CloudKit now that HealthKit import has populated episodes.
+                    // ⑤ CloudKit migration + fetch.
                     let didEnqueue = runCloudMigrationIfNeeded()
-
-                    // If we just enqueued a migration batch, send immediately.
-                    // Otherwise CKSyncEngine may defer the upload indefinitely in this session.
                     if didEnqueue {
                         await store.cloudSync?.sendNow()
                     }
-
-                    // Fetch any remote CloudKit changes on launch.
                     await store.cloudSync?.fetchNow()
                 }
                 .onReceive(
