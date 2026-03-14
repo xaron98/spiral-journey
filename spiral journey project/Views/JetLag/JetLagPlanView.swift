@@ -2,6 +2,10 @@ import SwiftUI
 import SpiralKit
 
 /// Displays the generated jet lag adaptation plan as a day-by-day timeline.
+///
+/// Pre-travel days show times in the user's HOME timezone.
+/// Travel day (0) and post-travel days show times in DESTINATION timezone
+/// so the user can directly read clock times at their location.
 struct JetLagPlanView: View {
 
     let plan: JetLagPlan
@@ -80,12 +84,16 @@ struct JetLagPlanView: View {
 
     private func dayCard(_ day: JetLagDay) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            // Day label
-            HStack {
+            // Day label + timezone badge
+            HStack(spacing: 6) {
                 Text(dayLabel(day.dayOffset))
                     .font(.system(size: 12, weight: .semibold, design: .monospaced))
                     .foregroundStyle(day.dayOffset == 0 ? SpiralColors.accent : SpiralColors.text)
+
+                timezoneBadge(for: day.dayOffset)
+
                 Spacer()
+
                 if day.dayOffset == 0 {
                     Text(String(localized: "jetlag.day.travel", bundle: bundle))
                         .font(.system(size: 9, weight: .semibold, design: .monospaced))
@@ -99,35 +107,38 @@ struct JetLagPlanView: View {
                 }
             }
 
-            // Schedule items
+            // Schedule items — times converted to the relevant timezone
             if let bed = day.targetBedtime, let wake = day.targetWake {
                 scheduleRow(icon: "bed.double.fill", color: SpiralColors.accent,
                            text: String(format: String(localized: "jetlag.day.sleep", bundle: bundle),
-                                       formatHour(bed), formatHour(wake)))
+                                       displayHour(bed, dayOffset: day.dayOffset),
+                                       displayHour(wake, dayOffset: day.dayOffset)))
             }
 
             if let lw = day.lightWindow {
                 scheduleRow(icon: "sun.max.fill", color: SpiralColors.good,
                            text: String(format: String(localized: "jetlag.day.light", bundle: bundle),
-                                       formatHour(lw.start), formatHour(lw.end)))
+                                       displayHour(lw.start, dayOffset: day.dayOffset),
+                                       displayHour(lw.end, dayOffset: day.dayOffset)))
             }
 
             if let aw = day.avoidLightWindow {
                 scheduleRow(icon: "eye.slash.fill", color: SpiralColors.poor,
                            text: String(format: String(localized: "jetlag.day.avoidLight", bundle: bundle),
-                                       formatHour(aw.start), formatHour(aw.end)))
+                                       displayHour(aw.start, dayOffset: day.dayOffset),
+                                       displayHour(aw.end, dayOffset: day.dayOffset)))
             }
 
             if let mel = day.melatoninTime {
                 scheduleRow(icon: "pills.fill", color: SpiralColors.moderate,
                            text: String(format: String(localized: "jetlag.day.melatonin", bundle: bundle),
-                                       formatHour(mel)))
+                                       displayHour(mel, dayOffset: day.dayOffset)))
             }
 
             if let caf = day.caffeineDeadline {
                 scheduleRow(icon: "cup.and.saucer.fill", color: SpiralColors.muted,
                            text: String(format: String(localized: "jetlag.day.caffeine", bundle: bundle),
-                                       formatHour(caf)))
+                                       displayHour(caf, dayOffset: day.dayOffset)))
             }
         }
         .padding(14)
@@ -153,6 +164,33 @@ struct JetLagPlanView: View {
         }
     }
 
+    /// Timezone badge indicating whether times are shown in home or destination tz.
+    private func timezoneBadge(for dayOffset: Int) -> some View {
+        let isDestination = dayOffset >= 0
+        let label = isDestination
+            ? String(localized: "jetlag.tz.destination", bundle: bundle)
+            : String(localized: "jetlag.tz.home", bundle: bundle)
+        let icon = isDestination ? "airplane" : "house.fill"
+
+        return HStack(spacing: 3) {
+            Image(systemName: icon)
+                .font(.system(size: 7))
+            Text(label)
+                .font(.system(size: 8, weight: .medium))
+        }
+        .foregroundStyle(SpiralColors.muted)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 2)
+        .background(
+            RoundedRectangle(cornerRadius: 4)
+                .fill(SpiralColors.surface)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 4)
+                        .stroke(SpiralColors.border, lineWidth: 0.5)
+                )
+        )
+    }
+
     // MARK: - Helpers
 
     private func dayLabel(_ offset: Int) -> String {
@@ -165,9 +203,26 @@ struct JetLagPlanView: View {
         }
     }
 
+    /// Convert engine hour (home timezone) to the display timezone.
+    /// Pre-travel (dayOffset < 0): home time as-is.
+    /// Travel day & post (dayOffset >= 0): destination time.
+    private func displayHour(_ h: Double, dayOffset: Int) -> String {
+        if dayOffset >= 0 {
+            return formatHour(normalizeHour(h + Double(plan.timezoneOffsetHours)))
+        }
+        return formatHour(h)
+    }
+
+    private func normalizeHour(_ h: Double) -> Double {
+        var result = h.truncatingRemainder(dividingBy: 24)
+        if result < 0 { result += 24 }
+        return result
+    }
+
     private func formatHour(_ h: Double) -> String {
-        let hour = Int(h) % 24
-        let minute = Int((h - Double(Int(h))) * 60)
+        let normalized = normalizeHour(h)
+        let hour = Int(normalized) % 24
+        let minute = Int((normalized - Double(Int(normalized))) * 60)
         return String(format: "%02d:%02d", hour, minute)
     }
 }

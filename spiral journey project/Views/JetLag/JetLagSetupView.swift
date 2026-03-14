@@ -2,6 +2,10 @@ import SwiftUI
 import SpiralKit
 
 /// Jet lag planner setup: pick timezone offset and travel date.
+///
+/// The slider represents the TIME DIFFERENCE between origin and destination
+/// (not the destination's raw UTC offset). For example, if the user is in
+/// UTC+1 (Spain) and travels to UTC+7 (Thailand), they should set +6h.
 struct JetLagSetupView: View {
 
     @Environment(SpiralStore.self) private var store
@@ -11,6 +15,11 @@ struct JetLagSetupView: View {
     @State private var offset: Int = 1
     @State private var travelDate = Date()
     @State private var showPlan = false
+
+    /// User's current UTC offset in whole hours (used for contextual info).
+    private var userUTCOffset: Int {
+        TimeZone.current.secondsFromGMT() / 3600
+    }
 
     var body: some View {
         NavigationStack {
@@ -39,14 +48,19 @@ struct JetLagSetupView: View {
                             .foregroundStyle(SpiralColors.muted)
                             .textCase(.uppercase)
 
-                        HStack {
+                        HStack(alignment: .firstTextBaseline) {
                             Text(offsetLabel)
                                 .font(.system(size: 22, weight: .semibold, design: .monospaced))
                                 .foregroundStyle(SpiralColors.accent)
                             Spacer()
-                            Text(directionLabel)
-                                .font(.system(size: 12, design: .monospaced))
-                                .foregroundStyle(SpiralColors.muted)
+                            VStack(alignment: .trailing, spacing: 2) {
+                                Text(directionLabel)
+                                    .font(.system(size: 12, design: .monospaced))
+                                    .foregroundStyle(SpiralColors.muted)
+                                Text(destinationUTCLabel)
+                                    .font(.system(size: 9, design: .monospaced))
+                                    .foregroundStyle(SpiralColors.muted.opacity(0.7))
+                            }
                         }
 
                         Slider(value: Binding(
@@ -122,11 +136,13 @@ struct JetLagSetupView: View {
         }
     }
 
+    /// Main label: shows the time difference, e.g. "+7h"
     private var offsetLabel: String {
         let sign = offset >= 0 ? "+" : ""
-        return "UTC \(sign)\(offset)h"
+        return "\(sign)\(offset)h"
     }
 
+    /// Direction indicator (east/west).
     private var directionLabel: String {
         if offset > 0 {
             return String(localized: "jetlag.direction.east", bundle: bundle)
@@ -134,6 +150,14 @@ struct JetLagSetupView: View {
             return String(localized: "jetlag.direction.west", bundle: bundle)
         }
         return ""
+    }
+
+    /// Shows the computed destination UTC, e.g. "UTC+1 → UTC+8"
+    private var destinationUTCLabel: String {
+        let destUTC = userUTCOffset + offset
+        let originSign = userUTCOffset >= 0 ? "+" : ""
+        let destSign = destUTC >= 0 ? "+" : ""
+        return "UTC\(originSign)\(userUTCOffset) → UTC\(destSign)\(destUTC)"
     }
 
     private func generatePlan() {
