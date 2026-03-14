@@ -33,7 +33,9 @@ public enum NapOptimizer {
     // MARK: - Thresholds
 
     /// Minimum S to recommend any nap.
-    private static let sThreshold = 0.55
+    /// Aligned with SleepinessRiskEngine.moderateRiskThreshold (0.50)
+    /// so that moderate sleepiness risk always yields a nap recommendation.
+    private static let sThreshold = 0.50
     /// S above this → recommend 90-min full cycle instead of 20-min power nap.
     private static let sHighThreshold = 0.70
     /// Default nap window.

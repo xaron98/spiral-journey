@@ -72,7 +72,8 @@ struct InputTab: View {
                     showBiomarkers: false,
                     showTwoProcess: false,
                     selectedDay: selectedDay,
-                    onSelectDay: { if let d = $0 { selectedDay = d } }
+                    onSelectDay: { if let d = $0 { selectedDay = d } },
+                    contextBlocks: store.contextBlocksEnabled ? store.contextBlocks : []
                 )
                 .frame(height: 300)
 

@@ -21,7 +21,9 @@ public struct SleepEpisode: Codable, Identifiable, Sendable {
     /// Sleep phase reported by HealthKit. nil for manually entered episodes.
     public var phase: SleepPhase?
 
-    public var duration: Double { end - start }
+    /// Duration in hours. Clamped to ≥ 0 to prevent corrupt data from propagating
+    /// negative values through the analysis pipeline.
+    public var duration: Double { max(0, end - start) }
 
     public init(
         id: UUID = UUID(),

@@ -78,6 +78,7 @@ struct SpiralTab: View {
                                     showTwoProcess: showTwoProcess,
                                     selectedDay: selectedDay,
                                     onSelectDay: { selectedDay = $0 },
+                                    contextBlocks: store.contextBlocksEnabled ? store.contextBlocks : [],
                                     cursorAbsHour: cursorAbsHour,
                                     sleepStartHour: sleepStartHour,
                                     numDaysHint: maxDays,
@@ -580,8 +581,9 @@ struct SpiralTab: View {
         if c.deltaVsPreviousWeek.map({ $0 >= 2 }) == true {
             return String(localized: "spiral.rhythm.subtitle.improving", bundle: bundle)
         }
+        let localizedLabel = String(localized: String.LocalizationValue(c.label.localizationKey))
         return String(format: String(localized: "spiral.rhythm.subtitle.stable", bundle: bundle),
-                      c.nightsUsed, c.label.displayText.lowercased())
+                      c.nightsUsed, localizedLabel.lowercased())
     }
 
     // MARK: - Human Stats Row (replaces miniStatsRow)

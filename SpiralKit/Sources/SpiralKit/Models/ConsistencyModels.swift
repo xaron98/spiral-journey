@@ -138,13 +138,26 @@ public enum ConsistencyLabel: String, Codable, Sendable, CaseIterable {
     case disorganized    // <50
     case insufficient    // not enough data
 
+    /// Localization key for the label. The app layer resolves
+    /// this via `String(localized:)` with the main bundle.
+    public var localizationKey: String {
+        switch self {
+        case .veryStable:   return "consistency.label.veryStable"
+        case .stable:       return "consistency.label.stable"
+        case .variable:     return "consistency.label.variable"
+        case .disorganized: return "consistency.label.disorganized"
+        case .insufficient: return "consistency.label.insufficient"
+        }
+    }
+
+    /// Fallback English display text (used when no localization is available).
     public var displayText: String {
         switch self {
-        case .veryStable:   return "Muy estable"
-        case .stable:       return "Estable"
+        case .veryStable:   return "Very Stable"
+        case .stable:       return "Stable"
         case .variable:     return "Variable"
-        case .disorganized: return "Desorganizado"
-        case .insufficient: return "Sin datos"
+        case .disorganized: return "Disorganized"
+        case .insufficient: return "No Data"
         }
     }
 

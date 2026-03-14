@@ -71,7 +71,7 @@ struct ConsistencyDetailView: View {
                     Text("\(consistency.score)")
                         .font(.system(size: 34, weight: .bold, design: .monospaced))
                         .foregroundStyle(Color(hex: consistency.label.hexColor))
-                    Text(consistency.label.displayText)
+                    Text(String(localized: String.LocalizationValue(consistency.label.localizationKey)))
                         .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(SpiralColors.muted)
                 }
@@ -220,7 +220,7 @@ struct ConsistencyDetailView: View {
             Text("\(score)")
                 .font(.system(size: 28, weight: .bold, design: .monospaced))
                 .foregroundStyle(isCurrent ? Color(hex: consistency.label.hexColor) : SpiralColors.muted)
-            Text(scoreLabel.displayText)
+            Text(String(localized: String.LocalizationValue(scoreLabel.localizationKey)))
                 .font(.system(size: 10))
                 .foregroundStyle(SpiralColors.muted)
             Text(label)

@@ -117,6 +117,7 @@ struct RephaseEditorView: View {
                     showTwoProcess: false,
                     selectedDay: nil,
                     onSelectDay: { _ in },
+                    contextBlocks: store.contextBlocksEnabled ? store.contextBlocks : [],
                     numDaysHint: maxDays,
                     cursorTurns: turns,
                     visibleDays: liveVisibleDays,

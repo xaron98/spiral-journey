@@ -215,11 +215,11 @@ public struct ContextBlock: Codable, Identifiable, Sendable, Equatable, Hashable
         return "\(fmt(startHour))–\(fmt(endHour))"
     }
 
-    /// Short formatted active-days string (e.g. "L-V", "L M X").
+    /// Short formatted active-days string using locale-aware day abbreviations.
     /// Returns nil if no days are active.
     public var activeDaysShort: String? {
-        // Short day labels (English: S M T W T F S)
-        let labels = ["D", "L", "M", "X", "J", "V", "S"]
+        // veryShortWeekdaySymbols: index 0 = Sunday, 1 = Monday, …, 6 = Saturday
+        let labels = Calendar.current.veryShortWeekdaySymbols
         var active: [String] = []
         for i in 0..<7 {
             if activeDays & (1 << i) != 0 {
@@ -229,11 +229,17 @@ public struct ContextBlock: Codable, Identifiable, Sendable, Equatable, Hashable
         guard !active.isEmpty else { return nil }
 
         // Detect Mon-Fri pattern
-        if activeDays == 0b0111110 { return "L-V" }
+        if activeDays == 0b0111110 {
+            return "\(labels[1])-\(labels[5])"  // Mon-Fri
+        }
         // Detect every day
-        if activeDays == 0b1111111 { return "L-D" }
+        if activeDays == 0b1111111 {
+            return "\(labels[1])-\(labels[0])"  // Mon-Sun
+        }
         // Detect weekends
-        if activeDays == 0b1000001 { return "S-D" }
+        if activeDays == 0b1000001 {
+            return "\(labels[6])-\(labels[0])"  // Sat-Sun
+        }
 
         return active.joined(separator: " ")
     }

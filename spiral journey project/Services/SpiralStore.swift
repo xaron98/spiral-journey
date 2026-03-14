@@ -288,6 +288,12 @@ final class SpiralStore {
                 self.records = newRecords
                 self.analysis = newAnalysis
                 self.scheduleConflicts = newConflicts
+                // Append daily conflict snapshot for trend tracking
+                if !newConflicts.isEmpty {
+                    let snapshot = ConflictSnapshot.from(conflicts: newConflicts)
+                    self.conflictHistory.append(snapshot)
+                    self.conflictHistory = ConflictTrendEngine.trimmed(self.conflictHistory, maxDays: 90)
+                }
                 self.isProcessing = false
                 // Sync to Apple Watch
                 #if os(iOS)
@@ -467,14 +473,17 @@ final class SpiralStore {
 
     /// Wipe all user data and reset to factory defaults.
     func resetAllData() {
+        // Clear both v1 and v2 launch keys + CloudKit timestamp
         UserDefaults.standard.removeObject(forKey: "spiral-journey-has-launched")
+        UserDefaults.standard.removeObject(forKey: "spiral-journey-has-launched-v2")
+        UserDefaults.standard.removeObject(forKey: "spiral-journey-settings-modified-at")
         UserDefaults.standard.removeObject(forKey: storageKey)
         sharedDefaults.removeObject(forKey: storageKey)
         sleepEpisodes = []
         events = []
         startDate = Calendar.current.startOfDay(for: Date())
         numDays = 30
-        spiralType = .archimedean
+        spiralType = .logarithmic          // match property default (was .archimedean — wrong)
         period = 24.0
         linkGrowthToTau = false
         depthScale = 1.5
@@ -482,11 +491,13 @@ final class SpiralStore {
         language = .systemMatch
         appearance = .dark
         rephasePlan = RephasePlan()
+        sleepGoal = .generalHealthDefault   // was missing
         hasCompletedOnboarding = false
         hasShownWelcome = false
         chronotypeResult = nil
         hasCompletedChronotype = false
         jetLagPlan = nil
+        notificationsEnabled = false        // was missing
         contextBlocks = []
         contextBlocksEnabled = false
         contextBufferMinutes = 60.0
@@ -494,6 +505,7 @@ final class SpiralStore {
         records = []
         analysis = AnalysisResult()
         scheduleConflicts = []
+        hrvData = []                        // was missing
     }
 
     // MARK: - Persistence
@@ -655,7 +667,15 @@ final class SpiralStore {
             sleepGoal: sleepGoal,
             hasCompletedOnboarding: hasCompletedOnboarding,
             hasShownWelcome: hasShownWelcome,
-            onboardingVersion: currentOnboardingVersion
+            onboardingVersion: currentOnboardingVersion,
+            chronotypeResult: chronotypeResult,
+            hasCompletedChronotype: hasCompletedChronotype,
+            jetLagPlan: jetLagPlan,
+            notificationsEnabled: notificationsEnabled,
+            contextBlocks: contextBlocks,
+            contextBlocksEnabled: contextBlocksEnabled,
+            contextBufferMinutes: contextBufferMinutes,
+            conflictHistory: conflictHistory
         )
         if let data = try? JSONEncoder().encode(stored) {
             sharedDefaults.set(data, forKey: storageKey)

@@ -104,20 +104,27 @@ public enum ConflictTrendEngine {
         let currentMeanBuf = currentBuffers.isEmpty ? nil : currentBuffers.reduce(0, +) / Double(currentBuffers.count)
         let previousMeanBuf = previousBuffers.isEmpty ? nil : previousBuffers.reduce(0, +) / Double(previousBuffers.count)
 
-        // Determine direction
+        // Determine direction using daily averages to handle asymmetric week lengths
+        // (e.g., 8-13 snapshots: current week = 7 days, previous = 1-6 days).
         let delta = currentTotal - previousTotal
         let direction: TrendDirection
         if previousWeek.isEmpty {
             // Only one week of data — can't compare, report stable
             direction = .stable
-        } else if delta <= -stabilityThreshold - 1 {
-            // Current week has meaningfully fewer conflicts
-            direction = .improving
-        } else if delta >= stabilityThreshold + 1 {
-            // Current week has meaningfully more conflicts
-            direction = .worsening
         } else {
-            direction = .stable
+            let currentDailyAvg = Double(currentTotal) / Double(currentWeek.count)
+            let previousDailyAvg = Double(previousTotal) / Double(previousWeek.count)
+            let avgDelta = currentDailyAvg - previousDailyAvg
+            // Threshold: a change of less than ~0.15 conflicts/day is noise
+            // (equivalent to ~1 conflict/week difference)
+            let dailyStabilityThreshold = Double(stabilityThreshold) / 7.0
+            if avgDelta <= -dailyStabilityThreshold - 0.01 {
+                direction = .improving
+            } else if avgDelta >= dailyStabilityThreshold + 0.01 {
+                direction = .worsening
+            } else {
+                direction = .stable
+            }
         }
 
         return ConflictTrend(

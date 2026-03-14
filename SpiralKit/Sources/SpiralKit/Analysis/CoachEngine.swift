@@ -186,8 +186,9 @@ public enum CoachEngine {
         let workBlocks = blocks.filter { $0.isEnabled && ($0.type == .work || $0.type == .focus) }
         guard let primary = workBlocks.first else { return nil }
 
-        // Determine if it's a night shift (block spans nighttime hours)
-        let isNightShift = primary.startHour >= 20.0 || primary.endHour <= 8.0
+        // Determine if it's a night shift (block starts late evening AND ends early morning,
+        // meaning it crosses midnight — both conditions must hold).
+        let isNightShift = primary.startHour >= 20.0 && primary.endHour <= 8.0
         guard isNightShift else { return nil }
 
         // Calculate light window: first half of the shift
@@ -309,8 +310,8 @@ public enum CoachEngine {
         guard !records.isEmpty else { return CircadianAssessment() }
 
         // --- Mean bed/wake/midSleep ---
-        let validBed  = records.map(\.bedtimeHour).filter { $0 > 0 }
-        let validWake = records.map(\.wakeupHour).filter { $0 > 0 }
+        let validBed  = records.map(\.bedtimeHour).filter { $0 >= 0 }
+        let validWake = records.map(\.wakeupHour).filter { $0 >= 0 }
 
         let meanBed  = validBed.isEmpty  ? stats.meanAcrophase - 8 : circularMeanHour(validBed)
         let meanWake = validWake.isEmpty ? stats.meanAcrophase - 8 + stats.meanSleepDuration

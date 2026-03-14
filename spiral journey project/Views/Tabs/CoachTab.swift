@@ -238,8 +238,7 @@ struct CoachTab: View {
     // MARK: - Nap Recommendation
 
     private var napRecommendation: NapOptimizer.NapRecommendation? {
-        guard !store.records.isEmpty else { return nil }
-        let lastRecord = store.records.last!
+        guard let lastRecord = store.records.last else { return nil }
         return NapOptimizer.recommend(
             records: store.records,
             wakeHour: lastRecord.wakeupHour,

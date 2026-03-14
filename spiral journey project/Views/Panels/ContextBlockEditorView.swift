@@ -17,8 +17,8 @@ struct ContextBlockEditorView: View {
     @State private var endHour: Double = 17.0
     @State private var activeDays: UInt8 = ContextBlock.weekdays
 
-    // Day labels (Mon → Sun matching bitmask bit 1…6, 0)
-    private let dayLabels = ["D", "L", "M", "X", "J", "V", "S"]
+    // Day labels using system locale (bitmask order: Sun=bit0, Mon=bit1, …, Sat=bit6)
+    private let dayLabels = Calendar.current.veryShortWeekdaySymbols
 
     init(existing: ContextBlock? = nil, onSave: @escaping (ContextBlock) -> Void) {
         self.existing = existing
@@ -170,7 +170,9 @@ struct ContextBlockEditorView: View {
                             endHour: endHour,
                             activeDays: activeDays,
                             calendarEventID: existing?.calendarEventID,
-                            isEnabled: existing?.isEnabled ?? true
+                            isEnabled: existing?.isEnabled ?? true,
+                            source: existing?.source,
+                            confidence: existing?.confidence
                         )
                         onSave(block)
                         dismiss()

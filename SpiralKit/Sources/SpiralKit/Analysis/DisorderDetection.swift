@@ -11,6 +11,54 @@ import Foundation
 /// Port of src/utils/disorderSignatures.js from the Spiral Journey web project.
 public enum DisorderDetection {
 
+    // MARK: - Circular Helpers
+
+    /// Circular mean for clock-hour data (0-24h).
+    /// Uses sin/cos + atan2 to handle midnight-crossing correctly.
+    private static func circularMeanHour(_ hours: [Double]) -> Double {
+        guard !hours.isEmpty else { return 0 }
+        let toRad = Double.pi / 12.0  // 24h → 2π
+        let n = Double(hours.count)
+        let sinMean = hours.map { sin($0 * toRad) }.reduce(0, +) / n
+        let cosMean = hours.map { cos($0 * toRad) }.reduce(0, +) / n
+        guard abs(sinMean) > 1e-9 || abs(cosMean) > 1e-9 else { return 0 }
+        var angle = atan2(sinMean, cosMean) / toRad
+        // Normalize to [0, 24) — handles floating-point edge cases near 0/24
+        if angle < 0 { angle += 24 }
+        if angle >= 24 { angle -= 24 }
+        return angle
+    }
+
+    /// Circular standard deviation for clock-hour data (0-24h).
+    /// Returns result in hours.
+    private static func circularStdHour(_ hours: [Double]) -> Double {
+        guard hours.count > 1 else { return 0 }
+        let toRad = Double.pi / 12.0
+        let n = Double(hours.count)
+        let sinMean = hours.map { sin($0 * toRad) }.reduce(0, +) / n
+        let cosMean = hours.map { cos($0 * toRad) }.reduce(0, +) / n
+        let R = sqrt(sinMean * sinMean + cosMean * cosMean)
+        let R_clamped = min(max(R, 1e-9), 1)
+        return sqrt(max(-2.0 * log(R_clamped), 0)) / toRad
+    }
+
+    /// Unwrap a series of clock-hour values so that consecutive values
+    /// don't jump by more than 12h. This produces a continuous (non-circular)
+    /// series suitable for linear regression (drift detection).
+    private static func unwrapHours(_ hours: [Double]) -> [Double] {
+        guard !hours.isEmpty else { return [] }
+        var unwrapped = [hours[0]]
+        for i in 1..<hours.count {
+            var diff = hours[i] - unwrapped[i - 1]
+            if diff > 12 { diff -= 24 }
+            if diff < -12 { diff += 24 }
+            unwrapped.append(unwrapped[i - 1] + diff)
+        }
+        return unwrapped
+    }
+
+    // MARK: - Detection
+
     public static func detect(from records: [SleepRecord]) -> [DisorderSignature] {
         guard records.count >= 7 else { return [] }
 
@@ -21,16 +69,17 @@ public enum DisorderDetection {
         let r2values   = records.map(\.cosinor.r2)
 
         let n = Double(acrophases.count)
-        let meanAcrophase = acrophases.reduce(0, +) / n
+        let meanAcrophase = circularMeanHour(acrophases)
         let meanAmplitude = amplitudes.reduce(0, +) / n
         let meanR2        = r2values.reduce(0, +) / n
 
-        let acroVariance  = acrophases.reduce(0) { $0 + ($1 - meanAcrophase) * ($1 - meanAcrophase) } / n
-        let acroStd       = sqrt(acroVariance)
+        let acroStd       = circularStdHour(acrophases)
 
-        // Linear trend of acrophase (least squares slope)
+        // Linear trend of acrophase using unwrapped values (least squares slope).
+        // Unwrapping removes circular discontinuities so linear regression is valid.
+        let unwrapped = unwrapHours(acrophases)
         var sumXY = 0.0, sumX = 0.0, sumY = 0.0, sumX2 = 0.0
-        for (i, a) in acrophases.enumerated() {
+        for (i, a) in unwrapped.enumerated() {
             let xi = Double(i)
             sumX += xi; sumY += a
             sumXY += xi * a; sumX2 += xi * xi
