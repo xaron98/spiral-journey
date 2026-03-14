@@ -56,9 +56,6 @@ final class CloudSyncManager: NSObject, CKSyncEngineDelegate, @unchecked Sendabl
         )
         engine = CKSyncEngine(config)
 
-        if freshStart {
-            logger.info("init: freshStart=true — deleted stale sync state for full re-fetch")
-        }
     }
 
     // MARK: - Enqueue Operations
@@ -89,10 +86,8 @@ final class CloudSyncManager: NSObject, CKSyncEngineDelegate, @unchecked Sendabl
 
     /// Trigger an immediate fetch (call on app launch / foreground).
     func fetchNow() async {
-        logger.info("fetchNow: starting fetchChanges")
         do {
             try await engine.fetchChanges()
-            logger.info("fetchNow: fetchChanges completed")
         } catch {
             logger.error("fetchNow: fetchChanges failed: \(error.localizedDescription)")
         }
@@ -104,13 +99,8 @@ final class CloudSyncManager: NSObject, CKSyncEngineDelegate, @unchecked Sendabl
         let zone = CKRecordZone(zoneID: CloudRecordConverter.zoneID)
         engine.state.add(pendingDatabaseChanges: [.saveZone(zone)])
 
-        let pendingDB = engine.state.pendingDatabaseChanges.count
-        let pendingRZ = engine.state.pendingRecordZoneChanges.count
-        logger.info("sendNow: pendingDatabaseChanges=\(pendingDB) pendingRecordZoneChanges=\(pendingRZ) inMemoryRecords=\(self.pendingRecords.count)")
-
         do {
             try await engine.sendChanges()
-            logger.info("sendNow: sendChanges completed. pendingRZ after=\(self.engine.state.pendingRecordZoneChanges.count)")
         } catch {
             logger.error("sendNow: sendChanges failed: \(error.localizedDescription)")
         }
@@ -134,17 +124,16 @@ final class CloudSyncManager: NSObject, CKSyncEngineDelegate, @unchecked Sendabl
             await processFetchedChanges(e)
 
         case .sentRecordZoneChanges(let e):
-            logger.info("sentRecordZoneChanges: saved=\(e.savedRecords.count) failed=\(e.failedRecordSaves.count)")
             processSentChanges(e, syncEngine: syncEngine)
 
-        case .sentDatabaseChanges(let e):
-            logger.info("sentDatabaseChanges: savedZones=\(e.savedZones.count) failedZoneSaves=\(e.failedZoneSaves.count)")
+        case .sentDatabaseChanges:
+            break
 
         case .willSendChanges:
-            logger.info("willSendChanges: engine about to send")
+            break
 
         case .didSendChanges:
-            logger.info("didSendChanges: engine finished sending")
+            break
 
         case .accountChange(let e):
             handleAccountChange(e)
@@ -160,17 +149,11 @@ final class CloudSyncManager: NSObject, CKSyncEngineDelegate, @unchecked Sendabl
     ) async -> CKSyncEngine.RecordZoneChangeBatch? {
         let allPending = syncEngine.state.pendingRecordZoneChanges
         let inScope    = allPending.filter { context.options.scope.contains($0) }
-        logger.info("nextBatch: allPending=\(allPending.count) inScope=\(inScope.count)")
 
         let pending = inScope.isEmpty ? allPending : inScope
-        guard !pending.isEmpty else {
-            logger.info("nextBatch: nothing to send, returning nil")
-            return nil
-        }
+        guard !pending.isEmpty else { return nil }
 
         let snapshot = pendingRecords
-        logger.info("nextBatch: building batch for \(pending.count) changes, snapshot=\(snapshot.count)")
-
         return await CKSyncEngine.RecordZoneChangeBatch(pendingChanges: pending) { recordID in
             snapshot[recordID]
         }
@@ -185,10 +168,7 @@ final class CloudSyncManager: NSObject, CKSyncEngineDelegate, @unchecked Sendabl
         var deletedEpisodeIDs: [UUID] = []
         var deletedEventIDs:   [UUID] = []
 
-        logger.info("processFetchedChanges: \(e.modifications.count) modifications, \(e.deletions.count) deletions")
-
         for mod in e.modifications {
-            logger.info("  record type=\(mod.record.recordType) id=\(mod.record.recordID.recordName)")
             switch mod.record.recordType {
             case CloudRecordConverter.episodeType:
                 if let ep = CloudRecordConverter.episode(from: mod.record) {
@@ -214,7 +194,6 @@ final class CloudSyncManager: NSObject, CKSyncEngineDelegate, @unchecked Sendabl
             }
         }
 
-        logger.info("processFetchedChanges: delivering \(fetchedEpisodes.count) episodes, \(fetchedEvents.count) events")
         await MainActor.run { [weak self] in
             guard let self else { return }
             if !fetchedEpisodes.isEmpty   { onEpisodesFetched?(fetchedEpisodes) }
@@ -268,9 +247,9 @@ final class CloudSyncManager: NSObject, CKSyncEngineDelegate, @unchecked Sendabl
             logger.warning("iCloud account switched — resetting sync state")
             try? FileManager.default.removeItem(at: stateURL)
         case .signIn:
-            logger.info("iCloud account signed in")
+            break
         case .signOut:
-            logger.info("iCloud account signed out — sync paused")
+            break
         @unknown default:
             break
         }

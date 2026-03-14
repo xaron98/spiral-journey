@@ -40,18 +40,14 @@ struct spiral_journey_projectApp: App {
                     #endif
                     #if !targetEnvironment(simulator)
                     await healthKit.requestAuthorization()
-                    print("[HK] isAuthorized=\(healthKit.isAuthorized)")
                     if healthKit.isAuthorized {
                         // Auto-adjust startDate to cover actual HealthKit data.
                         // This handles the case where startDate = today but all sleep is from yesterday.
                         if let result = await healthKit.importAndAdjustEpoch(days: store.numDays) {
-                            print("[HK] imported \(result.episodes.count) episodes")
                             if result.epoch < store.startDate {
                                 store.startDate = result.epoch
                             }
                             store.mergeHealthKitEpisodes(result.episodes)
-                        } else {
-                            print("[HK] importAndAdjustEpoch returned nil")
                         }
 
                         // Observe HealthKit for new sleep (e.g. Apple Watch session just finished).
@@ -99,15 +95,9 @@ struct spiral_journey_projectApp: App {
 
     @MainActor
     private func setupCloudSync() {
-        // DEBUG: reset migration key so upload runs again — remove before shipping
-        UserDefaults.standard.removeObject(forKey: "cloudkit-initial-migration-done-v5")
-
         // If the local store has no episodes, start fresh so the engine does a full
         // re-fetch from CloudKit instead of returning immediately based on a stale token.
         let freshStart = store.sleepEpisodes.isEmpty
-        if freshStart {
-            print("[CloudSync] local store empty — using freshStart to re-fetch all CloudKit records")
-        }
         let sync = CloudSyncManager(freshStart: freshStart)
         store.cloudSync = sync
 
@@ -136,22 +126,14 @@ struct spiral_journey_projectApp: App {
         guard let sync = store.cloudSync else { return false }
         // v5: key renamed to force re-upload with episodes already populated.
         let migrationKey = "cloudkit-initial-migration-done-v5"
-        guard !UserDefaults.standard.bool(forKey: migrationKey) else {
-            print("[CloudSync] migration already done, skipping. episodes=\(store.sleepEpisodes.count)")
-            return false
-        }
+        guard !UserDefaults.standard.bool(forKey: migrationKey) else { return false }
         // Only mark as done if we actually have data to upload.
         // If episodes are empty (HK not yet authorized), skip and retry next launch.
-        guard !store.sleepEpisodes.isEmpty else {
-            print("[CloudSync] no episodes yet, will retry migration on next launch")
-            return false
-        }
-        print("[CloudSync] starting initial migration: episodes=\(store.sleepEpisodes.count) events=\(store.events.count)")
+        guard !store.sleepEpisodes.isEmpty else { return false }
         for episode in store.sleepEpisodes { sync.enqueueEpisodeSave(episode) }
         for event   in store.events        { sync.enqueueEventSave(event) }
         sync.enqueueSettingsSave(store.currentCloudSettings())
         UserDefaults.standard.set(true, forKey: migrationKey)
-        print("[CloudSync] migration enqueued")
         return true
     }
 }
