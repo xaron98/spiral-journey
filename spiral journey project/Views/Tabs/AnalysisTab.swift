@@ -139,6 +139,8 @@ struct AnalysisTab: View {
         df.dateStyle = .medium
         let dateRange = "\(df.string(from: store.startDate)) – \(df.string(from: Date()))"
 
+        let langBundle = bundle
+
         Task {
             let data: Data = await withCheckedContinuation { cont in
                 DispatchQueue.global(qos: .userInitiated).async {
@@ -147,7 +149,8 @@ struct AnalysisTab: View {
                         analysis: analysis,
                         consistency: consistency,
                         dateRange: dateRange,
-                        numDays: numDays
+                        numDays: numDays,
+                        bundle: langBundle
                     ))
                 }
             }
@@ -629,10 +632,21 @@ struct RecommendationRow: View {
         return rec.title
     }
 
+    private func formatJetlag(_ minutes: Double) -> String {
+        let total = Int(minutes.rounded())
+        if total < 60 { return "\(total)m" }
+        let h = total / 60; let m = total % 60
+        return m == 0 ? "\(h)h" : "\(h)h \(m)m"
+    }
+
     private var localizedText: String {
         guard let key = rec.key else { return rec.text }
         let fmt = loc("rec.\(key.rawValue).text")
         if rec.args.isEmpty { return fmt }
+        // Jetlag recs pass minutes — format as hours for display
+        if key == .reduceSocialJetlag || key == .minimizeWeekendLag {
+            return String(format: fmt, formatJetlag(rec.args[0]))
+        }
         switch rec.args.count {
         case 1: return String(format: fmt, rec.args[0])
         case 2: return String(format: fmt, rec.args[0], rec.args[1])

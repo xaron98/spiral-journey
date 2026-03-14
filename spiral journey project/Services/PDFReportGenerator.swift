@@ -23,6 +23,12 @@ enum PDFReportGenerator {
     private static let pdfLightGray  = UIColor(white: 0.65, alpha: 1)
     private static let pdfSeparator  = UIColor(white: 0.80, alpha: 1)
 
+    // MARK: - Localization Helper
+
+    private static func loc(_ key: String, bundle: Bundle) -> String {
+        NSLocalizedString(key, bundle: bundle, comment: "")
+    }
+
     // MARK: - Public API
 
     /// Generate a PDF `Data` blob from current analysis data.
@@ -33,7 +39,8 @@ enum PDFReportGenerator {
         analysis: AnalysisResult,
         consistency: SpiralConsistencyScore?,
         dateRange: String,
-        numDays: Int
+        numDays: Int,
+        bundle: Bundle = .main
     ) -> Data {
         let pageRect = CGRect(x: 0, y: 0, width: 612, height: 792) // US Letter
         let margin: CGFloat = 50
@@ -47,33 +54,34 @@ enum PDFReportGenerator {
 
         // ── Page 1: Summary ──────────────────────────────────────
         beginPage(ctx, rect: pageRect)
-        var y = drawHeader(ctx, rect: pageRect, margin: margin)
+        var y = drawHeader(ctx, rect: pageRect, margin: margin, bundle: bundle)
         y = drawSummarySection(y: y, margin: margin, width: contentWidth,
                                 analysis: analysis, consistency: consistency,
-                                dateRange: dateRange, numDays: numDays)
+                                dateRange: dateRange, numDays: numDays, bundle: bundle)
         y = drawStatsSection(y: y, margin: margin, width: contentWidth,
-                              stats: analysis.stats)
-        drawFooter(ctx, rect: pageRect, margin: margin, page: 1, totalPages: 3)
+                              stats: analysis.stats, bundle: bundle)
+        drawFooter(ctx, rect: pageRect, margin: margin, page: 1, totalPages: 3, bundle: bundle)
         endPage(ctx)
 
         // ── Page 2: Biomarkers + Categories ─────────────────────
         beginPage(ctx, rect: pageRect)
         y = margin + 20
         y = drawBiomarkersSection(y: y, margin: margin, width: contentWidth,
-                                   records: records)
+                                   records: records, bundle: bundle)
         y = drawCategoriesSection(y: y, margin: margin, width: contentWidth,
-                                   categories: analysis.categories)
-        drawFooter(ctx, rect: pageRect, margin: margin, page: 2, totalPages: 3)
+                                   categories: analysis.categories, bundle: bundle)
+        drawFooter(ctx, rect: pageRect, margin: margin, page: 2, totalPages: 3, bundle: bundle)
         endPage(ctx)
 
         // ── Page 3: Disorder Signatures + Recommendations ───────
         beginPage(ctx, rect: pageRect)
         y = margin + 20
         y = drawSignaturesSection(y: y, margin: margin, width: contentWidth,
-                                   signatures: analysis.signatures)
+                                   signatures: analysis.signatures, bundle: bundle)
         y = drawRecommendationsSection(y: y, margin: margin, width: contentWidth,
-                                        recommendations: Array(analysis.recommendations.prefix(5)))
-        drawFooter(ctx, rect: pageRect, margin: margin, page: 3, totalPages: 3)
+                                        recommendations: Array(analysis.recommendations.prefix(5)),
+                                        bundle: bundle)
+        drawFooter(ctx, rect: pageRect, margin: margin, page: 3, totalPages: 3, bundle: bundle)
         endPage(ctx)
 
         ctx.closePDF()
@@ -103,7 +111,7 @@ enum PDFReportGenerator {
 
     // MARK: - Page 1 Sections
 
-    private static func drawHeader(_ ctx: CGContext, rect: CGRect, margin: CGFloat) -> CGFloat {
+    private static func drawHeader(_ ctx: CGContext, rect: CGRect, margin: CGFloat, bundle: Bundle) -> CGFloat {
         let y: CGFloat = margin
 
         // App name
@@ -111,7 +119,7 @@ enum PDFReportGenerator {
             .font: UIFont.systemFont(ofSize: 22, weight: .light),
             .foregroundColor: pdfBlack
         ]
-        let title = NSAttributedString(string: "Spiral Journey — Sleep Report", attributes: titleAttrs)
+        let title = NSAttributedString(string: loc("pdf.report.title", bundle: bundle), attributes: titleAttrs)
         title.draw(at: CGPoint(x: margin, y: y))
 
         // Subtitle
@@ -119,7 +127,7 @@ enum PDFReportGenerator {
             .font: UIFont.monospacedSystemFont(ofSize: 9, weight: .regular),
             .foregroundColor: pdfGray
         ]
-        let sub = NSAttributedString(string: "Circadian rhythm & sleep pattern analysis", attributes: subAttrs)
+        let sub = NSAttributedString(string: loc("pdf.report.subtitle", bundle: bundle), attributes: subAttrs)
         sub.draw(at: CGPoint(x: margin, y: y + 28))
 
         // Separator line
@@ -140,25 +148,31 @@ enum PDFReportGenerator {
         analysis: AnalysisResult,
         consistency: SpiralConsistencyScore?,
         dateRange: String,
-        numDays: Int
+        numDays: Int,
+        bundle: Bundle
     ) -> CGFloat {
         var y = startY
 
-        y = drawSectionTitle("Summary", at: y, margin: margin)
-        y = drawKeyValue("Period", value: "\(dateRange) (\(numDays) days)", at: y, margin: margin, width: width)
-        y = drawKeyValue("Composite Score", value: "\(analysis.composite)/100 — \(analysis.label)", at: y, margin: margin, width: width)
+        // Section title
+        y = drawSectionTitle(loc("pdf.section.summary", bundle: bundle), at: y, margin: margin)
+
+        // Date range + days
+        y = drawKeyValue(loc("pdf.label.period", bundle: bundle), value: "\(dateRange) (\(numDays) days)", at: y, margin: margin, width: width)
+
+        // Composite score
+        y = drawKeyValue(loc("pdf.label.composite", bundle: bundle), value: "\(analysis.composite)/100 — \(analysis.label)", at: y, margin: margin, width: width)
 
         if let c = consistency {
-            y = drawKeyValue("Consistency (SRI)", value: "\(c.score)/100 — \(c.label.rawValue)", at: y, margin: margin, width: width)
+            y = drawKeyValue(loc("pdf.label.consistency", bundle: bundle), value: "\(c.score)/100 — \(c.label.rawValue)", at: y, margin: margin, width: width)
             if let delta = c.deltaVsPreviousWeek {
                 let sign = delta >= 0 ? "+" : ""
-                y = drawKeyValue("  Week-over-week Δ", value: "\(sign)\(String(format: "%.1f", delta))", at: y, margin: margin, width: width)
+                y = drawKeyValue(loc("pdf.label.weekDelta", bundle: bundle), value: "\(sign)\(String(format: "%.1f", delta))", at: y, margin: margin, width: width)
             }
         }
 
         let sri = analysis.stats.sri
         if sri > 0 {
-            y = drawKeyValue("Sleep Regularity Index", value: String(format: "%.1f/100", sri), at: y, margin: margin, width: width)
+            y = drawKeyValue(loc("pdf.label.sri", bundle: bundle), value: String(format: "%.1f/100", sri), at: y, margin: margin, width: width)
         }
 
         y += 12
@@ -169,17 +183,19 @@ enum PDFReportGenerator {
         y startY: CGFloat,
         margin: CGFloat,
         width: CGFloat,
-        stats: SleepStats
+        stats: SleepStats,
+        bundle: Bundle
     ) -> CGFloat {
         var y = startY
 
-        y = drawSectionTitle("Sleep Statistics", at: y, margin: margin)
-        y = drawKeyValue("Mean Duration", value: String(format: "%.1f h", stats.meanSleepDuration), at: y, margin: margin, width: width)
-        y = drawKeyValue("Mean Acrophase", value: SleepStatistics.formatHour(stats.meanAcrophase), at: y, margin: margin, width: width)
-        y = drawKeyValue("Bedtime SD (circular)", value: String(format: "%.2f h", stats.stdBedtime), at: y, margin: margin, width: width)
-        y = drawKeyValue("Rhythm Stability", value: String(format: "%.2f", stats.rhythmStability), at: y, margin: margin, width: width)
-        y = drawKeyValue("Social Jetlag", value: formatJetlag(stats.socialJetlag), at: y, margin: margin, width: width)
-        y = drawKeyValue("Mean Cosinor R²", value: String(format: "%.3f", stats.meanR2), at: y, margin: margin, width: width)
+        y = drawSectionTitle(loc("pdf.section.stats", bundle: bundle), at: y, margin: margin)
+
+        y = drawKeyValue(loc("pdf.label.meanDuration", bundle: bundle), value: String(format: "%.1f h", stats.meanSleepDuration), at: y, margin: margin, width: width)
+        y = drawKeyValue(loc("pdf.label.meanAcrophase", bundle: bundle), value: SleepStatistics.formatHour(stats.meanAcrophase), at: y, margin: margin, width: width)
+        y = drawKeyValue(loc("pdf.label.bedtimeSd", bundle: bundle), value: String(format: "%.2f h", stats.stdBedtime), at: y, margin: margin, width: width)
+        y = drawKeyValue(loc("pdf.label.rhythmStability", bundle: bundle), value: String(format: "%.2f", stats.rhythmStability), at: y, margin: margin, width: width)
+        y = drawKeyValue(loc("pdf.label.socialJetlag", bundle: bundle), value: formatJetlag(stats.socialJetlag), at: y, margin: margin, width: width)
+        y = drawKeyValue(loc("pdf.label.meanR2", bundle: bundle), value: String(format: "%.3f", stats.meanR2), at: y, margin: margin, width: width)
 
         y += 12
         return y
@@ -191,14 +207,15 @@ enum PDFReportGenerator {
         y startY: CGFloat,
         margin: CGFloat,
         width: CGFloat,
-        records: [SleepRecord]
+        records: [SleepRecord],
+        bundle: Bundle
     ) -> CGFloat {
         var y = startY
 
-        y = drawSectionTitle("Estimated Circadian Biomarkers", at: y, margin: margin)
+        y = drawSectionTitle(loc("pdf.section.biomarkers", bundle: bundle), at: y, margin: margin)
 
         guard let lastRecord = records.last else {
-            y = drawBody("Insufficient data for biomarker estimation.", at: y, margin: margin, width: width)
+            y = drawBody(loc("pdf.body.biomarkersInsufficient", bundle: bundle), at: y, margin: margin, width: width)
             return y + 16
         }
 
@@ -211,10 +228,7 @@ enum PDFReportGenerator {
             y = drawKeyValue(bm.label, value: valueStr, at: y, margin: margin, width: width)
         }
 
-        y = drawBody(
-            "Note: Biomarkers are statistical estimates based on sleep timing patterns, not direct measurements.",
-            at: y + 4, margin: margin, width: width
-        )
+        y = drawBody(loc("pdf.body.biomarkersNote", bundle: bundle), at: y + 4, margin: margin, width: width)
 
         y += 16
         return y
@@ -224,11 +238,12 @@ enum PDFReportGenerator {
         y startY: CGFloat,
         margin: CGFloat,
         width: CGFloat,
-        categories: [CategoryScore]
+        categories: [CategoryScore],
+        bundle: Bundle
     ) -> CGFloat {
         var y = startY
 
-        y = drawSectionTitle("Category Breakdown", at: y, margin: margin)
+        y = drawSectionTitle(loc("pdf.section.categories", bundle: bundle), at: y, margin: margin)
 
         for cat in categories {
             let bar = String(repeating: "█", count: cat.score / 10)
@@ -246,18 +261,20 @@ enum PDFReportGenerator {
         y startY: CGFloat,
         margin: CGFloat,
         width: CGFloat,
-        signatures: [DisorderSignature]
+        signatures: [DisorderSignature],
+        bundle: Bundle
     ) -> CGFloat {
         var y = startY
 
-        y = drawSectionTitle("Circadian Pattern Analysis", at: y, margin: margin)
+        y = drawSectionTitle(loc("pdf.section.patterns", bundle: bundle), at: y, margin: margin)
 
         if signatures.isEmpty {
-            y = drawBody("No notable circadian patterns detected.", at: y, margin: margin, width: width)
+            y = drawBody(loc("pdf.body.noPatternsDetected", bundle: bundle), at: y, margin: margin, width: width)
         } else {
             for sig in signatures {
                 let confStr = String(format: "%.0f%%", sig.confidence * 100)
-                y = drawKeyValue(sig.fullLabel, value: "Confidence: \(confStr)", at: y, margin: margin, width: width)
+                let confLabel = String(format: loc("pdf.body.confidence", bundle: bundle), confStr)
+                y = drawKeyValue(sig.fullLabel, value: confLabel, at: y, margin: margin, width: width)
                 y = drawBody(sig.description, at: y, margin: margin, width: width)
                 y += 4
             }
@@ -271,14 +288,15 @@ enum PDFReportGenerator {
         y startY: CGFloat,
         margin: CGFloat,
         width: CGFloat,
-        recommendations: [Recommendation]
+        recommendations: [Recommendation],
+        bundle: Bundle
     ) -> CGFloat {
         var y = startY
 
-        y = drawSectionTitle("Recommendations", at: y, margin: margin)
+        y = drawSectionTitle(loc("pdf.section.recommendations", bundle: bundle), at: y, margin: margin)
 
         if recommendations.isEmpty {
-            y = drawBody("No specific recommendations at this time.", at: y, margin: margin, width: width)
+            y = drawBody(loc("pdf.body.noRecommendations", bundle: bundle), at: y, margin: margin, width: width)
         } else {
             for (i, rec) in recommendations.enumerated() {
                 let bullet = "\(i + 1). \(rec.title)"
@@ -292,7 +310,14 @@ enum PDFReportGenerator {
 
     // MARK: - Footer
 
-    private static func drawFooter(_ ctx: CGContext, rect: CGRect, margin: CGFloat, page: Int, totalPages: Int) {
+    private static func drawFooter(
+        _ ctx: CGContext,
+        rect: CGRect,
+        margin: CGFloat,
+        page: Int,
+        totalPages: Int,
+        bundle: Bundle
+    ) {
         let footerY = rect.height - margin + 10
 
         // Separator
@@ -308,14 +333,15 @@ enum PDFReportGenerator {
         ]
 
         let disclaimer = NSAttributedString(
-            string: "Generated by Spiral Journey · Self-reported data · Does not substitute medical diagnosis",
+            string: loc("pdf.footer.disclaimer", bundle: bundle),
             attributes: footerAttrs
         )
         disclaimer.draw(at: CGPoint(x: margin, y: footerY))
 
         let dateStr = DateFormatter.localizedString(from: Date(), dateStyle: .medium, timeStyle: .short)
+        let pageLabel = String(format: loc("pdf.footer.page", bundle: bundle), "\(page)", "\(totalPages)")
         let pageStr = NSAttributedString(
-            string: "Page \(page)/\(totalPages) · \(dateStr)",
+            string: "\(pageLabel) · \(dateStr)",
             attributes: footerAttrs
         )
         let pageSize = pageStr.size()

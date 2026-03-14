@@ -54,18 +54,23 @@ public enum SleepStatistics {
         let amplitudes = records.map(\.cosinor.amplitude)
         let bedtimes   = records.map(\.bedtimeHour).filter { $0 >= 0 }
 
-        // Filter to main sleep sessions only (≥3h) to exclude naps and corrupt imports
+        // Use acrophase (cosinor peak) for social jetlag — robust for biphasic/night-shift sleepers.
+        // Acrophase is already circadian-phase-aware; no midnight wrap needed.
+        // Require at least 2 records on each side for a meaningful comparison.
         let mainRecords  = records.filter { $0.sleepDuration >= 3.0 }
         let weekdayData  = (mainRecords.isEmpty ? records : mainRecords).filter { !$0.isWeekend }
         let weekendData  = (mainRecords.isEmpty ? records : mainRecords).filter { $0.isWeekend }
 
-        // Adjust bedtimes past midnight: treat hours < 12 as belonging to the next calendar day
-        // (e.g. 6 AM → 30h). Threshold < 12 correctly handles night-shift sleepers.
-        let weekendBed   = weekendData.map  { $0.bedtimeHour < 12 ? $0.bedtimeHour + 24 : $0.bedtimeHour }
-        let weekdayBed   = weekdayData.map  { $0.bedtimeHour < 12 ? $0.bedtimeHour + 24 : $0.bedtimeHour }
-        let socialJetlag = (weekendBed.isEmpty || weekdayBed.isEmpty)
-            ? 0
-            : abs(mean(weekendBed) - mean(weekdayBed)) * 60
+        let weekdayAcro  = weekdayData.map(\.cosinor.acrophase).filter { $0 > 0 }
+        let weekendAcro  = weekendData.map(\.cosinor.acrophase).filter { $0 > 0 }
+        let socialJetlag: Double
+        if weekdayAcro.count >= 1 && weekendAcro.count >= 1 {
+            // Circular difference capped at 12h to avoid wrap-around artefacts
+            let rawDiff = abs(mean(weekendAcro) - mean(weekdayAcro))
+            socialJetlag = min(rawDiff, 24 - rawDiff) * 60
+        } else {
+            socialJetlag = 0
+        }
 
         let weekdayAmp = weekdayData.isEmpty ? 0 : mean(weekdayData.map(\.cosinor.amplitude))
         let weekendAmp = weekendData.isEmpty ? 0 : mean(weekendData.map(\.cosinor.amplitude))

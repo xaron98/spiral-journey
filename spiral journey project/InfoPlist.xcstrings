@@ -78,6 +78,18 @@
         }
       }
     },
+    "NSHealthUpdateUsageDescription" : {
+      "comment" : "Privacy - Health Update Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Spiral Journey does not write health data. This permission is required by the system but the app only reads your sleep and HRV information."
+          }
+        }
+      }
+    },
     "NSUserTrackingUsageDescription" : {
       "comment" : "Privacy - Tracking Usage Description",
       "extractionState" : "extracted_with_value",
