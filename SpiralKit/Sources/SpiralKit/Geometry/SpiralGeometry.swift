@@ -69,6 +69,14 @@ public struct SpiralGeometry: Sendable {
 
     // MARK: - Core Functions
 
+    /// Convert (day, hour) → fractional turns on the spiral.
+    /// For period=24: turns = day + hour/24  (one calendar day = one turn)
+    /// For period=168: turns = (day*24 + hour) / 168  (one week = one turn)
+    /// This ensures data always maps correctly regardless of τ.
+    public func turns(day: Int, hour: Double) -> Double {
+        (Double(day) * 24.0 + hour) / period
+    }
+
     /// Radius at a given number of turns from center.
     public func radius(turns: Double) -> Double {
         switch spiralType {
@@ -82,10 +90,9 @@ public struct SpiralGeometry: Sendable {
     /// Map (day, hour) → (x, y) CGPoint on the spiral.
     /// Hour 0 is at the top (−π/2 offset).
     public func point(day: Int, hour: Double) -> (x: Double, y: Double) {
-        let fraction = hour / period
-        let turns    = Double(day) + fraction
-        let theta    = turns * 2 * Double.pi
-        let r        = radius(turns: turns)
+        let t     = turns(day: day, hour: hour)
+        let theta = t * 2 * Double.pi
+        let r     = radius(turns: t)
         return (
             x: cx + r * cos(theta - Double.pi / 2),
             y: cy + r * sin(theta - Double.pi / 2)
@@ -121,8 +128,13 @@ public struct SpiralGeometry: Sendable {
         var d = 0.0
         while d <= limit {
             let t = min(d, limit)
-            let p = point(day: Int(t), hour: (t - Double(Int(t))) * period)
-            steps.append(SpiralStep(x: p.x, y: p.y))
+            // Use turns directly — avoids day/hour round-trip that breaks for period≠24.
+            let theta = t * 2 * Double.pi
+            let r = radius(turns: t)
+            steps.append(SpiralStep(
+                x: cx + r * cos(theta - Double.pi / 2),
+                y: cy + r * sin(theta - Double.pi / 2)
+            ))
             if d >= limit { break }
             d += step
         }
@@ -201,7 +213,7 @@ public struct SpiralGeometry: Sendable {
     /// Concentric ring radii for each day boundary.
     public func dayRings() -> [DayRing] {
         (0...totalDays).map { day in
-            DayRing(r: radius(turns: Double(day)), day: day, isWeekBoundary: day % 7 == 0)
+            DayRing(r: radius(turns: turns(day: day, hour: 0)), day: day, isWeekBoundary: day % 7 == 0)
         }
     }
 }

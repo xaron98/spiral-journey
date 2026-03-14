@@ -274,7 +274,9 @@ private struct PRCHelpSheet: View {
             }
             .background(SpiralColors.bg.ignoresSafeArea())
             .navigationTitle(NSLocalizedString("prc.help.sheet.title", bundle: bundle, comment: ""))
+            #if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button(NSLocalizedString("stats.glossary.done", bundle: bundle, comment: "")) {

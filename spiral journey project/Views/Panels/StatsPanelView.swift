@@ -171,7 +171,9 @@ private struct StatsGlossarySheet: View {
             }
             .background(SpiralColors.bg.ignoresSafeArea())
             .navigationTitle(NSLocalizedString("stats.glossary.title", bundle: bundle, comment: ""))
+            #if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button(NSLocalizedString("stats.glossary.done", bundle: bundle, comment: "")) {

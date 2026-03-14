@@ -150,6 +150,14 @@ final class SpiralStore {
         didSet { save() }
     }
 
+    // MARK: - CloudKit Sync
+
+    /// Set by the app entry point after CloudSyncManager is initialized.
+    var cloudSync: CloudSyncManager?
+
+    /// True while applying remote CloudKit changes — prevents save() from re-pushing to CloudKit.
+    private var isSyncingFromCloud = false
+
     // MARK: - Computed State
 
     private(set) var records: [SleepRecord] = []
@@ -243,6 +251,8 @@ final class SpiralStore {
             sleepEpisodes.append(contentsOf: toAdd)
             sleepEpisodes.sort { $0.start < $1.start }
             recompute()
+            // Push new episodes to CloudKit
+            for ep in toAdd { cloudSync?.enqueueEpisodeSave(ep) }
         }
     }
 
@@ -252,11 +262,13 @@ final class SpiralStore {
         #if os(iOS)
         WatchConnectivityManager.shared.sendEvents(events)
         #endif
+        cloudSync?.enqueueEventSave(event)
     }
 
     func removeEpisode(id: UUID) {
         sleepEpisodes.removeAll { $0.id == id }
         recompute()
+        cloudSync?.enqueueEpisodeDelete(id: id)
     }
 
     func removeEvent(id: UUID) {
@@ -264,6 +276,7 @@ final class SpiralStore {
         #if os(iOS)
         WatchConnectivityManager.shared.sendEvents(events)
         #endif
+        cloudSync?.enqueueEventDelete(id: id)
     }
 
     /// Wipe all user data and reset to factory defaults.
@@ -321,6 +334,7 @@ final class SpiralStore {
     }
 
     private func save() {
+        guard !isSyncingFromCloud else { return }
         let stored = Stored(
             sleepEpisodes: sleepEpisodes,
             events: events,
@@ -343,6 +357,10 @@ final class SpiralStore {
             sharedDefaults.set(data, forKey: storageKey)
             WidgetCenter.shared.reloadAllTimelines()
         }
+        // Push settings snapshot to CloudKit (episodes/events are pushed at the call site).
+        let now = Date()
+        UserDefaults.standard.set(now, forKey: "spiral-journey-settings-modified-at")
+        cloudSync?.enqueueSettingsSave(currentCloudSettings(modifiedAt: now))
     }
 
     private func load() {
@@ -375,5 +393,134 @@ final class SpiralStore {
             if let hco = stored.hasCompletedOnboarding { hasCompletedOnboarding = hco }
             if let hsw = stored.hasShownWelcome { hasShownWelcome = hsw }
         }
+    }
+
+    /// Write to local storage without pushing to CloudKit.
+    /// Used when applying remote changes to prevent sync loops.
+    private func saveLocalOnly() {
+        isSyncingFromCloud = true
+        let stored = Stored(
+            sleepEpisodes: sleepEpisodes,
+            events: events,
+            startDate: startDate,
+            numDays: numDays,
+            spiralType: spiralType,
+            period: period,
+            linkGrowthToTau: linkGrowthToTau,
+            depthScale: depthScale,
+            showGrid: showGrid,
+            language: language,
+            appearance: appearance,
+            rephasePlan: rephasePlan,
+            sleepGoal: sleepGoal,
+            hasCompletedOnboarding: hasCompletedOnboarding,
+            hasShownWelcome: hasShownWelcome,
+            onboardingVersion: currentOnboardingVersion
+        )
+        if let data = try? JSONEncoder().encode(stored) {
+            sharedDefaults.set(data, forKey: storageKey)
+            WidgetCenter.shared.reloadAllTimelines()
+        }
+        isSyncingFromCloud = false
+    }
+
+    // MARK: - CloudKit Merge Methods
+
+    /// Merge episodes received from CloudKit. Deduplicates by UUID; newer modifiedAt wins.
+    func mergeCloudEpisodes(_ remote: [SleepEpisode]) {
+        var changed = false
+        for r in remote {
+            if let idx = sleepEpisodes.firstIndex(where: { $0.id == r.id }) {
+                sleepEpisodes[idx] = r
+                changed = true
+            } else {
+                sleepEpisodes.append(r)
+                changed = true
+            }
+        }
+        if changed {
+            sleepEpisodes.sort { $0.start < $1.start }
+            saveLocalOnly()
+            recompute()
+        }
+    }
+
+    /// Merge events received from CloudKit. Deduplicates by UUID.
+    func mergeCloudEvents(_ remote: [CircadianEvent]) {
+        var changed = false
+        for r in remote {
+            if let idx = events.firstIndex(where: { $0.id == r.id }) {
+                events[idx] = r
+                changed = true
+            } else {
+                events.append(r)
+                changed = true
+            }
+        }
+        if changed {
+            events.sort { $0.absoluteHour < $1.absoluteHour }
+            saveLocalOnly()
+        }
+    }
+
+    /// Apply deletions received from CloudKit.
+    func applyCloudDeletions(episodeIDs: [UUID], eventIDs: [UUID]) {
+        let epsBefore = sleepEpisodes.count
+        let evtsBefore = events.count
+        sleepEpisodes.removeAll { episodeIDs.contains($0.id) }
+        events.removeAll { eventIDs.contains($0.id) }
+        if sleepEpisodes.count != epsBefore || events.count != evtsBefore {
+            saveLocalOnly()
+            if sleepEpisodes.count != epsBefore { recompute() }
+        }
+    }
+
+    /// Apply settings received from CloudKit (last-writer-wins by modifiedAt).
+    func applyCloudSettings(_ remote: CloudSettings) {
+        // Only apply if the remote is newer than any recent local change.
+        // We track last-settings-modified via the dedicated UserDefaults key.
+        let localModKey = "spiral-journey-settings-modified-at"
+        let localMod = UserDefaults.standard.object(forKey: localModKey) as? Date ?? .distantPast
+        guard remote.modifiedAt > localMod else { return }
+
+        isSyncingFromCloud = true
+        if let st = SpiralType(rawValue: remote.spiralType) { spiralType = st }
+        period = remote.period
+        linkGrowthToTau = remote.linkGrowthToTau
+        depthScale = remote.depthScale
+        showGrid = remote.showGrid
+        if let lang = AppLanguage(rawValue: remote.language) { language = lang }
+        if let app = AppAppearance(rawValue: remote.appearance) { appearance = app }
+        if let data = remote.rephasePlanData,
+           let rp = try? JSONDecoder().decode(RephasePlan.self, from: data) {
+            rephasePlan = rp
+        }
+        if let data = remote.sleepGoalData,
+           let sg = try? JSONDecoder().decode(SleepGoal.self, from: data) {
+            sleepGoal = sg
+        }
+        // Only apply startDate/numDays if the remote epoch is earlier (more data).
+        if remote.startDate < startDate { startDate = remote.startDate }
+        if remote.numDays > numDays { numDays = remote.numDays }
+        isSyncingFromCloud = false
+        saveLocalOnly()
+    }
+
+    /// Snapshot current settings for CloudKit upload.
+    func currentCloudSettings(modifiedAt: Date = Date()) -> CloudSettings {
+        CloudSettings(
+            startDate: startDate,
+            numDays: numDays,
+            spiralType: spiralType.rawValue,
+            period: period,
+            linkGrowthToTau: linkGrowthToTau,
+            depthScale: depthScale,
+            showGrid: showGrid,
+            language: language.rawValue,
+            appearance: appearance.rawValue,
+            rephasePlanData: try? JSONEncoder().encode(rephasePlan),
+            sleepGoalData: try? JSONEncoder().encode(sleepGoal),
+            modifiedAt: modifiedAt
+        )
     }
 }

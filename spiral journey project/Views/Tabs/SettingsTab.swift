@@ -394,6 +394,8 @@ struct SettingsTab: View {
             .padding(.horizontal, 16)
             .padding(.top, 16)
             .padding(.bottom, 100)
+            .frame(maxWidth: 540)
+            .frame(maxWidth: .infinity)
         }
         .background(SpiralColors.bg.ignoresSafeArea())
     }

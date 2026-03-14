@@ -99,9 +99,11 @@ struct SpiralView: View {
     ///   dz_target = focalLen * r(t_target) / maxRadius
     ///   camZ = wz(t_target) - dz_target = (totalT - t_target)*zStep - focalLen*r(t_target)/maxRadius
     private func project(turns t: Double, geo: SpiralGeometry, size: CGSize) -> CGPoint {
-        let day = Int(t)
-        let hr  = (t - Double(day)) * geo.period
-        let flat = geo.point(day: day, hour: hr)
+        // Compute position directly from turns to avoid day/hour round-trip (breaks for period≠24).
+        let theta = t * 2 * Double.pi
+        let r     = geo.radius(turns: t)
+        let flat  = (x: geo.cx + r * cos(theta - Double.pi / 2),
+                     y: geo.cy + r * sin(theta - Double.pi / 2))
 
         let totalT  = max(cursorTurns ?? 1, 0.5)
         // Add a small margin so the outermost turn is never right at the camera plane
@@ -335,19 +337,15 @@ struct SpiralView: View {
         guard !records.isEmpty else { return 0.0 }
         var best = 0.0
         for r in records {
-            let dayT     = Double(r.day)
-            let dayStart = dayT * 24.0
             // Last phase that is sleep (not awake) — +0.25 to include that interval
-            let endAbsH: Double
+            let endH: Double
             if let lastSleep = r.phases.last(where: { $0.phase != .awake }) {
-                endAbsH = dayStart + lastSleep.hour + 0.25
+                endH = lastSleep.hour + 0.25
             } else {
-                endAbsH = dayStart + r.wakeupHour
+                endH = r.wakeupHour
             }
-            // Same formula as cutTurns in drawDataPoints
-            let offsetH = endAbsH - dayStart
-            let turns   = dayT + offsetH / geo.period
-            if turns > best { best = turns }
+            let t = geo.turns(day: r.day, hour: endH)
+            if t > best { best = t }
         }
         return best
     }
@@ -399,14 +397,16 @@ struct SpiralView: View {
 
     /// Draws a wide, very soft stroke under each sleep segment — creates a luminous halo effect.
     private func drawDataGlow(context: GraphicsContext, geo: SpiralGeometry, fromTurns: Double = 0, size: CGSize) {
-        let globalCutTurns = dataEndTurns(geo: geo)
+        let dataCutTurns = dataEndTurns(geo: geo)
+        let cursorCutTurns = cursorAbsHour.map { $0 / geo.period } ?? dataCutTurns
+        let globalCutTurns = max(dataCutTurns, cursorCutTurns)
 
         for record in records {
-            let dayT = Double(record.day)
-            guard dayT + 1.0 >= fromTurns else { continue }
+            let dayEndTurns = geo.turns(day: record.day + 1, hour: 0)
+            guard dayEndTurns >= fromTurns else { continue }
             let phases = record.phases
             guard !phases.isEmpty else { continue }
-            let cutTurns = min(globalCutTurns, dayT + 1.0)
+            let cutTurns = min(globalCutTurns, dayEndTurns)
 
             var runPhase  = phases[0].phase
             var runPoints: [(t: Double, pt: CGPoint)] = []
@@ -437,7 +437,7 @@ struct SpiralView: View {
             }
 
             for (i, phase) in phases.enumerated() {
-                let t = dayT + phase.hour / geo.period
+                let t = geo.turns(day: record.day, hour: phase.hour)
                 if t > cutTurns { break }
                 if phase.phase != runPhase {
                     let edgePt = project(turns: t, geo: geo, size: size)
@@ -449,7 +449,7 @@ struct SpiralView: View {
                     runPoints.append((t, project(turns: t, geo: geo, size: size)))
                 }
                 if i == phases.count - 1 {
-                    let tEnd = min(cutTurns, dayT + 1.0)
+                    let tEnd = min(cutTurns, dayEndTurns)
                     runPoints.append((tEnd, project(turns: tEnd, geo: geo, size: size)))
                     flushGlow()
                 }
@@ -459,7 +459,11 @@ struct SpiralView: View {
     }
 
     private func drawDataPoints(context: GraphicsContext, geo: SpiralGeometry, fromTurns: Double = 0, size: CGSize) {
-        let globalCutTurns = dataEndTurns(geo: geo)
+        // For the current (last) day, extend the cut to the cursor so awake phases
+        // grow progressively as the day advances. For past days, stop at data end.
+        let dataCutTurns = dataEndTurns(geo: geo)
+        let cursorCutTurns = cursorAbsHour.map { $0 / geo.period } ?? dataCutTurns
+        let globalCutTurns = max(dataCutTurns, cursorCutTurns)
 
         // A run is a maximal sequence of 15-min phase intervals sharing the same SleepPhase.
         struct Run {
@@ -529,12 +533,15 @@ struct SpiralView: View {
             }
         }
 
+        // The last record gets a live awake extension up to cursorAbsHour.
+        let lastRecord = records.last
+
         for record in records {
-            let dayT = Double(record.day)
-            guard dayT + 1.0 >= fromTurns else { continue }
+            let dayEndTurns = geo.turns(day: record.day + 1, hour: 0)
+            guard dayEndTurns >= fromTurns else { continue }
             let phases = record.phases
             guard !phases.isEmpty else { continue }
-            let cutTurns = min(globalCutTurns, dayT + 1.0)
+            let cutTurns = min(globalCutTurns, dayEndTurns)
 
             // Build all runs for this record.
             var runs: [Run] = []
@@ -549,7 +556,7 @@ struct SpiralView: View {
             }
 
             for (i, phase) in phases.enumerated() {
-                let t = dayT + phase.hour / geo.period
+                let t = geo.turns(day: record.day, hour: phase.hour)
                 if t > cutTurns { break }
                 if phase.phase != runPhase {
                     let edgePt = project(turns: t, geo: geo, size: size)
@@ -562,12 +569,39 @@ struct SpiralView: View {
                     runPoints.append((t, project(turns: t, geo: geo, size: size)))
                 }
                 if i == phases.count - 1 {
-                    let tEnd = min(cutTurns, dayT + 1.0)
+                    let tEnd = min(cutTurns, dayEndTurns)
                     runPoints.append((tEnd, project(turns: tEnd, geo: geo, size: size)))
                     flushRun(nextPhase: nil)
                 }
             }
             flushRun(nextPhase: nil)
+
+            // For the last (current) day, extend a live awake run from wakeupHour to the cursor.
+            if record.id == lastRecord?.id,
+               let cursorH = cursorAbsHour {
+                let cursorHourInDay = cursorH - Double(record.day) * 24.0
+                let wakeH = record.wakeupHour
+                if cursorHourInDay > wakeH + 0.25 {
+                    // Step every 15 min for smooth rendering
+                    let tWake   = geo.turns(day: record.day, hour: wakeH)
+                    let tCursor = geo.turns(day: record.day, hour: min(cursorHourInDay, 24.0))
+                    var awakePoints: [(t: Double, pt: CGPoint)] = []
+                    var h = wakeH
+                    while h <= min(cursorHourInDay, 24.0) {
+                        let tH = geo.turns(day: record.day, hour: h)
+                        awakePoints.append((tH, project(turns: tH, geo: geo, size: size)))
+                        h += 0.25
+                    }
+                    // Ensure last point lands exactly on cursor
+                    if awakePoints.last?.t ?? 0 < tCursor {
+                        awakePoints.append((tCursor, project(turns: tCursor, geo: geo, size: size)))
+                    }
+                    if awakePoints.count >= 2 {
+                        runs.append(Run(phase: .awake, points: awakePoints, prevPhase: .light, nextPhase: nil))
+                    }
+                    _ = tWake // suppress unused warning
+                }
+            }
 
             // Draw awake runs first, sleep runs on top so sleep caps always win at joints.
             for run in runs where !isSleep(run.phase) { drawRun(run) }
@@ -577,7 +611,7 @@ struct SpiralView: View {
 
     private func drawCosinorOverlay(context: GraphicsContext, geo: SpiralGeometry, fromTurns: Double = 0, size: CGSize) {
         for record in records {
-            guard Double(record.day) + 1.0 >= fromTurns else { continue }
+            guard geo.turns(day: record.day + 1, hour: 0) >= fromTurns else { continue }
             let cosinor = record.cosinor
             let omega = (2 * Double.pi) / cosinor.period
             var path = Path()
@@ -587,7 +621,7 @@ struct SpiralView: View {
                 let value = cosinor.mesor + cosinor.amplitude * cos(omega * (h - cosinor.acrophase))
                 let offset = (value - 0.5) * 14.0
                 let n = geo.normal(day: record.day, hour: h)
-                let t = Double(record.day) + h / geo.period
+                let t = geo.turns(day: record.day, hour: h)
                 let projected = project(turns: t, geo: geo, size: size)
                 // Apply normal offset in screen space
                 let nx = CGFloat(n.nx * offset)
@@ -605,10 +639,10 @@ struct SpiralView: View {
         var prevDay = -1
         var path = Path()
         for tp in tpPoints {
-            guard Double(tp.day) + 1.0 >= fromTurns else { continue }
+            guard geo.turns(day: tp.day + 1, hour: 0) >= fromTurns else { continue }
             let offset = (tp.c - 0.5) * 12.0
             let n = geo.normal(day: tp.day, hour: Double(tp.hour))
-            let t = Double(tp.day) + Double(tp.hour) / geo.period
+            let t = geo.turns(day: tp.day, hour: Double(tp.hour))
             let proj = project(turns: t, geo: geo, size: size)
             let pt = CGPoint(x: proj.x + CGFloat(n.nx * offset), y: proj.y + CGFloat(n.ny * offset))
             let sColor = tp.s > 0.5 ? SpiralColors.poor : SpiralColors.good
@@ -635,16 +669,16 @@ struct SpiralView: View {
 
     private func drawBiomarkers(context: GraphicsContext, geo: SpiralGeometry, fromTurns: Double = 0, size: CGSize) {
         for record in records {
-            guard Double(record.day) + 1.0 >= fromTurns else { continue }
+            guard geo.turns(day: record.day + 1, hour: 0) >= fromTurns else { continue }
             for marker in BiomarkerEstimation.estimatePersonalized(from: record) {
-                let t = Double(record.day) + marker.hour / geo.period
+                let t = geo.turns(day: record.day, hour: marker.hour)
                 let p = project(turns: t, geo: geo, size: size)
                 let color = Color(hex: marker.hexColor)
 
                 // Draw confidence arc if available
                 if let low = marker.confidenceLow, let high = marker.confidenceHigh {
-                    let tLow = Double(record.day) + low / geo.period
-                    let tHigh = Double(record.day) + high / geo.period
+                    let tLow = geo.turns(day: record.day, hour: low)
+                    let tHigh = geo.turns(day: record.day, hour: high)
                     let steps = max(8, Int((tHigh - tLow) / 0.02))
                     var arcPath = Path()
                     for i in 0...steps {

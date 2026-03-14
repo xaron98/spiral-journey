@@ -17,6 +17,9 @@ struct SpiralTab: View {
     // Sleep logging
     @State private var cursorAbsHour: Double = 0
     @State private var sleepStartHour: Double? = nil
+    /// True when the cursor tracks real-world time automatically.
+    /// Set to false when the user drags the cursor to a past hour.
+    @State private var isCursorLive: Bool = true
     @State private var maxReachedTurns: Double = 1.0
     @State private var visibleDays: Double = 1
     @State private var liveVisibleDays: Double = 1
@@ -107,7 +110,14 @@ struct SpiralTab: View {
                                                 linkGrowthToTau: store.linkGrowthToTau,
                                                 totalHours: searchMax
                                             )
+                                            // Guard against erroneous nearestHour jumps near spiral origin.
+                                            // Allow at most half a period (12h for daily, 84h for weekly) per event.
+                                            let maxDelta = store.period * 0.5
+                                            guard abs(newHour - cursorAbsHour) <= maxDelta else { return }
                                             cursorAbsHour = newHour
+                                            // Check if cursor is close to real-world now (within 15 min).
+                                            let nowH = Date().timeIntervalSince(store.startDate) / 3600
+                                            isCursorLive = abs(newHour - nowH) < 0.25
                                             let newTurns = newHour / store.period
                                             if newTurns > maxReachedTurns {
                                                 // Cursor advanced past the frontier — expand zoom to follow.
@@ -122,11 +132,11 @@ struct SpiralTab: View {
                                                     }
                                                 }
                                             } else if !pinchStarted {
-                                                // Cursor moved back into history — contract zoom to match cursor position.
+                                                // Dragging backward contracts zoom smoothly.
                                                 let target = max(minVisibleDays, newTurns)
-                                                visibleDays = target
-                                                liveVisibleDays = target
+                                                visibleDays = target; liveVisibleDays = target
                                                 pinchBaseVisibleDays = target
+                                                zoomNorm = visibleDaysToNorm(target)
                                             }
                                         }
                                 )
@@ -188,21 +198,25 @@ struct SpiralTab: View {
                                 .reportFrame(\.cursorBar)
 
                             if !store.records.isEmpty {
-                                // ── Rhythm state card ────────────────────────────────
-                                rhythmStateCard
-                                    .padding(.horizontal, 16)
-                                    .padding(.top, 10)
+                                VStack(spacing: 0) {
+                                    // ── Rhythm state card ─────────────────────────────
+                                    rhythmStateCard
+                                        .padding(.horizontal, 16)
+                                        .padding(.top, 10)
 
-                                // ── Human stats row ──────────────────────────────────
-                                humanStatsRow
-                                    .padding(.horizontal, 16)
-                                    .padding(.top, 8)
+                                    // ── Human stats row ───────────────────────────────
+                                    humanStatsRow
+                                        .padding(.horizontal, 16)
+                                        .padding(.top, 8)
 
-                                // ── Rephase pill ──────────────────────────────────────
-                                rephasePill
-                                    .padding(.horizontal, 16)
-                                    .padding(.top, 8)
-                                    .padding(.bottom, screen.safeAreaInsets.bottom + 80)
+                                    // ── Rephase pill ──────────────────────────────────
+                                    rephasePill
+                                        .padding(.horizontal, 16)
+                                        .padding(.top, 8)
+                                        .padding(.bottom, screen.safeAreaInsets.bottom + 80)
+                                }
+                                .frame(maxWidth: 540)
+                                .frame(maxWidth: .infinity)
                             } else {
                                 // Empty state hint
                                 VStack(spacing: 8) {
@@ -264,6 +278,8 @@ struct SpiralTab: View {
                                         )
                                         let newHour = max(0, min(maxHours, cursorAbsHour + hoursStep))
                                         cursorAbsHour = newHour
+                                        let nowH = Date().timeIntervalSince(store.startDate) / 3600
+                                        isCursorLive = abs(newHour - nowH) < 0.25
                                         let newTurns = newHour / store.period
                                         if newTurns > maxReachedTurns {
                                             let wasAtMax = visibleDays >= maxReachedTurns * 0.95
@@ -273,9 +289,11 @@ struct SpiralTab: View {
                                                 if !pinchStarted { pinchBaseVisibleDays = newTurns; zoomNorm = 1.0 }
                                             }
                                         } else if !pinchStarted {
+                                            // Dragging backward contracts zoom smoothly.
                                             let target = max(minVisibleDays, newTurns)
                                             visibleDays = target; liveVisibleDays = target
                                             pinchBaseVisibleDays = target
+                                            zoomNorm = visibleDaysToNorm(target)
                                         }
                                     }
                                     .onEnded { _ in
@@ -298,6 +316,7 @@ struct SpiralTab: View {
                                         let target = max(minVisibleDays, newHour / store.period)
                                         visibleDays = target; liveVisibleDays = target
                                         pinchBaseVisibleDays = target
+                                        zoomNorm = visibleDaysToNorm(target)
                                     }
                                     return .handled
                                 case .rightArrow:
@@ -315,6 +334,7 @@ struct SpiralTab: View {
                                         let target = max(minVisibleDays, newTurns)
                                         visibleDays = target; liveVisibleDays = target
                                         pinchBaseVisibleDays = target
+                                        zoomNorm = visibleDaysToNorm(target)
                                     }
                                     return .handled
                                 default:
@@ -354,17 +374,34 @@ struct SpiralTab: View {
             }
         }
         .onAppear { initCursor() }
+        .onChange(of: store.period) { _, _ in initCursor() }
+        .task {
+            // Advance the cursor every 60 seconds when it's tracking real time.
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(60))
+                guard isCursorLive, !store.sleepEpisodes.isEmpty else { continue }
+                let now = Date().timeIntervalSince(store.startDate) / 3600
+                let lastEnd = store.sleepEpisodes.map(\.end).max() ?? 0
+                let clamped = max(lastEnd, min(now, Double(store.numDays) * store.period))
+                cursorAbsHour = clamped
+            }
+        }
         .onChange(of: store.sleepEpisodes.count) { _, count in
+            let minTurns = max(1.0, store.period / 24.0)
             if count == 0 {
-                cursorAbsHour = 0; maxReachedTurns = 1.0
-                visibleDays = 1.0; liveVisibleDays = 1.0; pinchBaseVisibleDays = 1.0
+                cursorAbsHour = 0; maxReachedTurns = minTurns
+                visibleDays = minTurns; liveVisibleDays = minTurns; pinchBaseVisibleDays = minTurns
             } else {
                 let lastEnd = store.sleepEpisodes.map(\.end).max() ?? 0
-                let needed  = max(1.0, lastEnd / store.period)
+                let nowAbsHour = Date().timeIntervalSince(store.startDate) / 3600
+                let clampedNow = max(lastEnd, min(nowAbsHour, Double(store.numDays) * store.period))
+                let needed = max(minTurns, clampedNow / store.period)
                 if needed > maxReachedTurns {
                     maxReachedTurns = needed
                     visibleDays = needed; liveVisibleDays = needed; pinchBaseVisibleDays = needed
                 }
+                // Always update cursor to current time when new episodes arrive
+                cursorAbsHour = clampedNow
             }
         }
     }
@@ -491,7 +528,7 @@ struct SpiralTab: View {
                     Text(rhythmStateSubtitle)
                         .font(.system(size: 11))
                         .foregroundStyle(SpiralColors.muted)
-                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer()
                 Image(systemName: "chevron.right")
@@ -727,14 +764,23 @@ struct SpiralTab: View {
     // MARK: - Init
 
     private func initCursor() {
+        // Minimum turns ensures the spiral always shows at least one full revolution's
+        // ring structure. For period=168h (weekly), this is 7 turns so that partial-week
+        // data (e.g. 2-3 days) renders as an arc within a visible spiral rather than a
+        // short boomerang. For standard 24h period this stays at 1.0.
+        let minTurns = max(1.0, store.period / 24.0)
         if store.sleepEpisodes.isEmpty {
-            cursorAbsHour = 0; maxReachedTurns = 1.0
-            visibleDays = 1.0; liveVisibleDays = 1.0; pinchBaseVisibleDays = 1.0
-            zoomNorm = visibleDaysToNorm(1.0)
+            cursorAbsHour = 0; maxReachedTurns = minTurns
+            visibleDays = minTurns; liveVisibleDays = minTurns; pinchBaseVisibleDays = minTurns
+            zoomNorm = visibleDaysToNorm(minTurns)
         } else {
             let lastEnd = store.sleepEpisodes.map(\.end).max() ?? 0
-            cursorAbsHour = min(lastEnd, Double(store.numDays) * store.period)
-            maxReachedTurns = max(1.0, cursorAbsHour / store.period)
+            // Place cursor at the current real-world time (hours elapsed since startDate),
+            // but never before the last sleep ended and never beyond numDays.
+            let nowAbsHour = Date().timeIntervalSince(store.startDate) / 3600
+            let clampedNow = max(lastEnd, min(nowAbsHour, Double(store.numDays) * store.period))
+            cursorAbsHour = clampedNow
+            maxReachedTurns = max(minTurns, cursorAbsHour / store.period)
             visibleDays = maxReachedTurns; liveVisibleDays = maxReachedTurns
             pinchBaseVisibleDays = maxReachedTurns
             zoomNorm = 1.0  // fully zoomed out = slider at max
