@@ -149,6 +149,21 @@ final class SpiralStore {
     var hasShownWelcome: Bool = false {
         didSet { save() }
     }
+    var chronotypeResult: ChronotypeResult? = nil {
+        didSet { save() }
+    }
+    var hasCompletedChronotype: Bool = false {
+        didSet { save() }
+    }
+    var jetLagPlan: JetLagPlan? = nil {
+        didSet { save() }
+    }
+    var notificationsEnabled: Bool = false {
+        didSet {
+            save()
+            Task { await updateWeeklyDigest() }
+        }
+    }
 
     // MARK: - CloudKit Sync
 
@@ -163,6 +178,7 @@ final class SpiralStore {
     private(set) var records: [SleepRecord] = []
     private(set) var analysis: AnalysisResult = AnalysisResult()
     private(set) var isProcessing = false
+    private(set) var hrvData: [NightlyHRV] = []
 
     // MARK: - Init
 
@@ -265,6 +281,13 @@ final class SpiralStore {
         cloudSync?.enqueueEventSave(event)
     }
 
+    /// Refresh nightly HRV data from HealthKit.
+    func refreshHRV() async {
+        #if !targetEnvironment(simulator)
+        hrvData = await HealthKitManager.shared.fetchNightlyHRV(days: numDays)
+        #endif
+    }
+
     func removeEpisode(id: UUID) {
         sleepEpisodes.removeAll { $0.id == id }
         recompute()
@@ -298,6 +321,9 @@ final class SpiralStore {
         rephasePlan = RephasePlan()
         hasCompletedOnboarding = false
         hasShownWelcome = false
+        chronotypeResult = nil
+        hasCompletedChronotype = false
+        jetLagPlan = nil
         records = []
         analysis = AnalysisResult()
     }
@@ -313,6 +339,18 @@ final class SpiralStore {
     /// Increment this when the onboarding flow changes significantly.
     /// Any stored version below this number will replay the welcome + tutorial.
     private let currentOnboardingVersion = 1
+
+    /// Schedule or cancel weekly digest notifications based on user preference.
+    func updateWeeklyDigest() async {
+        if notificationsEnabled {
+            await NotificationManager.shared.scheduleWeeklyDigest(
+                analysis: analysis,
+                consistency: analysis.consistency
+            )
+        } else {
+            await NotificationManager.shared.cancelWeeklyDigest()
+        }
+    }
 
     private struct Stored: Codable {
         var sleepEpisodes: [SleepEpisode]
@@ -331,6 +369,10 @@ final class SpiralStore {
         var hasCompletedOnboarding: Bool?
         var hasShownWelcome: Bool?
         var onboardingVersion: Int?
+        var chronotypeResult: ChronotypeResult?
+        var hasCompletedChronotype: Bool?
+        var jetLagPlan: JetLagPlan?
+        var notificationsEnabled: Bool?
     }
 
     private func save() {
@@ -351,7 +393,11 @@ final class SpiralStore {
             sleepGoal: sleepGoal,
             hasCompletedOnboarding: hasCompletedOnboarding,
             hasShownWelcome: hasShownWelcome,
-            onboardingVersion: currentOnboardingVersion
+            onboardingVersion: currentOnboardingVersion,
+            chronotypeResult: chronotypeResult,
+            hasCompletedChronotype: hasCompletedChronotype,
+            jetLagPlan: jetLagPlan,
+            notificationsEnabled: notificationsEnabled
         )
         if let data = try? JSONEncoder().encode(stored) {
             sharedDefaults.set(data, forKey: storageKey)
@@ -385,6 +431,11 @@ final class SpiralStore {
         if let app  = stored.appearance  { appearance = app }
         if let rp   = stored.rephasePlan { rephasePlan = rp }
         if let sg   = stored.sleepGoal   { sleepGoal = sg }
+
+        if let cr  = stored.chronotypeResult { chronotypeResult = cr }
+        if let hcc = stored.hasCompletedChronotype { hasCompletedChronotype = hcc }
+        if let jl  = stored.jetLagPlan { jetLagPlan = jl }
+        if let ne  = stored.notificationsEnabled { notificationsEnabled = ne }
 
         // Only restore onboarding state if the stored version matches current.
         // If version is missing or outdated, the flags stay false → tutorial replays.

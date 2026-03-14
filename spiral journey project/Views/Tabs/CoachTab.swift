@@ -7,6 +7,7 @@ struct CoachTab: View {
 
     @Environment(SpiralStore.self) private var store
     @Environment(\.languageBundle) private var bundle
+    @State private var showJetLagSetup = false
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -18,6 +19,10 @@ struct CoachTab: View {
                     insightCard
                     habitCard
                     actionCard
+                    // Nap recommendation — only when Process S is high enough
+                    if let nap = napRecommendation { napCard(nap) }
+                    // Jet lag planner button
+                    jetLagButton
                     // Trend context — only if there's something notable
                     if hasTrendContext { trendContextCard }
                 }
@@ -29,6 +34,9 @@ struct CoachTab: View {
             .frame(maxWidth: .infinity)
         }
         .background(SpiralColors.bg.ignoresSafeArea())
+        .sheet(isPresented: $showJetLagSetup) {
+            JetLagSetupView()
+        }
     }
 
     // MARK: - Header
@@ -170,6 +178,94 @@ struct CoachTab: View {
         }
         .padding(.top, 80)
         .padding(.horizontal, 20)
+    }
+
+    // MARK: - Nap Recommendation
+
+    private var napRecommendation: NapOptimizer.NapRecommendation? {
+        guard !store.records.isEmpty else { return nil }
+        let lastRecord = store.records.last!
+        return NapOptimizer.recommend(
+            records: store.records,
+            wakeHour: lastRecord.wakeupHour,
+            chronotype: store.chronotypeResult?.chronotype
+        )
+    }
+
+    private func napCard(_ nap: NapOptimizer.NapRecommendation) -> some View {
+        let timeStr = String(format: "%02d:00", Int(nap.suggestedStart))
+        let reasonStr: String = {
+            switch nap.reason {
+            case .circadianDip:  return loc("coach.nap.reason.circadianDip")
+            case .highPressure:  return loc("coach.nap.reason.highPressure")
+            case .debtRecovery:  return loc("coach.nap.reason.debtRecovery")
+            }
+        }()
+
+        return HStack(spacing: 12) {
+            Image(systemName: "moon.zzz")
+                .font(.system(size: 22))
+                .foregroundStyle(SpiralColors.accent)
+                .frame(width: 36)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(String(
+                    format: loc("coach.nap.title"),
+                    timeStr, nap.duration
+                ))
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(SpiralColors.text)
+                Text(reasonStr)
+                    .font(.system(size: 11))
+                    .foregroundStyle(SpiralColors.muted)
+            }
+            Spacer()
+        }
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(SpiralColors.accent.opacity(0.06))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(SpiralColors.accent.opacity(0.18), lineWidth: 0.8)
+                )
+        )
+    }
+
+    // MARK: - Jet Lag Planner Button
+
+    private var jetLagButton: some View {
+        Button {
+            showJetLagSetup = true
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "airplane.departure")
+                    .font(.system(size: 18))
+                    .foregroundStyle(SpiralColors.accent)
+                    .frame(width: 36)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(String(localized: "coach.jetlag.button.title", bundle: bundle))
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(SpiralColors.text)
+                    Text(String(localized: "coach.jetlag.button.subtitle", bundle: bundle))
+                        .font(.system(size: 10))
+                        .foregroundStyle(SpiralColors.muted)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(SpiralColors.muted)
+            }
+            .padding(14)
+            .background(
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(SpiralColors.surface)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 14)
+                            .stroke(SpiralColors.border, lineWidth: 0.8)
+                    )
+            )
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Data helpers

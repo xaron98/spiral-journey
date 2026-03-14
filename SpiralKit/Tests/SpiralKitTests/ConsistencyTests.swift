@@ -176,6 +176,7 @@ struct ConsistencyTests {
     func testInsightsSortedBySeverity() {
         let result = SpiralConsistencyCalculator.compute(records: irregularRecords, windowDays: 7)
         let severities = result.insights.map(\.severity)
+        guard severities.count >= 2 else { return }
         for i in 1..<severities.count {
             #expect(severities[i - 1] >= severities[i], "Insights should be sorted severity desc")
         }

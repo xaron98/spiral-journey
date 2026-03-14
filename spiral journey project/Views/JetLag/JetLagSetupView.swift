@@ -1,0 +1,151 @@
+import SwiftUI
+import SpiralKit
+
+/// Jet lag planner setup: pick timezone offset and travel date.
+struct JetLagSetupView: View {
+
+    @Environment(SpiralStore.self) private var store
+    @Environment(\.languageBundle) private var bundle
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var offset: Int = 1
+    @State private var travelDate = Date()
+    @State private var showPlan = false
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Header
+                    VStack(spacing: 8) {
+                        Image(systemName: "airplane.departure")
+                            .font(.system(size: 36))
+                            .foregroundStyle(SpiralColors.accent)
+                        Text(String(localized: "jetlag.setup.title", bundle: bundle))
+                            .font(.system(size: 20, weight: .light))
+                            .foregroundStyle(SpiralColors.text)
+                        Text(String(localized: "jetlag.setup.subtitle", bundle: bundle))
+                            .font(.system(size: 12))
+                            .foregroundStyle(SpiralColors.muted)
+                            .multilineTextAlignment(.center)
+                    }
+                    .padding(.top, 16)
+
+                    // Timezone offset picker
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(String(localized: "jetlag.setup.offset", bundle: bundle))
+                            .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                            .tracking(1.5)
+                            .foregroundStyle(SpiralColors.muted)
+                            .textCase(.uppercase)
+
+                        HStack {
+                            Text(offsetLabel)
+                                .font(.system(size: 22, weight: .semibold, design: .monospaced))
+                                .foregroundStyle(SpiralColors.accent)
+                            Spacer()
+                            Text(directionLabel)
+                                .font(.system(size: 12, design: .monospaced))
+                                .foregroundStyle(SpiralColors.muted)
+                        }
+
+                        Slider(value: Binding(
+                            get: { Double(offset) },
+                            set: { offset = Int($0) }
+                        ), in: -12...12, step: 1)
+                        .tint(SpiralColors.accent)
+                    }
+                    .padding(16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(SpiralColors.surface)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 14)
+                                    .stroke(SpiralColors.border, lineWidth: 0.8)
+                            )
+                    )
+
+                    // Travel date
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(String(localized: "jetlag.setup.date", bundle: bundle))
+                            .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                            .tracking(1.5)
+                            .foregroundStyle(SpiralColors.muted)
+                            .textCase(.uppercase)
+
+                        DatePicker("", selection: $travelDate, displayedComponents: .date)
+                            .datePickerStyle(.graphical)
+                            .tint(SpiralColors.accent)
+                    }
+                    .padding(16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(SpiralColors.surface)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 14)
+                                    .stroke(SpiralColors.border, lineWidth: 0.8)
+                            )
+                    )
+
+                    // Generate button
+                    Button {
+                        generatePlan()
+                    } label: {
+                        Text(String(localized: "jetlag.setup.generate", bundle: bundle))
+                            .font(.system(size: 14, weight: .semibold, design: .monospaced))
+                            .foregroundStyle(.black)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(offset == 0 ? SpiralColors.surface : SpiralColors.accent)
+                            .clipShape(RoundedRectangle(cornerRadius: 14))
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(offset == 0)
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 100)
+            }
+            .background(SpiralColors.bg.ignoresSafeArea())
+            .navigationTitle(String(localized: "jetlag.nav.title", bundle: bundle))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(String(localized: "jetlag.close", bundle: bundle)) { dismiss() }
+                        .foregroundStyle(SpiralColors.muted)
+                }
+            }
+            .navigationDestination(isPresented: $showPlan) {
+                if let plan = store.jetLagPlan {
+                    JetLagPlanView(plan: plan)
+                }
+            }
+        }
+    }
+
+    private var offsetLabel: String {
+        let sign = offset >= 0 ? "+" : ""
+        return "UTC \(sign)\(offset)h"
+    }
+
+    private var directionLabel: String {
+        if offset > 0 {
+            return String(localized: "jetlag.direction.east", bundle: bundle)
+        } else if offset < 0 {
+            return String(localized: "jetlag.direction.west", bundle: bundle)
+        }
+        return ""
+    }
+
+    private func generatePlan() {
+        let bedtime = store.sleepGoal.targetBedHour
+        let wake = store.sleepGoal.targetWakeHour
+        let plan = JetLagEngine.generatePlan(
+            offset: offset,
+            travelDate: travelDate,
+            currentBedtime: bedtime,
+            currentWake: wake
+        )
+        store.jetLagPlan = plan
+        showPlan = true
+    }
+}

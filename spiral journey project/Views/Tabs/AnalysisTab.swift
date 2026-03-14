@@ -16,6 +16,7 @@ struct AnalysisTab: View {
     @State private var showActogram          = false
     @State private var showAutocorrelation   = false
     @State private var showSectorQuality     = false
+    @State private var showHRV               = false
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -73,6 +74,7 @@ struct AnalysisTab: View {
                         if showActogram        { ActogramView(records: store.records) }
                         if showAutocorrelation { AutocorrelationHeatmapView(records: store.records) }
                         if showSectorQuality   { SectorQualityHeatmapView(records: store.records) }
+                        if showHRV             { HRVTrendView(hrvData: store.hrvData) }
                         chartToggles
                     }
                 }
@@ -99,8 +101,34 @@ struct AnalysisTab: View {
                     .foregroundStyle(SpiralColors.subtle)
             }
             Spacer()
+            ShareLink(item: pdfReportItem, preview: SharePreview(
+                String(localized: "pdf.share.preview", bundle: bundle),
+                image: Image(systemName: "doc.richtext")
+            )) {
+                Image(systemName: "square.and.arrow.up")
+                    .font(.system(size: 16))
+                    .foregroundStyle(SpiralColors.accent)
+            }
         }
         .padding(.bottom, 4)
+    }
+
+    /// Generates the PDF data for the share link.
+    private var pdfReportItem: PDFReportDocument {
+        let df = DateFormatter()
+        df.dateStyle = .medium
+        let startStr = df.string(from: store.startDate)
+        let endStr = df.string(from: Date())
+        let dateRange = "\(startStr) – \(endStr)"
+
+        let data = PDFReportGenerator.generate(
+            records: store.records,
+            analysis: store.analysis,
+            consistency: store.analysis.consistency,
+            dateRange: dateRange,
+            numDays: store.numDays
+        )
+        return PDFReportDocument(data: data)
     }
 
     // MARK: - 3 Trend Dimensions
@@ -330,6 +358,12 @@ struct AnalysisTab: View {
             HStack(spacing: 6) {
                 PillButton(label: String(localized: "analysis.charts.autocorrelation.short", bundle: bundle), isActive: showAutocorrelation) { showAutocorrelation.toggle() }
                 PillButton(label: String(localized: "analysis.charts.sectorQuality.short",   bundle: bundle), isActive: showSectorQuality)   { showSectorQuality.toggle() }
+                PillButton(label: "HRV", isActive: showHRV) {
+                    showHRV.toggle()
+                    if showHRV && store.hrvData.isEmpty {
+                        Task { await store.refreshHRV() }
+                    }
+                }
             }
         }
         .panelStyle()

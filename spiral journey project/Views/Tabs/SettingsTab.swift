@@ -23,6 +23,11 @@ struct SettingsTab: View {
         }
     }
 
+    private func chronotypeLabel(_ ct: Chronotype) -> String {
+        let key = "chronotype.result.\(ct.rawValue)"
+        return String(localized: String.LocalizationValue(key), bundle: bundle)
+    }
+
     private func formatHour(_ h: Double) -> String {
         let total = Int((h * 60).rounded())
         let hh = (total / 60) % 24
@@ -371,6 +376,67 @@ struct SettingsTab: View {
                             store.resetAllData()
                         }
                         Button(String(localized: "settings.confirm.cancel", bundle: bundle), role: .cancel) {}
+                    }
+                }
+
+                // ── Chronotype ─────────────────────────────────────────────
+                SettingsSection(title: String(localized: "settings.chronotype.title", bundle: bundle), icon: "person.crop.circle") {
+                    if let ct = store.chronotypeResult {
+                        HStack(spacing: 8) {
+                            Text(ct.chronotype.emoji)
+                                .font(.system(size: 20))
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(chronotypeLabel(ct.chronotype))
+                                    .font(.system(size: 12, weight: .medium, design: .monospaced))
+                                    .foregroundStyle(SpiralColors.text)
+                                Text(String(
+                                    format: String(localized: "settings.chronotype.score", bundle: bundle),
+                                    ct.totalScore
+                                ))
+                                .font(.system(size: 10, design: .monospaced))
+                                .foregroundStyle(SpiralColors.muted)
+                            }
+                            Spacer()
+                        }
+                    }
+
+                    Button {
+                        store.hasCompletedChronotype = false
+                    } label: {
+                        Label(
+                            store.chronotypeResult != nil
+                                ? String(localized: "settings.chronotype.retake", bundle: bundle)
+                                : String(localized: "settings.chronotype.take", bundle: bundle),
+                            systemImage: "arrow.counterclockwise"
+                        )
+                        .font(.system(size: 11, design: .monospaced))
+                        .foregroundStyle(SpiralColors.accent)
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                // ── Notifications ──────────────────────────────────────────
+                SettingsSection(title: String(localized: "settings.notifications.title", bundle: bundle), icon: "bell.badge") {
+                    Toggle(isOn: $store.notificationsEnabled) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(String(localized: "settings.notifications.weekly", bundle: bundle))
+                                .font(.system(size: 12, design: .monospaced))
+                                .foregroundStyle(SpiralColors.text)
+                            Text(String(localized: "settings.notifications.weekly.desc", bundle: bundle))
+                                .font(.system(size: 10))
+                                .foregroundStyle(SpiralColors.muted)
+                        }
+                    }
+                    .toggleStyle(SwitchToggleStyle(tint: SpiralColors.accent))
+                    .onChange(of: store.notificationsEnabled) { _, newValue in
+                        if newValue {
+                            Task {
+                                let granted = await NotificationManager.shared.requestPermission()
+                                if !granted {
+                                    store.notificationsEnabled = false
+                                }
+                            }
+                        }
                     }
                 }
 
