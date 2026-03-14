@@ -4,5 +4,7 @@
 <dict>
 	<key>NSHealthShareUsageDescription</key>
 	<string>Spiral Journey uses your sleep data from Apple Health to visualize your circadian rhythm on the spiral.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>Spiral Journey does not write health data. This permission is required by the system but the app only reads your sleep information.</string>
 </dict>
 </plist>
