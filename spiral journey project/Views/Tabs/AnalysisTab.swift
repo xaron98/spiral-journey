@@ -123,41 +123,34 @@ struct AnalysisTab: View {
         .padding(.bottom, 4)
     }
 
-    /// Generates the PDF on a GCD background queue, then presents the share sheet.
+    /// Generates the PDF, then presents the system share sheet.
     ///
-    /// Note: `Task.detached` is NOT enough because `UIGraphicsPDFRenderer` is
-    /// `@MainActor`-isolated in modern SDKs — Swift silently hops back to the
-    /// main actor. Using GCD guarantees true background execution.
+    /// UIGraphicsPDFRenderer (UIKit) requires the main thread internally,
+    /// so true background generation isn't possible without rewriting with
+    /// Core Graphics. Instead we ensure the spinner renders first via a
+    /// brief sleep, then generate synchronously.
     private func generateAndSharePDF() {
         isGeneratingPDF = true
-        // Capture value-type snapshots for the background closure.
-        let records     = store.records
-        let analysis    = store.analysis
-        let consistency = store.analysis.consistency
-        let startDate   = store.startDate
-        let numDays     = store.numDays
 
         Task {
-            let url: URL = await withCheckedContinuation { continuation in
-                DispatchQueue.global(qos: .userInitiated).async {
-                    let df = DateFormatter()
-                    df.dateStyle = .medium
-                    let dateRange = "\(df.string(from: startDate)) – \(df.string(from: Date()))"
+            // Let SwiftUI render the spinner before blocking.
+            try? await Task.sleep(for: .milliseconds(80))
 
-                    let data = PDFReportGenerator.generate(
-                        records: records,
-                        analysis: analysis,
-                        consistency: consistency,
-                        dateRange: dateRange,
-                        numDays: numDays
-                    )
+            let df = DateFormatter()
+            df.dateStyle = .medium
+            let dateRange = "\(df.string(from: store.startDate)) – \(df.string(from: Date()))"
 
-                    let fileURL = FileManager.default.temporaryDirectory
-                        .appendingPathComponent("SpiralJourney_SleepReport.pdf")
-                    try? data.write(to: fileURL)
-                    continuation.resume(returning: fileURL)
-                }
-            }
+            let data = PDFReportGenerator.generate(
+                records: store.records,
+                analysis: store.analysis,
+                consistency: store.analysis.consistency,
+                dateRange: dateRange,
+                numDays: store.numDays
+            )
+
+            let url = FileManager.default.temporaryDirectory
+                .appendingPathComponent("SpiralJourney_SleepReport.pdf")
+            try? data.write(to: url)
 
             isGeneratingPDF = false
             presentShareSheet(url: url)
