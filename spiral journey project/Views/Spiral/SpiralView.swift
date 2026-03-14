@@ -742,8 +742,8 @@ struct SpiralView: View {
     /// behind sleep data. Each block is rendered for every visible day where it is active.
     ///
     /// Visual spec:
-    /// - Wide arc (12–32 px, scaled by perspective) in block color at opacity 0.08
-    /// - Thin border (1.2 px) in block color at opacity 0.15
+    /// - Wide arc (12–32 px, scaled by perspective) in block color at opacity 0.18
+    /// - Thin border (1.5 px) in block color at opacity 0.55
     /// - Respects weekWindowOpacity() for temporal fade
     /// - Respects perspectiveScale() for 3D consistency
     private func drawContextBlocks(context: GraphicsContext, geo: SpiralGeometry, upToTurns: Double, size: CGSize) {
@@ -798,17 +798,17 @@ struct SpiralView: View {
                     if i == 0 { arcPath.move(to: pt) } else { arcPath.addLine(to: pt) }
                 }
 
-                // Wide fill arc — subtle background
+                // Wide fill arc — background band for the block window
                 let midT = (clampedStart + clampedEnd) * 0.5
                 let sc = perspectiveScale(turns: midT, geo: geo)
                 let arcWidth = max(12.0, min(sc * 24.0, 32.0))
-                context.stroke(arcPath, with: .color(color.opacity(0.08 * opac)),
+                context.stroke(arcPath, with: .color(color.opacity(0.18 * opac)),
                                style: StrokeStyle(lineWidth: arcWidth, lineCap: .round, lineJoin: .round))
 
                 // Thin border arc — visible edge with per-type dash pattern
                 let dashPattern = block.type.dashPattern.map { CGFloat($0) }
-                context.stroke(arcPath, with: .color(color.opacity(0.15 * opac)),
-                               style: StrokeStyle(lineWidth: 1.2, lineCap: .round, lineJoin: .round,
+                context.stroke(arcPath, with: .color(color.opacity(0.55 * opac)),
+                               style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round,
                                                   dash: dashPattern))
             }
         }
