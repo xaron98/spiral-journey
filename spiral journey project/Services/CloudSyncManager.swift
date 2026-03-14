@@ -213,15 +213,20 @@ final class CloudSyncManager: NSObject, CKSyncEngineDelegate, @unchecked Sendabl
             pendingRecords.removeValue(forKey: saved.recordID)
         }
         for failure in e.failedRecordSaves {
+            // Remove from pending regardless — we'll re-enqueue only if the client wins.
+            pendingRecords.removeValue(forKey: failure.record.recordID)
+
             if failure.error.code == .serverRecordChanged,
                let serverRecord = failure.error.serverRecord {
                 let clientMod = failure.record["modifiedAt"] as? Date ?? .distantPast
                 let serverMod = serverRecord["modifiedAt"] as? Date ?? .distantPast
                 if clientMod > serverMod {
+                    // Client is newer — overwrite server record fields and re-enqueue with correct etag.
                     for key in failure.record.allKeys() { serverRecord[key] = failure.record[key] }
                     pendingRecords[serverRecord.recordID] = serverRecord
                     syncEngine.state.add(pendingRecordZoneChanges: [.saveRecord(serverRecord.recordID)])
                 } else {
+                    // Server is newer — apply server version to local store.
                     Task { @MainActor [weak self] in
                         guard let self else { return }
                         switch serverRecord.recordType {
