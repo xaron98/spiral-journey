@@ -169,6 +169,7 @@ final class SpiralStore {
     private(set) var records: [SleepRecord] = []
     private(set) var analysis: AnalysisResult = AnalysisResult()
     private(set) var isProcessing = false
+    private(set) var hrvData: [NightlyHRV] = []
 
     // MARK: - Init
 
@@ -263,6 +264,13 @@ final class SpiralStore {
         events.sort { $0.absoluteHour < $1.absoluteHour }
         #if os(iOS)
         WatchConnectivityManager.shared.sendEvents(events)
+        #endif
+    }
+
+    /// Refresh nightly HRV data from HealthKit.
+    func refreshHRV() async {
+        #if !targetEnvironment(simulator)
+        hrvData = await HealthKitManager.shared.fetchNightlyHRV(days: numDays)
         #endif
     }
 

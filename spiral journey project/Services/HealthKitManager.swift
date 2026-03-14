@@ -16,6 +16,7 @@ final class HealthKitManager {
     var errorMessage: String? = nil
 
     private let sleepType = HKObjectType.categoryType(forIdentifier: .sleepAnalysis)!
+    private let hrvType = HKQuantityType.quantityType(forIdentifier: .heartRateVariabilitySDNN)!
 
     /// Called whenever new sleep data arrives in HealthKit (e.g. after a Watch sleep session).
     var onNewSleepData: (() -> Void)?
@@ -30,7 +31,7 @@ final class HealthKitManager {
             errorMessage = String(localized: "healthkit.error.notAvailable")
             return
         }
-        let readTypes: Set<HKObjectType> = [sleepType]
+        let readTypes: Set<HKObjectType> = [sleepType, hrvType]
         do {
             try await store.requestAuthorization(toShare: [], read: readTypes)
             isAuthorized = true
@@ -170,6 +171,56 @@ final class HealthKitManager {
         // Second pass: re-fetch with the correct epoch so absolute hours are right
         let episodes = await fetchSleepEpisodes(from: searchStart, to: end, epoch: realEpoch)
         return (episodes, realEpoch)
+    }
+    // MARK: - HRV Data Query
+
+    /// Fetch nightly HRV (SDNN) samples for the given date range.
+    /// Groups samples by calendar day and computes mean SDNN per night.
+    func fetchNightlyHRV(days: Int = 30) async -> [NightlyHRV] {
+        guard isAvailable, isAuthorized else { return [] }
+
+        let calendar = Calendar.current
+        let end = Date()
+        guard let start = calendar.date(byAdding: .day, value: -days, to: end) else { return [] }
+
+        let predicate = HKQuery.predicateForSamples(
+            withStart: start,
+            end: end,
+            options: .strictStartDate
+        )
+        let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)
+
+        return await withCheckedContinuation { continuation in
+            let query = HKSampleQuery(
+                sampleType: hrvType,
+                predicate: predicate,
+                limit: HKObjectQueryNoLimit,
+                sortDescriptors: [sortDescriptor]
+            ) { _, samples, error in
+                guard let samples = samples as? [HKQuantitySample], error == nil else {
+                    continuation.resume(returning: [])
+                    return
+                }
+
+                // Group by calendar day
+                var dayBuckets: [Date: [Double]] = [:]
+                for sample in samples {
+                    let dayStart = calendar.startOfDay(for: sample.startDate)
+                    let sdnn = sample.quantity.doubleValue(for: HKUnit.secondUnit(with: .milli))
+                    dayBuckets[dayStart, default: []].append(sdnn)
+                }
+
+                // Convert to NightlyHRV
+                let results = dayBuckets.map { (date, values) in
+                    let mean = values.reduce(0, +) / Double(values.count)
+                    return NightlyHRV(date: date, meanSDNN: mean, sampleCount: values.count)
+                }
+                .sorted { $0.date < $1.date }
+
+                continuation.resume(returning: results)
+            }
+            self.store.execute(query)
+        }
     }
 }
 

@@ -16,6 +16,7 @@ struct AnalysisTab: View {
     @State private var showActogram          = false
     @State private var showAutocorrelation   = false
     @State private var showSectorQuality     = false
+    @State private var showHRV               = false
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -73,6 +74,7 @@ struct AnalysisTab: View {
                         if showActogram        { ActogramView(records: store.records) }
                         if showAutocorrelation { AutocorrelationHeatmapView(records: store.records) }
                         if showSectorQuality   { SectorQualityHeatmapView(records: store.records) }
+                        if showHRV             { HRVTrendView(hrvData: store.hrvData) }
                         chartToggles
                     }
                 }
@@ -355,6 +357,12 @@ struct AnalysisTab: View {
             HStack(spacing: 6) {
                 PillButton(label: String(localized: "analysis.charts.autocorrelation.short", bundle: bundle), isActive: showAutocorrelation) { showAutocorrelation.toggle() }
                 PillButton(label: String(localized: "analysis.charts.sectorQuality.short",   bundle: bundle), isActive: showSectorQuality)   { showSectorQuality.toggle() }
+                PillButton(label: "HRV", isActive: showHRV) {
+                    showHRV.toggle()
+                    if showHRV && store.hrvData.isEmpty {
+                        Task { await store.refreshHRV() }
+                    }
+                }
             }
         }
         .panelStyle()
