@@ -54,12 +54,15 @@ public enum SleepStatistics {
         let amplitudes = records.map(\.cosinor.amplitude)
         let bedtimes   = records.map(\.bedtimeHour).filter { $0 >= 0 }
 
-        let weekdayData = records.filter { !$0.isWeekend }
-        let weekendData = records.filter { $0.isWeekend }
+        // Filter to main sleep sessions only (≥3h) to exclude naps and corrupt imports
+        let mainRecords  = records.filter { $0.sleepDuration >= 3.0 }
+        let weekdayData  = (mainRecords.isEmpty ? records : mainRecords).filter { !$0.isWeekend }
+        let weekendData  = (mainRecords.isEmpty ? records : mainRecords).filter { $0.isWeekend }
 
-        // Adjust bedtimes past midnight: treat hours < 12 as > 24
-        let weekendBed   = weekendData.map  { $0.bedtimeHour > 12 ? $0.bedtimeHour : $0.bedtimeHour + 24 }
-        let weekdayBed   = weekdayData.map  { $0.bedtimeHour > 12 ? $0.bedtimeHour : $0.bedtimeHour + 24 }
+        // Adjust bedtimes past midnight: treat hours < 12 as belonging to the next calendar day
+        // (e.g. 6 AM → 30h). Threshold < 12 correctly handles night-shift sleepers.
+        let weekendBed   = weekendData.map  { $0.bedtimeHour < 12 ? $0.bedtimeHour + 24 : $0.bedtimeHour }
+        let weekdayBed   = weekdayData.map  { $0.bedtimeHour < 12 ? $0.bedtimeHour + 24 : $0.bedtimeHour }
         let socialJetlag = (weekendBed.isEmpty || weekdayBed.isEmpty)
             ? 0
             : abs(mean(weekendBed) - mean(weekdayBed)) * 60
