@@ -62,9 +62,18 @@ struct SettingsTab: View {
                     ForEach(AppLanguage.allCases, id: \.self) { lang in
                         Button { store.language = lang } label: {
                             HStack {
-                                Text(lang.nativeName)
-                                    .font(.system(size: 12, design: .monospaced))
-                                    .foregroundStyle(store.language == lang ? SpiralColors.accent : SpiralColors.text)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(lang == .system
+                                         ? String(localized: "settings.language.system", bundle: bundle)
+                                         : lang.nativeName)
+                                        .font(.system(size: 12, design: .monospaced))
+                                        .foregroundStyle(store.language == lang ? SpiralColors.accent : SpiralColors.text)
+                                    if lang == .system {
+                                        Text(Locale.current.localizedString(forLanguageCode: AppLanguage.resolvedSystemLocale) ?? AppLanguage.resolvedSystemLocale)
+                                            .font(.system(size: 10, design: .monospaced))
+                                            .foregroundStyle(SpiralColors.muted)
+                                    }
+                                }
                                 Spacer()
                                 if store.language == lang {
                                     Image(systemName: "checkmark")

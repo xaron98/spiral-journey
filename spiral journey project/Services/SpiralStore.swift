@@ -7,10 +7,11 @@ import WidgetKit
 // MARK: - App Preferences
 
 enum AppLanguage: String, Codable, CaseIterable {
-    case en, es, ca, de, fr, zh, ja, ar
+    case system, en, es, ca, de, fr, zh, ja, ar
 
     var nativeName: String {
         switch self {
+        case .system: return "System"
         case .en: return "English"
         case .es: return "Castellano"
         case .ca: return "Català"
@@ -22,27 +23,32 @@ enum AppLanguage: String, Codable, CaseIterable {
         }
     }
 
-    /// BCP 47 locale identifier used with Locale and xcstrings
+    /// BCP 47 locale identifier used with Locale and xcstrings.
+    /// For `.system`, resolves dynamically from iOS preferred languages.
     var localeIdentifier: String {
         switch self {
-        case .zh: return "zh-Hans"
-        default:  return rawValue
+        case .system: return AppLanguage.resolvedSystemLocale
+        case .zh:     return "zh-Hans"
+        default:      return rawValue
         }
     }
 
-    /// Best match for the device's preferred languages. Falls back to .en.
-    static var systemMatch: AppLanguage {
+    /// Resolves the best matching locale identifier from iOS preferred languages.
+    static var resolvedSystemLocale: String {
         for tag in Locale.preferredLanguages {
             let prefix = tag.lowercased()
-            if prefix.hasPrefix("zh") { return .zh }
-            if prefix.hasPrefix("ca") { return .ca }
-            if prefix.hasPrefix("ar") { return .ar }
-            for lang in AppLanguage.allCases {
-                if prefix.hasPrefix(lang.rawValue) { return lang }
+            if prefix.hasPrefix("zh") { return "zh-Hans" }
+            if prefix.hasPrefix("ca") { return "ca" }
+            if prefix.hasPrefix("ar") { return "ar" }
+            for lang in AppLanguage.allCases where lang != .system {
+                if prefix.hasPrefix(lang.rawValue) { return lang.rawValue }
             }
         }
-        return .en
+        return "en"
     }
+
+    /// Best match for the device's preferred languages. Falls back to .en.
+    static var systemMatch: AppLanguage { .system }
 }
 
 enum AppAppearance: String, Codable, CaseIterable {
