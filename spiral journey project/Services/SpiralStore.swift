@@ -154,6 +154,9 @@ final class SpiralStore {
     var hasCompletedChronotype: Bool = false {
         didSet { save() }
     }
+    var jetLagPlan: JetLagPlan? = nil {
+        didSet { save() }
+    }
 
     // MARK: - Computed State
 
@@ -289,6 +292,7 @@ final class SpiralStore {
         hasShownWelcome = false
         chronotypeResult = nil
         hasCompletedChronotype = false
+        jetLagPlan = nil
         records = []
         analysis = AnalysisResult()
     }
@@ -320,6 +324,7 @@ final class SpiralStore {
         var onboardingVersion: Int?
         var chronotypeResult: ChronotypeResult?
         var hasCompletedChronotype: Bool?
+        var jetLagPlan: JetLagPlan?
     }
 
     private func save() {
@@ -341,7 +346,8 @@ final class SpiralStore {
             hasShownWelcome: hasShownWelcome,
             onboardingVersion: currentOnboardingVersion,
             chronotypeResult: chronotypeResult,
-            hasCompletedChronotype: hasCompletedChronotype
+            hasCompletedChronotype: hasCompletedChronotype,
+            jetLagPlan: jetLagPlan
         )
         if let data = try? JSONEncoder().encode(stored) {
             UserDefaults.standard.set(data, forKey: storageKey)
@@ -367,6 +373,7 @@ final class SpiralStore {
 
         if let cr  = stored.chronotypeResult { chronotypeResult = cr }
         if let hcc = stored.hasCompletedChronotype { hasCompletedChronotype = hcc }
+        if let jl  = stored.jetLagPlan { jetLagPlan = jl }
 
         // Only restore onboarding state if the stored version matches current.
         // If version is missing or outdated, the flags stay false → tutorial replays.
