@@ -123,30 +123,34 @@ struct AnalysisTab: View {
         .padding(.bottom, 4)
     }
 
-    /// Generates the PDF, then presents the system share sheet.
+    /// Generates the PDF on a background thread, then presents the share sheet.
     ///
-    /// UIGraphicsPDFRenderer (UIKit) requires the main thread internally,
-    /// so true background generation isn't possible without rewriting with
-    /// Core Graphics. Instead we ensure the spinner renders first via a
-    /// brief sleep, then generate synchronously.
+    /// `PDFReportGenerator` uses Core Graphics (`CGContext`) instead of
+    /// `UIGraphicsPDFRenderer`, so it's fully thread-safe and won't block the UI.
     private func generateAndSharePDF() {
         isGeneratingPDF = true
 
+        // Snapshot data on main actor before dispatching to background.
+        let records = store.records
+        let analysis = store.analysis
+        let consistency = store.analysis.consistency
+        let numDays = store.numDays
+        let df = DateFormatter()
+        df.dateStyle = .medium
+        let dateRange = "\(df.string(from: store.startDate)) – \(df.string(from: Date()))"
+
         Task {
-            // Let SwiftUI render the spinner before blocking.
-            try? await Task.sleep(for: .milliseconds(80))
-
-            let df = DateFormatter()
-            df.dateStyle = .medium
-            let dateRange = "\(df.string(from: store.startDate)) – \(df.string(from: Date()))"
-
-            let data = PDFReportGenerator.generate(
-                records: store.records,
-                analysis: store.analysis,
-                consistency: store.analysis.consistency,
-                dateRange: dateRange,
-                numDays: store.numDays
-            )
+            let data: Data = await withCheckedContinuation { cont in
+                DispatchQueue.global(qos: .userInitiated).async {
+                    cont.resume(returning: PDFReportGenerator.generate(
+                        records: records,
+                        analysis: analysis,
+                        consistency: consistency,
+                        dateRange: dateRange,
+                        numDays: numDays
+                    ))
+                }
+            }
 
             let url = FileManager.default.temporaryDirectory
                 .appendingPathComponent("SpiralJourney_SleepReport.pdf")
