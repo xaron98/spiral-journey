@@ -143,7 +143,7 @@ enum PDFReportGenerator {
         y = drawKeyValue("Mean Acrophase", value: SleepStatistics.formatHour(stats.meanAcrophase), at: y, margin: margin, width: width)
         y = drawKeyValue("Bedtime SD (circular)", value: String(format: "%.2f h", stats.stdBedtime), at: y, margin: margin, width: width)
         y = drawKeyValue("Rhythm Stability", value: String(format: "%.2f", stats.rhythmStability), at: y, margin: margin, width: width)
-        y = drawKeyValue("Social Jetlag", value: String(format: "%.0f min", stats.socialJetlag), at: y, margin: margin, width: width)
+        y = drawKeyValue("Social Jetlag", value: formatJetlag(stats.socialJetlag), at: y, margin: margin, width: width)
         y = drawKeyValue("Mean Cosinor R²", value: String(format: "%.3f", stats.meanR2), at: y, margin: margin, width: width)
 
         y += 12
@@ -298,6 +298,15 @@ enum PDFReportGenerator {
     }
 
     // MARK: - Drawing Primitives
+
+    /// Formats minutes as "Xh Ym" or "Xm" for display.
+    private static func formatJetlag(_ minutes: Double) -> String {
+        let total = Int(minutes.rounded())
+        if total < 60 { return "\(total)m" }
+        let h = total / 60
+        let m = total % 60
+        return m == 0 ? "\(h)h" : "\(h)h \(m)m"
+    }
 
     private static func drawSectionTitle(_ text: String, at y: CGFloat, margin: CGFloat) -> CGFloat {
         let attrs: [NSAttributedString.Key: Any] = [

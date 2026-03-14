@@ -466,11 +466,24 @@ struct CoachTab: View {
         let fmt = NSLocalizedString("rec.\(key.rawValue).text", bundle: bundle, comment: "")
         let resolved = fmt == "rec.\(key.rawValue).text" ? rec.text : fmt
         if rec.args.isEmpty { return resolved }
+        // Jetlag recs pass minutes — format as hours for display
+        if key == .reduceSocialJetlag || key == .minimizeWeekendLag {
+            return String(format: resolved, formatJetlag(rec.args[0]))
+        }
         switch rec.args.count {
         case 1: return String(format: resolved, rec.args[0])
         case 2: return String(format: resolved, rec.args[0], rec.args[1])
         default: return resolved
         }
+    }
+
+    /// Formats minutes as "Xh Ym" or "Xm" for display.
+    private func formatJetlag(_ minutes: Double) -> String {
+        let total = Int(minutes.rounded())
+        if total < 60 { return "\(total)m" }
+        let h = total / 60
+        let m = total % 60
+        return m == 0 ? "\(h)h" : "\(h)h \(m)m"
     }
 }
 
