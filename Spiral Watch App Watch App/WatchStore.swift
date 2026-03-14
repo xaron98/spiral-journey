@@ -152,33 +152,45 @@ final class WatchStore {
     /// so the Watch spiral stays current without needing to open the iPhone app.
     func refreshFromHealthKit() async {
         let hk = WatchHealthKitManager.shared
+        guard hk.isAvailable else { return }
+        // Request authorization if not already granted (handles the case where
+        // scenePhase .active fires before setupHealthKit() completes on relaunch).
+        if !hk.isAuthorized {
+            await hk.requestAuthorization()
+        }
         guard hk.isAuthorized else { return }
 
         let calendar = Calendar.current
-        let searchDays = 30
 
-        // Step 1: raw fetch using searchStart as a temporary epoch to locate all samples.
-        let searchStart = calendar.date(byAdding: .day, value: -searchDays, to: Date()) ?? Date()
-        let rawEpisodes = await hk.fetchRecentSleepEpisodes(days: searchDays, epoch: searchStart)
-        guard !rawEpisodes.isEmpty else { return }
+        // If we already have a startDate (from iPhone or a previous HK fetch), use it as
+        // the epoch directly. This keeps absolute hour coordinates consistent with existing
+        // episodes and avoids the guard `absStart >= 0` discarding recent sleep.
+        //
+        // If startDate is the default (≤ 7 days ago, i.e. standalone first launch), derive
+        // the epoch from HK data so the spiral covers all available history.
+        let hasEstablishedEpoch = startDate < calendar.date(byAdding: .day, value: -7, to: Date()) ?? Date()
 
-        // Step 2: derive the correct epoch = start of the day containing the earliest sleep.
-        let earliestAbsHour = rawEpisodes.map(\.start).min() ?? 0
-        let earliestDate = searchStart.addingTimeInterval(earliestAbsHour * 3600)
-        let hkEpoch = calendar.startOfDay(for: earliestDate)
+        let epoch: Date
+        if hasEstablishedEpoch {
+            // Use the existing epoch — absolute hours will be consistent with iPhone records.
+            epoch = startDate
+        } else {
+            // Standalone mode: derive epoch from the earliest sleep in the last 30 days.
+            // Use searchFromEpoch: true so the search covers everything.
+            let tempEpoch = calendar.date(byAdding: .day, value: -30, to: Date()) ?? Date()
+            let rawEpisodes = await hk.fetchRecentSleepEpisodes(days: 30, epoch: tempEpoch, searchFromEpoch: true)
+            guard !rawEpisodes.isEmpty else { return }
+            let earliestAbsHour = rawEpisodes.map(\.start).min() ?? 0
+            let earliestDate = tempEpoch.addingTimeInterval(earliestAbsHour * 3600)
+            epoch = calendar.startOfDay(for: earliestDate)
+            startDate = epoch
+        }
 
-        // Step 3: use the earlier of the HK epoch and the existing startDate so that the
-        // timeline reference is never shifted forward (which would corrupt existing records).
-        let correctEpoch = min(hkEpoch, startDate)
-
-        // Step 4: re-fetch with the correct epoch so absolute hours are stable.
-        let hkEpisodes = await hk.fetchRecentSleepEpisodes(days: searchDays + 2, epoch: correctEpoch)
+        // Fetch recent sleep (last 32 days) using the established epoch so absStart values
+        // are correct. searchFromEpoch: false keeps queries fast even with old start dates.
+        let hkEpisodes = await hk.fetchRecentSleepEpisodes(days: 32, epoch: epoch, searchFromEpoch: false)
         guard !hkEpisodes.isEmpty else { return }
 
-        // Update startDate only if the HK epoch is earlier than the current one.
-        if hkEpoch < startDate {
-            startDate = hkEpoch
-        }
         mergeHealthKitEpisodes(hkEpisodes)
         recompute()
         saveToDefaults()

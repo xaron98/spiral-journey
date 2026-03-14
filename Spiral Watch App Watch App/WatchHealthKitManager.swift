@@ -13,7 +13,13 @@ final class WatchHealthKitManager {
     private let store = HKHealthStore()
     private let sleepType = HKObjectType.categoryType(forIdentifier: .sleepAnalysis)!
 
-    var isAuthorized = false
+    /// Persisted across launches so `refreshFromHealthKit()` works immediately
+    /// when the watch face or complication wakes the app, before `setupHealthKit()`
+    /// has a chance to call `requestAuthorization()` again.
+    var isAuthorized: Bool {
+        get { UserDefaults.standard.bool(forKey: "watchHKAuthorized") }
+        set { UserDefaults.standard.set(newValue, forKey: "watchHKAuthorized") }
+    }
     private var observerQuery: HKObserverQuery?
 
     /// Called whenever HealthKit delivers new sleep data.
@@ -55,11 +61,15 @@ final class WatchHealthKitManager {
 
     /// Fetch recent sleep episodes from HealthKit for the last `days` days.
     /// - Parameter epoch: The store's startDate — used as day-0 for absolute hour calculation.
-    func fetchRecentSleepEpisodes(days: Int = 30, epoch: Date) async -> [SleepEpisode] {
+    /// - Parameter searchFromEpoch: If true, search from `epoch` instead of `days` ago (for initial epoch discovery).
+    func fetchRecentSleepEpisodes(days: Int = 30, epoch: Date, searchFromEpoch: Bool = false) async -> [SleepEpisode] {
         guard isAvailable, isAuthorized else { return [] }
         let end = Date()
         let calendar = Calendar.current
-        let searchStart = min(epoch, calendar.date(byAdding: .day, value: -days, to: end) ?? epoch)
+        let recentStart = calendar.date(byAdding: .day, value: -days, to: end) ?? epoch
+        // When epoch is established and searchFromEpoch is false, only fetch recent days
+        // (not all the way from epoch) to keep queries fast even with old start dates.
+        let searchStart = searchFromEpoch ? min(epoch, recentStart) : recentStart
         return await fetchSleepEpisodes(from: searchStart, to: end, epoch: epoch)
     }
 
