@@ -1,0 +1,107 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "CFBundleDisplayName" : {
+      "comment" : "Bundle display name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Spiral Journey"
+          }
+        }
+      }
+    },
+    "CFBundleName" : {
+      "comment" : "Bundle name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "spiral journey project"
+          }
+        }
+      }
+    },
+    "NSHealthShareUsageDescription" : {
+      "comment" : "Privacy - Health Share Usage Description",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تقرأ Spiral Journey بيانات نومك وتقلب معدل ضربات قلبك من Apple الصحة لتحليل إيقاعك اليومي وحساب إحصاءات النوم وتقديم توصيات شخصية. لا تتم مشاركة بياناتك مع أطراف ثالثة وتُستخدم داخل التطبيق فقط."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey llegeix les teves dades de son i variabilitat de la freqüència cardíaca d'Apple Salut per analitzar el teu ritme circadià, calcular estadístiques de son i oferir-te recomanacions personalitzades. Les teves dades mai es comparteixen amb tercers i només s'utilitzen dins l'app."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey liest deine Schlaf- und Herzfrequenzvariabilitätsdaten aus Apple Gesundheit, um deinen zirkadianen Rhythmus zu analysieren, Schlafstatistiken zu berechnen und personalisierte Empfehlungen zu geben. Deine Daten werden niemals mit Dritten geteilt und nur innerhalb der App verwendet."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey reads your sleep data and heart rate variability from Apple Health to analyze your circadian rhythm, calculate sleep statistics, and provide personalized recommendations. Your data is never shared with third parties and is only used within the app."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey lee tus datos de sueño y variabilidad de frecuencia cardiaca de Apple Salud para analizar tu ritmo circadiano, calcular estadísticas de sueño y ofrecerte recomendaciones personalizadas. Tus datos nunca se comparten con terceros y solo se usan dentro de la app."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey lit vos données de sommeil et de variabilité de la fréquence cardiaque depuis Santé Apple pour analyser votre rythme circadien, calculer des statistiques de sommeil et vous fournir des recommandations personnalisées. Vos données ne sont jamais partagées avec des tiers et sont utilisées uniquement dans l'app."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journeyは、概日リズムの分析、睡眠統計の計算、パーソナライズされたアドバイスのために、Apple ヘルスケアから睡眠データと心拍変動を読み取ります。データは第三者と共有されることはなく、アプリ内でのみ使用されます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey 从 Apple 健康读取您的睡眠数据和心率变异性，以分析您的昼夜节律、计算睡眠统计数据并提供个性化建议。您的数据绝不会与第三方共享，仅在应用内使用。"
+          }
+        }
+      }
+    },
+    "NSHealthUpdateUsageDescription" : {
+      "comment" : "Privacy - Health Update Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Spiral Journey does not write to Apple Health."
+          }
+        }
+      }
+    },
+    "NSUserTrackingUsageDescription" : {
+      "comment" : "Privacy - Tracking Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Spiral Journey does not track you."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

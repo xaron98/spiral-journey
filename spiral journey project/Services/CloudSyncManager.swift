@@ -32,6 +32,8 @@ final class CloudSyncManager: NSObject, CKSyncEngineDelegate, @unchecked Sendabl
         let appSupport = FileManager.default.urls(
             for: .applicationSupportDirectory, in: .userDomainMask
         ).first ?? FileManager.default.temporaryDirectory
+        // Ensure the Application Support directory exists before writing state.
+        try? FileManager.default.createDirectory(at: appSupport, withIntermediateDirectories: true)
         stateURL = appSupport.appendingPathComponent("CKSyncEngineState.dat")
 
         if freshStart {

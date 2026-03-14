@@ -7,9 +7,7 @@
 		<string>remote-notification</string>
 	</array>
 	<key>NSHealthShareUsageDescription</key>
-	<string>Spiral Journey reads your sleep data from Apple Health to analyze your circadian rhythm, calculate sleep statistics, and provide personalized insights. Your data is never shared with third parties.</string>
-	<key>NSHealthUpdateUsageDescription</key>
-	<string>Spiral Journey does not write health data.</string>
+	<string>Spiral Journey reads your sleep data and heart rate variability from Apple Health to analyze your circadian rhythm, calculate sleep statistics, and provide personalized recommendations. Your data is never shared with third parties and is only used within the app.</string>
 	<key>NSUserTrackingUsageDescription</key>
 	<string>Spiral Journey does not track you.</string>
 </dict>

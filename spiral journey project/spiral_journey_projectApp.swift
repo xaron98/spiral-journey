@@ -15,9 +15,6 @@ struct spiral_journey_projectApp: App {
                 .environment(\.locale, Locale(identifier: store.language.localeIdentifier))
                 .environment(\.languageBundle, languageBundle(for: store.language.localeIdentifier))
                 .task {
-                    // Initialize CloudKit sync
-                    setupCloudSync()
-
                     // Receive events and episodes logged on the Apple Watch
                     #if os(iOS)
                     WatchConnectivityManager.shared.onEventReceived = { event in
@@ -38,6 +35,9 @@ struct spiral_journey_projectApp: App {
                         )
                     }
                     #endif
+
+                    // Request HealthKit authorization first (shows permission dialog),
+                    // then initialize CloudKit in the background so neither blocks the UI.
                     #if !targetEnvironment(simulator)
                     await healthKit.requestAuthorization()
                     if healthKit.isAuthorized {
@@ -64,6 +64,10 @@ struct spiral_journey_projectApp: App {
                         healthKit.startObservingNewSleep()
                     }
                     #endif
+
+                    // Initialize CloudKit after HealthKit so the permission dialog
+                    // appears immediately without being blocked by CKSyncEngine init.
+                    setupCloudSync()
 
                     // Upload local data to CloudKit now that HealthKit import has populated episodes.
                     let didEnqueue = runCloudMigrationIfNeeded()
