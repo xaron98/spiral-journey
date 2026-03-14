@@ -817,7 +817,6 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "Spiral Journey";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Spiral Journey uses your sleep data from Apple Health to visualize your circadian rhythm on the spiral.";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Spiral Journey does not write to Apple Health.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -878,7 +877,6 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "Spiral Journey";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Spiral Journey uses your sleep data from Apple Health to visualize your circadian rhythm on the spiral.";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Spiral Journey does not write to Apple Health.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
