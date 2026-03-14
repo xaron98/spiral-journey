@@ -30,12 +30,17 @@ final class WatchHealthKitManager {
     // MARK: - Authorization
 
     func requestAuthorization() async {
-        guard isAvailable else { return }
+        guard isAvailable else {
+            print("[WatchHK] HK not available — cannot authorize")
+            return
+        }
         let readTypes: Set<HKObjectType> = [sleepType]
         do {
             try await store.requestAuthorization(toShare: [], read: readTypes)
             isAuthorized = true
+            print("[WatchHK] Authorization succeeded, isAuthorized=true")
         } catch {
+            print("[WatchHK] Authorization error: \(error)")
             // Authorization declined or unavailable — continue without HealthKit.
         }
     }
@@ -63,13 +68,15 @@ final class WatchHealthKitManager {
     /// - Parameter epoch: The store's startDate — used as day-0 for absolute hour calculation.
     /// - Parameter searchFromEpoch: If true, search from `epoch` instead of `days` ago (for initial epoch discovery).
     func fetchRecentSleepEpisodes(days: Int = 30, epoch: Date, searchFromEpoch: Bool = false) async -> [SleepEpisode] {
-        guard isAvailable, isAuthorized else { return [] }
+        guard isAvailable, isAuthorized else {
+            print("[WatchHK] fetchRecentSleepEpisodes: guard failed — isAvailable=\(isAvailable) isAuthorized=\(isAuthorized)")
+            return []
+        }
         let end = Date()
         let calendar = Calendar.current
         let recentStart = calendar.date(byAdding: .day, value: -days, to: end) ?? epoch
-        // When epoch is established and searchFromEpoch is false, only fetch recent days
-        // (not all the way from epoch) to keep queries fast even with old start dates.
         let searchStart = searchFromEpoch ? min(epoch, recentStart) : recentStart
+        print("[WatchHK] Querying HK sleep from \(searchStart) to \(end), epoch=\(epoch)")
         return await fetchSleepEpisodes(from: searchStart, to: end, epoch: epoch)
     }
 
@@ -88,15 +95,20 @@ final class WatchHealthKitManager {
                 limit: HKObjectQueryNoLimit,
                 sortDescriptors: [sortDescriptor]
             ) { _, samples, error in
+                if let error = error {
+                    print("[WatchHK] HKSampleQuery error: \(error)")
+                }
                 guard let samples = samples as? [HKCategorySample], error == nil else {
                     continuation.resume(returning: [])
                     return
                 }
 
+                print("[WatchHK] Raw samples from HK: \(samples.count)")
                 // Only actual sleep stages — skip "inBed" which is not a sleep phase.
                 let sleepSamples = samples.filter {
                     HKCategoryValueSleepAnalysis(rawValue: $0.value) != .inBed
                 }
+                print("[WatchHK] After filtering inBed: \(sleepSamples.count) sleep samples")
                 let sorted = sleepSamples.sorted { $0.startDate < $1.startDate }
                 var episodes: [SleepEpisode] = []
 

@@ -152,48 +152,63 @@ final class WatchStore {
     /// so the Watch spiral stays current without needing to open the iPhone app.
     func refreshFromHealthKit() async {
         let hk = WatchHealthKitManager.shared
-        guard hk.isAvailable else { return }
+        guard hk.isAvailable else {
+            print("[WatchHK] HK not available on this device")
+            return
+        }
         // Request authorization if not already granted (handles the case where
         // scenePhase .active fires before setupHealthKit() completes on relaunch).
         if !hk.isAuthorized {
+            print("[WatchHK] Not authorized — requesting now")
             await hk.requestAuthorization()
         }
-        guard hk.isAuthorized else { return }
+        guard hk.isAuthorized else {
+            print("[WatchHK] Authorization denied — aborting")
+            return
+        }
 
         let calendar = Calendar.current
 
-        // If we already have a startDate (from iPhone or a previous HK fetch), use it as
-        // the epoch directly. This keeps absolute hour coordinates consistent with existing
-        // episodes and avoids the guard `absStart >= 0` discarding recent sleep.
-        //
-        // If startDate is the default (≤ 7 days ago, i.e. standalone first launch), derive
-        // the epoch from HK data so the spiral covers all available history.
-        let hasEstablishedEpoch = startDate < calendar.date(byAdding: .day, value: -7, to: Date()) ?? Date()
+        // If startDate was established > 7 days ago (came from iPhone or prior fetch),
+        // use it as epoch so absolute hour coordinates stay consistent.
+        // Otherwise (standalone first launch, default ≤ 7 days), derive from HK data.
+        let sevenDaysAgo = calendar.date(byAdding: .day, value: -7, to: Date()) ?? Date()
+        let hasEstablishedEpoch = startDate < sevenDaysAgo
+
+        print("[WatchHK] startDate=\(startDate), hasEstablishedEpoch=\(hasEstablishedEpoch)")
 
         let epoch: Date
         if hasEstablishedEpoch {
-            // Use the existing epoch — absolute hours will be consistent with iPhone records.
             epoch = startDate
         } else {
-            // Standalone mode: derive epoch from the earliest sleep in the last 30 days.
-            // Use searchFromEpoch: true so the search covers everything.
+            // Standalone: derive epoch from earliest sleep in last 30 days.
             let tempEpoch = calendar.date(byAdding: .day, value: -30, to: Date()) ?? Date()
             let rawEpisodes = await hk.fetchRecentSleepEpisodes(days: 30, epoch: tempEpoch, searchFromEpoch: true)
-            guard !rawEpisodes.isEmpty else { return }
+            print("[WatchHK] Standalone raw episodes found: \(rawEpisodes.count)")
+            guard !rawEpisodes.isEmpty else {
+                print("[WatchHK] No HK episodes found in last 30 days — aborting")
+                return
+            }
             let earliestAbsHour = rawEpisodes.map(\.start).min() ?? 0
             let earliestDate = tempEpoch.addingTimeInterval(earliestAbsHour * 3600)
             epoch = calendar.startOfDay(for: earliestDate)
             startDate = epoch
+            print("[WatchHK] Derived epoch: \(epoch)")
         }
 
-        // Fetch recent sleep (last 32 days) using the established epoch so absStart values
-        // are correct. searchFromEpoch: false keeps queries fast even with old start dates.
+        // Fetch recent sleep (last 32 days) using the established epoch.
         let hkEpisodes = await hk.fetchRecentSleepEpisodes(days: 32, epoch: epoch, searchFromEpoch: false)
-        guard !hkEpisodes.isEmpty else { return }
+        print("[WatchHK] Fetched \(hkEpisodes.count) episodes with epoch=\(epoch)")
+        guard !hkEpisodes.isEmpty else {
+            print("[WatchHK] No recent HK episodes — aborting")
+            return
+        }
 
         mergeHealthKitEpisodes(hkEpisodes)
+        print("[WatchHK] After merge: \(episodes.count) total episodes")
         recompute()
         saveToDefaults()
+        print("[WatchHK] Done. records=\(records.count)")
     }
 
     /// Merge HealthKit-sourced episodes into the local list, replacing any existing
