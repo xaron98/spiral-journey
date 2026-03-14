@@ -15,6 +15,7 @@ public enum NapOptimizer {
         case highPressure    // S > threshold — general sleep pressure
         case circadianDip    // Coincides with post-lunch circadian dip
         case debtRecovery    // Multiple days of accumulated debt
+        case contextAdjusted // Moved or shortened to avoid a context block
     }
 
     /// A nap recommendation with timing and rationale.
@@ -115,6 +116,100 @@ public enum NapOptimizer {
             sleepPressure: bestS,
             reason: reason
         )
+    }
+
+    // MARK: - Context-Aware Recommendation
+
+    /// Generate a nap recommendation that respects context blocks (work, study, etc.).
+    ///
+    /// Uses the base `recommend()` to compute the initial suggestion, then adjusts
+    /// timing and duration to avoid conflicts with active context blocks on `weekday`.
+    ///
+    /// Adjustment strategy (per research recommendation):
+    /// 1. If 90-min nap overlaps a block → try 20-min power nap at the same hour.
+    /// 2. If still overlapping → shift nap to 30 min before the block starts.
+    /// 3. If no valid slot fits in the nap window → return nil.
+    ///
+    /// - Parameters:
+    ///   - records: Recent sleep records (at least 1 day).
+    ///   - wakeHour: Today's wake-up hour (clock time).
+    ///   - chronotype: Optional chronotype for window adjustment.
+    ///   - contextBlocks: Active context blocks. Empty = behaves like base `recommend()`.
+    ///   - weekday: Calendar weekday (1=Sunday, ..., 7=Saturday) to filter active blocks.
+    /// - Returns: A recommendation if a nap is beneficial and doesn't conflict, nil otherwise.
+    public static func recommend(
+        records: [SleepRecord],
+        wakeHour: Double,
+        chronotype: Chronotype? = nil,
+        contextBlocks: [ContextBlock],
+        weekday: Int
+    ) -> NapRecommendation? {
+        // Get base recommendation
+        guard let base = recommend(records: records, wakeHour: wakeHour, chronotype: chronotype) else {
+            return nil
+        }
+
+        // No blocks → return base unmodified
+        let activeBlocks = contextBlocks.filter { $0.isEnabled && $0.isActive(weekday: weekday) }
+        guard !activeBlocks.isEmpty else { return base }
+
+        // Check if base recommendation conflicts with any block
+        if !napConflicts(start: base.suggestedStart, durationMin: base.duration, blocks: activeBlocks) {
+            return base
+        }
+
+        // Strategy 1: If 90-min nap, try 20-min power nap at the same time
+        if base.duration == 90 {
+            let shortNap = NapRecommendation(
+                suggestedStart: base.suggestedStart,
+                duration: 20,
+                sleepPressure: base.sleepPressure,
+                reason: .contextAdjusted
+            )
+            if !napConflicts(start: shortNap.suggestedStart, durationMin: shortNap.duration, blocks: activeBlocks) {
+                return shortNap
+            }
+        }
+
+        // Strategy 2: Move nap to 30 min before the earliest conflicting block
+        let windowShift: Double
+        switch chronotype {
+        case .definiteMorning, .moderateMorning: windowShift = -1.0
+        case .moderateEvening, .definiteEvening:  windowShift = 1.0
+        case .intermediate, .none:                windowShift = 0.0
+        }
+        let windowStart = napWindowStart + windowShift
+        let windowEnd = napWindowEnd + windowShift
+
+        for block in activeBlocks.sorted(by: { $0.startHour < $1.startHour }) {
+            let candidate = block.startHour - 0.5  // 30 min before block
+            guard candidate >= windowStart && candidate + Double(20) / 60.0 <= windowEnd else { continue }
+
+            if !napConflicts(start: candidate, durationMin: 20, blocks: activeBlocks) {
+                return NapRecommendation(
+                    suggestedStart: candidate,
+                    duration: 20,
+                    sleepPressure: base.sleepPressure,
+                    reason: .contextAdjusted
+                )
+            }
+        }
+
+        // No valid slot found
+        return nil
+    }
+
+    /// Whether a nap at `start` with `durationMin` overlaps any of the given blocks.
+    private static func napConflicts(start: Double, durationMin: Int, blocks: [ContextBlock]) -> Bool {
+        let napEnd = start + Double(durationMin) / 60.0
+        for block in blocks {
+            let overlap = ScheduleConflictDetector.circularOverlapMinutes(
+                sleepStart: start, sleepEnd: napEnd,
+                blockStart: block.startHour, blockEnd: block.endHour
+            )
+            if overlap > 5.0 { return true }  // > 5 min noise floor
+        }
+        return false
     }
 
     // MARK: - Helpers

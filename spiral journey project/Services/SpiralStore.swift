@@ -171,6 +171,25 @@ final class SpiralStore {
         }
     }
 
+    // MARK: - Context Blocks
+
+    var contextBlocks: [ContextBlock] = [] {
+        didSet { save(); recomputeConflicts() }
+    }
+    var contextBlocksEnabled: Bool = false {
+        didSet { save() }
+    }
+    var contextBufferMinutes: Double = 60.0 {
+        didSet { save(); recomputeConflicts() }
+    }
+    /// Rolling history of daily conflict snapshots for trend analysis.
+    /// Capped at 90 days. Updated each time conflicts are recomputed.
+    private(set) var conflictHistory: [ConflictSnapshot] = []
+    /// Computed conflict trend (current vs previous week).
+    var conflictTrend: ConflictTrendEngine.ConflictTrend? {
+        ConflictTrendEngine.analyze(snapshots: conflictHistory)
+    }
+
     // MARK: - CloudKit Sync
 
     /// Set by the app entry point after CloudSyncManager is initialized.
@@ -187,6 +206,7 @@ final class SpiralStore {
     private(set) var analysis: AnalysisResult = AnalysisResult()
     private(set) var isProcessing = false
     private(set) var hrvData: [NightlyHRV] = []
+    private(set) var scheduleConflicts: [ScheduleConflict] = []
 
     // MARK: - Init
 
@@ -242,13 +262,32 @@ final class SpiralStore {
         let sd  = startDate
         let evts = events
         let activeGoal = rephasePlan.isEnabled ? rephasePlan.asSleepGoal() : sleepGoal
+        let blocks = contextBlocks
+        let blocksEnabled = contextBlocksEnabled
+        let bufferMins = contextBufferMinutes
         Task.detached(priority: .userInitiated) { [weak self] in
             let newRecords = ManualDataConverter.convert(episodes: eps, numDays: n, startDate: sd)
-            let newAnalysis = ConclusionsEngine.generate(from: newRecords, goal: activeGoal)
+            // Use context-aware analysis if blocks are enabled
+            let newAnalysis: AnalysisResult
+            let newConflicts: [ScheduleConflict]
+            if blocksEnabled && !blocks.isEmpty {
+                let conflicts = ScheduleConflictDetector.detect(
+                    records: newRecords, blocks: blocks, bufferMinutes: bufferMins
+                )
+                newConflicts = conflicts
+                newAnalysis = ConclusionsEngine.generate(
+                    from: newRecords, goal: activeGoal,
+                    contextBlocks: blocks, conflicts: conflicts
+                )
+            } else {
+                newConflicts = []
+                newAnalysis = ConclusionsEngine.generate(from: newRecords, goal: activeGoal)
+            }
             await MainActor.run { [weak self] in
                 guard let self else { return }
                 self.records = newRecords
                 self.analysis = newAnalysis
+                self.scheduleConflicts = newConflicts
                 self.isProcessing = false
                 // Sync to Apple Watch
                 #if os(iOS)
@@ -260,7 +299,9 @@ final class SpiralStore {
                     appearance: self.appearance.rawValue,
                     spiralType: self.spiralType.rawValue,
                     period: self.period,
-                    startDate: sd
+                    startDate: sd,
+                    contextBlocks: self.contextBlocksEnabled ? self.contextBlocks : nil,
+                    scheduleConflicts: newConflicts.isEmpty ? nil : newConflicts
                 )
                 #endif
             }
@@ -386,6 +427,44 @@ final class SpiralStore {
         cloudSync?.enqueueEventDelete(id: id)
     }
 
+    // MARK: - Context Block CRUD
+
+    func addContextBlock(_ block: ContextBlock) {
+        contextBlocks.append(block)
+    }
+
+    func removeContextBlock(id: UUID) {
+        contextBlocks.removeAll { $0.id == id }
+    }
+
+    func updateContextBlock(_ block: ContextBlock) {
+        if let idx = contextBlocks.firstIndex(where: { $0.id == block.id }) {
+            contextBlocks[idx] = block
+        }
+    }
+
+    /// Recompute schedule conflicts from current records and context blocks.
+    /// Called after records change (via recompute) or blocks change.
+    /// Also appends a daily snapshot to `conflictHistory` for trend tracking.
+    func recomputeConflicts() {
+        guard contextBlocksEnabled, !contextBlocks.isEmpty, !records.isEmpty else {
+            scheduleConflicts = []
+            return
+        }
+        let conflicts = ScheduleConflictDetector.detect(
+            records: records,
+            blocks: contextBlocks,
+            bufferMinutes: contextBufferMinutes
+        )
+        scheduleConflicts = conflicts
+
+        // Append daily snapshot for trend tracking (deduplicated by date in trimmed())
+        let snapshot = ConflictSnapshot.from(conflicts: conflicts)
+        conflictHistory.append(snapshot)
+        conflictHistory = ConflictTrendEngine.trimmed(conflictHistory, maxDays: 90)
+        save()
+    }
+
     /// Wipe all user data and reset to factory defaults.
     func resetAllData() {
         UserDefaults.standard.removeObject(forKey: "spiral-journey-has-launched")
@@ -408,8 +487,13 @@ final class SpiralStore {
         chronotypeResult = nil
         hasCompletedChronotype = false
         jetLagPlan = nil
+        contextBlocks = []
+        contextBlocksEnabled = false
+        contextBufferMinutes = 60.0
+        conflictHistory = []
         records = []
         analysis = AnalysisResult()
+        scheduleConflicts = []
     }
 
     // MARK: - Persistence
@@ -457,6 +541,10 @@ final class SpiralStore {
         var hasCompletedChronotype: Bool?
         var jetLagPlan: JetLagPlan?
         var notificationsEnabled: Bool?
+        var contextBlocks: [ContextBlock]?
+        var contextBlocksEnabled: Bool?
+        var contextBufferMinutes: Double?
+        var conflictHistory: [ConflictSnapshot]?
     }
 
     private func save() {
@@ -481,7 +569,11 @@ final class SpiralStore {
             chronotypeResult: chronotypeResult,
             hasCompletedChronotype: hasCompletedChronotype,
             jetLagPlan: jetLagPlan,
-            notificationsEnabled: notificationsEnabled
+            notificationsEnabled: notificationsEnabled,
+            contextBlocks: contextBlocks,
+            contextBlocksEnabled: contextBlocksEnabled,
+            contextBufferMinutes: contextBufferMinutes,
+            conflictHistory: conflictHistory
         )
         if let data = try? JSONEncoder().encode(stored) {
             sharedDefaults.set(data, forKey: storageKey)
@@ -529,6 +621,10 @@ final class SpiralStore {
         if let hcc = stored.hasCompletedChronotype { hasCompletedChronotype = hcc }
         if let jl  = stored.jetLagPlan { jetLagPlan = jl }
         if let ne  = stored.notificationsEnabled { notificationsEnabled = ne }
+        if let cb  = stored.contextBlocks { contextBlocks = cb }
+        if let cbe = stored.contextBlocksEnabled { contextBlocksEnabled = cbe }
+        if let cbm = stored.contextBufferMinutes { contextBufferMinutes = cbm }
+        if let ch  = stored.conflictHistory { conflictHistory = ch }
 
         // Only restore onboarding state if the stored version matches current.
         // If version is missing or outdated, the flags stay false → tutorial replays.

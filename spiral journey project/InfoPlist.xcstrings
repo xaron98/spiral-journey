@@ -25,6 +25,30 @@
         }
       }
     },
+    "NSCalendarsFullAccessUsageDescription" : {
+      "comment" : "Privacy - Calendars Full Access Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Spiral Journey can import your calendar events as context blocks (work, study, commute) to detect conflicts between your sleep schedule and daily obligations. Your calendar data stays on your device and is never shared."
+          }
+        }
+      }
+    },
+    "NSCalendarsUsageDescription" : {
+      "comment" : "Privacy - Calendars Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Spiral Journey can import your calendar events as context blocks (work, study, commute) to detect conflicts between your sleep schedule and daily obligations. Your calendar data stays on your device and is never shared."
+          }
+        }
+      }
+    },
     "NSHealthShareUsageDescription" : {
       "comment" : "Privacy - Health Share Usage Description",
       "localizations" : {

@@ -6,11 +6,15 @@ struct SettingsTab: View {
 
     @Environment(SpiralStore.self) private var store
     @Environment(HealthKitManager.self) private var healthKit
+    @Environment(CalendarManager.self) private var calendarManager
     @Environment(\.languageBundle) private var bundle
     @State private var isRefreshing = false
     @State private var isImporting = false
+    @State private var isImportingCalendar = false
     @State private var showClearManualConfirm = false
     @State private var showResetAllConfirm = false
+    @State private var showContextBlockEditor = false
+    @State private var editingBlock: ContextBlock? = nil
 
     // MARK: - Helpers
 
@@ -231,6 +235,165 @@ struct SettingsTab: View {
                                 .font(.system(size: 10))
                                 .foregroundStyle(SpiralColors.muted)
                         }
+                    }
+                }
+
+                // ── Daily Context ─────────────────────────────────────────
+                SettingsSection(title: String(localized: "settings.context.title", bundle: bundle), icon: "briefcase.fill") {
+                    Toggle(isOn: $store.contextBlocksEnabled) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(String(localized: "settings.context.enable", bundle: bundle))
+                                .font(.system(size: 12, design: .monospaced))
+                                .foregroundStyle(SpiralColors.text)
+                            Text(String(localized: "settings.context.enable.desc", bundle: bundle))
+                                .font(.system(size: 10))
+                                .foregroundStyle(SpiralColors.muted)
+                        }
+                    }
+                    .toggleStyle(SwitchToggleStyle(tint: SpiralColors.contextPrimary))
+
+                    if store.contextBlocksEnabled {
+                        // Existing blocks list
+                        if !store.contextBlocks.isEmpty {
+                            ForEach(store.contextBlocks) { block in
+                                HStack(spacing: 8) {
+                                    Image(systemName: block.type.sfSymbol)
+                                        .font(.system(size: 12))
+                                        .foregroundStyle(SpiralColors.contextPrimary.opacity(block.isEnabled ? 1 : 0.4))
+                                        .frame(width: 20)
+
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(block.label)
+                                            .font(.system(size: 11, weight: .medium, design: .monospaced))
+                                            .foregroundStyle(block.isEnabled ? SpiralColors.text : SpiralColors.muted)
+                                        HStack(spacing: 4) {
+                                            Text(block.timeRangeString)
+                                            if let days = block.activeDaysShort {
+                                                Text("·")
+                                                Text(days)
+                                            }
+                                        }
+                                        .font(.system(size: 9, design: .monospaced))
+                                        .foregroundStyle(SpiralColors.muted)
+                                    }
+
+                                    Spacer()
+
+                                    // Toggle enable/disable
+                                    Button {
+                                        var updated = block
+                                        updated.isEnabled.toggle()
+                                        store.updateContextBlock(updated)
+                                    } label: {
+                                        Image(systemName: block.isEnabled ? "eye.fill" : "eye.slash")
+                                            .font(.system(size: 10))
+                                            .foregroundStyle(block.isEnabled ? SpiralColors.contextPrimary : SpiralColors.muted)
+                                    }
+                                    .buttonStyle(.plain)
+
+                                    // Edit
+                                    Button {
+                                        editingBlock = block
+                                    } label: {
+                                        Image(systemName: "pencil")
+                                            .font(.system(size: 10))
+                                            .foregroundStyle(SpiralColors.accent)
+                                    }
+                                    .buttonStyle(.plain)
+
+                                    // Delete
+                                    Button {
+                                        store.removeContextBlock(id: block.id)
+                                    } label: {
+                                        Image(systemName: "trash")
+                                            .font(.system(size: 10))
+                                            .foregroundStyle(SpiralColors.poor)
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                                .padding(.vertical, 2)
+                            }
+                        }
+
+                        // Add block button
+                        Button {
+                            editingBlock = nil
+                            showContextBlockEditor = true
+                        } label: {
+                            Label(String(localized: "settings.context.addBlock", bundle: bundle), systemImage: "plus.circle")
+                                .font(.system(size: 11, design: .monospaced))
+                                .foregroundStyle(SpiralColors.contextPrimary)
+                        }
+                        .buttonStyle(.plain)
+
+                        // Buffer slider
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                Text(String(localized: "settings.context.buffer", bundle: bundle))
+                                    .font(.system(size: 9, design: .monospaced))
+                                    .foregroundStyle(SpiralColors.muted)
+                                Spacer()
+                                Text(String(format: "%.0f min", store.contextBufferMinutes))
+                                    .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                                    .foregroundStyle(SpiralColors.contextPrimary)
+                            }
+                            Slider(value: $store.contextBufferMinutes, in: 15...120, step: 15)
+                                .tint(SpiralColors.contextPrimary)
+                        }
+
+                        // Calendar import
+                        Divider().background(SpiralColors.border)
+
+                        if calendarManager.isAuthorized {
+                            Button {
+                                isImportingCalendar = true
+                                let newBlocks = calendarManager.importBlocks(existingBlocks: store.contextBlocks)
+                                for block in newBlocks {
+                                    store.addContextBlock(block)
+                                }
+                                isImportingCalendar = false
+                            } label: {
+                                HStack {
+                                    if isImportingCalendar { ProgressView().scaleEffect(0.7) }
+                                    Label(
+                                        String(localized: "settings.context.importCalendar", bundle: bundle),
+                                        systemImage: "calendar.badge.plus"
+                                    )
+                                    .font(.system(size: 11, design: .monospaced))
+                                    .foregroundStyle(SpiralColors.contextPrimary)
+                                }
+                            }
+                            .buttonStyle(.plain)
+                            .disabled(isImportingCalendar)
+                        } else {
+                            Button {
+                                Task { await calendarManager.requestAuthorization() }
+                            } label: {
+                                Label(
+                                    String(localized: "settings.context.connectCalendar", bundle: bundle),
+                                    systemImage: "calendar"
+                                )
+                                .font(.system(size: 11, design: .monospaced))
+                                .foregroundStyle(SpiralColors.muted)
+                            }
+                            .buttonStyle(.plain)
+                        }
+
+                        if let err = calendarManager.errorMessage {
+                            Text(err)
+                                .font(.system(size: 9))
+                                .foregroundStyle(SpiralColors.poor)
+                        }
+                    }
+                }
+                .sheet(isPresented: $showContextBlockEditor) {
+                    ContextBlockEditorView { block in
+                        store.addContextBlock(block)
+                    }
+                }
+                .sheet(item: $editingBlock) { block in
+                    ContextBlockEditorView(existing: block) { updated in
+                        store.updateContextBlock(updated)
                     }
                 }
 

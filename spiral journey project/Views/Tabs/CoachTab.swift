@@ -23,6 +23,8 @@ struct CoachTab: View {
                     if let nap = napRecommendation { napCard(nap) }
                     // Jet lag planner button
                     jetLagButton
+                    // Conflict trend — if we have enough history
+                    if let trend = store.conflictTrend { conflictTrendCard(trend) }
                     // Trend context — only if there's something notable
                     if hasTrendContext { trendContextCard }
                 }
@@ -161,6 +163,59 @@ struct CoachTab: View {
         }
     }
 
+    // MARK: - Conflict Trend Card
+
+    private func conflictTrendCard(_ trend: ConflictTrendEngine.ConflictTrend) -> some View {
+        let icon: String
+        let tint: Color
+        let text: String
+
+        switch trend.direction {
+        case .improving:
+            icon = "chart.line.downtrend.xyaxis"
+            tint = SpiralColors.good
+            text = String(
+                format: loc("coach.trend.conflicts.improving"),
+                trend.previousWeekConflicts, trend.currentWeekConflicts
+            )
+        case .worsening:
+            icon = "chart.line.uptrend.xyaxis"
+            tint = SpiralColors.poor
+            text = String(
+                format: loc("coach.trend.conflicts.worsening"),
+                trend.previousWeekConflicts, trend.currentWeekConflicts
+            )
+        case .stable:
+            icon = "equal.circle"
+            tint = SpiralColors.muted
+            text = String(
+                format: loc("coach.trend.conflicts.stable"),
+                trend.currentWeekConflicts
+            )
+        }
+
+        return HStack(spacing: 10) {
+            Image(systemName: icon)
+                .font(.system(size: 14))
+                .foregroundStyle(tint)
+                .frame(width: 20)
+            Text(text)
+                .font(.system(size: 12))
+                .foregroundStyle(SpiralColors.muted)
+                .fixedSize(horizontal: false, vertical: true)
+                .lineSpacing(2)
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(tint.opacity(0.06))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(tint.opacity(0.15), lineWidth: 0.6)
+                )
+        )
+    }
+
     // MARK: - Empty State
 
     private var emptyState: some View {
@@ -196,9 +251,10 @@ struct CoachTab: View {
         let timeStr = String(format: "%02d:00", Int(nap.suggestedStart))
         let reasonStr: String = {
             switch nap.reason {
-            case .circadianDip:  return loc("coach.nap.reason.circadianDip")
-            case .highPressure:  return loc("coach.nap.reason.highPressure")
-            case .debtRecovery:  return loc("coach.nap.reason.debtRecovery")
+            case .circadianDip:     return loc("coach.nap.reason.circadianDip")
+            case .highPressure:     return loc("coach.nap.reason.highPressure")
+            case .debtRecovery:     return loc("coach.nap.reason.debtRecovery")
+            case .contextAdjusted:  return loc("coach.nap.reason.contextAdjusted")
             }
         }()
 
@@ -307,6 +363,13 @@ struct CoachTab: View {
         case .offTargetForCustomSchedule:  return "calendar.badge.clock"
         case .rephaseInProgress:           return "arrow.clockwise.circle"
         case .insufficientData:            return "moon.zzz"
+        // Context block conflicts
+        case .sleepOverlapsContext:         return "bed.double.circle"
+        case .sleepTooCloseToContext:       return "alarm"
+        case .daytimeSleepConsumesContext:  return "sun.max.trianglebadge.exclamationmark"
+        // Shift-specific context-aware coaching
+        case .shiftLightTiming:            return "sun.max.fill"
+        case .sleepinessRiskDuringWork:    return "exclamationmark.triangle.fill"
         }
     }
 

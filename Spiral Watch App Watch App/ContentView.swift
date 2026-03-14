@@ -5,6 +5,7 @@ import SwiftUI
 struct WatchContentView: View {
 
     @Environment(WatchStore.self) private var store
+    @Environment(\.scenePhase) private var scenePhase
     @State private var selectedTab = 0
 
     private var colorScheme: ColorScheme {
@@ -37,6 +38,14 @@ struct WatchContentView: View {
                 store.loadFromReceivedContext()
             }
             await store.loadData()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                // Pull fresh sleep from the Watch's own HealthKit — works without iPhone.
+                Task { await store.refreshFromHealthKit() }
+                // Also ask iPhone for updated data if reachable.
+                WatchConnectivityManager.shared.requestDataFromPhone()
+            }
         }
     }
 }

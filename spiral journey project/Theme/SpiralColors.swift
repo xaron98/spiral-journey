@@ -28,6 +28,10 @@ enum SpiralColors {
     static let moderate    = Color(hex: "f5c842")
     static let poor        = Color(hex: "f05050")
 
+    // Context block colors — electric blue family
+    static let contextPrimary   = Color(hex: "3B82F6")  // electric blue
+    static let contextSecondary = Color(hex: "60A5FA")  // lighter variant
+
     /// Viridis-like interpolation for activity heatmaps (0 = dark blue, 1 = yellow-green)
     static func viridis(_ t: Double) -> Color {
         let v = max(0, min(1, t))

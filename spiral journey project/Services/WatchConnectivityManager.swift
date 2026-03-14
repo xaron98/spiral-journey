@@ -27,7 +27,9 @@ final class WatchConnectivityManager: NSObject, WCSessionDelegate, @unchecked Se
     func sendAnalysis(records: [SleepRecord], events: [CircadianEvent], analysis: AnalysisResult,
                       language: String? = nil, appearance: String? = nil,
                       spiralType: String? = nil, period: Double? = nil,
-                      startDate: Date? = nil) {
+                      startDate: Date? = nil,
+                      contextBlocks: [ContextBlock]? = nil,
+                      scheduleConflicts: [ScheduleConflict]? = nil) {
         guard WCSession.default.activationState == .activated,
               WCSession.default.isWatchAppInstalled else { return }
 
@@ -59,6 +61,15 @@ final class WatchConnectivityManager: NSObject, WCSessionDelegate, @unchecked Se
         }
         if let startDate {
             context["startDate"] = startDate.timeIntervalSince1970
+        }
+        // Context blocks and schedule conflicts (~1.5 KB typical)
+        if let blocks = contextBlocks, !blocks.isEmpty,
+           let data = try? JSONEncoder().encode(blocks) {
+            context["contextBlocksJSON"] = data
+        }
+        if let conflicts = scheduleConflicts, !conflicts.isEmpty,
+           let data = try? JSONEncoder().encode(conflicts) {
+            context["conflictsJSON"] = data
         }
 
         try? WCSession.default.updateApplicationContext(context)

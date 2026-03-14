@@ -100,6 +100,15 @@ public enum CoachIssueKey: String, Codable, Sendable, CaseIterable {
     // Rephase
     case rephaseInProgress       // Still meaningfully behind rephase target
 
+    // Context block conflicts
+    case sleepOverlapsContext        // Sleep physically overlaps a work/study block
+    case sleepTooCloseToContext      // Wake-up is too close to a scheduled block
+    case daytimeSleepConsumesContext // Significant daytime sleep falls within a scheduled block
+
+    // Shift-specific context-aware coaching (evidence-informed)
+    case shiftLightTiming            // Strategic bright-light timing during shift (g≈1.08)
+    case sleepinessRiskDuringWork    // High Process S during scheduled work block (S/C misalignment)
+
     // Fallback
     case insufficientData        // Not enough records to evaluate
 }

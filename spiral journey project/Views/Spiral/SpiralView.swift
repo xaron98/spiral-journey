@@ -17,6 +17,7 @@ struct SpiralView: View {
     let showTwoProcess: Bool
     let selectedDay: Int?
     let onSelectDay: (Int?) -> Void
+    var contextBlocks: [ContextBlock] = []
     var cursorAbsHour: Double? = nil
     var sleepStartHour: Double? = nil
     /// Maximum days for scale — fixes spacing so it never shifts as spiral grows
@@ -168,6 +169,10 @@ struct SpiralView: View {
         // 2. Radial lines — controlled by grid toggle
         if showGrid {
             drawRadialLines(context: context, geo: geo, upToTurns: maxVisible)
+        }
+        // 2.5. Context blocks — subtle electric blue arcs behind sleep data
+        if !contextBlocks.isEmpty {
+            drawContextBlocks(context: context, geo: geo, upToTurns: maxVisible, size: size)
         }
         // 3. Spiral backbone — clipped to visible turns
         drawSpiralPath(context: context, geo: geo, upToTurns: maxVisible, size: size)
@@ -728,6 +733,84 @@ struct SpiralView: View {
             context.stroke(path, with: .color(color),
                            style: StrokeStyle(lineWidth: 1.5, lineCap: .round,
                                               dash: [4, 5]))
+        }
+    }
+
+    // MARK: - Context Blocks
+
+    /// Draws context block arcs (work, study, etc.) as subtle electric-blue background fills
+    /// behind sleep data. Each block is rendered for every visible day where it is active.
+    ///
+    /// Visual spec:
+    /// - Wide arc (12–32 px, scaled by perspective) in block color at opacity 0.08
+    /// - Thin border (1.2 px) in block color at opacity 0.15
+    /// - Respects weekWindowOpacity() for temporal fade
+    /// - Respects perspectiveScale() for 3D consistency
+    private func drawContextBlocks(context: GraphicsContext, geo: SpiralGeometry, upToTurns: Double, size: CGSize) {
+        let calendar = Calendar.current
+        let enabledBlocks = contextBlocks.filter(\.isEnabled)
+        guard !enabledBlocks.isEmpty else { return }
+
+        let maxDay = Int(ceil(upToTurns))
+
+        for day in 0..<maxDay {
+            let opac = weekWindowOpacity(turns: Double(day) + 0.5)
+            guard opac > 0.01 else { continue }
+
+            // Determine weekday for this day ring
+            // Use record's date if available, otherwise estimate from the first record's date
+            let weekday: Int
+            if day < records.count {
+                weekday = calendar.component(.weekday, from: records[day].date)
+            } else if let first = records.first {
+                let estimated = calendar.date(byAdding: .day, value: day, to: first.date) ?? first.date
+                weekday = calendar.component(.weekday, from: estimated)
+            } else {
+                continue
+            }
+
+            for block in enabledBlocks {
+                guard block.isActive(weekday: weekday) else { continue }
+
+                let color = Color(hex: block.type.hexColor)
+
+                // Convert block start/end to turns on this day
+                let tStart = geo.turns(day: day, hour: block.startHour)
+                let tEnd: Double
+                if block.endHour > block.startHour {
+                    tEnd = geo.turns(day: day, hour: block.endHour)
+                } else {
+                    // Overnight block: extends past midnight into the next day's space
+                    tEnd = geo.turns(day: day, hour: block.endHour + 24.0)
+                }
+
+                // Skip blocks entirely outside the visible range
+                guard tEnd > 0 && tStart < upToTurns else { continue }
+                let clampedStart = max(tStart, 0)
+                let clampedEnd = min(tEnd, upToTurns)
+
+                // Build arc path with perspective projection
+                let arcSteps = max(12, Int((clampedEnd - clampedStart) * 60))
+                var arcPath = Path()
+                for i in 0...arcSteps {
+                    let t = clampedStart + (clampedEnd - clampedStart) * Double(i) / Double(arcSteps)
+                    let pt = project(turns: t, geo: geo, size: size)
+                    if i == 0 { arcPath.move(to: pt) } else { arcPath.addLine(to: pt) }
+                }
+
+                // Wide fill arc — subtle background
+                let midT = (clampedStart + clampedEnd) * 0.5
+                let sc = perspectiveScale(turns: midT, geo: geo)
+                let arcWidth = max(12.0, min(sc * 24.0, 32.0))
+                context.stroke(arcPath, with: .color(color.opacity(0.08 * opac)),
+                               style: StrokeStyle(lineWidth: arcWidth, lineCap: .round, lineJoin: .round))
+
+                // Thin border arc — visible edge with per-type dash pattern
+                let dashPattern = block.type.dashPattern.map { CGFloat($0) }
+                context.stroke(arcPath, with: .color(color.opacity(0.15 * opac)),
+                               style: StrokeStyle(lineWidth: 1.2, lineCap: .round, lineJoin: .round,
+                                                  dash: dashPattern))
+            }
         }
     }
 

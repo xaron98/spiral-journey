@@ -51,6 +51,26 @@ struct WatchStatsView: View {
                 statRow("SRI",        value: String(format: "%.0f%%", store.sri))
                 statRow(String(localized: "watch.stats.acrophase", bundle: bundle),  value: formatHour(store.acrophase))
                 statRow(String(localized: "watch.stats.sleep",      bundle: bundle), value: String(format: "%.1fh", store.sleepDuration))
+
+                // Schedule conflict alert
+                if let conflict = store.scheduleConflicts.first {
+                    Divider().background(SpiralColors.border(app))
+                    HStack(spacing: 6) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.system(size: 10))
+                            .foregroundStyle(SpiralColors.moderate)
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(conflictLabel(conflict))
+                                .font(.system(size: 9, weight: .medium, design: .monospaced))
+                                .foregroundStyle(SpiralColors.text(app))
+                            Text(conflict.blockLabel)
+                                .font(.system(size: 8, design: .monospaced))
+                                .foregroundStyle(SpiralColors.muted(app))
+                        }
+                        Spacer()
+                    }
+                    .padding(.vertical, 2)
+                }
             }
             .padding(.horizontal, 6)
         }
@@ -119,6 +139,17 @@ struct WatchStatsView: View {
             Text(value)
                 .font(.system(size: 11, weight: .semibold, design: .monospaced))
                 .foregroundStyle(SpiralColors.text(app))
+        }
+    }
+
+    private func conflictLabel(_ conflict: ScheduleConflict) -> String {
+        switch conflict.type {
+        case .sleepOverlapsBlock:
+            return String(localized: "watch.conflict.overlap", bundle: bundle)
+        case .sleepTooCloseToBlockStart:
+            return String(localized: "watch.conflict.tooClose", bundle: bundle)
+        case .daytimeSleepConsumesWindow:
+            return String(localized: "watch.conflict.daytimeSleep", bundle: bundle)
         }
     }
 

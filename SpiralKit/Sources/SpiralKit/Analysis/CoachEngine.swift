@@ -61,6 +61,245 @@ public enum CoachEngine {
         }
     }
 
+    /// Extended evaluation that considers context blocks (work, study, etc.) and their conflicts.
+    ///
+    /// Priority logic:
+    /// - If no blocks are configured, delegates to the standard `evaluate()`.
+    /// - If conflicts exist, they compete with the base circadian insight:
+    ///   - Urgent circadian issues (moderate+) take priority over mild conflicts.
+    ///   - Conflicts take priority over mild/info circadian insights.
+    ///   - In shiftWork/customSchedule, only direct overlaps are reported (no "too close" messages).
+    public static func evaluate(
+        records: [SleepRecord],
+        stats: SleepStats,
+        goal: SleepGoal,
+        consistency: SpiralConsistencyScore?,
+        contextBlocks: [ContextBlock],
+        conflicts: [ScheduleConflict]
+    ) -> CoachInsight {
+        // No blocks → standard evaluation (backward compatible)
+        guard !contextBlocks.isEmpty else {
+            return evaluate(records: records, stats: stats, goal: goal, consistency: consistency)
+        }
+
+        // Get standard circadian insight
+        var baseInsight = evaluate(records: records, stats: stats, goal: goal, consistency: consistency)
+
+        // Enrich with context-aware text (exercise for delayedPhase, SJL with block ref)
+        let assessment = assess(records: records, stats: stats, goal: goal)
+        if baseInsight.issueKey == .delayedPhase {
+            baseInsight = enrichDelayedPhaseWithExercise(baseInsight, wakeHour: assessment.mainSleepEndHour)
+        }
+        if baseInsight.issueKey == .socialJetlag {
+            baseInsight = enrichSocialJetlagWithContext(baseInsight, contextBlocks: contextBlocks)
+        }
+
+        // For shift workers: offer strategic light timing at maintenance, or
+        // sleepiness risk warning when S is high during work blocks
+        if goal.mode == .shiftWork && (baseInsight.issueKey == .maintenance || baseInsight.severity <= .mild) {
+            // Check sleepiness risk during work blocks
+            let risks = SleepinessRiskEngine.evaluate(records: records, contextBlocks: contextBlocks)
+            if let highRisk = risks.first(where: { $0.riskLevel == .high }) {
+                let label = highRisk.blockLabel.isEmpty ? highRisk.blockType.rawValue : highRisk.blockLabel
+                let peakTime = SleepStatistics.formatHour(highRisk.peakSleepinessHour)
+                return CoachInsight(
+                    issueKey: .sleepinessRiskDuringWork,
+                    title: "High sleepiness risk during work",
+                    reason: "Your sleep pressure is elevated during your \(label) block, peaking around \(peakTime).",
+                    action: "Consider a 15-min nap before your shift. Use bright light at the start of your shift to boost alertness.",
+                    expectedOutcome: "Goal: reduce accident and error risk during high-demand hours.",
+                    severity: .moderate,
+                    args: [highRisk.meanS],
+                    stringArgs: [label, peakTime]
+                )
+            }
+
+            // Offer strategic light timing
+            if baseInsight.issueKey == .maintenance {
+                if let lightInsight = shiftContextRecommendation(
+                    blocks: contextBlocks, assessment: assessment, goal: goal
+                ) {
+                    return lightInsight
+                }
+            }
+        }
+
+        // Get conflict insight (if any)
+        guard let conflictInsight = evaluateConflicts(conflicts: conflicts, goal: goal) else {
+            return baseInsight
+        }
+
+        // Priority: urgent circadian > conflict > mild circadian
+        if baseInsight.severity.rawValue >= CoachSeverity.moderate.rawValue
+           && baseInsight.severity.rawValue > conflictInsight.severity.rawValue {
+            return baseInsight
+        }
+
+        return conflictInsight
+    }
+
+    // MARK: - Context-Enhanced Insight Enrichment
+
+    /// Enrich a delayed-phase insight with exercise recommendation.
+    ///
+    /// Research: 5 days morning exercise → ΔDLMO ≈ 0.62h advance.
+    /// Evening exercise has negligible effect (≈ -0.02h).
+    private static func enrichDelayedPhaseWithExercise(
+        _ insight: CoachInsight,
+        wakeHour: Double
+    ) -> CoachInsight {
+        guard insight.issueKey == .delayedPhase else { return insight }
+        let exerciseDeadline = SleepStatistics.formatHour(wakeHour + 3.0)
+        var enriched = insight
+        enriched.action += " Add 30 min of moderate exercise before \(exerciseDeadline) to reinforce the phase advance."
+        return enriched
+    }
+
+    /// Enrich social-jetlag insight with reference to the specific Monday morning obligation.
+    private static func enrichSocialJetlagWithContext(
+        _ insight: CoachInsight,
+        contextBlocks: [ContextBlock]
+    ) -> CoachInsight {
+        guard insight.issueKey == .socialJetlag, !contextBlocks.isEmpty else { return insight }
+
+        guard let mondayBlock = firstMorningBlock(blocks: contextBlocks, weekday: 2) else {
+            return insight
+        }
+
+        var enriched = insight
+        let blockTime = SleepStatistics.formatHour(mondayBlock.startHour)
+        let label = mondayBlock.label.isEmpty ? mondayBlock.type.rawValue : mondayBlock.label
+        enriched.reason += " This means you're sleepier during your \(label) on Monday at \(blockTime)."
+        return enriched
+    }
+
+    /// Produce a shift-specific light timing insight when a night work block is detected.
+    ///
+    /// Meta-analysis: bright light g ≈ 1.08 for phase shift (large effect).
+    /// Rotatory shift interventions: g ≈ 0.86 subgroup.
+    /// Includes cautious melatonin recommendation per AASM for daytime sleep.
+    private static func shiftContextRecommendation(
+        blocks: [ContextBlock],
+        assessment: CircadianAssessment,
+        goal: SleepGoal
+    ) -> CoachInsight? {
+        let workBlocks = blocks.filter { $0.isEnabled && ($0.type == .work || $0.type == .focus) }
+        guard let primary = workBlocks.first else { return nil }
+
+        // Determine if it's a night shift (block spans nighttime hours)
+        let isNightShift = primary.startHour >= 20.0 || primary.endHour <= 8.0
+        guard isNightShift else { return nil }
+
+        // Calculate light window: first half of the shift
+        let shiftMidpoint: Double
+        if primary.endHour < primary.startHour {
+            let duration = (primary.endHour + 24.0 - primary.startHour)
+            shiftMidpoint = primary.startHour + duration / 2.0
+        } else {
+            shiftMidpoint = (primary.startHour + primary.endHour) / 2.0
+        }
+        let lightStart = SleepStatistics.formatHour(primary.startHour + 1.0)
+        let lightEnd = SleepStatistics.formatHour(shiftMidpoint)
+        let shiftEnd = SleepStatistics.formatHour(primary.endHour)
+
+        var action = "Use bright light (≥10,000 lux or lightbox) during \(lightStart)–\(lightEnd). After your shift ends at \(shiftEnd), wear blue-light-blocking glasses on your commute home."
+
+        // Add melatonin suggestion if sleep is daytime
+        let sleepIsDaytime = assessment.mainSleepStartHour >= 5.0 && assessment.mainSleepStartHour <= 14.0
+        if sleepIsDaytime {
+            let melatoninTime = SleepStatistics.formatHour(assessment.mainSleepStartHour - 0.75)
+            action += " Consider melatonin (0.5–3 mg) around \(melatoninTime) to support daytime sleep onset — consult a healthcare professional first."
+        }
+
+        let label = primary.label.isEmpty ? "shift" : primary.label
+        return CoachInsight(
+            issueKey: .shiftLightTiming,
+            title: "Strategic light timing for your shift",
+            reason: "Bright light during the first half of your \(label) block helps maintain alertness and supports circadian adaptation.",
+            action: action,
+            expectedOutcome: "Goal: reduce on-shift sleepiness and support your daytime sleep quality.",
+            severity: .info,
+            args: [],
+            stringArgs: [lightStart, lightEnd, shiftEnd]
+        )
+    }
+
+    /// Find the first morning block (startHour < 14:00) active on the given weekday.
+    private static func firstMorningBlock(blocks: [ContextBlock], weekday: Int) -> ContextBlock? {
+        blocks
+            .filter { $0.isEnabled && $0.isActive(weekday: weekday) && $0.startHour < 14.0 }
+            .sorted { $0.startHour < $1.startHour }
+            .first
+    }
+
+    // MARK: - Context Conflict Evaluation
+
+    /// Evaluate schedule conflicts and produce an insight if warranted.
+    ///
+    /// In shiftWork/customSchedule modes, only direct overlaps are reported.
+    /// No normative "too close" or "daytime sleep" messages for shift workers.
+    private static func evaluateConflicts(
+        conflicts: [ScheduleConflict],
+        goal: SleepGoal
+    ) -> CoachInsight? {
+        // Filter by mode: shift/custom only see direct overlaps
+        let filtered: [ScheduleConflict]
+        switch goal.mode {
+        case .shiftWork, .customSchedule:
+            filtered = conflicts.filter { $0.type == .sleepOverlapsBlock }
+        case .generalHealth, .rephase:
+            filtered = conflicts
+        }
+
+        guard !filtered.isEmpty else { return nil }
+
+        // Priority: overlap > tooClose > daytimeSleep
+        if let overlap = filtered.first(where: { $0.type == .sleepOverlapsBlock }) {
+            let label = overlap.blockLabel.isEmpty ? overlap.blockType.rawValue : overlap.blockLabel
+            return CoachInsight(
+                issueKey: .sleepOverlapsContext,
+                title: "Sleep overlaps your schedule",
+                reason: "About \(Int(overlap.overlapMinutes)) min of sleep overlap with \(label).",
+                action: "Move bedtime earlier so sleep finishes before your block starts.",
+                expectedOutcome: "Goal: clear separation between sleep and obligations.",
+                severity: .moderate,
+                args: [overlap.overlapMinutes],
+                stringArgs: [label, SleepStatistics.formatHour(overlap.blockStartHour)]
+            )
+        }
+
+        if let tooClose = filtered.first(where: { $0.type == .sleepTooCloseToBlockStart }) {
+            let label = tooClose.blockLabel.isEmpty ? tooClose.blockType.rawValue : tooClose.blockLabel
+            let actualGap = Int(ScheduleConflictDetector.defaultBufferMinutes - tooClose.overlapMinutes)
+            return CoachInsight(
+                issueKey: .sleepTooCloseToContext,
+                title: "Waking too close to obligations",
+                reason: "You wake up only \(actualGap) min before \(label).",
+                action: "Shift bedtime \(Int(tooClose.overlapMinutes)) min earlier to create breathing room.",
+                expectedOutcome: "Goal: at least 60 min between waking and your first obligation.",
+                severity: .mild,
+                args: [tooClose.overlapMinutes, Double(actualGap)],
+                stringArgs: [label, SleepStatistics.formatHour(tooClose.blockStartHour)]
+            )
+        }
+
+        if let daytime = filtered.first(where: { $0.type == .daytimeSleepConsumesWindow }) {
+            let label = daytime.blockLabel.isEmpty ? daytime.blockType.rawValue : daytime.blockLabel
+            return CoachInsight(
+                issueKey: .daytimeSleepConsumesContext,
+                title: "Napping into your schedule",
+                reason: "About \(Int(daytime.overlapMinutes)) min of daytime sleep falls within your \(label) window.",
+                action: "Limit naps to 20 min before 14:00 to preserve your operational window.",
+                expectedOutcome: "Goal: keep daytime sleep outside your obligations.",
+                severity: .mild,
+                args: [daytime.overlapMinutes],
+                stringArgs: [label]
+            )
+        }
+
+        return nil
+    }
+
     /// Compute intermediate circadian metrics. Public so tests can verify metrics directly.
     public static func assess(
         records: [SleepRecord],

@@ -398,6 +398,27 @@ public enum ConclusionsEngine {
         return result
     }
 
+    /// Generate with context block awareness.
+    /// The coach insight considers both circadian health and operational schedule conflicts.
+    public static func generate(
+        from records: [SleepRecord],
+        goal: SleepGoal,
+        contextBlocks: [ContextBlock],
+        conflicts: [ScheduleConflict]
+    ) -> AnalysisResult {
+        var result = generate(from: records)
+        let meaningful = records.filter { $0.sleepDuration >= 3.0 }
+        result.coachInsight = CoachEngine.evaluate(
+            records: meaningful.isEmpty ? records : meaningful,
+            stats: result.stats,
+            goal: goal,
+            consistency: result.consistency,
+            contextBlocks: contextBlocks,
+            conflicts: conflicts
+        )
+        return result
+    }
+
     /// Generate the complete analysis result from a set of sleep records.
     /// `coachInsight` will be `nil`; use `generate(from:goal:)` to populate it.
     public static func generate(from records: [SleepRecord]) -> AnalysisResult {

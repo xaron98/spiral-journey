@@ -6,12 +6,14 @@ struct spiral_journey_projectApp: App {
 
     @State private var store = SpiralStore()
     @State private var healthKit = HealthKitManager.shared
+    @State private var calendarManager = CalendarManager.shared
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environment(store)
                 .environment(healthKit)
+                .environment(calendarManager)
                 .environment(\.locale, Locale(identifier: store.language.localeIdentifier))
                 .environment(\.languageBundle, languageBundle(for: store.language.localeIdentifier))
                 .task {
@@ -29,15 +31,26 @@ struct spiral_journey_projectApp: App {
                         store.mergeHealthKitEpisodes([episode])
                     }
                     WatchConnectivityManager.shared.onDataRequested = {
-                        WatchConnectivityManager.shared.sendAnalysis(
-                            records: store.records,
-                            events: store.events,
-                            analysis: store.analysis,
-                            language: store.language.localeIdentifier,
-                            appearance: store.appearance.rawValue,
-                            spiralType: store.spiralType.rawValue,
-                            period: store.period
-                        )
+                        Task {
+                            // Import fresh HealthKit data before pushing to Watch,
+                            // so the Watch sees sleep recorded since the last push.
+                            #if !targetEnvironment(simulator)
+                            if healthKit.isAuthorized {
+                                if let result = await healthKit.importAndAdjustEpoch() {
+                                    store.applyHealthKitResult(epoch: result.epoch, episodes: result.episodes)
+                                }
+                            }
+                            #endif
+                            WatchConnectivityManager.shared.sendAnalysis(
+                                records: store.records,
+                                events: store.events,
+                                analysis: store.analysis,
+                                language: store.language.localeIdentifier,
+                                appearance: store.appearance.rawValue,
+                                spiralType: store.spiralType.rawValue,
+                                period: store.period
+                            )
+                        }
                     }
                     #endif
 

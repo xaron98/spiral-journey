@@ -38,6 +38,8 @@ final class WatchStore {
     var records: [SleepRecord] = []
     var events: [CircadianEvent] = []
     var analysis: AnalysisResult = AnalysisResult()
+    var contextBlocks: [ContextBlock] = []
+    var scheduleConflicts: [ScheduleConflict] = []
     var isLoading = false
 
     /// Language synced from iPhone (BCP 47 locale identifier, e.g. "en", "es", "zh-Hans").
@@ -146,13 +148,11 @@ final class WatchStore {
     // MARK: - HealthKit Sync
 
     /// Fetch recent sleep from HealthKit, merge into local episodes (dedup by HK UUID),
-    /// recompute, and persist. Only used when no iPhone data has arrived (standalone mode).
+    /// recompute, and persist. Always runs regardless of whether iPhone data is present,
+    /// so the Watch spiral stays current without needing to open the iPhone app.
     func refreshFromHealthKit() async {
         let hk = WatchHealthKitManager.shared
         guard hk.isAuthorized else { return }
-        // If the iPhone has already sent records, don't overwrite with a different HK epoch.
-        // HealthKit is only the data source when the Watch runs without an iPhone.
-        guard records.isEmpty else { return }
 
         let calendar = Calendar.current
         let searchDays = 30
@@ -165,14 +165,20 @@ final class WatchStore {
         // Step 2: derive the correct epoch = start of the day containing the earliest sleep.
         let earliestAbsHour = rawEpisodes.map(\.start).min() ?? 0
         let earliestDate = searchStart.addingTimeInterval(earliestAbsHour * 3600)
-        let correctEpoch = calendar.startOfDay(for: earliestDate)
+        let hkEpoch = calendar.startOfDay(for: earliestDate)
 
-        // Step 3: re-fetch with the correct epoch so absolute hours are stable.
+        // Step 3: use the earlier of the HK epoch and the existing startDate so that the
+        // timeline reference is never shifted forward (which would corrupt existing records).
+        let correctEpoch = min(hkEpoch, startDate)
+
+        // Step 4: re-fetch with the correct epoch so absolute hours are stable.
         let hkEpisodes = await hk.fetchRecentSleepEpisodes(days: searchDays + 2, epoch: correctEpoch)
         guard !hkEpisodes.isEmpty else { return }
 
-        // Align startDate to the correct epoch so manual and HK episodes share the same timeline.
-        startDate = correctEpoch
+        // Update startDate only if the HK epoch is earlier than the current one.
+        if hkEpoch < startDate {
+            startDate = hkEpoch
+        }
         mergeHealthKitEpisodes(hkEpisodes)
         recompute()
         saveToDefaults()
@@ -271,6 +277,15 @@ final class WatchStore {
         // are interpreted on the same timeline reference on both devices.
         if let ts = context["startDate"] as? Double {
             startDate = Date(timeIntervalSince1970: ts)
+        }
+        // Context blocks and schedule conflicts
+        if let data = context["contextBlocksJSON"] as? Data,
+           let decoded = try? JSONDecoder().decode([ContextBlock].self, from: data) {
+            contextBlocks = decoded
+        }
+        if let data = context["conflictsJSON"] as? Data,
+           let decoded = try? JSONDecoder().decode([ScheduleConflict].self, from: data) {
+            scheduleConflicts = decoded
         }
         saveToDefaults()
     }
