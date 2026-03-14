@@ -69,6 +69,7 @@ public enum CategoryDetailKey: String, Codable, Sendable, CaseIterable {
     case minimalJetlag
     case moderateJetlag
     case highJetlag
+    case jetlagNeedsBothSides
     case normalTiming
     case earlyTiming
     case lateTiming

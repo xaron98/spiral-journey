@@ -210,6 +210,9 @@ final class SpiralStore {
         }
         #endif
         load()
+        // If HealthKit episodes are present, ensure startDate and numDays are
+        // consistent with the actual data.
+        reconcileEpochWithEpisodes()
         // Only recompute if there are actual episodes — avoids generating
         // phantom records from empty data.
         if !sleepEpisodes.isEmpty {
@@ -265,6 +268,79 @@ final class SpiralStore {
     }
 
     /// Merge HealthKit episodes into the store, deduplicating by healthKitSampleID.
+    /// Ensure startDate and numDays are consistent with the stored episodes.
+    /// Called once after load() to fix any mismatch that arose from an incorrect epoch
+    /// at import time (e.g. install date used as epoch instead of first-sleep date).
+    ///
+    /// HealthKit episodes carry absolute hours relative to the stored startDate.
+    /// If startDate is wrong (too late), early episodes may have absStart < 0 and were
+    /// never stored. This method can only fix what IS stored. The real fix for missing
+    /// early episodes happens in importAndAdjustEpoch → applyHealthKitResult on next launch.
+    ///
+    /// What this CAN fix: if episodes are present and startDate is set to install date
+    /// (today or very recent) but episodes have absStart that implies they started on
+    /// an earlier real date — but wait, absStart is always relative to startDate so we
+    /// cannot infer the wall-clock date from absStart alone without knowing startDate.
+    ///
+    /// Instead this method just ensures numDays always covers today.
+    private func reconcileEpochWithEpisodes() {
+        guard !sleepEpisodes.isEmpty else { return }
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let daysToToday = calendar.dateComponents([.day], from: startDate, to: today).day ?? 0
+        let needed = daysToToday + 1
+        if needed > numDays {
+            numDays = needed
+        }
+    }
+
+    /// Apply the result of importAndAdjustEpoch.
+    ///
+    /// The incoming `episodes` are already expressed in absolute hours relative to `epoch`,
+    /// so the correct approach is to:
+    ///  1. Replace ALL stored HealthKit episodes with the freshly-fetched ones (which have
+    ///     correct coordinates relative to the correct epoch). Manual episodes are preserved.
+    ///  2. Update startDate to the new epoch (which may be earlier than the stored one).
+    ///  3. Ensure numDays covers from the new startDate through today.
+    ///
+    /// Replacing rather than merging fixes the case where a previous import used the
+    /// wrong epoch (e.g. install date) and stored episodes with shifted coordinates.
+    func applyHealthKitResult(epoch: Date, episodes: [SleepEpisode]) {
+        let calendar = Calendar.current
+        print("[Store] applyHealthKitResult: epoch=\(epoch), currentStartDate=\(startDate), episodes=\(episodes.count)")
+
+        // Keep manually-entered episodes — replace all HealthKit ones with the fresh fetch.
+        let manualEpisodes = sleepEpisodes.filter { $0.source == .manual }
+        let combined = (manualEpisodes + episodes).sorted { $0.start < $1.start }
+
+        // Update startDate before writing episodes so save() persists the correct epoch.
+        let newEpoch = min(epoch, startDate)
+        print("[Store] newEpoch=\(newEpoch), will update startDate: \(newEpoch < startDate)")
+        if newEpoch < startDate {
+            startDate = newEpoch
+            print("[Store] startDate updated to \(startDate)")
+        }
+
+        // Ensure numDays covers from startDate through today.
+        let today = calendar.startOfDay(for: Date())
+        let daysToToday = calendar.dateComponents([.day], from: startDate, to: today).day ?? 0
+        if daysToToday + 1 > numDays {
+            numDays = daysToToday + 1
+        }
+
+        // Write the combined episode list and recompute.
+        // Suppress CloudKit push for episodes that already exist remotely —
+        // only push genuinely new ones (those not previously in the store).
+        let existingHKIDs = Set(sleepEpisodes.compactMap(\.healthKitSampleID))
+        sleepEpisodes = combined
+        recompute()
+        let newOnes = episodes.filter { ep in
+            guard let hkID = ep.healthKitSampleID else { return true }
+            return !existingHKIDs.contains(hkID)
+        }
+        for ep in newOnes { cloudSync?.enqueueEpisodeSave(ep) }
+    }
+
     func mergeHealthKitEpisodes(_ newEpisodes: [SleepEpisode]) {
         let existingIDs = Set(sleepEpisodes.compactMap(\.healthKitSampleID))
         let toAdd = newEpisodes.filter { ep in

@@ -533,8 +533,8 @@ struct SpiralView: View {
             }
         }
 
-        // The last record gets a live awake extension up to cursorAbsHour.
-        let lastRecord = records.last
+        // The last record with actual sleep data gets a live awake extension up to cursorAbsHour.
+        let lastRecord = records.last(where: { $0.sleepDuration > 0 })
 
         for record in records {
             let dayEndTurns = geo.turns(day: record.day + 1, hour: 0)
@@ -577,20 +577,20 @@ struct SpiralView: View {
             flushRun(nextPhase: nil)
 
             // For the last (current) day, extend a live awake run from wakeupHour to the cursor.
+            // cursorAbsHour may be on a later calendar day than record.day (e.g. woke up yesterday,
+            // it is now today), so we use absolute turns directly instead of day-relative hours.
             if record.id == lastRecord?.id,
                let cursorH = cursorAbsHour {
-                let cursorHourInDay = cursorH - Double(record.day) * 24.0
-                let wakeH = record.wakeupHour
-                if cursorHourInDay > wakeH + 0.25 {
+                let tCursor = cursorH / geo.period
+                let tWake   = geo.turns(day: record.day, hour: record.wakeupHour)
+                if tCursor > tWake + (0.25 / geo.period) {
                     // Step every 15 min for smooth rendering
-                    let tWake   = geo.turns(day: record.day, hour: wakeH)
-                    let tCursor = geo.turns(day: record.day, hour: min(cursorHourInDay, 24.0))
                     var awakePoints: [(t: Double, pt: CGPoint)] = []
-                    var h = wakeH
-                    while h <= min(cursorHourInDay, 24.0) {
-                        let tH = geo.turns(day: record.day, hour: h)
-                        awakePoints.append((tH, project(turns: tH, geo: geo, size: size)))
-                        h += 0.25
+                    var t = tWake
+                    let tStep = 0.25 / geo.period
+                    while t <= tCursor {
+                        awakePoints.append((t, project(turns: t, geo: geo, size: size)))
+                        t += tStep
                     }
                     // Ensure last point lands exactly on cursor
                     if awakePoints.last?.t ?? 0 < tCursor {
@@ -599,7 +599,6 @@ struct SpiralView: View {
                     if awakePoints.count >= 2 {
                         runs.append(Run(phase: .awake, points: awakePoints, prevPhase: .light, nextPhase: nil))
                     }
-                    _ = tWake // suppress unused warning
                 }
             }
 

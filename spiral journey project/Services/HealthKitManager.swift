@@ -18,9 +18,26 @@ final class HealthKitManager {
     private let sleepType = HKObjectType.categoryType(forIdentifier: .sleepAnalysis)!
     private let hrvType = HKQuantityType.quantityType(forIdentifier: .heartRateVariabilitySDNN)!
 
+    init() {
+        // Restore authorized state on re-launch without showing a dialog.
+        // HKAuthorizationStatus.sharingAuthorized is used for write types; for read types
+        // HealthKit never reveals the true status for privacy — but .notDetermined means
+        // the dialog has never been shown, so we can infer "previously shown = authorized".
+        guard HKHealthStore.isHealthDataAvailable() else { return }
+        let tempStore = HKHealthStore()
+        let status = tempStore.authorizationStatus(for: HKObjectType.categoryType(forIdentifier: .sleepAnalysis)!)
+        // .notDetermined = never asked; anything else = user was asked, treat as authorized
+        // so imports are always attempted (fetchSleepEpisodes returns [] if truly denied).
+        if status != .notDetermined {
+            isAuthorized = true
+        }
+    }
+
     /// Called whenever new sleep data arrives in HealthKit (e.g. after a Watch sleep session).
     var onNewSleepData: (() -> Void)?
     private var observerQuery: HKObserverQuery?
+    /// Prevents concurrent calls to importAndAdjustEpoch (e.g. foreground + observer firing together).
+    private var isImporting = false
 
     // MARK: - Authorization
 
@@ -34,6 +51,9 @@ final class HealthKitManager {
         let readTypes: Set<HKObjectType> = [sleepType, hrvType]
         do {
             try await store.requestAuthorization(toShare: [], read: readTypes)
+            // requestAuthorization always succeeds (even if user denies) — HealthKit
+            // hides the actual read permission for privacy. Mark as authorized so that
+            // imports are always attempted; fetchSleepEpisodes returns [] if truly denied.
             isAuthorized = true
         } catch {
             errorMessage = String(format: String(localized: "healthkit.error.accessFailed"), error.localizedDescription)
@@ -85,16 +105,22 @@ final class HealthKitManager {
                 limit: HKObjectQueryNoLimit,
                 sortDescriptors: [sortDescriptor]
             ) { _, samples, error in
-                guard let samples = samples as? [HKCategorySample], error == nil else {
+                if let error {
+                    print("[HK] fetchSleepEpisodes error: \(error)")
+                }
+                guard let samples = samples as? [HKCategorySample] else {
+                    print("[HK] fetchSleepEpisodes: samples cast failed, count=\(samples?.count ?? -1)")
                     continuation.resume(returning: [])
                     return
                 }
+                print("[HK] fetchSleepEpisodes: raw samples=\(samples.count)")
 
                 // Only include actual sleep stages (not inBed).
                 let sleepSamples = samples.filter { sample in
                     let value = HKCategoryValueSleepAnalysis(rawValue: sample.value)
                     return value != .inBed
                 }
+                print("[HK] fetchSleepEpisodes: after inBed filter=\(sleepSamples.count)")
 
                 // Convert each HealthKit sample to a SleepEpisode preserving its phase.
                 // Apple Watch records short per-stage samples (deep/core/REM/awake) — keeping
@@ -148,28 +174,47 @@ final class HealthKitManager {
         return await fetchSleepEpisodes(from: searchStart, to: end, epoch: epoch)
     }
 
+    /// Maximum number of days to search back in HealthKit for sleep data.
+    /// Using 365 days ensures we capture a full year of history regardless of
+    /// how many days the user has configured to display in the spiral.
+    static let maxImportDays = 365
+
     /// Import HealthKit sleep data into the store, automatically adjusting startDate
-    /// to the earliest detected sleep session. This fixes the common case where
-    /// startDate = today but all sleep occurred yesterday or earlier.
+    /// to the earliest detected sleep session. Always searches back up to maxImportDays
+    /// so that users with months of historical data get it all — independent of numDays
+    /// (which only controls how many days are displayed in the spiral).
     ///
     /// Returns the adjusted epoch so the caller can update store.startDate.
-    func importAndAdjustEpoch(days: Int) async -> (episodes: [SleepEpisode], epoch: Date)? {
-        guard isAuthorized, isAvailable else { return nil }
+    func importAndAdjustEpoch() async -> (episodes: [SleepEpisode], epoch: Date)? {
+        guard isAuthorized, isAvailable else {
+            print("[HK] importAndAdjustEpoch: not authorized or not available")
+            return nil
+        }
+        guard !isImporting else {
+            print("[HK] importAndAdjustEpoch: already in progress, skipping")
+            return nil
+        }
+        isImporting = true
+        defer { isImporting = false }
         let calendar = Calendar.current
         let end = Date()
-        guard let searchStart = calendar.date(byAdding: .day, value: -days, to: end) else { return nil }
+        guard let searchStart = calendar.date(byAdding: .day, value: -Self.maxImportDays, to: end) else { return nil }
+        print("[HK] searching from \(searchStart) to \(end)")
 
         // First pass: raw fetch with a temporary epoch = searchStart to find all samples
         let rawEpisodes = await fetchSleepEpisodes(from: searchStart, to: end, epoch: searchStart)
+        print("[HK] first pass: \(rawEpisodes.count) episodes")
         guard !rawEpisodes.isEmpty else { return nil }
 
         // Compute the real epoch: start of the day containing the earliest sleep
         let earliestAbsHour = rawEpisodes.map(\.start).min() ?? 0
         let earliestDate = searchStart.addingTimeInterval(earliestAbsHour * 3600)
         let realEpoch = calendar.startOfDay(for: earliestDate)
+        print("[HK] realEpoch: \(realEpoch)  (earliestAbsHour=\(earliestAbsHour)h, earliestDate=\(earliestDate))")
 
         // Second pass: re-fetch with the correct epoch so absolute hours are right
         let episodes = await fetchSleepEpisodes(from: searchStart, to: end, epoch: realEpoch)
+        print("[HK] second pass: \(episodes.count) episodes, returning epoch=\(realEpoch)")
         return (episodes, realEpoch)
     }
     // MARK: - HRV Data Query

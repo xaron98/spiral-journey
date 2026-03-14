@@ -138,6 +138,9 @@ public struct CoachInsight: Codable, Sendable {
     public var severity: CoachSeverity
     /// Numeric arguments for localization format strings (order matches key's format spec).
     public var args: [Double]
+    /// Pre-formatted string arguments for localization format strings that use %@ specifiers.
+    /// e.g. ["07:30"] for a time that should appear verbatim in the localized string.
+    public var stringArgs: [String]
 
     public init(
         issueKey: CoachIssueKey,
@@ -146,7 +149,8 @@ public struct CoachInsight: Codable, Sendable {
         action: String,
         expectedOutcome: String,
         severity: CoachSeverity,
-        args: [Double] = []
+        args: [Double] = [],
+        stringArgs: [String] = []
     ) {
         self.issueKey = issueKey
         self.title = title
@@ -155,7 +159,26 @@ public struct CoachInsight: Codable, Sendable {
         self.expectedOutcome = expectedOutcome
         self.severity = severity
         self.args = args
+        self.stringArgs = stringArgs
     }
+}
+
+// MARK: - Rhythm and Alignment State
+
+/// Day-to-day consistency of the sleep schedule.
+public enum RhythmState: String, Codable, Sendable {
+    case stable    // SD of bed/wake < 60 min
+    case variable  // SD of bed/wake ≥ 60 min
+}
+
+/// How the actual sleep window aligns with the goal or circadian baseline.
+public enum AlignmentState: String, Codable, Sendable {
+    case aligned    // Within tolerance of goal
+    case delayed    // Significantly later than goal
+    case advanced   // Significantly earlier than goal
+    case splitSleep // Main sleep block fragmented by significant daytime sleep
+    case fragmented // Many wake-ups within the main sleep window
+    case offTarget  // Outside the goal window (shift/custom schedule modes)
 }
 
 // MARK: - Circadian Assessment
@@ -192,6 +215,22 @@ public struct CircadianAssessment: Codable, Sendable {
     public var mainSleepEndHour: Double
     /// Number of records used in the assessment.
     public var recordCount: Int
+
+    /// Derived rhythm state: variable if bed or wake SD ≥ 60 min, otherwise stable.
+    public var rhythmState: RhythmState {
+        (bedtimeStdMinutes >= 60 || wakeStdMinutes >= 60) ? .variable : .stable
+    }
+
+    /// Derived alignment state based on the dominant issue detected.
+    public var alignmentState: AlignmentState {
+        if hasSplitSleep { return .splitSleep }
+        if fragmentationScore > 35 { return .fragmented }
+        if midSleepDeviationMinutes >= 90 { return .delayed }
+        if midSleepDeviationMinutes <= -90 { return .advanced }
+        let offTarget = abs(bedDeviationMinutes) > 60 || abs(wakeDeviationMinutes) > 60
+        if offTarget { return .offTarget }
+        return .aligned
+    }
 
     public init(
         midSleepDeviationMinutes: Double = 0,

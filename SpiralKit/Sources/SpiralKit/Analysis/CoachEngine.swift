@@ -176,7 +176,8 @@ public enum CoachEngine {
                 action: "Get bright light (sunlight or 10,000-lux lamp) at \(lightTime) for 20–30 min. Shift bedtime 15 min earlier every 2 days.",
                 expectedOutcome: "Goal: gradually move your internal clock earlier.",
                 severity: .moderate,
-                args: [assessment.midSleepDeviationMinutes]
+                args: [assessment.midSleepDeviationMinutes],
+                stringArgs: [lightTime]
             )
         }
 

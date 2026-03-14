@@ -314,6 +314,8 @@ enum PDFReportGenerator {
                     let fmt = loc("rec.\(key.rawValue).text", bundle: bundle)
                     if rec.args.isEmpty {
                         recText = fmt
+                    } else if key == .reduceSocialJetlag || key == .minimizeWeekendLag {
+                        recText = String(format: fmt, formatJetlag(rec.args[0]))
                     } else {
                         recText = String(format: fmt, arguments: rec.args.map { $0 as CVarArg })
                     }

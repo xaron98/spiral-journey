@@ -138,17 +138,22 @@ public enum ConclusionsEngine {
 
         // 4. Social Jetlag
         let jl = safe(stats.socialJetlag)
-        let jetlagSc = clamp(100 - jl, 0, 100)
+        // socialJetlag == 0 when there's no weekday+weekend data to compare
+        let hasJetlagData = stats.weekdayAmp > 0 && stats.weekendAmp > 0
+        let jetlagSc: Double
         let jlDetailKey: CategoryDetailKey
         let jlDetail: String
-        if jl < 45 { jlDetailKey = .minimalJetlag; jlDetail = "Minimal difference between weekdays and weekend" }
-        else if jl < 90 { jlDetailKey = .moderateJetlag; jlDetail = "Moderate difference — try to reduce it" }
-        else { jlDetailKey = .highJetlag; jlDetail = "High social jetlag — metabolic risk" }
+        if !hasJetlagData {
+            jetlagSc = 50  // neutral score when insufficient data
+            jlDetailKey = .jetlagNeedsBothSides; jlDetail = "Need both weekday and weekend data"
+        } else if jl < 45 { jetlagSc = clamp(100 - jl, 0, 100); jlDetailKey = .minimalJetlag; jlDetail = "Minimal difference between weekdays and weekend" }
+        else if jl < 90 { jetlagSc = clamp(100 - jl, 0, 100); jlDetailKey = .moderateJetlag; jlDetail = "Moderate difference — try to reduce it" }
+        else { jetlagSc = clamp(100 - jl, 0, 100); jlDetailKey = .highJetlag; jlDetail = "High social jetlag — metabolic risk" }
         categories.append(CategoryScore(
             id: "jetlag", label: "Social Jetlag",
-            value: formatMinutesAsHM(jl),
-            score: Int(jetlagSc.rounded()), status: statusOf(jetlagSc), detail: jlDetail,
-            labelKey: .jetlag, detailKey: jlDetailKey, detailArgs: [jl]
+            value: hasJetlagData ? formatMinutesAsHM(jl) : "--",
+            score: Int(jetlagSc.rounded()), status: hasJetlagData ? statusOf(jetlagSc) : .moderate, detail: jlDetail,
+            labelKey: .jetlag, detailKey: jlDetailKey, detailArgs: hasJetlagData ? [jl] : []
         ))
 
         // 5. Circadian Pattern
@@ -166,7 +171,9 @@ public enum ConclusionsEngine {
             value: topSig?.label ?? "--",
             score: Int(patternSc.rounded()), status: statusOf(patternSc),
             detail: topSig?.description ?? "Insufficient data",
-            labelKey: .pattern, detailKey: .patternInsufficient, detailArgs: []
+            labelKey: .pattern,
+            detailKey: topSig != nil ? nil : .patternInsufficient,
+            detailArgs: []
         ))
 
         // 6. Sleep Timing

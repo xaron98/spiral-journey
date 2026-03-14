@@ -242,7 +242,13 @@ struct SettingsTab: View {
                             .foregroundStyle(SpiralColors.muted)
                     } else if !healthKit.isAuthorized {
                         Button {
-                            Task { await healthKit.requestAuthorization() }
+                            Task {
+                                await healthKit.requestAuthorization()
+                                // Import immediately after authorization
+                                if let result = await healthKit.importAndAdjustEpoch() {
+                                    store.applyHealthKitResult(epoch: result.epoch, episodes: result.episodes)
+                                }
+                            }
                         } label: {
                             Label(String(localized: "settings.healthData.connect", bundle: bundle), systemImage: "heart.fill")
                                 .font(.system(size: 12, weight: .medium, design: .monospaced))
@@ -263,11 +269,8 @@ struct SettingsTab: View {
                             Button {
                                 isRefreshing = true
                                 Task {
-                                    if let result = await healthKit.importAndAdjustEpoch(days: store.numDays) {
-                                        if result.epoch < store.startDate {
-                                            store.startDate = result.epoch
-                                        }
-                                        store.mergeHealthKitEpisodes(result.episodes)
+                                    if let result = await healthKit.importAndAdjustEpoch() {
+                                        store.applyHealthKitResult(epoch: result.epoch, episodes: result.episodes)
                                     }
                                     isRefreshing = false
                                 }
@@ -292,25 +295,52 @@ struct SettingsTab: View {
 
                 // ── Date range ──────────────────────────────────────────────
                 SettingsSection(title: String(localized: "settings.dataRange.title", bundle: bundle), icon: "calendar") {
-                    DatePicker(
-                        String(localized: "settings.dataRange.startDate", bundle: bundle),
-                        selection: $store.startDate,
-                        displayedComponents: .date
-                    )
-                    .font(.system(size: 11, design: .monospaced))
-                    .foregroundStyle(SpiralColors.text)
-                    .datePickerStyle(.compact)
-                    .tint(SpiralColors.accent)
-
-                    HStack {
-                        Text(String(localized: "settings.dataRange.days", bundle: bundle))
-                            .font(.system(size: 10, design: .monospaced))
+                    let hasHealthKitData = store.sleepEpisodes.contains { $0.source == .healthKit }
+                    if hasHealthKitData {
+                        // startDate and numDays are managed automatically from HealthKit data
+                        HStack {
+                            Text(String(localized: "settings.dataRange.startDate", bundle: bundle))
+                                .font(.system(size: 10, design: .monospaced))
+                                .foregroundStyle(SpiralColors.muted)
+                            Spacer()
+                            Text(store.startDate, style: .date)
+                                .font(.system(size: 11, design: .monospaced))
+                                .foregroundStyle(SpiralColors.text)
+                        }
+                        HStack {
+                            Text(String(localized: "settings.dataRange.days", bundle: bundle))
+                                .font(.system(size: 10, design: .monospaced))
+                                .foregroundStyle(SpiralColors.muted)
+                            Spacer()
+                            Text(String(format: String(localized: "settings.dataRange.daysValue", bundle: bundle), store.numDays))
+                                .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                                .foregroundStyle(SpiralColors.text)
+                        }
+                        Text(String(localized: "settings.dataRange.autoNote", bundle: bundle))
+                            .font(.system(size: 9, design: .monospaced))
                             .foregroundStyle(SpiralColors.muted)
-                        Spacer()
-                        Stepper("\(store.numDays)", value: $store.numDays, in: 3...90).labelsHidden()
-                        Text(String(format: String(localized: "settings.dataRange.daysValue", bundle: bundle), store.numDays))
-                            .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                            .foregroundStyle(SpiralColors.text)
+                            .frame(maxWidth: .infinity, alignment: .trailing)
+                    } else {
+                        DatePicker(
+                            String(localized: "settings.dataRange.startDate", bundle: bundle),
+                            selection: $store.startDate,
+                            displayedComponents: .date
+                        )
+                        .font(.system(size: 11, design: .monospaced))
+                        .foregroundStyle(SpiralColors.text)
+                        .datePickerStyle(.compact)
+                        .tint(SpiralColors.accent)
+
+                        HStack {
+                            Text(String(localized: "settings.dataRange.days", bundle: bundle))
+                                .font(.system(size: 10, design: .monospaced))
+                                .foregroundStyle(SpiralColors.muted)
+                            Spacer()
+                            Stepper("\(store.numDays)", value: $store.numDays, in: 3...90).labelsHidden()
+                            Text(String(format: String(localized: "settings.dataRange.daysValue", bundle: bundle), store.numDays))
+                                .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                                .foregroundStyle(SpiralColors.text)
+                        }
                     }
                 }
 
@@ -351,9 +381,8 @@ struct SettingsTab: View {
                             isImporting = true
                             Task {
                                 store.resetAllData()
-                                if let result = await healthKit.importAndAdjustEpoch(days: store.numDays) {
-                                    store.startDate = result.epoch
-                                    store.mergeHealthKitEpisodes(result.episodes)
+                                if let result = await healthKit.importAndAdjustEpoch() {
+                                    store.applyHealthKitResult(epoch: result.epoch, episodes: result.episodes)
                                 }
                                 isImporting = false
                             }

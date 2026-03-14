@@ -280,6 +280,10 @@ struct AnalysisTab: View {
             desc = String(localized: "analysis.trend.duration.optimal",       bundle: bundle)
             color = SpiralColors.good
             trend = .up
+        } else if dur > 9 {
+            desc = String(localized: "analysis.trend.duration.excessive",     bundle: bundle)
+            color = SpiralColors.moderate
+            trend = .neutral
         } else if dur >= 6 {
             desc = String(localized: "analysis.trend.duration.slightlyShort", bundle: bundle)
             color = SpiralColors.moderate

@@ -376,32 +376,27 @@ struct SpiralTab: View {
         .onAppear { initCursor() }
         .onChange(of: store.period) { _, _ in initCursor() }
         .task {
-            // Advance the cursor every 60 seconds when it's tracking real time.
+            // Advance the cursor every 60 seconds to track real-world time.
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(60))
-                guard isCursorLive, !store.sleepEpisodes.isEmpty else { continue }
-                let now = Date().timeIntervalSince(store.startDate) / 3600
-                let lastEnd = store.sleepEpisodes.map(\.end).max() ?? 0
-                let clamped = max(lastEnd, min(now, Double(store.numDays) * store.period))
-                cursorAbsHour = clamped
+                cursorAbsHour = Date().timeIntervalSince(store.startDate) / 3600
             }
         }
         .onChange(of: store.sleepEpisodes.count) { _, count in
             let minTurns = max(1.0, store.period / 24.0)
             if count == 0 {
-                cursorAbsHour = 0; maxReachedTurns = minTurns
+                let nowAbsHour = Date().timeIntervalSince(store.startDate) / 3600
+                cursorAbsHour = nowAbsHour
+                maxReachedTurns = minTurns
                 visibleDays = minTurns; liveVisibleDays = minTurns; pinchBaseVisibleDays = minTurns
             } else {
-                let lastEnd = store.sleepEpisodes.map(\.end).max() ?? 0
                 let nowAbsHour = Date().timeIntervalSince(store.startDate) / 3600
-                let clampedNow = max(lastEnd, min(nowAbsHour, Double(store.numDays) * store.period))
-                let needed = max(minTurns, clampedNow / store.period)
+                let needed = max(minTurns, nowAbsHour / store.period)
                 if needed > maxReachedTurns {
                     maxReachedTurns = needed
                     visibleDays = needed; liveVisibleDays = needed; pinchBaseVisibleDays = needed
                 }
-                // Always update cursor to current time when new episodes arrive
-                cursorAbsHour = clampedNow
+                cursorAbsHour = nowAbsHour
             }
         }
     }
@@ -625,7 +620,8 @@ struct SpiralTab: View {
 
     private func durationSubtitle(_ h: Double) -> String {
         if h <= 0 { return String(localized: "spiral.stats.durationSub.avg",         bundle: bundle) }
-        if h >= 7 { return String(localized: "spiral.stats.durationSub.good",         bundle: bundle) }
+        if h >= 7 && h <= 9 { return String(localized: "spiral.stats.durationSub.good", bundle: bundle) }
+        if h > 9  { return String(localized: "spiral.stats.durationSub.excessive",    bundle: bundle) }
         if h >= 6 { return String(localized: "spiral.stats.durationSub.slightlyShort", bundle: bundle) }
         return String(localized: "spiral.stats.durationSub.insufficient", bundle: bundle)
     }
@@ -779,17 +775,15 @@ struct SpiralTab: View {
         // short boomerang. For standard 24h period this stays at 1.0.
         let minTurns = max(1.0, store.period / 24.0)
         if store.sleepEpisodes.isEmpty {
-            cursorAbsHour = 0; maxReachedTurns = minTurns
+            cursorAbsHour = Date().timeIntervalSince(store.startDate) / 3600
+            maxReachedTurns = minTurns
             visibleDays = minTurns; liveVisibleDays = minTurns; pinchBaseVisibleDays = minTurns
             zoomNorm = visibleDaysToNorm(minTurns)
         } else {
-            let lastEnd = store.sleepEpisodes.map(\.end).max() ?? 0
-            // Place cursor at the current real-world time (hours elapsed since startDate),
-            // but never before the last sleep ended and never beyond numDays.
             let nowAbsHour = Date().timeIntervalSince(store.startDate) / 3600
-            let clampedNow = max(lastEnd, min(nowAbsHour, Double(store.numDays) * store.period))
-            cursorAbsHour = clampedNow
-            maxReachedTurns = max(minTurns, cursorAbsHour / store.period)
+            let lastEnd = store.sleepEpisodes.map(\.end).max() ?? 0
+            cursorAbsHour = nowAbsHour
+            maxReachedTurns = max(minTurns, max(nowAbsHour, lastEnd) / store.period)
             visibleDays = maxReachedTurns; liveVisibleDays = maxReachedTurns
             pinchBaseVisibleDays = maxReachedTurns
             zoomNorm = 1.0  // fully zoomed out = slider at max

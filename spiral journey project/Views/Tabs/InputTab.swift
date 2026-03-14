@@ -21,9 +21,9 @@ struct InputTab: View {
         guard let ep = eps.first else { return nil }
         let bedtime = ep.start.truncatingRemainder(dividingBy: 24)
         let rawWakeup = ep.end.truncatingRemainder(dividingBy: 24)
-        // Keep wakeup in [3,15] range expected by the slider
+        // Keep wakeup in [3,22] range expected by the slider
         let wakeup = rawWakeup < 3 ? rawWakeup + 24 : rawWakeup
-        return (bedtime, wakeup)
+        return (bedtime, min(wakeup, 22))
     }
 
     /// Updates sliders to reflect stored data (or sensible defaults) for `day`, with animation.
@@ -34,11 +34,13 @@ struct InputTab: View {
             bedtime = stored.bedtime
             wakeup  = stored.wakeup
         } else {
-            // Default: current wall-clock hour rounded to nearest 0.25, clamped to slider ranges
+            // Default: current wall-clock hour for bedtime, +8h for wakeup, clamped to slider ranges
             let now = Calendar.current.dateComponents([.hour, .minute], from: Date())
             let currentHour = Double(now.hour ?? 23) + Double(now.minute ?? 30) / 60.0
             bedtime = min(max(currentHour, 18), 30)
-            wakeup  = 7.0
+            // Wakeup defaults to bedtime + 8h, wrapped into the wakeup slider range (3–22)
+            let rawWakeup = (currentHour + 8.0).truncatingRemainder(dividingBy: 24)
+            wakeup = min(max(rawWakeup, 3), 22)
         }
         withAnimation(.easeInOut(duration: 0.4)) {
             fellAsleepHour = bedtime
@@ -80,11 +82,8 @@ struct InputTab: View {
                         guard !isRefreshingHK else { return }
                         isRefreshingHK = true
                         Task {
-                            if let result = await healthKit.importAndAdjustEpoch(days: store.numDays) {
-                                if result.epoch < store.startDate {
-                                    store.startDate = result.epoch
-                                }
-                                store.mergeHealthKitEpisodes(result.episodes)
+                            if let result = await healthKit.importAndAdjustEpoch() {
+                                store.applyHealthKitResult(epoch: result.epoch, episodes: result.episodes)
                             }
                             isRefreshingHK = false
                         }
@@ -133,7 +132,7 @@ struct InputTab: View {
                     timeRow(label: String(localized: "input.fellAsleep", bundle: bundle), value: $fellAsleepHour, range: 18...30)
 
                     // Wakeup
-                    timeRow(label: String(localized: "input.wokeUp", bundle: bundle), value: $wokeUpHour, range: 3...15)
+                    timeRow(label: String(localized: "input.wokeUp", bundle: bundle), value: $wokeUpHour, range: 3...22)
 
                     // Duration preview
                     let dur = currentAbsEnd - currentAbsStart

@@ -327,15 +327,23 @@ struct CoachTab: View {
             return RephaseCalculator.todayActionText(plan: store.rephasePlan, meanAcrophase: store.analysis.stats.meanAcrophase, bundle: bundle)
         }
         if let ci = store.analysis.coachInsight {
-            return localizedCoachString("coach.issue.\(ci.issueKey.rawValue).action", fallback: ci.action, args: ci.args)
+            return localizedCoachString("coach.issue.\(ci.issueKey.rawValue).action", fallback: ci.action, args: ci.args, stringArgs: ci.stringArgs)
         }
         return legacyAction
     }
 
     /// Resolve a coach localization key with optional format args; falls back to English `fallback`.
-    private func localizedCoachString(_ key: String, fallback: String, args: [Double]) -> String {
+    /// `stringArgs` takes priority over `args` when present — used for pre-formatted values like "HH:MM" times.
+    private func localizedCoachString(_ key: String, fallback: String, args: [Double], stringArgs: [String] = []) -> String {
         let raw = NSLocalizedString(key, bundle: bundle, comment: "")
         let resolved = raw == key ? fallback : raw   // key == raw means no translation found
+        if !stringArgs.isEmpty {
+            switch stringArgs.count {
+            case 1: return String(format: resolved, stringArgs[0])
+            case 2: return String(format: resolved, stringArgs[0], stringArgs[1])
+            default: return resolved
+            }
+        }
         guard !args.isEmpty else { return resolved }
         switch args.count {
         case 1: return String(format: resolved, args[0])

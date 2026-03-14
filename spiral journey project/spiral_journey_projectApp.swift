@@ -54,20 +54,14 @@ struct spiral_journey_projectApp: App {
                     //    main actor so each `await` yields and the UI stays responsive.
                     #if !targetEnvironment(simulator)
                     if healthKit.isAuthorized {
-                        if let result = await healthKit.importAndAdjustEpoch(days: store.numDays) {
-                            if result.epoch < store.startDate {
-                                store.startDate = result.epoch
-                            }
-                            store.mergeHealthKitEpisodes(result.episodes)
+                        if let result = await healthKit.importAndAdjustEpoch() {
+                            store.applyHealthKitResult(epoch: result.epoch, episodes: result.episodes)
                         }
 
                         healthKit.onNewSleepData = {
                             Task {
-                                if let result = await healthKit.importAndAdjustEpoch(days: store.numDays) {
-                                    if result.epoch < store.startDate {
-                                        store.startDate = result.epoch
-                                    }
-                                    store.mergeHealthKitEpisodes(result.episodes)
+                                if let result = await healthKit.importAndAdjustEpoch() {
+                                    store.applyHealthKitResult(epoch: result.epoch, episodes: result.episodes)
                                 }
                             }
                         }
@@ -91,7 +85,18 @@ struct spiral_journey_projectApp: App {
                         #endif
                     }())
                 ) { _ in
-                    Task { await store.cloudSync?.fetchNow() }
+                    Task {
+                        // Re-import HealthKit on every foreground so Watch sleep
+                        // recorded while the app was backgrounded appears immediately.
+                        #if !targetEnvironment(simulator)
+                        if healthKit.isAuthorized {
+                            if let result = await healthKit.importAndAdjustEpoch() {
+                                store.applyHealthKitResult(epoch: result.epoch, episodes: result.episodes)
+                            }
+                        }
+                        #endif
+                        await store.cloudSync?.fetchNow()
+                    }
                 }
         }
     }
