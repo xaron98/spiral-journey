@@ -33,7 +33,7 @@ struct WelcomeScreenView: View {
                         .font(.system(size: 28, weight: .light, design: .default))
                         .foregroundStyle(SpiralColors.accent)
 
-                    Text(NSLocalizedString("welcome.subtitle", bundle: bundle, comment: ""))
+                    Text(String(localized: "welcome.subtitle", bundle: bundle))
                         .font(.system(size: 12, weight: .medium, design: .monospaced))
                         .tracking(1.5)
                         .foregroundStyle(SpiralColors.muted)
@@ -44,7 +44,7 @@ struct WelcomeScreenView: View {
 
                 // ── Language selector ────────────────────────────────────────
                 VStack(alignment: .leading, spacing: 12) {
-                    Text(NSLocalizedString("welcome.chooseLanguage", bundle: bundle, comment: ""))
+                    Text(String(localized: "welcome.chooseLanguage", bundle: bundle))
                         .font(.system(size: 9, weight: .semibold, design: .monospaced))
                         .tracking(1.5)
                         .foregroundStyle(SpiralColors.muted)
@@ -97,7 +97,7 @@ struct WelcomeScreenView: View {
 
                 // ── Continue button ──────────────────────────────────────────
                 Button(action: onContinue) {
-                    Text(NSLocalizedString("welcome.continue", bundle: bundle, comment: ""))
+                    Text(String(localized: "welcome.continue", bundle: bundle))
                         .font(.system(size: 14, weight: .semibold, design: .monospaced))
                         .foregroundStyle(.black)
                         .frame(maxWidth: .infinity)

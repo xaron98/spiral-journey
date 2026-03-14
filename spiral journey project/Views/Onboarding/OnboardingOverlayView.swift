@@ -209,13 +209,13 @@ struct OnboardingOverlayView: View {
                     Image(systemName: content.icon)
                         .font(.system(size: 15))
                         .foregroundStyle(SpiralColors.accent)
-                    Text(NSLocalizedString(content.titleKey, bundle: bundle, comment: ""))
+                    Text(String(localized: String.LocalizationValue(content.titleKey), bundle: bundle))
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundStyle(SpiralColors.text)
                 }
 
                 // Message
-                Text(NSLocalizedString(content.messageKey, bundle: bundle, comment: ""))
+                Text(String(localized: String.LocalizationValue(content.messageKey), bundle: bundle))
                     .font(.system(size: 13))
                     .foregroundStyle(SpiralColors.text.opacity(0.75))
                     .fixedSize(horizontal: false, vertical: true)

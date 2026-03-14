@@ -316,7 +316,7 @@ final class SpiralStore {
         linkGrowthToTau = false
         depthScale = 1.5
         showGrid = true
-        language = .en
+        language = .systemMatch
         appearance = .dark
         rephasePlan = RephasePlan()
         hasCompletedOnboarding = false
