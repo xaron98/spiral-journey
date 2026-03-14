@@ -59,6 +59,10 @@ final class WatchStore {
         for: Calendar.current.date(byAdding: .day, value: -6, to: Date()) ?? Date()
     )
 
+    /// True when records came from the iPhone (have historical data beyond Watch HK window).
+    /// Set by updateFromContext; cleared when Watch resets its store.
+    private var hasIPhoneRecords = false
+
     /// True when there is no data at all (neither from iPhone nor locally logged).
     var isEmpty: Bool { records.isEmpty && episodes.isEmpty }
 
@@ -169,44 +173,20 @@ final class WatchStore {
 
         let calendar = Calendar.current
 
-        // If the iPhone has synced a startDate that is older than 7 days, trust it.
-        // Otherwise (standalone or iPhone epoch also recent) derive from HK data.
-        let sevenDaysAgo = calendar.date(byAdding: .day, value: -7, to: Date()) ?? Date()
-        let hasEstablishedEpoch = startDate < sevenDaysAgo
+        // The epoch is always the Watch's current startDate — either synced from iPhone
+        // (preferred) or the default 6-days-ago on first standalone launch.
+        // We do NOT attempt to derive the epoch from HK data, because the Watch may only
+        // have a few days of HK samples while the iPhone has months of history.
+        // Using startDate as epoch keeps absolute hour coordinates consistent with the
+        // records already in memory (which came from the iPhone via WatchConnectivity).
+        let epoch = startDate
+        print("[WatchHK] Using epoch=\(epoch) (startDate)")
 
-        print("[WatchHK] startDate=\(startDate), hasEstablishedEpoch=\(hasEstablishedEpoch)")
-
-        // Always derive the epoch from HK data: find the earliest sleep sample in
-        // the last 60 days and use midnight of that day as day-0.
-        // This guarantees that ALL samples in the second fetch have absStart >= 0.
-        let searchWindow = 60
-        let tempEpoch = calendar.date(byAdding: .day, value: -searchWindow, to: Date()) ?? Date()
-        let discoveryEpisodes = await hk.fetchRecentSleepEpisodes(days: searchWindow, epoch: tempEpoch, searchFromEpoch: true)
-        print("[WatchHK] Discovery episodes found: \(discoveryEpisodes.count)")
-
-        let epoch: Date
-        if discoveryEpisodes.isEmpty {
-            // No HK data at all — nothing to do.
-            print("[WatchHK] No HK data found — aborting")
-            return
-        }
-
-        if hasEstablishedEpoch {
-            // iPhone epoch is older than 7 days — use it to keep coordinates consistent.
-            epoch = startDate
-        } else {
-            // Derive epoch from the earliest HK sample.
-            let earliestAbsHour = discoveryEpisodes.map(\.start).min() ?? 0
-            let earliestDate = tempEpoch.addingTimeInterval(earliestAbsHour * 3600)
-            epoch = calendar.startOfDay(for: earliestDate)
-            startDate = epoch
-            print("[WatchHK] Derived epoch from HK: \(epoch)")
-        }
-
-        // Re-fetch using the correct epoch so all absStart values are >= 0.
-        // searchFromEpoch: true ensures we don't miss samples between epoch and (now-32d).
-        let hkEpisodes = await hk.fetchRecentSleepEpisodes(days: searchWindow, epoch: epoch, searchFromEpoch: true)
-        print("[WatchHK] Fetched \(hkEpisodes.count) episodes with epoch=\(epoch)")
+        // Fetch recent sleep — only the last 7 days so we pick up last night's sleep
+        // without overwriting the historical picture that came from the iPhone.
+        // All samples will have absStart >= 0 because we search from max(epoch, -7d).
+        let hkEpisodes = await hk.fetchRecentSleepEpisodes(days: 7, epoch: epoch, searchFromEpoch: false)
+        print("[WatchHK] Fetched \(hkEpisodes.count) recent episodes with epoch=\(epoch)")
         guard !hkEpisodes.isEmpty else {
             print("[WatchHK] No recent HK episodes — aborting")
             return
@@ -259,10 +239,23 @@ final class WatchStore {
         // Calculate enough days to cover all episodes, minimum 7
         let maxDay = episodes.map { Int($0.end / 24) + 1 }.max() ?? 7
         let numDays = max(7, maxDay)
-        let newRecords = ManualDataConverter.convert(episodes: episodes, numDays: numDays, startDate: startDate)
-        let newAnalysis = ConclusionsEngine.generate(from: newRecords)
-        records = newRecords
-        analysis = newAnalysis
+        let freshRecords = ManualDataConverter.convert(episodes: episodes, numDays: numDays, startDate: startDate)
+
+        if hasIPhoneRecords && !records.isEmpty {
+            // iPhone records are the historical source of truth.
+            // Only replace the last 8 days with freshly-computed HK data so that
+            // last night's sleep appears immediately without overwriting history.
+            let cutoffDay = (records.map(\.day).max() ?? 0) - 7
+            var merged = records.filter { $0.day <= cutoffDay }
+            let recent = freshRecords.filter { $0.day > cutoffDay }
+            merged.append(contentsOf: recent)
+            merged.sort { $0.day < $1.day }
+            records = merged
+        } else {
+            records = freshRecords
+        }
+
+        analysis = ConclusionsEngine.generate(from: records)
     }
 
     // MARK: - WatchConnectivity
@@ -277,8 +270,10 @@ final class WatchStore {
             // Try slim format first (new), fall back to full SleepRecord (legacy)
             if let slim = try? JSONDecoder().decode([WatchSlimRecord].self, from: data) {
                 records = slim.map { $0.toSleepRecord() }
+                hasIPhoneRecords = !records.isEmpty
             } else if let full = try? JSONDecoder().decode([SleepRecord].self, from: data) {
                 records = full
+                hasIPhoneRecords = !records.isEmpty
             }
         }
         if let data = context["eventsReplace"] as? Data,
@@ -344,13 +339,22 @@ final class WatchStore {
         var spiralType: SpiralType?
         var period: Double?
         var events: [CircadianEvent]?
+        var hasIPhoneRecords: Bool?
+        /// iPhone-sourced records, persisted so the full spiral is available on relaunch
+        /// without waiting for a new WatchConnectivity context delivery.
+        var iPhoneRecords: Data?
     }
 
     private func saveToDefaults() {
+        // Persist iPhone records so the full history survives relaunch.
+        let iPhoneRecordsData: Data? = hasIPhoneRecords
+            ? try? JSONEncoder().encode(records)
+            : nil
         let stored = Stored(episodes: episodes, startDate: startDate,
                             language: language, appearance: appearance,
                             spiralType: spiralType, period: period,
-                            events: events)
+                            events: events, hasIPhoneRecords: hasIPhoneRecords,
+                            iPhoneRecords: iPhoneRecordsData)
         if let data = try? JSONEncoder().encode(stored) {
             UserDefaults.standard.set(data, forKey: defaultsKey)
         }
@@ -366,7 +370,15 @@ final class WatchStore {
         if let st   = stored.spiralType { spiralType = st }
         if let p    = stored.period { period = p }
         if let evs  = stored.events { events = evs }
-        if !episodes.isEmpty { recompute() }
+        if let hir  = stored.hasIPhoneRecords { hasIPhoneRecords = hir }
+        // Restore iPhone records directly — these are the historical source of truth.
+        if hasIPhoneRecords, let data = stored.iPhoneRecords,
+           let decoded = try? JSONDecoder().decode([SleepRecord].self, from: data) {
+            records = decoded
+            analysis = ConclusionsEngine.generate(from: records)
+        } else if !episodes.isEmpty {
+            recompute()
+        }
     }
 
 }
