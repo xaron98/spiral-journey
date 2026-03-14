@@ -24,7 +24,7 @@ struct ScoreGaugeView: View {
                 .animation(.easeOut(duration: 1.0), value: animatedProgress)
 
             // Score text
-            VStack(spacing: 1) {
+            VStack(spacing: 0) {
                 Text("\(score)")
                     .font(.system(size: 32, weight: .bold, design: .monospaced))
                     .foregroundStyle(Color(hex: hexColor))
@@ -35,6 +35,7 @@ struct ScoreGaugeView: View {
                     .minimumScaleFactor(0.6)
             }
             .padding(.horizontal, 12)
+            .offset(y: -4)
         }
         .onAppear { animatedProgress = progress }
         .onChange(of: score) { animatedProgress = Double($1) / 100 }

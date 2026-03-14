@@ -123,37 +123,44 @@ struct AnalysisTab: View {
         .padding(.bottom, 4)
     }
 
-    /// Generates the PDF off the main thread, then presents the system share sheet.
+    /// Generates the PDF on a GCD background queue, then presents the share sheet.
+    ///
+    /// Note: `Task.detached` is NOT enough because `UIGraphicsPDFRenderer` is
+    /// `@MainActor`-isolated in modern SDKs — Swift silently hops back to the
+    /// main actor. Using GCD guarantees true background execution.
     private func generateAndSharePDF() {
         isGeneratingPDF = true
-        // Capture value-type snapshots so we can leave the main actor.
+        // Capture value-type snapshots for the background closure.
         let records     = store.records
         let analysis    = store.analysis
         let consistency = store.analysis.consistency
         let startDate   = store.startDate
         let numDays     = store.numDays
 
-        Task.detached(priority: .userInitiated) {
-            let df = DateFormatter()
-            df.dateStyle = .medium
-            let dateRange = "\(df.string(from: startDate)) – \(df.string(from: Date()))"
+        Task {
+            let url: URL = await withCheckedContinuation { continuation in
+                DispatchQueue.global(qos: .userInitiated).async {
+                    let df = DateFormatter()
+                    df.dateStyle = .medium
+                    let dateRange = "\(df.string(from: startDate)) – \(df.string(from: Date()))"
 
-            let data = PDFReportGenerator.generate(
-                records: records,
-                analysis: analysis,
-                consistency: consistency,
-                dateRange: dateRange,
-                numDays: numDays
-            )
+                    let data = PDFReportGenerator.generate(
+                        records: records,
+                        analysis: analysis,
+                        consistency: consistency,
+                        dateRange: dateRange,
+                        numDays: numDays
+                    )
 
-            let url = FileManager.default.temporaryDirectory
-                .appendingPathComponent("SpiralJourney_SleepReport.pdf")
-            try? data.write(to: url)
-
-            await MainActor.run {
-                isGeneratingPDF = false
-                presentShareSheet(url: url)
+                    let fileURL = FileManager.default.temporaryDirectory
+                        .appendingPathComponent("SpiralJourney_SleepReport.pdf")
+                    try? data.write(to: fileURL)
+                    continuation.resume(returning: fileURL)
+                }
             }
+
+            isGeneratingPDF = false
+            presentShareSheet(url: url)
         }
     }
 
