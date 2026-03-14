@@ -53,26 +53,24 @@ final class WatchStore {
     /// Depth scale for perspective projection, synced from iPhone. Default 1.5.
     var depthScale: Double = 1.5
 
-    // Stored episodes (persisted locally)
+    // Stored episodes (persisted locally — used for manual entries and standalone HK mode)
     private var episodes: [SleepEpisode] = []
     private var startDate: Date = Calendar.current.startOfDay(
         for: Calendar.current.date(byAdding: .day, value: -6, to: Date()) ?? Date()
     )
 
-    /// True when records came from the iPhone (have historical data beyond Watch HK window).
-    /// Set by updateFromContext; cleared when Watch resets its store.
+    /// True when records came from the iPhone (full historical data).
+    /// When true, refreshFromHealthKit() delegates to requestDataFromPhone()
+    /// rather than rebuilding records from the Watch's limited local HK data.
     private var hasIPhoneRecords = false
 
     /// True when there is no data at all (neither from iPhone nor locally logged).
     var isEmpty: Bool { records.isEmpty && episodes.isEmpty }
 
     /// The cursor position (absolute hours on the spiral timeline) as set by WatchSpiralView.
-    /// WatchSpiralView writes this whenever the cursor moves or is initialised.
-    /// WatchEventLogView reads it so events are placed at the cursor, not wall-clock time.
     var cursorAbsoluteHour: Double = 0
 
-    /// Current wall-clock time expressed as absolute hours on the spiral timeline
-    /// (hours elapsed since startDate midnight). Kept for fallback use.
+    /// Current wall-clock time expressed as absolute hours on the spiral timeline.
     var currentAbsoluteHour: Double {
         let now = Date()
         let seconds = now.timeIntervalSince(startDate)
@@ -124,20 +122,13 @@ final class WatchStore {
     // MARK: - Data Loading
 
     /// Called from .task in ContentView.
-    /// Reads any context that was already delivered by the iPhone before the app opened,
-    /// then waits for live updates via WatchConnectivity.
     func loadData() async {
         isLoading = true
         defer { isLoading = false }
-
-        // Note: WCSession.default.receivedApplicationContext may be empty here if the
-        // session hasn't activated yet. The onSessionActivated callback in ContentView
-        // will call loadFromReceivedContext() once activation completes.
         loadFromReceivedContext()
     }
 
     /// Reads receivedApplicationContext and applies it if non-empty.
-    /// Safe to call multiple times — after activation, after receiving new context.
     func loadFromReceivedContext() {
         let received = WCSession.default.receivedApplicationContext
         if !received.isEmpty {
@@ -151,57 +142,52 @@ final class WatchStore {
 
     // MARK: - HealthKit Sync
 
-    /// Refresh sleep data from the best available source.
+    /// Refresh sleep data from the Watch's own HealthKit.
     ///
-    /// Preferred path: if the iPhone is reachable, ask it to push a fresh context
-    /// (the iPhone imports HealthKit before responding, so we get the full history).
-    ///
-    /// Standalone path: only when iPhone is NOT reachable. Fetches recent HK episodes
-    /// directly from the Watch's local HealthKit store and rebuilds records from scratch.
-    /// This intentionally does NOT merge with existing iPhone records — the Watch's local
-    /// HK window is too short (days, not months) to produce valid day numbers relative to
-    /// the iPhone's epoch, so mixing the two coordinate spaces creates garbage output.
+    /// Strategy:
+    /// - If the iPhone is reachable, ask it for fresh data (it imports HK before replying).
+    ///   This is the preferred path: iPhone has full history and latest HK data.
+    /// - If the iPhone is NOT reachable, fetch the last 7 days from Watch HK directly
+    ///   and rebuild records from those episodes. This standalone path only runs
+    ///   when there is genuinely no iPhone connection.
     func refreshFromHealthKit() async {
         let hk = WatchHealthKitManager.shared
         guard hk.isAvailable else { return }
+
         if !hk.isAuthorized {
             await hk.requestAuthorization()
         }
         guard hk.isAuthorized else { return }
 
-        // Preferred: let iPhone do the heavy lifting. It will import its own HK data
-        // (including last night's sleep) and push the full record set via WatchConnectivity.
-        if WCSession.default.activationState == .activated && WCSession.default.isReachable {
+        // Preferred path: ask iPhone for fresh data (it imports HK before responding).
+        if WatchConnectivityManager.shared.isReachable {
+            print("[WatchHK] iPhone reachable — requesting fresh data from phone")
             WatchConnectivityManager.shared.requestDataFromPhone()
             return
         }
 
-        // Standalone: iPhone not reachable. Build records purely from Watch's local HK.
-        // Use startDate as epoch so absolute hour values are consistent with any
-        // previously-received iPhone context (same epoch is preserved across relaunches).
+        // Standalone path: no iPhone connection.
+        // Use startDate as epoch so coordinates are consistent with any cached records.
         let epoch = startDate
+        print("[WatchHK] Standalone HK fetch with epoch=\(epoch)")
+
         let hkEpisodes = await hk.fetchRecentSleepEpisodes(days: 7, epoch: epoch, searchFromEpoch: false)
+        print("[WatchHK] Fetched \(hkEpisodes.count) standalone episodes")
         guard !hkEpisodes.isEmpty else { return }
 
         mergeHealthKitEpisodes(hkEpisodes)
-        // Rebuild records only from the Watch's local episodes — do NOT mix with
-        // iPhone records (different day-number coordinate space).
+        // Rebuild records entirely from local episodes (standalone mode).
         let maxDay = episodes.map { Int($0.end / 24) + 1 }.max() ?? 7
-        records = ManualDataConverter.convert(
-            episodes: episodes, numDays: max(7, maxDay), startDate: epoch)
+        records = ManualDataConverter.convert(episodes: episodes, numDays: max(7, maxDay), startDate: epoch)
         analysis = ConclusionsEngine.generate(from: records)
         saveToDefaults()
+        print("[WatchHK] Standalone done. records=\(records.count)")
     }
 
     /// Merge HealthKit-sourced episodes into the local list, replacing any existing
     /// episodes with the same HealthKit sample UUID to avoid duplicates on re-fetch.
     private func mergeHealthKitEpisodes(_ incoming: [SleepEpisode]) {
-        // Remove old HealthKit episodes that are covered by the new fetch.
-        let incomingIDs = Set(incoming.compactMap(\.healthKitSampleID))
-        episodes.removeAll { $0.source == .healthKit && $0.healthKitSampleID.map { incomingIDs.contains($0) } == true }
-
-        // Also remove stale HealthKit episodes that were deleted from Health app
-        // (keep only manual episodes + the fresh HK batch).
+        // Remove stale HealthKit episodes and replace with the fresh batch.
         episodes.removeAll { $0.source == .healthKit }
         episodes.append(contentsOf: incoming)
         episodes.sort { $0.start < $1.start }
@@ -216,8 +202,6 @@ final class WatchStore {
 
         // Recalculate startDate to cover all episodes
         if let firstStart = episodes.first?.start {
-            // day 0 absolute hour corresponds to startDate
-            // Keep existing startDate unless the episode starts before day 0
             if firstStart < 0 {
                 startDate = Calendar.current.date(
                     byAdding: .hour, value: Int(firstStart), to: startDate) ?? startDate
@@ -231,8 +215,8 @@ final class WatchStore {
 
     private func recompute() {
         let maxDay = episodes.map { Int($0.end / 24) + 1 }.max() ?? 7
-        records = ManualDataConverter.convert(
-            episodes: episodes, numDays: max(7, maxDay), startDate: startDate)
+        let numDays = max(7, maxDay)
+        records = ManualDataConverter.convert(episodes: episodes, numDays: numDays, startDate: startDate)
         analysis = ConclusionsEngine.generate(from: records)
     }
 
@@ -256,37 +240,22 @@ final class WatchStore {
         }
         if let data = context["eventsReplace"] as? Data,
            let decoded = try? JSONDecoder().decode([CircadianEvent].self, from: data) {
-            // Authoritative replace from iPhone (add or delete) — use the list as-is.
             events = decoded.sorted { $0.absoluteHour < $1.absoluteHour }
         } else if let data = context["eventsJSON"] as? Data,
            let decoded = try? JSONDecoder().decode([CircadianEvent].self, from: data) {
-            // Background context (applicationContext on startup) — merge to keep any
-            // locally-logged events not yet echoed back from iPhone.
             let knownIDs = Set(decoded.map { $0.id })
             let localOnly = events.filter { !knownIDs.contains($0.id) }
             events = (decoded + localOnly).sorted { $0.absoluteHour < $1.absoluteHour }
         }
-        if let lang = context["language"] as? String {
-            language = lang
-        }
-        if let app = context["appearance"] as? String {
-            appearance = app
-        }
-        if let st = context["spiralType"] as? String, let decoded = SpiralType(rawValue: st) {
-            spiralType = decoded
-        }
-        if let p = context["period"] as? Double {
-            period = p
-        }
-        if let d = context["depthScale"] as? Double {
-            depthScale = d
-        }
-        // Sync startDate from iPhone so absoluteHour values in events and records
-        // are interpreted on the same timeline reference on both devices.
+        if let lang = context["language"] as? String { language = lang }
+        if let app  = context["appearance"] as? String { appearance = app }
+        if let st   = context["spiralType"] as? String, let decoded = SpiralType(rawValue: st) { spiralType = decoded }
+        if let p    = context["period"] as? Double { period = p }
+        if let d    = context["depthScale"] as? Double { depthScale = d }
+        // Sync startDate from iPhone so absoluteHour values stay on the same timeline.
         if let ts = context["startDate"] as? Double {
             startDate = Date(timeIntervalSince1970: ts)
         }
-        // Context blocks and schedule conflicts
         if let data = context["contextBlocksJSON"] as? Data,
            let decoded = try? JSONDecoder().decode([ContextBlock].self, from: data) {
             contextBlocks = decoded
@@ -318,13 +287,11 @@ final class WatchStore {
         var period: Double?
         var events: [CircadianEvent]?
         var hasIPhoneRecords: Bool?
-        /// iPhone-sourced records, persisted so the full spiral is available on relaunch
-        /// without waiting for a new WatchConnectivity context delivery.
+        /// iPhone-sourced records persisted so the full spiral survives relaunch.
         var iPhoneRecords: Data?
     }
 
     private func saveToDefaults() {
-        // Persist iPhone records so the full history survives relaunch.
         let iPhoneRecordsData: Data? = hasIPhoneRecords
             ? try? JSONEncoder().encode(records)
             : nil
@@ -349,9 +316,11 @@ final class WatchStore {
         if let p    = stored.period { period = p }
         if let evs  = stored.events { events = evs }
         if let hir  = stored.hasIPhoneRecords { hasIPhoneRecords = hir }
-        // Restore iPhone records directly — these are the historical source of truth.
-        if hasIPhoneRecords, let data = stored.iPhoneRecords,
-           let decoded = try? JSONDecoder().decode([SleepRecord].self, from: data) {
+
+        // Restore iPhone records — these are the historical source of truth.
+        if hasIPhoneRecords,
+           let recData = stored.iPhoneRecords,
+           let decoded = try? JSONDecoder().decode([SleepRecord].self, from: recData) {
             records = decoded
             analysis = ConclusionsEngine.generate(from: records)
         } else if !episodes.isEmpty {
