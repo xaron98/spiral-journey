@@ -60,7 +60,13 @@ struct SettingsTab: View {
                 // ── Language ────────────────────────────────────────────────
                 SettingsSection(title: String(localized: "settings.language.title", bundle: bundle), icon: "globe") {
                     ForEach(AppLanguage.allCases, id: \.self) { lang in
-                        Button { store.language = lang } label: {
+                        Button {
+                            store.language = lang
+                            // Mark that the user explicitly chose a language.
+                            // This prevents the migration from resetting it to .system on next launch.
+                            UserDefaults(suiteName: "group.xaron.spiral-journey-project")?
+                                .set(true, forKey: "userChoseLanguageExplicitly")
+                        } label: {
                             HStack {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(lang == .system

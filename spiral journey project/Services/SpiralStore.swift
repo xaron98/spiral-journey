@@ -433,7 +433,14 @@ final class SpiralStore {
         linkGrowthToTau = stored.linkGrowthToTau
         if let ds   = stored.depthScale  { depthScale = ds }
         if let grid = stored.showGrid    { showGrid = grid }
-        if let lang = stored.language    { language = lang }
+        if let lang = stored.language {
+            // Migrate: if the stored language was set before the "System" option existed,
+            // reset to .system so the app follows the device language going forward.
+            // A UserDefaults flag marks that the user has explicitly chosen a language
+            // after the System option was introduced.
+            let hasExplicitChoice = sharedDefaults.bool(forKey: "userChoseLanguageExplicitly")
+            language = (lang == .system || hasExplicitChoice) ? lang : .system
+        }
         if let app  = stored.appearance  { appearance = app }
         if let rp   = stored.rephasePlan { rephasePlan = rp }
         if let sg   = stored.sleepGoal   { sleepGoal = sg }
