@@ -573,8 +573,8 @@ struct SpiralTab: View {
         }
         // Social jetlag
         if stats.socialJetlag > 60 {
-            let min = Int(stats.socialJetlag)
-            return String(format: String(localized: "spiral.rhythm.subtitle.jetlag", bundle: bundle), min)
+            let formatted = formatJetlag(stats.socialJetlag)
+            return String(format: String(localized: "spiral.rhythm.subtitle.jetlag", bundle: bundle), formatted)
         }
         // Bedtime variability
         let bedStd = stats.stdBedtime > 0 ? stats.stdBedtime : stats.stdAcrophase
@@ -612,6 +612,15 @@ struct SpiralTab: View {
                           value: stabilityVal, sub: stabilitySub,
                           color: stabilityColor(s.rhythmStability))
         }
+    }
+
+    /// Formats a social jetlag value (in minutes) as "Xh Ym" or "Xm".
+    private func formatJetlag(_ minutes: Double) -> String {
+        let total = Int(minutes.rounded())
+        if total < 60 { return "\(total)m" }
+        let h = total / 60
+        let m = total % 60
+        return m == 0 ? "\(h)h" : "\(h)h \(m)m"
     }
 
     private func durationSubtitle(_ h: Double) -> String {

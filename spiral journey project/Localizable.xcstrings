@@ -1548,49 +1548,49 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": " · تنام في عطلة نهاية الأسبوع بعد ~%.0f دقيقة"
+            "value": " · تنام في عطلة نهاية الأسبوع بعد ~%@ لاحقاً"
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": " · Et poses a dormir ~%.0f min més tard els caps de setmana"
+            "value": " · Et poses a dormir ~%@ més tard els caps de setmana"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": " · Du gehst am Wochenende ~%.0f Min später ins Bett"
+            "value": " · Du gehst am Wochenende ~%@ später ins Bett"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": " · You go to bed ~%.0f min later on weekends"
+            "value": " · You go to bed ~%@ later on weekends"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": " · Te acuestas ~%.0f min más tarde los fines de semana"
+            "value": " · Te acuestas ~%@ más tarde los fines de semana"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": " · Tu te couches ~%.0f min plus tard le week-end"
+            "value": " · Tu te couches ~%@ plus tard le week-end"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": " · 週末は約 %.0f 分遅く就寝"
+            "value": " · 週末は約 %@ 遅く就寝"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": " · 周末入睡时间晚约 %.0f 分钟"
+            "value": " · 周末入睡时间晚约 %@"
           }
         }
       }
@@ -24317,49 +24317,49 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "تنام في عطلة نهاية الأسبوع بعد %lld دقيقة"
+            "value": "تنام في عطلة نهاية الأسبوع بعد %@ لاحقاً"
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "Et poses a dormir %lld min més tard els caps de setmana"
+            "value": "Et poses a dormir %@ més tard els caps de setmana"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Du gehst am Wochenende %lld Min später ins Bett"
+            "value": "Du gehst am Wochenende %@ später ins Bett"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You go to bed %lld min later on weekends"
+            "value": "You go to bed %@ later on weekends"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Te acuestas %lld min más tarde los fines de semana"
+            "value": "Te acuestas %@ más tarde los fines de semana"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tu te couches %lld min plus tard le week-end"
+            "value": "Tu te couches %@ plus tard le week-end"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "週末は平日より %lld 分遅く就寝"
+            "value": "週末は平日より %@ 遅く就寝"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "周末比工作日晚 %lld 分钟入睡"
+            "value": "周末比工作日晚 %@ 入睡"
           }
         }
       }

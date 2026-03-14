@@ -12,6 +12,15 @@ struct StatsPanelView: View {
         SleepStatistics.calculateStats(records)
     }
 
+    /// Formats a minutes value as "Xh Ym" (e.g. 953 → "15h 53m"), or "Xm" if under 60 min.
+    private func formatMinutes(_ minutes: Double) -> String {
+        let total = Int(minutes.rounded())
+        if total < 60 { return "\(total)m" }
+        let h = total / 60
+        let m = total % 60
+        return m == 0 ? "\(h)h" : "\(h)h \(m)m"
+    }
+
     private var signatures: [DisorderSignature] {
         DisorderDetection.detect(from: records)
     }
@@ -51,7 +60,7 @@ struct StatsPanelView: View {
                          value: String(format: "%.0f%%", stats.sri),
                          sub: String(localized: "stats.sri.sub", bundle: bundle))
                 StatCard(String(localized: "stats.card.socialJL", bundle: bundle),
-                         value: String(format: "%.0f min", stats.socialJetlag),
+                         value: formatMinutes(stats.socialJetlag),
                          sub: String(localized: "stats.socialJL.sub", bundle: bundle))
                 StatCard(String(localized: "stats.card.wkndAmp", bundle: bundle),
                          value: String(format: "%.2f", stats.weekendAmp),

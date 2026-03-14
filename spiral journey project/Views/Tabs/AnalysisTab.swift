@@ -201,7 +201,7 @@ struct AnalysisTab: View {
             trend = .down
         }
 
-        let jetlagNote = jetlag > 45 ? " · " + String(format: String(localized: "analysis.trend.drift.jetlagNote", bundle: bundle), jetlag) : ""
+        let jetlagNote = jetlag > 45 ? " · " + String(format: String(localized: "analysis.trend.drift.jetlagNote", bundle: bundle), formatJetlag(jetlag)) : ""
 
         return TrendDimensionCard(
             title: String(localized: "analysis.trend.drift", bundle: bundle),
@@ -292,6 +292,15 @@ struct AnalysisTab: View {
     /// Resolve a dynamic key string against the current language bundle.
     private func loc(_ key: String) -> String {
         NSLocalizedString(key, bundle: bundle, comment: "")
+    }
+
+    /// Formats a social jetlag value (in minutes) as "Xh Ym" or "Xm".
+    private func formatJetlag(_ minutes: Double) -> String {
+        let total = Int(minutes.rounded())
+        if total < 60 { return "\(total)m" }
+        let h = total / 60
+        let m = total % 60
+        return m == 0 ? "\(h)h" : "\(h)h \(m)m"
     }
 
     private func trendDirection(delta: Double?) -> TrendDirection {
