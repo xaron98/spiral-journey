@@ -157,6 +157,12 @@ final class SpiralStore {
     var jetLagPlan: JetLagPlan? = nil {
         didSet { save() }
     }
+    var notificationsEnabled: Bool = false {
+        didSet {
+            save()
+            Task { await updateWeeklyDigest() }
+        }
+    }
 
     // MARK: - Computed State
 
@@ -305,6 +311,18 @@ final class SpiralStore {
     /// Any stored version below this number will replay the welcome + tutorial.
     private let currentOnboardingVersion = 1
 
+    /// Schedule or cancel weekly digest notifications based on user preference.
+    func updateWeeklyDigest() async {
+        if notificationsEnabled {
+            await NotificationManager.shared.scheduleWeeklyDigest(
+                analysis: analysis,
+                consistency: analysis.consistency
+            )
+        } else {
+            await NotificationManager.shared.cancelWeeklyDigest()
+        }
+    }
+
     private struct Stored: Codable {
         var sleepEpisodes: [SleepEpisode]
         var events: [CircadianEvent]
@@ -325,6 +343,7 @@ final class SpiralStore {
         var chronotypeResult: ChronotypeResult?
         var hasCompletedChronotype: Bool?
         var jetLagPlan: JetLagPlan?
+        var notificationsEnabled: Bool?
     }
 
     private func save() {
@@ -347,7 +366,8 @@ final class SpiralStore {
             onboardingVersion: currentOnboardingVersion,
             chronotypeResult: chronotypeResult,
             hasCompletedChronotype: hasCompletedChronotype,
-            jetLagPlan: jetLagPlan
+            jetLagPlan: jetLagPlan,
+            notificationsEnabled: notificationsEnabled
         )
         if let data = try? JSONEncoder().encode(stored) {
             UserDefaults.standard.set(data, forKey: storageKey)
@@ -374,6 +394,7 @@ final class SpiralStore {
         if let cr  = stored.chronotypeResult { chronotypeResult = cr }
         if let hcc = stored.hasCompletedChronotype { hasCompletedChronotype = hcc }
         if let jl  = stored.jetLagPlan { jetLagPlan = jl }
+        if let ne  = stored.notificationsEnabled { notificationsEnabled = ne }
 
         // Only restore onboarding state if the stored version matches current.
         // If version is missing or outdated, the flags stay false → tutorial replays.

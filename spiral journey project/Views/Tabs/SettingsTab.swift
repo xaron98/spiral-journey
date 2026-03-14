@@ -393,6 +393,31 @@ struct SettingsTab: View {
                     .buttonStyle(.plain)
                 }
 
+                // ── Notifications ──────────────────────────────────────────
+                SettingsSection(title: String(localized: "settings.notifications.title", bundle: bundle), icon: "bell.badge") {
+                    Toggle(isOn: $store.notificationsEnabled) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(String(localized: "settings.notifications.weekly", bundle: bundle))
+                                .font(.system(size: 12, design: .monospaced))
+                                .foregroundStyle(SpiralColors.text)
+                            Text(String(localized: "settings.notifications.weekly.desc", bundle: bundle))
+                                .font(.system(size: 10))
+                                .foregroundStyle(SpiralColors.muted)
+                        }
+                    }
+                    .toggleStyle(SwitchToggleStyle(tint: SpiralColors.accent))
+                    .onChange(of: store.notificationsEnabled) { _, newValue in
+                        if newValue {
+                            Task {
+                                let granted = await NotificationManager.shared.requestPermission()
+                                if !granted {
+                                    store.notificationsEnabled = false
+                                }
+                            }
+                        }
+                    }
+                }
+
                 // ── About ───────────────────────────────────────────────────
 
                 SettingsSection(title: String(localized: "settings.about.title", bundle: bundle), icon: "info.circle") {
