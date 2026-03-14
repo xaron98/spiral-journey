@@ -629,6 +629,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Spiral Watch App Watch App/Spiral Watch App Watch App.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -637,6 +638,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Spiral Watch App Watch App/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Spiral Watch App";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Spiral Journey uses your sleep data from Apple Health to visualize your circadian rhythm on the spiral.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Spiral Journey does not write health data. This permission is required by the system but the app only reads your sleep information.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "xaron.spiral-journey-project";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -665,6 +668,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Spiral Watch App Watch App/Spiral Watch App Watch App.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -673,6 +677,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Spiral Watch App Watch App/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Spiral Watch App";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Spiral Journey uses your sleep data from Apple Health to visualize your circadian rhythm on the spiral.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Spiral Journey does not write health data. This permission is required by the system but the app only reads your sleep information.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "xaron.spiral-journey-project";
 				LD_RUNPATH_SEARCH_PATHS = (

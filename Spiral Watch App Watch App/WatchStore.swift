@@ -169,35 +169,43 @@ final class WatchStore {
 
         let calendar = Calendar.current
 
-        // If startDate was established > 7 days ago (came from iPhone or prior fetch),
-        // use it as epoch so absolute hour coordinates stay consistent.
-        // Otherwise (standalone first launch, default ≤ 7 days), derive from HK data.
+        // If the iPhone has synced a startDate that is older than 7 days, trust it.
+        // Otherwise (standalone or iPhone epoch also recent) derive from HK data.
         let sevenDaysAgo = calendar.date(byAdding: .day, value: -7, to: Date()) ?? Date()
         let hasEstablishedEpoch = startDate < sevenDaysAgo
 
         print("[WatchHK] startDate=\(startDate), hasEstablishedEpoch=\(hasEstablishedEpoch)")
 
+        // Always derive the epoch from HK data: find the earliest sleep sample in
+        // the last 60 days and use midnight of that day as day-0.
+        // This guarantees that ALL samples in the second fetch have absStart >= 0.
+        let searchWindow = 60
+        let tempEpoch = calendar.date(byAdding: .day, value: -searchWindow, to: Date()) ?? Date()
+        let discoveryEpisodes = await hk.fetchRecentSleepEpisodes(days: searchWindow, epoch: tempEpoch, searchFromEpoch: true)
+        print("[WatchHK] Discovery episodes found: \(discoveryEpisodes.count)")
+
         let epoch: Date
+        if discoveryEpisodes.isEmpty {
+            // No HK data at all — nothing to do.
+            print("[WatchHK] No HK data found — aborting")
+            return
+        }
+
         if hasEstablishedEpoch {
+            // iPhone epoch is older than 7 days — use it to keep coordinates consistent.
             epoch = startDate
         } else {
-            // Standalone: derive epoch from earliest sleep in last 30 days.
-            let tempEpoch = calendar.date(byAdding: .day, value: -30, to: Date()) ?? Date()
-            let rawEpisodes = await hk.fetchRecentSleepEpisodes(days: 30, epoch: tempEpoch, searchFromEpoch: true)
-            print("[WatchHK] Standalone raw episodes found: \(rawEpisodes.count)")
-            guard !rawEpisodes.isEmpty else {
-                print("[WatchHK] No HK episodes found in last 30 days — aborting")
-                return
-            }
-            let earliestAbsHour = rawEpisodes.map(\.start).min() ?? 0
+            // Derive epoch from the earliest HK sample.
+            let earliestAbsHour = discoveryEpisodes.map(\.start).min() ?? 0
             let earliestDate = tempEpoch.addingTimeInterval(earliestAbsHour * 3600)
             epoch = calendar.startOfDay(for: earliestDate)
             startDate = epoch
-            print("[WatchHK] Derived epoch: \(epoch)")
+            print("[WatchHK] Derived epoch from HK: \(epoch)")
         }
 
-        // Fetch recent sleep (last 32 days) using the established epoch.
-        let hkEpisodes = await hk.fetchRecentSleepEpisodes(days: 32, epoch: epoch, searchFromEpoch: false)
+        // Re-fetch using the correct epoch so all absStart values are >= 0.
+        // searchFromEpoch: true ensures we don't miss samples between epoch and (now-32d).
+        let hkEpisodes = await hk.fetchRecentSleepEpisodes(days: searchWindow, epoch: epoch, searchFromEpoch: true)
         print("[WatchHK] Fetched \(hkEpisodes.count) episodes with epoch=\(epoch)")
         guard !hkEpisodes.isEmpty else {
             print("[WatchHK] No recent HK episodes — aborting")

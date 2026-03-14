@@ -11190,6 +11190,58 @@
         }
       }
     },
+    "coach.nap.reason.contextAdjusted" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم تعديلها لتتوافق مع جدولك"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustada per adaptar-se al teu horari"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Angepasst an Ihren Zeitplan"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adjusted to fit your schedule"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustada para adaptarse a tu horario"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustée pour s'adapter à votre emploi du temps"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "スケジュールに合わせて調整済み"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已调整以适应你的日程"
+          }
+        }
+      }
+    },
     "coach.nap.reason.debtRecovery" : {
       "localizations" : {
         "ar" : {
@@ -11342,6 +11394,162 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "建议在 %@ 小睡 (%lld 分钟)"
+          }
+        }
+      }
+    },
+    "coach.trend.conflicts.improving" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تحسنت! انخفضت التعارضات من %lld إلى %lld هذا الأسبوع"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Millora! Els conflictes han baixat de %lld a %lld aquesta setmana"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbesserung! Konflikte sind von %lld auf %lld diese Woche gesunken"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Improving! Conflicts dropped from %lld to %lld this week"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mejorando! Los conflictos bajaron de %lld a %lld esta semana"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En progrès ! Les conflits sont passés de %lld à %lld cette semaine"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "改善中！コンフリクトが%lldから%lldに減少しました"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在改善！冲突从 %lld 降至本周 %lld"
+          }
+        }
+      }
+    },
+    "coach.trend.conflicts.stable" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مستقر: %lld تعارضات هذا الأسبوع"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estable: %lld conflictes aquesta setmana"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stabil: %lld Konflikte diese Woche"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stable: %lld conflicts this week"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estable: %lld conflictos esta semana"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stable : %lld conflits cette semaine"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "安定：今週のコンフリクト %lld 件"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "稳定：本周 %lld 个冲突"
+          }
+        }
+      }
+    },
+    "coach.trend.conflicts.worsening" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "زادت التعارضات من %lld إلى %lld هذا الأسبوع"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Els conflictes han pujat de %lld a %lld aquesta setmana"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konflikte sind von %lld auf %lld diese Woche gestiegen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conflicts increased from %lld to %lld this week"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los conflictos subieron de %lld a %lld esta semana"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les conflits sont passés de %lld à %lld cette semaine"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "コンフリクトが%lldから%lldに増加しました"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "冲突从 %lld 增至本周 %lld"
           }
         }
       }
