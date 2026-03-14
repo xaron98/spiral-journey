@@ -93,7 +93,7 @@ struct CoachTab: View {
         let action = resolvedAction
         let outcome: String? = {
             guard let ci = store.analysis.coachInsight, !ci.expectedOutcome.isEmpty else { return nil }
-            return localizedCoachString("coach.issue.\(ci.issueKey.rawValue).outcome", fallback: ci.expectedOutcome, args: ci.args)
+            return localizedCoachString("coach.issue.\(ci.issueKey.rawValue).outcome", fallback: ci.expectedOutcome, args: ci.args, stringArgs: ci.stringArgs)
         }()
         return VStack(alignment: .leading, spacing: 10) {
             Label {
@@ -376,8 +376,8 @@ struct CoachTab: View {
     /// Primary insight sourced from `coachInsight` when available, with legacy fallback.
     private var resolvedInsight: CoachContent {
         if let ci = store.analysis.coachInsight {
-            let localTitle = localizedCoachString("coach.issue.\(ci.issueKey.rawValue).title", fallback: ci.title, args: ci.args)
-            let localReason = localizedCoachString("coach.issue.\(ci.issueKey.rawValue).reason", fallback: ci.reason, args: ci.args)
+            let localTitle = localizedCoachString("coach.issue.\(ci.issueKey.rawValue).title", fallback: ci.title, args: ci.args, stringArgs: ci.stringArgs)
+            let localReason = localizedCoachString("coach.issue.\(ci.issueKey.rawValue).reason", fallback: ci.reason, args: ci.args, stringArgs: ci.stringArgs)
             return CoachContent(title: localTitle, body: localReason, icon: icon(for: ci.issueKey), color: color(for: ci.severity))
         }
         return legacyInsight
