@@ -98,8 +98,34 @@ struct AnalysisTab: View {
                     .foregroundStyle(SpiralColors.muted)
             }
             Spacer()
+            ShareLink(item: pdfReportItem, preview: SharePreview(
+                String(localized: "pdf.share.preview", bundle: bundle),
+                image: Image(systemName: "doc.richtext")
+            )) {
+                Image(systemName: "square.and.arrow.up")
+                    .font(.system(size: 16))
+                    .foregroundStyle(SpiralColors.accent)
+            }
         }
         .padding(.bottom, 4)
+    }
+
+    /// Generates the PDF data for the share link.
+    private var pdfReportItem: PDFReportDocument {
+        let df = DateFormatter()
+        df.dateStyle = .medium
+        let startStr = df.string(from: store.startDate)
+        let endStr = df.string(from: Date())
+        let dateRange = "\(startStr) – \(endStr)"
+
+        let data = PDFReportGenerator.generate(
+            records: store.records,
+            analysis: store.analysis,
+            consistency: store.analysis.consistency,
+            dateRange: dateRange,
+            numDays: store.numDays
+        )
+        return PDFReportDocument(data: data)
     }
 
     // MARK: - 3 Trend Dimensions
