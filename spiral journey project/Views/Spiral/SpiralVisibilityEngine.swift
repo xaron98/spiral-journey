@@ -317,11 +317,20 @@ enum SpiralVisibilityEngine {
         bounds: DataDayBounds
     ) -> VisibleDayWindow {
         let requestedActiveIndex = Int(floor(activeTurns))
-        // effectiveActive follows the cursor directly. As the cursor advances
-        // past data, older records get progressively more distant and fade out.
-        // This is the desired behavior: only the last 7 days from cursor are visible.
-        let effectiveActive = requestedActiveIndex
-        let clamped = false
+        // Opacity anchor: clamp to lastDayIndex so data near the cursor stays
+        // bright. The WINDOW (startIndex/endIndex) controls which days are
+        // visible — when cursor advances 7+ turns past data, the window
+        // excludes all data days and they disappear. But while data IS in the
+        // window, effectiveActive keeps it at high opacity.
+        let effectiveActive: Int
+        let clamped: Bool
+        if bounds.hasData && requestedActiveIndex > bounds.lastDayIndex {
+            effectiveActive = bounds.lastDayIndex
+            clamped = true
+        } else {
+            effectiveActive = requestedActiveIndex
+            clamped = false
+        }
 
         // Day range derived from viewport — a day is included if ANY part
         // of its [day, day+1) turn range overlaps the viewport.
