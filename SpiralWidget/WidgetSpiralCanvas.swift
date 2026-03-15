@@ -12,7 +12,7 @@ struct WidgetSpiralCanvas: View {
     var showHourLabels: Bool = true
 
     // Auto-computed from data (end of the last sleep record)
-    private var cursorTurns: Double {
+    private var spiralExtentTurns: Double {
         guard !records.isEmpty else { return 1.0 }
         var best = 1.0
         for r in records {
@@ -32,7 +32,7 @@ struct WidgetSpiralCanvas: View {
 
     // Show the most recent ~5 days (or all data if less)
     private var visibleDays: Double {
-        min(cursorTurns, 5.0)
+        min(spiralExtentTurns, 5.0)
     }
 
     var body: some View {
@@ -42,7 +42,7 @@ struct WidgetSpiralCanvas: View {
                 with: .color(Color(hex: "0c0e14"))
             )
 
-            let turns = max(cursorTurns, 0.1)
+            let turns = max(spiralExtentTurns, 0.1)
             let scaleDays = max(1, Int(ceil(turns)))
             let geo = SpiralGeometry(
                 totalDays: scaleDays,
@@ -78,7 +78,7 @@ struct WidgetSpiralCanvas: View {
         let hr  = (t - Double(day)) * geo.period
         let flat = geo.point(day: day, hour: hr)
 
-        let totalT  = max(cursorTurns, 0.5)
+        let totalT  = max(spiralExtentTurns, 0.5)
         let margin  = 0.35
         let visible = max(visibleDays + margin, 1.0 + margin)
         let cx = geo.cx, cy = geo.cy
@@ -99,7 +99,7 @@ struct WidgetSpiralCanvas: View {
     }
 
     private func cameraMaxVisibleTurn(geo: SpiralGeometry) -> Double {
-        let totalT   = max(cursorTurns, 0.5)
+        let totalT   = max(spiralExtentTurns, 0.5)
         let margin   = 0.35
         let tRef     = totalT + margin
         let visible  = max(visibleDays + margin, 1.0 + margin)
@@ -128,7 +128,7 @@ struct WidgetSpiralCanvas: View {
     }
 
     private func perspectiveScale(turns t: Double, geo: SpiralGeometry) -> Double {
-        let totalT   = max(cursorTurns, 0.5)
+        let totalT   = max(spiralExtentTurns, 0.5)
         let margin   = 0.35
         let visible  = max(visibleDays + margin, 1.0 + margin)
         let zStep    = geo.maxRadius * depthScale

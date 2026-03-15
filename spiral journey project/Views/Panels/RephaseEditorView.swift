@@ -119,8 +119,8 @@ struct RephaseEditorView: View {
                     onSelectDay: { _ in },
                     contextBlocks: store.contextBlocksEnabled ? store.contextBlocks : [],
                     numDaysHint: maxDays,
-                    cursorTurns: turns,
-                    visibleDays: liveVisibleDays,
+                    spiralExtentTurns: turns,
+                    visibleSpanTurns: liveVisibleDays,
                     depthScale: store.depthScale,
                     targetWakeHour: plan.targetWakeHour,
                     targetBedHour: plan.derivedTargetBedHour

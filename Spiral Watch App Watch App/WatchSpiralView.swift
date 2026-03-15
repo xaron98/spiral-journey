@@ -67,7 +67,7 @@ struct WatchSpiralView: View {
                     sleepStartHour: sleepStartHour,
                     markingColor: markingState == .sleeping ? SpiralColors.sleep : SpiralColors.accent,
                     numDaysHint: max(totalDataDays, 1),
-                    cursorTurns: maxReachedTurns,
+                    spiralExtentTurns: maxReachedTurns,
                     visibleDays: deferredVisibleDays,
                     depthScale: store.depthScale,
                     spiralType: store.spiralType,
@@ -281,7 +281,7 @@ private struct WatchSpiralCanvas: View {
     let sleepStartHour: Double?
     let markingColor: Color
     let numDaysHint: Int
-    let cursorTurns: Double
+    let spiralExtentTurns: Double
     let visibleDays: Double
     let depthScale: Double
     var spiralType: SpiralType = .archimedean
@@ -295,7 +295,7 @@ private struct WatchSpiralCanvas: View {
         let hr   = (t - Double(day)) * geo.period
         let flat = geo.point(day: day, hour: hr)
 
-        let totalT  = max(cursorTurns, 0.5)
+        let totalT  = max(spiralExtentTurns, 0.5)
         let margin  = 0.35
         let visible = max(visibleDays + margin, 1.0 + margin)
         let cx = geo.cx, cy = geo.cy
@@ -316,7 +316,7 @@ private struct WatchSpiralCanvas: View {
     }
 
     private func cameraMaxVisibleTurn(geo: SpiralGeometry) -> Double {
-        let totalT   = max(cursorTurns, 0.5)
+        let totalT   = max(spiralExtentTurns, 0.5)
         let margin   = 0.35
         let tRef     = totalT + margin
         let visible  = max(visibleDays + margin, 1.0 + margin)
@@ -348,7 +348,7 @@ private struct WatchSpiralCanvas: View {
     }
 
     private func perspectiveScale(turns t: Double, geo: SpiralGeometry) -> Double {
-        let totalT   = max(cursorTurns, 0.5)
+        let totalT   = max(spiralExtentTurns, 0.5)
         let margin   = 0.35
         let visible  = max(visibleDays + margin, 1.0 + margin)
         let zStep    = geo.maxRadius * depthScale
@@ -371,7 +371,7 @@ private struct WatchSpiralCanvas: View {
             // Fill background before any transform.
             context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(Color(hex: "0c0e14")))
 
-            let turns     = max(cursorTurns, 0.1)
+            let turns     = max(spiralExtentTurns, 0.1)
             let scaleDays = max(1, Int(ceil(turns)))
             // Use at least 7 days for maxDays so the spiral spacing stays small
             // and the arc fills the screen even with just 1-2 nights of data.
@@ -686,7 +686,7 @@ private struct WatchSpiralCanvas: View {
         sleepStartHour: nil,
         markingColor: Color(hex: "a78bfa"),
         numDaysHint: 1,
-        cursorTurns: 31.0 / 24.0,
+        spiralExtentTurns: 31.0 / 24.0,
         visibleDays: 31.0 / 24.0,
         depthScale: 1.5
     )

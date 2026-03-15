@@ -31,6 +31,20 @@ struct SpiralTab: View {
     @State private var spiralType: SpiralType = .archimedean
     @State private var showEventSheet = false
 
+    // ── Smooth camera follow ──
+    // The camera center always tends toward the cursor via lerp.
+    // During gestures the lerp factor is reduced so the camera doesn't
+    // fight the user. After gesture ends the lerp ramps back up smoothly.
+    /// Smoothed camera center in turns — the value SpiralView actually uses.
+    @State private var smoothCameraCenterTurns: Double = 0
+    /// True while a drag or pinch gesture is physically active.
+    @State private var isUserInteracting: Bool = false
+    /// Interaction type for debug logging.
+    enum InteractionMode: String { case none, scrub, pinch }
+    @State private var interactionMode: InteractionMode = .none
+    /// Timestamp of the last gesture event — used for post-gesture decay.
+    @State private var lastInteractionTime: Date = .distantPast
+
     // Consistency detail navigation
     @State private var showConsistencyDetail = false
     // Event sheet
@@ -66,6 +80,14 @@ struct SpiralTab: View {
                                 .padding(.bottom, 6)
 
                             // ── Spiral — ~57% of viewport height ────────────────────
+                            #if DEBUG
+                            let _ = {
+                                let f = { (v: Double) -> String in String(format: "%.2f", v) }
+                                let cursorTurns = cursorAbsHour / store.period
+                                let vpFrom = max(cursorTurns - 7.0, 0.0)
+                                print("[SpiralTab] cursor=\(f(cursorTurns)) vpFrom=\(f(vpFrom)) vpUpTo=\(f(cursorTurns)) span=7.0 camera=\(f(smoothCameraCenterTurns)) mode=\(isUserInteracting ? interactionMode.rawValue : "autoFollow")")
+                            }()
+                            #endif
                             ZStack(alignment: .topTrailing) {
                                 SpiralView(
                                     records: store.records,
@@ -82,8 +104,9 @@ struct SpiralTab: View {
                                     cursorAbsHour: cursorAbsHour,
                                     sleepStartHour: sleepStartHour,
                                     numDaysHint: maxDays,
-                                    cursorTurns: maxReachedTurns,
-                                    visibleDays: liveVisibleDays,
+                                    spiralExtentTurns: maxReachedTurns,
+                                    viewportCenterTurns: smoothCameraCenterTurns,
+                                    visibleSpanTurns: liveVisibleDays,
                                     depthScale: store.depthScale,
                                     showGrid: store.showGrid
                                 )
@@ -93,6 +116,9 @@ struct SpiralTab: View {
                                 .simultaneousGesture(
                                     DragGesture(minimumDistance: 0)
                                         .onChanged { value in
+                                            isUserInteracting = true
+                                            interactionMode = .scrub
+                                            lastInteractionTime = Date()
                                             let searchMax = min(
                                                 (maxReachedTurns + 1.5) * store.period,
                                                 Double(maxDays) * store.period
@@ -112,40 +138,32 @@ struct SpiralTab: View {
                                                 totalHours: searchMax
                                             )
                                             // Guard against erroneous nearestHour jumps near spiral origin.
-                                            // Allow at most half a period (12h for daily, 84h for weekly) per event.
                                             let maxDelta = store.period * 0.5
                                             guard abs(newHour - cursorAbsHour) <= maxDelta else { return }
                                             cursorAbsHour = newHour
-                                            // Check if cursor is close to real-world now (within 15 min).
+                                            // During scrub, camera tracks cursor immediately.
+                                            smoothCameraCenterTurns = newHour / store.period
                                             let nowH = Date().timeIntervalSince(store.startDate) / 3600
                                             isCursorLive = abs(newHour - nowH) < 0.25
                                             let newTurns = newHour / store.period
                                             if newTurns > maxReachedTurns {
-                                                // Cursor advanced past the frontier — expand zoom to follow.
-                                                let wasAtMax = visibleDays >= maxReachedTurns * 0.95
                                                 maxReachedTurns = newTurns
-                                                if wasAtMax {
-                                                    visibleDays = newTurns
-                                                    liveVisibleDays = newTurns
-                                                    if !pinchStarted {
-                                                        pinchBaseVisibleDays = newTurns
-                                                        zoomNorm = 1.0
-                                                    }
-                                                }
-                                            } else if !pinchStarted {
-                                                // Dragging backward contracts zoom smoothly.
-                                                let target = max(minVisibleDays, newTurns)
-                                                visibleDays = target; liveVisibleDays = target
-                                                pinchBaseVisibleDays = target
-                                                zoomNorm = visibleDaysToNorm(target)
                                             }
+                                        }
+                                        .onEnded { _ in
+                                            isUserInteracting = false
+                                            interactionMode = .none
+                                            lastInteractionTime = Date()
                                         }
                                 )
                                 #endif
                                 .simultaneousGesture(
                                     MagnifyGesture(minimumScaleDelta: 0.01)
                                         .onChanged { value in
-                                            // Capture base once at gesture start.
+                                            isUserInteracting = true
+                                            interactionMode = .pinch
+                                            lastInteractionTime = Date()
+                                            // Capture base zoom once at gesture start.
                                             if !pinchStarted {
                                                 pinchStarted = true
                                                 pinchBaseVisibleDays = visibleDays
@@ -154,21 +172,18 @@ struct SpiralTab: View {
                                             liveVisibleDays = clamped
                                             visibleDays     = clamped
                                             zoomNorm        = visibleDaysToNorm(clamped)
+                                            // Camera keeps following cursor during pinch —
+                                            // no freezing at a snapshot point.
                                         }
                                         .onEnded { _ in
+                                            isUserInteracting = false
+                                            interactionMode = .none
                                             pinchStarted = false
                                             pinchBaseVisibleDays = visibleDays
                                             zoomNorm = visibleDaysToNorm(visibleDays)
+                                            lastInteractionTime = Date()
                                         }
                                 )
-                                .onTapGesture(count: 2) {
-                                    withAnimation(.easeOut(duration: 0.3)) {
-                                        visibleDays = maxReachedTurns
-                                        liveVisibleDays = maxReachedTurns
-                                        pinchBaseVisibleDays = maxReachedTurns
-                                        zoomNorm = 1.0
-                                    }
-                                }
                                 .padding(.horizontal, 16)
                                 .frame(width: screen.size.width,
                                        height: screen.size.height * 0.57)
@@ -249,6 +264,9 @@ struct SpiralTab: View {
                             .gesture(
                                 DragGesture(minimumDistance: 0, coordinateSpace: .global)
                                     .onChanged { value in
+                                        isUserInteracting = true
+                                        interactionMode = .scrub
+                                        lastInteractionTime = Date()
                                         if macDragIsNew {
                                             macDragIsNew = false
                                             macDragPrevLocation = value.location
@@ -279,26 +297,20 @@ struct SpiralTab: View {
                                         )
                                         let newHour = max(0, min(maxHours, cursorAbsHour + hoursStep))
                                         cursorAbsHour = newHour
+                                        // During scrub, camera tracks cursor immediately.
+                                        smoothCameraCenterTurns = newHour / store.period
                                         let nowH = Date().timeIntervalSince(store.startDate) / 3600
                                         isCursorLive = abs(newHour - nowH) < 0.25
                                         let newTurns = newHour / store.period
                                         if newTurns > maxReachedTurns {
-                                            let wasAtMax = visibleDays >= maxReachedTurns * 0.95
                                             maxReachedTurns = newTurns
-                                            if wasAtMax {
-                                                visibleDays = newTurns; liveVisibleDays = newTurns
-                                                if !pinchStarted { pinchBaseVisibleDays = newTurns; zoomNorm = 1.0 }
-                                            }
-                                        } else if !pinchStarted {
-                                            // Dragging backward contracts zoom smoothly.
-                                            let target = max(minVisibleDays, newTurns)
-                                            visibleDays = target; liveVisibleDays = target
-                                            pinchBaseVisibleDays = target
-                                            zoomNorm = visibleDaysToNorm(target)
                                         }
                                     }
                                     .onEnded { _ in
                                         macDragIsNew = true
+                                        isUserInteracting = false
+                                        interactionMode = .none
+                                        lastInteractionTime = Date()
                                     }
                             )
                             // Arrow keys for fine-grained cursor movement.
@@ -313,29 +325,19 @@ struct SpiralTab: View {
                                 case .leftArrow:
                                     let newHour = max(0, cursorAbsHour - stepHours)
                                     cursorAbsHour = newHour
-                                    if !pinchStarted {
-                                        let target = max(minVisibleDays, newHour / store.period)
-                                        visibleDays = target; liveVisibleDays = target
-                                        pinchBaseVisibleDays = target
-                                        zoomNorm = visibleDaysToNorm(target)
-                                    }
+                                    smoothCameraCenterTurns = newHour / store.period
+                                    let nowH = Date().timeIntervalSince(store.startDate) / 3600
+                                    isCursorLive = abs(newHour - nowH) < 0.25
                                     return .handled
                                 case .rightArrow:
                                     let newHour = min(maxHours, cursorAbsHour + stepHours)
                                     cursorAbsHour = newHour
+                                    smoothCameraCenterTurns = newHour / store.period
+                                    let nowH = Date().timeIntervalSince(store.startDate) / 3600
+                                    isCursorLive = abs(newHour - nowH) < 0.25
                                     let newTurns = newHour / store.period
                                     if newTurns > maxReachedTurns {
-                                        let wasAtMax = visibleDays >= maxReachedTurns * 0.95
                                         maxReachedTurns = newTurns
-                                        if wasAtMax {
-                                            visibleDays = newTurns; liveVisibleDays = newTurns
-                                            if !pinchStarted { pinchBaseVisibleDays = newTurns; zoomNorm = 1.0 }
-                                        }
-                                    } else if !pinchStarted {
-                                        let target = max(minVisibleDays, newTurns)
-                                        visibleDays = target; liveVisibleDays = target
-                                        pinchBaseVisibleDays = target
-                                        zoomNorm = visibleDaysToNorm(target)
                                     }
                                     return .handled
                                 default:
@@ -377,9 +379,44 @@ struct SpiralTab: View {
         .onAppear { initCursor() }
         .onChange(of: store.period) { _, _ in initCursor() }
         .task {
-            // Advance the cursor every 60 seconds to track real-world time.
+            // Smooth camera follow loop — runs at ~30fps.
+            // Lerps smoothCameraCenterTurns toward cursorTurns.
+            // During gestures the lerp is suppressed; after gesture ends
+            // it ramps up smoothly, preventing snaps.
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(33)) // ~30fps
+                let cursorTurns = cursorAbsHour / store.period
+
+                if isUserInteracting && interactionMode == .scrub {
+                    // During scrub: camera is set directly in gesture handler.
+                    // No lerp here — gesture handler owns the value.
+                } else {
+                    // Smooth follow: lerp toward cursor.
+                    // After gesture ends, ramp up lerp factor over ~0.5s.
+                    let timeSinceGesture = Date().timeIntervalSince(lastInteractionTime)
+                    let lerpFactor: Double
+                    if isUserInteracting && interactionMode == .pinch {
+                        // During pinch: gentle follow so camera doesn't fight zoom.
+                        lerpFactor = 0.08
+                    } else if timeSinceGesture < 0.5 {
+                        // Post-gesture ramp: 0.05 → 0.25 over 0.5s
+                        let t = timeSinceGesture / 0.5
+                        lerpFactor = 0.05 + t * 0.20
+                    } else {
+                        // Normal follow: responsive but not instant.
+                        lerpFactor = 0.25
+                    }
+                    let delta = cursorTurns - smoothCameraCenterTurns
+                    smoothCameraCenterTurns += delta * lerpFactor
+                }
+            }
+        }
+        .task {
+            // Advance the cursor every 60 seconds to track real-world time,
+            // but only when the cursor is live and the user isn't interacting.
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(60))
+                guard isCursorLive, !isUserInteracting else { continue }
                 cursorAbsHour = Date().timeIntervalSince(store.startDate) / 3600
             }
         }
@@ -395,7 +432,13 @@ struct SpiralTab: View {
                 let needed = max(minTurns, nowAbsHour / store.period)
                 if needed > maxReachedTurns {
                     maxReachedTurns = needed
-                    visibleDays = needed; liveVisibleDays = needed; pinchBaseVisibleDays = needed
+                    // Don't reset zoom to max — keep current zoom level.
+                    // Only expand if current zoom was already at max.
+                    if visibleDays >= maxReachedTurns * 0.95 {
+                        let initialZoom = min(needed, 7.0)
+                        visibleDays = initialZoom; liveVisibleDays = initialZoom
+                        pinchBaseVisibleDays = initialZoom
+                    }
                 }
                 cursorAbsHour = nowAbsHour
             }
@@ -786,10 +829,15 @@ struct SpiralTab: View {
             let lastEnd = store.sleepEpisodes.map(\.end).max() ?? 0
             cursorAbsHour = nowAbsHour
             maxReachedTurns = max(minTurns, max(nowAbsHour, lastEnd) / store.period)
-            visibleDays = maxReachedTurns; liveVisibleDays = maxReachedTurns
-            pinchBaseVisibleDays = maxReachedTurns
-            zoomNorm = 1.0  // fully zoomed out = slider at max
+            // Initial zoom: 7-turn retrospective window.
+            // Camera, data, opacity all use this same span.
+            let initialZoom = min(maxReachedTurns, 7.0)
+            visibleDays = initialZoom; liveVisibleDays = initialZoom
+            pinchBaseVisibleDays = initialZoom
+            zoomNorm = visibleDaysToNorm(initialZoom)
         }
+        // Initialize camera to cursor position — no jump on first frame.
+        smoothCameraCenterTurns = cursorAbsHour / store.period
     }
 
     // MARK: - Projection helpers (macOS drag tracking)
@@ -836,17 +884,20 @@ struct SpiralTab: View {
             startRadius: 20, spiralType: spiralType,
             period: period, linkGrowthToTau: linkGrowthToTau
         )
-        let totalT   = max(maxReachedTurns, 0.5)
-        let margin   = 0.35
-        let tRef     = totalT + margin
-        let visible  = max(liveVisibleDays + margin, 1.0 + margin)
+        // Retrospective camera matching SpiralView (7-turn window)
+        let span: Double = 7.0
+        let camUpTo  = smoothCameraCenterTurns
+        let camFrom  = max(camUpTo - span, 0)
         let zStep    = geo.maxRadius * store.depthScale
         let focalLen = geo.maxRadius * 1.2
-        let tTarget  = min(visible, tRef)
-        let rTarget  = max(geo.radius(turns: min(tTarget, totalT)), 1.0)
-        let wzTarget = (tRef - tTarget) * zStep
-        let dzTarget = focalLen * rTarget / geo.maxRadius
-        let camZ     = wzTarget - dzTarget
+        let margin   = 0.5
+        let tRef     = camUpTo + margin
+        let spanZ    = max((camUpTo - camFrom), 0.5) * zStep
+        let maxRatio = 5.0
+        let nearPlane = focalLen * 0.1
+        let safetyMargin = nearPlane * 1.0
+        let dzFar    = max(spanZ / (maxRatio - 1.0), nearPlane + safetyMargin)
+        let camZ     = margin * zStep - dzFar
 
         let t   = absHour / period
         let day = Int(t)
@@ -880,17 +931,20 @@ struct SpiralTab: View {
             startRadius: 20, spiralType: spiralType,
             period: period, linkGrowthToTau: linkGrowthToTau
         )
-        let totalT   = max(maxReachedTurns, 0.5)
-        let margin   = 0.35
-        let tRef     = totalT + margin
-        let visible  = max(liveVisibleDays + margin, 1.0 + margin)
+        // Retrospective camera matching SpiralView (7-turn window)
+        let span: Double = 7.0
+        let camUpTo  = smoothCameraCenterTurns
+        let camFrom  = max(camUpTo - span, 0)
         let zStep    = geo.maxRadius * store.depthScale
         let focalLen = geo.maxRadius * 1.2
-        let tTarget  = min(visible, tRef)
-        let rTarget  = max(geo.radius(turns: min(tTarget, totalT)), 1.0)
-        let wzTarget = (tRef - tTarget) * zStep
-        let dzTarget = focalLen * rTarget / geo.maxRadius
-        let camZ     = wzTarget - dzTarget
+        let margin   = 0.5
+        let tRef     = camUpTo + margin
+        let spanZ    = max((camUpTo - camFrom), 0.5) * zStep
+        let maxRatio = 5.0
+        let nearPlane = focalLen * 0.1
+        let safetyMargin = nearPlane * 1.0
+        let dzFar    = max(spanZ / (maxRatio - 1.0), nearPlane + safetyMargin)
+        let camZ     = margin * zStep - dzFar
 
         func project(turns t: Double) -> CGPoint {
             let day  = Int(t)

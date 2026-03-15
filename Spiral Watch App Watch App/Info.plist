@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-<dict/>
+<dict>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Spiral Journey reads your sleep data from Apple Health to analyze your circadian rhythm and show sleep statistics on your wrist. Your data stays on your device and is never shared.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>Spiral Journey does not write health data. This permission is required by the system but the app only reads your sleep information.</string>
+</dict>
 </plist>
