@@ -195,18 +195,27 @@ struct SpiralView: View {
         let cursorT = cursorTurns ?? extentTurns
         let focusTurns = viewportCenterTurns ?? cursorT  // smooth-follow target
 
-        // ── Strict 7-turn retrospective window ──
+        // ── Retrospective window ──
         //
-        // Camera + viewport ALWAYS = [cursor-7, cursor]. Never changes.
-        // Day rings, opacity, structure all follow this window consistently.
-        // Data arcs handle their own extended rendering separately.
+        // Base window: [cursor-7, cursor].
+        // When cursor advances far past data, expand vpFrom back to include
+        // the last data day so records never vanish just because the user
+        // scrubs forward. Data only disappears when NEW data pushes old
+        // data beyond 7 days.
         let span = 7.0
         let cameraZPadding = 0.5
 
         let totalRealDays = records.filter { !$0.phases.isEmpty }.count
 
-        let vpFrom = max(cursorT - span, 0)
+        var vpFrom = max(cursorT - span, 0)
         let vpUpTo = cursorT
+        // Expand window to include data when it would fall outside
+        if let lastDataRecord = records.last(where: { !$0.phases.isEmpty }) {
+            let lastDataDay = Double(lastDataRecord.day)
+            if vpFrom > lastDataDay {
+                vpFrom = max(lastDataDay, 0)
+            }
+        }
 
         let camFrom = max(focusTurns - span, 0)
         let camUpTo = focusTurns + cameraZPadding
