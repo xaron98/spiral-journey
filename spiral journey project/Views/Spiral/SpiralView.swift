@@ -170,10 +170,6 @@ struct SpiralView: View {
         if showGrid {
             drawRadialLines(context: context, geo: geo, upToTurns: maxVisible)
         }
-        // 2.5. Context blocks — subtle electric blue arcs behind sleep data
-        if !contextBlocks.isEmpty {
-            drawContextBlocks(context: context, geo: geo, upToTurns: maxVisible, size: size)
-        }
         // 3. Spiral backbone — clipped to visible turns
         drawSpiralPath(context: context, geo: geo, upToTurns: maxVisible, size: size)
         // 4. Two-process model
@@ -182,6 +178,10 @@ struct SpiralView: View {
         }
         // 5. Data points (phase strokes with gradient color — E)
         drawDataPoints(context: context, geo: geo, size: size)
+        // 5.5. Context blocks — drawn after sleep data so they appear on top of awake (amber) path
+        if !contextBlocks.isEmpty {
+            drawContextBlocks(context: context, geo: geo, upToTurns: maxVisible, size: size)
+        }
         // 6. Cosinor overlay
         if showCosinor {
             drawCosinorOverlay(context: context, geo: geo, size: size)
@@ -769,6 +769,11 @@ struct SpiralView: View {
                 continue
             }
 
+            // Determine the sleep window for this day (bedtime → wakeup in clock hours).
+            // Used to reduce block opacity when it overlaps with recorded sleep.
+            let sleepBed:  Double? = day < records.count ? records[day].bedtimeHour  : nil
+            let sleepWake: Double? = day < records.count ? records[day].wakeupHour   : nil
+
             for block in enabledBlocks {
                 guard block.isActive(weekday: weekday) else { continue }
 
@@ -789,27 +794,42 @@ struct SpiralView: View {
                 let clampedStart = max(tStart, 0)
                 let clampedEnd = min(tEnd, upToTurns)
 
-                // Build arc path with perspective projection
-                let arcSteps = max(12, Int((clampedEnd - clampedStart) * 60))
-                var arcPath = Path()
-                for i in 0...arcSteps {
-                    let t = clampedStart + (clampedEnd - clampedStart) * Double(i) / Double(arcSteps)
-                    let pt = project(turns: t, geo: geo, size: size)
-                    if i == 0 { arcPath.move(to: pt) } else { arcPath.addLine(to: pt) }
+                // If this block overlaps with the recorded sleep window, reduce opacity
+                // so the sleep path (drawn before context blocks) remains dominant.
+                let blockOpacity: Double
+                if let bed = sleepBed, let wake = sleepWake, bed >= 0, wake >= 0 {
+                    // Normalise sleep window to clock hours on this day.
+                    // Bedtime can be > 24 (e.g. 25.5 = 01:30 next day relative to day start).
+                    let bedH  = bed.truncatingRemainder(dividingBy: 24)
+                    // Wake hour is always after bed on the same spiral turn.
+                    // Block hours are 0–24; overlap if intervals intersect.
+                    let bStart = block.startHour
+                    let bEnd   = block.endHour > block.startHour ? block.endHour : block.endHour + 24.0
+                    let wEnd   = wake > bedH ? wake : wake + 24.0   // handle overnight sleep
+                    let overlaps = bStart < wEnd && bEnd > bedH
+                    blockOpacity = overlaps ? 0.22 : 0.75
+                } else {
+                    blockOpacity = 0.75
                 }
 
-                // Wide fill arc — background band for the block window
-                let midT = (clampedStart + clampedEnd) * 0.5
-                let sc = perspectiveScale(turns: midT, geo: geo)
-                let arcWidth = max(12.0, min(sc * 24.0, 32.0))
-                context.stroke(arcPath, with: .color(color.opacity(0.18 * opac)),
-                               style: StrokeStyle(lineWidth: arcWidth, lineCap: .round, lineJoin: .round))
-
-                // Thin border arc — visible edge with per-type dash pattern
+                // Draw segment-by-segment so each segment uses the correct perspectiveScale
+                // at its own position — same approach as drawDataPoints for the awake path.
+                let arcSteps = max(12, Int((clampedEnd - clampedStart) * 60))
                 let dashPattern = block.type.dashPattern.map { CGFloat($0) }
-                context.stroke(arcPath, with: .color(color.opacity(0.55 * opac)),
-                               style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round,
-                                                  dash: dashPattern))
+                for i in 0..<arcSteps {
+                    let t0 = clampedStart + (clampedEnd - clampedStart) * Double(i)     / Double(arcSteps)
+                    let t1 = clampedStart + (clampedEnd - clampedStart) * Double(i + 1) / Double(arcSteps)
+                    let pt0 = project(turns: t0, geo: geo, size: size)
+                    let pt1 = project(turns: t1, geo: geo, size: size)
+                    let sc  = perspectiveScale(turns: (t0 + t1) * 0.5, geo: geo)
+                    let lw  = max(3.0, min(sc * 20.0, 28.0))
+                    var seg = Path()
+                    seg.move(to: pt0)
+                    seg.addLine(to: pt1)
+                    context.stroke(seg, with: .color(color.opacity(blockOpacity * opac)),
+                                   style: StrokeStyle(lineWidth: lw, lineCap: .round,
+                                                      dash: dashPattern))
+                }
             }
         }
     }
