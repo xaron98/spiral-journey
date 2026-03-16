@@ -102,21 +102,26 @@ struct SpiralView: View {
         /// Build camera that frames `[fromTurns, upToTurns]` with depth
         /// centered around `focusTurns`. No XY recentering — the spiral
         /// keeps its natural screen-space composition.
+        ///
+        /// - `refUpToTurns`: the farthest turn that must be projectable
+        ///   (not behind the camera). Defaults to `upToTurns` but can be
+        ///   set higher to include the cursor when it's past the window.
         init(fromTurns: Double, upToTurns: Double, focusTurns: Double,
-             geo: SpiralGeometry, depthScale: Double) {
+             geo: SpiralGeometry, depthScale: Double,
+             refUpToTurns: Double? = nil) {
             let zStep    = geo.maxRadius * depthScale
             let focalLen = geo.maxRadius * 1.2
             let nearPlane = focalLen * 0.1
             let safetyMargin = nearPlane * 1.0
 
-            // tRef: depth-zero reference. Place it past the camera window's
-            // far edge so all content is in front of the camera.
+            // tRef: depth-zero reference. Must be past ALL projectable
+            // content (including cursor even when it's past the window).
             let margin = 0.5
-            let tRef = upToTurns + margin
+            let tRef = (refUpToTurns ?? upToTurns) + margin
 
-            // camZ: position the camera so the visible span fits within
-            // a controlled perspective ratio. This keeps the zoom level
-            // proportional to the span without over-zooming.
+            // camZ: zoom level based on the WINDOW span, not the full
+            // range to tRef. This keeps the spiral filling the screen
+            // even when the cursor is far past the data.
             let spanZ = max((upToTurns - fromTurns), 0.5) * zStep
             let maxRatio = 5.0
             let dzFarForRatio = spanZ / (maxRatio - 1.0)
@@ -225,11 +230,14 @@ struct SpiralView: View {
         // Instead, the cursor is drawn at the window edge (same angle).
         let camFrom = vpFrom
         let camUpTo = vpUpTo + cameraZPadding
-        let effectiveDepthScale = depthScale
+        // refUpTo ensures the cursor is always projectable (never behind
+        // the camera) even when it's far past the visibility window.
+        let camRefUpTo = max(camUpTo, cursorT + cameraZPadding)
 
         let camera = CameraState(fromTurns: camFrom, upToTurns: camUpTo,
                                   focusTurns: focusTurns,
-                                  geo: geo, depthScale: effectiveDepthScale)
+                                  geo: geo, depthScale: depthScale,
+                                  refUpToTurns: camRefUpTo)
 
         let backboneVisualTailTurns = 0.15
         let backboneCap = cursorT + backboneVisualTailTurns
@@ -1104,11 +1112,8 @@ struct SpiralView: View {
 
     private func drawCursor(context: GraphicsContext, geo: SpiralGeometry, camera: CameraState, cursorState: CursorRenderState) {
         let t = cursorState.turnsPosition
-        // Flat projection — cursor is a UI element, no camera restriction.
-        let theta = t * 2 * Double.pi
-        let rad = geo.radius(turns: t)
-        let p = CGPoint(x: geo.cx + rad * cos(theta - Double.pi / 2),
-                        y: geo.cy + rad * sin(theta - Double.pi / 2))
+        guard !camera.isBehindCamera(turns: t) else { return }
+        let p = camera.project(turns: t, geo: geo)
         let opacity = cursorState.opacity
         #if DEBUG
         print("[SpiralAudit] drawCursor turns=\(String(format: "%.2f", t)) opacity=\(String(format: "%.2f", opacity)) screenPos=(\(String(format: "%.0f", p.x)),\(String(format: "%.0f", p.y)))")
