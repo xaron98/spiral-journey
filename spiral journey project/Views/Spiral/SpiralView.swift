@@ -195,17 +195,25 @@ struct SpiralView: View {
         let cursorT = cursorTurns ?? extentTurns
         let focusTurns = viewportCenterTurns ?? cursorT  // smooth-follow target
 
-        // ── Strict 7-turn window ──
+        // ── 7-turn visibility window ──
         //
-        // ALWAYS [cursor-7, cursor]. No exceptions.
-        // Data outside this window is invisible — even if that means
-        // all records disappear when cursor is 7+ turns past data.
+        // Window is [cursor-7, cursor], BUT when all data fits within
+        // 7 days the window expands backward to include all data.
+        // This prevents data from disappearing when the cursor advances
+        // past the last record day.
         let span = 7.0
         let cameraZPadding = 0.5
 
         let totalRealDays = records.filter { !$0.phases.isEmpty }.count
+        let firstDataDay = records.first(where: { !$0.phases.isEmpty })?.day ?? Int(focusTurns)
+        let lastDataDay = records.last(where: { !$0.phases.isEmpty })?.day ?? Int(focusTurns)
+        let dataSpanDays = Double(lastDataDay - firstDataDay + 1)
 
-        let vpFrom = max(cursorT - span, 0)
+        var vpFrom = max(cursorT - span, 0)
+        // When all data fits in the window, ensure window always includes it
+        if dataSpanDays <= span {
+            vpFrom = min(vpFrom, Double(firstDataDay))
+        }
         let vpUpTo = cursorT
 
         // ── Camera framing: ALWAYS includes data ──
@@ -214,7 +222,6 @@ struct SpiralView: View {
         // to invisible via perspective. When the cursor is far past data,
         // the camera span widens and depthScale is reduced proportionally
         // to flatten the perspective so inner turns stay visible.
-        let firstDataDay = records.first(where: { !$0.phases.isEmpty })?.day ?? Int(focusTurns)
         let camFromDefault = max(focusTurns - span, 0)
         let camFrom = min(camFromDefault, Double(firstDataDay))
         let camUpTo = focusTurns + cameraZPadding
