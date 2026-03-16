@@ -99,29 +99,18 @@ struct SpiralView: View {
         let focalLen: Double
         let camZ: Double
 
-        /// Build camera that frames `[fromTurns, upToTurns]` with depth
-        /// centered around `focusTurns`. No XY recentering — the spiral
-        /// keeps its natural screen-space composition.
-        ///
-        /// - `refUpToTurns`: the farthest turn that must be projectable
-        ///   (not behind the camera). Defaults to `upToTurns` but can be
-        ///   set higher to include the cursor when it's past the window.
+        /// Build camera that frames `[fromTurns, upToTurns]` with perspective.
+        /// The spiral stays centered on `geo.cx/cy` — no XY recentering.
         init(fromTurns: Double, upToTurns: Double, focusTurns: Double,
-             geo: SpiralGeometry, depthScale: Double,
-             refUpToTurns: Double? = nil) {
+             geo: SpiralGeometry, depthScale: Double) {
             let zStep    = geo.maxRadius * depthScale
             let focalLen = geo.maxRadius * 1.2
             let nearPlane = focalLen * 0.1
             let safetyMargin = nearPlane * 1.0
 
-            // tRef: depth-zero reference. Must be past ALL projectable
-            // content (including cursor even when it's past the window).
             let margin = 0.5
-            let tRef = (refUpToTurns ?? upToTurns) + margin
+            let tRef = upToTurns + margin
 
-            // camZ: zoom level based on the WINDOW span, not the full
-            // range to tRef. This keeps the spiral filling the screen
-            // even when the cursor is far past the data.
             let spanZ = max((upToTurns - fromTurns), 0.5) * zStep
             let maxRatio = 5.0
             let dzFarForRatio = spanZ / (maxRatio - 1.0)
@@ -190,63 +179,27 @@ struct SpiralView: View {
 
         // ── RETROSPECTIVE WINDOW MODEL ──
         //
-        // Single source of truth: the DrawCursor marks the END of the visible window.
-        // The window extends `span` turns into the PAST. No future is shown.
-        //
-        // A) CAMERA FRAMING — retrospective: [focusTurns - span, focusTurns]
-        // B) DATA VISIBILITY — retrospective: [cursorT - span, cursorT]
-        // C) OPACITY — styling only, never hides real data.
-
+        // ── Simple model: camera follows cursor, opacity by distance ──
         let cursorT = cursorTurns ?? extentTurns
-        let focusTurns = viewportCenterTurns ?? cursorT  // smooth-follow target
-
-        // ── 7-turn visibility window ──
-        //
-        // Window is [cursor-7, cursor], BUT when all data fits within
-        // 7 days the window expands backward to include all data.
-        // This prevents data from disappearing when the cursor advances
-        // past the last record day.
-        let span = 7.0
+        let focusTurns = viewportCenterTurns ?? cursorT
+        let span = visibleSpanTurns ?? 7.0
         let cameraZPadding = 0.5
 
-        let totalRealDays = records.filter { !$0.phases.isEmpty }.count
-        let firstDataDay = records.first(where: { !$0.phases.isEmpty })?.day ?? Int(focusTurns)
-        let lastDataDay = records.last(where: { !$0.phases.isEmpty })?.day ?? Int(focusTurns)
-        let dataSpanDays = Double(lastDataDay - firstDataDay + 1)
-
-        var vpFrom = max(cursorT - span, 0)
-        // When all data fits in the window, ensure window always includes it
-        if dataSpanDays <= span {
-            vpFrom = min(vpFrom, Double(firstDataDay))
-        }
-        // Cap window to exactly `span` days — never wider
-        let vpUpTo = min(cursorT, vpFrom + span)
-
-        // ── Camera framing: frames the VISIBILITY WINDOW ──
-        //
-        // The camera frames [vpFrom, vpUpTo] so the visible spiral fills
-        // the screen. When the cursor is far past data, we do NOT extend
-        // the camera to the cursor — that would shrink the spiral to tiny.
-        // Instead, the cursor is drawn at the window edge (same angle).
-        let camFrom = vpFrom
-        let camUpTo = vpUpTo + cameraZPadding
-        // refUpTo ensures the cursor is always projectable (never behind
-        // the camera) even when it's far past the visibility window.
-        let camRefUpTo = max(camUpTo, cursorT + cameraZPadding)
+        let camFrom = max(focusTurns - span, 0)
+        let camUpTo = focusTurns + cameraZPadding
 
         let camera = CameraState(fromTurns: camFrom, upToTurns: camUpTo,
                                   focusTurns: focusTurns,
-                                  geo: geo, depthScale: depthScale,
-                                  refUpToTurns: camRefUpTo)
+                                  geo: geo, depthScale: depthScale)
 
-        let backboneVisualTailTurns = 0.15
-        let backboneCap = cursorT + backboneVisualTailTurns
+        let backboneCap = cursorT + 0.15
+        let totalRealDays = records.filter { !$0.phases.isEmpty }.count
 
         let state = SpiralVisibilityEngine.resolve(
             records: records,
             cursorAbsHour: cursorAbsHour,
-            viewportFromTurns: vpFrom,
-            viewportUpToTurns: vpUpTo,
+            viewportFromTurns: camFrom,
+            viewportUpToTurns: camUpTo,
             cameraFromTurns: camFrom,
             cameraUpToTurns: camUpTo,
             spiralExtentTurns: extentTurns,
@@ -255,45 +208,15 @@ struct SpiralView: View {
             backboneCapTurn: backboneCap
         )
 
-        // All draw functions now read from `state` directly.
-
-        // ── DEBUG: Single consolidated per-frame log ──
-        #if DEBUG
-        do {
-            let f = { (v: Double) -> String in String(format: "%.2f", v) }
-            let bounds = state.dataBounds
-
-            // Count visible days
-            var visibleCount = 0
-            if bounds.hasData {
-                for day in bounds.firstDayIndex...bounds.lastDayIndex {
-                    if state.dayVisibility(for: day).isVisible { visibleCount += 1 }
-                }
-            }
-
-            print("[SpiralFrame] cursor=\(f(cursorT)) vpFrom=\(f(vpFrom)) vpUpTo=\(f(vpUpTo)) span=\(f(span)) camZ=\(f(camera.camZ)) drawFrom=\(f(state.renderFromTurns)) drawTo=\(f(state.backboneClipTurns)) realDays=\(totalRealDays) visible=\(visibleCount) fallback=\(state.showNoDataFallback)")
-
-            let cameraCursorDelta = abs(focusTurns - cursorT)
-            if cameraCursorDelta > 1.0 {
-                print("[SpiralFrame] FAIL_CAMERA_DESYNC focus=\(f(focusTurns)) cursor=\(f(cursorT)) delta=\(f(cameraCursorDelta))")
-            }
-        }
-        #endif
-
-        // ── Single render pipeline — no fallback path ──
-        // The normal pipeline handles all cases correctly:
-        // - With data: arcs draw within visible window, backbone fills the rest
-        // - Without data: no arcs, backbone draws the spiral shape
-        // A separate fallback path was removed because it drew gray from
-        // turn 0 to extentTurns (the ENTIRE spiral), which caused the
-        // "broken gray overlay" bug whenever it triggered.
+        // ── Render pipeline ──
         // 1. Day rings
         drawDayRings(context: context, geo: geo, camera: camera, state: state)
         // 2. Radial lines
         if showGrid {
             drawRadialLines(context: context, geo: geo, upToTurns: state.renderUpToTurns)
         }
-        // 3. Backbone disabled — data arcs are the spiral path
+        // 3. Vigilia path — spiral structure always visible in camera range
+        drawSpiralPath(context: context, geo: geo, camera: camera, state: state)
         // 4. Two-process model
         if showTwoProcess {
             drawTwoProcess(context: context, geo: geo, camera: camera, state: state)
@@ -449,12 +372,6 @@ struct SpiralView: View {
         } else {
             skipFrom = 0; skipTo = 0
         }
-        #if DEBUG
-        do {
-            let f = { (v: Double) -> String in String(format: "%.2f", v) }
-            print("[Backbone] from=\(f(state.renderFromTurns)) to=\(f(state.backboneClipTurns)) skip=[\(f(skipFrom)),\(f(skipTo))] camMaxTurn=\(f(camera.maxVisibleTurn))")
-        }
-        #endif
         drawSpiralPath(context: context, geo: geo, camera: camera,
                        fromTurns: state.renderFromTurns,
                        upToTurns: state.backboneClipTurns,
@@ -708,21 +625,20 @@ struct SpiralView: View {
             if record.id == lastRecord?.id,
                let cursorH = cursorAbsHour {
                 let tCursor = cursorH / geo.period
-                // Cap the awake extension to the visibility window (not camera range)
-                let tAwakeCap = min(tCursor, state.visibleWindow.upToTurns)
                 let tWake   = geo.turns(day: record.day, hour: record.wakeupHour)
-                if tAwakeCap > tWake + (0.25 / geo.period) {
+                if tCursor > tWake + (0.25 / geo.period) {
                     // Step every 15 min for smooth rendering
                     var awakePoints: [(t: Double, pt: CGPoint)] = []
                     var t = tWake
                     let tStep = 0.25 / geo.period
-                    while t <= tAwakeCap {
+                    while t <= tCursor {
+                        guard !camera.isBehindCamera(turns: t) else { t += tStep; continue }
                         awakePoints.append((t, camera.project(turns: t, geo: geo)))
                         t += tStep
                     }
-                    // Ensure last point lands exactly on cap
-                    if awakePoints.last?.t ?? 0 < tAwakeCap {
-                        awakePoints.append((tAwakeCap, camera.project(turns: tAwakeCap, geo: geo)))
+                    // Ensure last point lands exactly on cursor
+                    if let last = awakePoints.last?.t, last < tCursor, !camera.isBehindCamera(turns: tCursor) {
+                        awakePoints.append((tCursor, camera.project(turns: tCursor, geo: geo)))
                     }
                     if awakePoints.count >= 2 {
                         runs.append(Run(phase: .awake, points: awakePoints, prevPhase: .light, nextPhase: nil))
@@ -1061,9 +977,6 @@ struct SpiralView: View {
             )
         }
 
-        #if DEBUG
-        print("[SpiralView] origin drawn at screen=(\(String(format: "%.0f", p.x)),\(String(format: "%.0f", p.y))) r=\(String(format: "%.1f", r)) opacity=\(String(format: "%.2f", opacity)) accent=\(markers.shouldRenderOriginAccent) debug=\(markers.shouldRenderOriginDebugDot)")
-        #endif
     }
 
     private func drawHourLabels(context: GraphicsContext, geo: SpiralGeometry, size: CGSize) {
@@ -1115,9 +1028,6 @@ struct SpiralView: View {
         guard !camera.isBehindCamera(turns: t) else { return }
         let p = camera.project(turns: t, geo: geo)
         let opacity = cursorState.opacity
-        #if DEBUG
-        print("[SpiralAudit] drawCursor turns=\(String(format: "%.2f", t)) opacity=\(String(format: "%.2f", opacity)) screenPos=(\(String(format: "%.0f", p.x)),\(String(format: "%.0f", p.y)))")
-        #endif
         let r = 6.0
         let rect = CGRect(x: p.x - r, y: p.y - r, width: r*2, height: r*2)
         context.fill(Circle().path(in: rect.insetBy(dx: -4, dy: -4)),

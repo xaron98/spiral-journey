@@ -352,60 +352,29 @@ enum SpiralVisibilityEngine {
         )
     }
 
-    // MARK: - Per-day visibility (styling only, never gates rendering)
+    // MARK: - Per-day visibility (distance-based fade, no hard gate)
 
-    /// Returns styling state for a day.
-    /// - Days inside the viewport window: visible with opacity gradient.
-    /// - Days at the window edge: smooth fade out (no snap).
-    /// - Days outside the window: not visible.
+    /// Returns styling state for a day based on distance from cursor.
+    /// - Distance 0: full opacity (1.0)
+    /// - Distance 1-6: decreasing opacity via opacityCurve
+    /// - Distance 7+: exponential decay toward 0
+    /// - No hard cutoff — days fade naturally to invisible
     static func visibilityState(for dayIndex: Int, window: VisibleDayWindow) -> DayVisibilityState {
-        guard dayIndex >= window.startIndex && dayIndex <= window.endIndex else {
-            return DayVisibilityState(
-                isVisible: false, opacity: 0, emphasis: 0,
-                blur: 0, strokeScale: 0, distanceFromActive: 0
-            )
-        }
-
-        // Opacity styling: distance from the effective active day.
-        // The curve provides up to 7 discrete entries. Beyond that,
-        // exponential decay continues so distant days keep attenuating.
         let dist = abs(window.effectiveActiveIndex - dayIndex)
+
         let rawOpacity: Double
         if dist < opacityCurve.count {
             rawOpacity = opacityCurve[dist]
         } else {
-            // Exponential continuation past the curve: each extra day
-            // multiplies by 0.6, starting from the last curve value.
             let base = opacityCurve.last ?? 0.06
             let extra = dist - opacityCurve.count + 1
             rawOpacity = base * pow(0.6, Double(extra))
         }
-        let blur: Double
-        if dist < blurCurve.count {
-            blur = blurCurve[dist]
-        } else {
-            blur = blurCurve.last ?? 2.0
-        }
-        let strokeScale: Double
-        if dist < strokeScaleCurve.count {
-            strokeScale = strokeScaleCurve[dist]
-        } else {
-            strokeScale = strokeScaleCurve.last ?? 0.58
-        }
 
-        // In-window minimum: days inside the 7-day window stay clearly visible.
-        var opacity = max(rawOpacity, 0.20)
+        let blur: Double = dist < blurCurve.count ? blurCurve[dist] : (blurCurve.last ?? 2.0)
+        let strokeScale: Double = dist < strokeScaleCurve.count ? strokeScaleCurve[dist] : (strokeScaleCurve.last ?? 0.58)
 
-        // Smooth edge fade: the day at startIndex fades gradually as the
-        // viewport edge crosses it, preventing a hard snap from 1.0 → 0.
-        // edgeFade goes from 1.0 (day fully in window) to 0.0 (about to exit).
-        if dayIndex == window.startIndex {
-            let edgeFade = Double(dayIndex + 1) - window.viewportFromFractional
-            opacity *= max(0, min(1.0, edgeFade))
-        }
-
-        // After edge fade, skip if effectively invisible
-        guard opacity > 0.01 else {
+        guard rawOpacity > 0.01 else {
             return DayVisibilityState(
                 isVisible: false, opacity: 0, emphasis: 0,
                 blur: 0, strokeScale: 0, distanceFromActive: dist
@@ -413,7 +382,7 @@ enum SpiralVisibilityEngine {
         }
 
         return DayVisibilityState(
-            isVisible: true, opacity: opacity, emphasis: opacity,
+            isVisible: true, opacity: rawOpacity, emphasis: rawOpacity,
             blur: blur, strokeScale: strokeScale, distanceFromActive: dist
         )
     }
