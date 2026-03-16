@@ -268,7 +268,8 @@ struct SpiralView: View {
         if showGrid {
             drawRadialLines(context: context, geo: geo, upToTurns: state.renderUpToTurns)
         }
-        // 3. Backbone disabled
+        // 3. Backbone (spiral path)
+        drawSpiralPath(context: context, geo: geo, camera: camera, state: state)
         // 4. Two-process model
         if showTwoProcess {
             drawTwoProcess(context: context, geo: geo, camera: camera, state: state)
