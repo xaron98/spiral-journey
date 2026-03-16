@@ -356,6 +356,7 @@ enum SpiralVisibilityEngine {
 
     /// Returns styling state for a day.
     /// - Days inside the viewport window: visible with opacity gradient.
+    /// - Days at the window edge: smooth fade out (no snap).
     /// - Days outside the window: not visible.
     static func visibilityState(for dayIndex: Int, window: VisibleDayWindow) -> DayVisibilityState {
         guard dayIndex >= window.startIndex && dayIndex <= window.endIndex else {
@@ -392,9 +393,7 @@ enum SpiralVisibilityEngine {
             strokeScale = strokeScaleCurve.last ?? 0.58
         }
 
-        // In-window minimum: days inside the 7-day window stay clearly visible
-        // (at least 20% opacity). Days outside the window are gated by isVisible=false
-        // and get opacity 0 — they truly disappear.
+        // In-window minimum: days inside the 7-day window stay clearly visible.
         var opacity = max(rawOpacity, 0.20)
 
         // Smooth edge fade: the day at startIndex fades gradually as the

@@ -268,8 +268,7 @@ struct SpiralView: View {
         if showGrid {
             drawRadialLines(context: context, geo: geo, upToTurns: state.renderUpToTurns)
         }
-        // 3. Backbone (spiral path)
-        drawSpiralPath(context: context, geo: geo, camera: camera, state: state)
+        // 3. Backbone disabled — data arcs are the spiral path
         // 4. Two-process model
         if showTwoProcess {
             drawTwoProcess(context: context, geo: geo, camera: camera, state: state)
@@ -553,8 +552,6 @@ struct SpiralView: View {
     }
 
     private func drawDataPoints(context: GraphicsContext, geo: SpiralGeometry, camera: CameraState, state: SpiralRenderState) {
-        // Data arcs respect the same render window as everything else.
-        // Days outside the 7-day viewport window fade to zero and disappear.
         let fromTurns = state.renderFromTurns
         let upToTurns = state.renderUpToTurns
         // For the current (last) day, extend the cut to the cursor so awake phases
