@@ -819,4 +819,544 @@ public enum CoachEngine {
         let variance = hours.reduce(0) { $0 + ($1 - mean) * ($1 - mean) } / Double(hours.count)
         return sqrt(variance)
     }
+
+    // MARK: - Enhanced Evaluation (Sprint 4)
+
+    /// Produce the full enhanced coaching result: primary insight + temporal patterns,
+    /// celebrations, micro-habit, weekly digest, streak, and event acknowledgments.
+    ///
+    /// Calls the existing `evaluate()` internally so all base logic is preserved.
+    public static func evaluateEnhanced(
+        records: [SleepRecord],
+        stats: SleepStats,
+        goal: SleepGoal,
+        consistency: SpiralConsistencyScore?,
+        events: [CircadianEvent],
+        previousStats: SleepStats?,
+        previousCompositeScore: Int?,
+        compositeScore: Int,
+        streakHistory: StreakData,
+        contextBlocks: [ContextBlock] = [],
+        conflicts: [ScheduleConflict] = []
+    ) -> EnhancedCoachResult {
+        // 1. Base insight (reuse existing logic)
+        let insight: CoachInsight
+        if contextBlocks.isEmpty {
+            insight = evaluate(records: records, stats: stats, goal: goal, consistency: consistency)
+        } else {
+            insight = evaluate(records: records, stats: stats, goal: goal,
+                             consistency: consistency, contextBlocks: contextBlocks,
+                             conflicts: conflicts)
+        }
+
+        // 2. Temporal patterns
+        let patterns = detectTemporalPatterns(records: records)
+
+        // 3. Streak computation
+        let streak = computeStreaks(records: records, goal: goal, previousStreak: streakHistory)
+
+        // 4. Celebrations
+        let celebrations = detectCelebrations(
+            stats: stats,
+            previousStats: previousStats,
+            streak: streak,
+            compositeScore: compositeScore,
+            previousCompositeScore: previousCompositeScore,
+            goal: goal
+        )
+
+        // 5. Micro-habit
+        let microHabit = generateMicroHabit(issueKey: insight.issueKey)
+
+        // 6. Weekly digest
+        let digest = generateWeeklyDigest(
+            records: records,
+            stats: stats,
+            previousStats: previousStats,
+            compositeScore: compositeScore,
+            previousCompositeScore: previousCompositeScore ?? 0
+        )
+
+        // 7. Event acknowledgments
+        let acknowledgments = acknowledgeEvents(events: events, records: records)
+
+        return EnhancedCoachResult(
+            insight: insight,
+            temporalPatterns: patterns,
+            celebrations: celebrations,
+            microHabit: microHabit,
+            weeklyDigest: digest,
+            streak: streak,
+            eventAcknowledgments: acknowledgments
+        )
+    }
+
+    // MARK: - Temporal Pattern Detection
+
+    /// Group records by weekday and compare each day's mean bedtime/duration against the overall mean.
+    /// Returns patterns where the deviation is ≥30 min and backed by ≥2 samples.
+    public static func detectTemporalPatterns(records: [SleepRecord]) -> [TemporalPattern] {
+        guard records.count >= 7 else { return [] }
+
+        // Overall circular means
+        let allBed = records.map(\.bedtimeHour)
+        let allDur = records.map(\.sleepDuration)
+        let allWake = records.map(\.wakeupHour)
+        let meanBed = circularMeanHour(allBed)
+        let meanWake = circularMeanHour(allWake)
+        let meanDur = allDur.reduce(0, +) / Double(allDur.count)
+
+        // Group by ISO weekday (1=Sun … 7=Sat from Calendar)
+        // SleepRecord.isWeekend tells us weekday info, but we need the actual day.
+        // We'll infer weekday from the record index: day 0 = startDate, etc.
+        // Since records are ordered by day and we need weekday, we'll use the isWeekend flag
+        // and the pattern of records. For simplicity, map index to weekday.
+        // Records don't carry a Date, but they have `isWeekend` and are ordered.
+        // We'll reconstruct weekday from the index. The startDate isn't available here,
+        // so we compute relative weekday from the sequence pattern.
+
+        // Alternative approach: use pairs of (bedtime, wake, duration) grouped by
+        // the record's day-of-week. Since records carry isWeekend, we at least know
+        // weekday vs weekend. For richer patterns, we'll bucket by week position.
+        // Records are 0-indexed. Group by (index % 7) as a proxy for recurring day.
+
+        // Better approach: use a 7-bucket grouping from record indices.
+        // We don't know the absolute weekday, but we DO have isWeekend.
+        // Actually, Calendar stores records as (dayIndex, ...) — let's use the modular pattern.
+
+        struct DaySamples {
+            var bedtimes: [Double] = []
+            var wakeups: [Double] = []
+            var durations: [Double] = []
+        }
+
+        // Group by whether it's a "weekend type" day vs weekday, since that's what we have.
+        // For better patterns, we'd need the actual weekday. Let's create 2 buckets.
+        // Actually, for proper weekday pattern detection, the caller should provide startDate.
+        // For now, we group into weekday bucket (5 days) vs weekend bucket (2 days).
+        var weekdaySamples = DaySamples()
+        var weekendSamples = DaySamples()
+        for record in records {
+            if record.isWeekend {
+                weekendSamples.bedtimes.append(record.bedtimeHour)
+                weekendSamples.wakeups.append(record.wakeupHour)
+                weekendSamples.durations.append(record.sleepDuration)
+            } else {
+                weekdaySamples.bedtimes.append(record.bedtimeHour)
+                weekdaySamples.wakeups.append(record.wakeupHour)
+                weekdaySamples.durations.append(record.sleepDuration)
+            }
+        }
+
+        var patterns: [TemporalPattern] = []
+
+        // Weekday pattern (use weekday=2 as Monday representative)
+        if weekdaySamples.bedtimes.count >= 2 {
+            let wdBed = circularMeanHour(weekdaySamples.bedtimes)
+            let wdWake = circularMeanHour(weekdaySamples.wakeups)
+            let wdDur = weekdaySamples.durations.reduce(0, +) / Double(weekdaySamples.durations.count)
+            let bedDev = circularDiffMinutes(actual: wdBed, target: meanBed)
+            let wakeDev = circularDiffMinutes(actual: wdWake, target: meanWake)
+            let durDev = (wdDur - meanDur) * 60
+            let pattern = TemporalPattern(
+                weekday: 2, // Monday (representative for weekdays)
+                bedtimeDeviationMinutes: bedDev,
+                wakeDeviationMinutes: wakeDev,
+                durationDeviationMinutes: durDev,
+                sampleCount: weekdaySamples.bedtimes.count
+            )
+            if pattern.isSignificant { patterns.append(pattern) }
+        }
+
+        // Weekend pattern (use weekday=7 as Saturday representative)
+        if weekendSamples.bedtimes.count >= 2 {
+            let weBed = circularMeanHour(weekendSamples.bedtimes)
+            let weWake = circularMeanHour(weekendSamples.wakeups)
+            let weDur = weekendSamples.durations.reduce(0, +) / Double(weekendSamples.durations.count)
+            let bedDev = circularDiffMinutes(actual: weBed, target: meanBed)
+            let wakeDev = circularDiffMinutes(actual: weWake, target: meanWake)
+            let durDev = (weDur - meanDur) * 60
+            let pattern = TemporalPattern(
+                weekday: 7, // Saturday (representative for weekends)
+                bedtimeDeviationMinutes: bedDev,
+                wakeDeviationMinutes: wakeDev,
+                durationDeviationMinutes: durDev,
+                sampleCount: weekendSamples.bedtimes.count
+            )
+            if pattern.isSignificant { patterns.append(pattern) }
+        }
+
+        return patterns
+    }
+
+    // MARK: - Streak Computation
+
+    /// Count consecutive recent nights where sleep was within the goal.
+    /// "Within goal" = bedtime within tolerance AND duration within 1h of target.
+    public static func computeStreaks(
+        records: [SleepRecord],
+        goal: SleepGoal,
+        previousStreak: StreakData
+    ) -> StreakData {
+        guard !records.isEmpty else { return previousStreak }
+
+        // Walk backwards from most recent record
+        var currentStreak = 0
+        for record in records.reversed() {
+            let bedDev = abs(circularDiffMinutes(actual: record.bedtimeHour, target: goal.targetBedHour))
+            let durOK = abs(record.sleepDuration - goal.targetDuration) <= 1.0
+            let bedOK = bedDev <= goal.toleranceMinutes
+            if bedOK && durOK {
+                currentStreak += 1
+            } else {
+                break
+            }
+        }
+
+        let bestStreak = max(previousStreak.bestStreak, currentStreak)
+        let streakStart: Date? = currentStreak >= 2 ? Date() : nil
+        let bestDate = currentStreak >= bestStreak ? Date() : previousStreak.bestStreakDate
+
+        return StreakData(
+            currentStreak: currentStreak,
+            bestStreak: bestStreak,
+            streakStartDate: currentStreak >= 2 ? (previousStreak.streakStartDate ?? streakStart) : nil,
+            bestStreakDate: bestDate
+        )
+    }
+
+    // MARK: - Celebration Detection
+
+    /// Detect positive achievements worth celebrating.
+    public static func detectCelebrations(
+        stats: SleepStats,
+        previousStats: SleepStats?,
+        streak: StreakData,
+        compositeScore: Int,
+        previousCompositeScore: Int?,
+        goal: SleepGoal
+    ) -> [ProgressCelebration] {
+        var celebrations: [ProgressCelebration] = []
+
+        guard let prev = previousStats else { return celebrations }
+
+        // SRI improved ≥5 pts
+        let sriDelta = stats.sri - prev.sri
+        if sriDelta >= 5 {
+            celebrations.append(ProgressCelebration(
+                type: .sriImproved,
+                message: "Your sleep regularity improved by \(Int(sriDelta)) points!",
+                messageKey: "coach.celebration.sriImproved",
+                args: [sriDelta]
+            ))
+        }
+
+        // Consistency streak ≥3
+        if streak.currentStreak >= 3 {
+            celebrations.append(ProgressCelebration(
+                type: .consistencyStreak,
+                message: "\(streak.currentStreak)-night streak within your goal!",
+                messageKey: "coach.celebration.consistencyStreak",
+                args: [Double(streak.currentStreak)]
+            ))
+        }
+
+        // New record streak
+        if streak.isNewRecord {
+            celebrations.append(ProgressCelebration(
+                type: .bestWeekEver,
+                message: "New personal record: \(streak.currentStreak) nights in a row!",
+                messageKey: "coach.celebration.newRecord",
+                args: [Double(streak.currentStreak)]
+            ))
+        }
+
+        // Duration on target (mean within ±30 min)
+        let durDelta = abs(stats.meanSleepDuration - goal.targetDuration) * 60
+        let prevDurDelta = abs(prev.meanSleepDuration - goal.targetDuration) * 60
+        if durDelta <= 30 && prevDurDelta > 30 {
+            celebrations.append(ProgressCelebration(
+                type: .durationOnTarget,
+                message: "Your average sleep duration hit the target!",
+                messageKey: "coach.celebration.durationOnTarget",
+                args: [stats.meanSleepDuration]
+            ))
+        }
+
+        // Composite score is best ever
+        if let prevComp = previousCompositeScore, compositeScore > prevComp && compositeScore >= 80 {
+            celebrations.append(ProgressCelebration(
+                type: .bestWeekEver,
+                message: "Best composite score so far: \(compositeScore)!",
+                messageKey: "coach.celebration.bestScore",
+                args: [Double(compositeScore)]
+            ))
+        }
+
+        return celebrations
+    }
+
+    // MARK: - Micro-Habit Generation
+
+    /// Generate today's micro-habit based on the current coach issue.
+    /// Cycles through 7 variants so the user sees a fresh tip each day.
+    public static func generateMicroHabit(issueKey: CoachIssueKey) -> MicroHabit {
+        let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: Date()) ?? 1
+        let cycleDay = dayOfYear % 7
+
+        let action: String
+        switch issueKey {
+        case .delayedPhase:
+            let actions = [
+                "Set a morning alarm and get outside for 5 min of sunlight.",
+                "Dim all screens 1 hour before bed tonight.",
+                "No caffeine after 14:00 today.",
+                "Take a 10-min walk right after waking up.",
+                "Set your bedroom lights to warm/dim at 21:00.",
+                "Try a 5-min breathing exercise before bed.",
+                "Move dinner 30 min earlier than yesterday."
+            ]
+            action = actions[cycleDay]
+        case .insufficientDuration:
+            let actions = [
+                "Go to bed 15 min earlier than last night.",
+                "Set a 'wind down' alarm 1 hour before target bedtime.",
+                "No screens in the bedroom tonight.",
+                "Write tomorrow's tasks before bed — clear your mind.",
+                "Limit fluids 2 hours before bedtime.",
+                "Keep the bedroom at 18–20°C tonight.",
+                "Read a physical book for 20 min before sleep."
+            ]
+            action = actions[cycleDay]
+        case .irregularSchedule:
+            let actions = [
+                "Set a fixed wake alarm — same time as yesterday.",
+                "Eat breakfast within 1 hour of waking up.",
+                "Expose yourself to bright light in the first 30 min.",
+                "No snooze button today — feet on the floor immediately.",
+                "Keep your wake time today identical to tomorrow's plan.",
+                "Do a 5-min stretching routine at the same time each morning.",
+                "Plan tomorrow's wake time now and set the alarm."
+            ]
+            action = actions[cycleDay]
+        case .socialJetlag:
+            let actions = [
+                "Wake up within 30 min of your weekday time this weekend.",
+                "Get morning light, even on days off.",
+                "Eat meals at the same time as weekdays today.",
+                "Avoid sleeping in more than 30 min today.",
+                "Set a weekend wake alarm — consistency matters.",
+                "Plan a morning activity to anchor your weekend wake time.",
+                "Track your bedtime tonight — aim for your weekday window."
+            ]
+            action = actions[cycleDay]
+        case .fragmentedSleep:
+            let actions = [
+                "Skip fluids 2 hours before bed.",
+                "Set your bedroom to 18–20°C tonight.",
+                "No caffeine after noon today.",
+                "Try a progressive relaxation exercise in bed.",
+                "Keep the room completely dark (blackout curtains or mask).",
+                "If you wake up, don't check your phone.",
+                "Use white noise or earplugs tonight."
+            ]
+            action = actions[cycleDay]
+        case .maintenance:
+            let actions = [
+                "Great consistency! Protect your wake time today.",
+                "Keep your sleep environment comfortable — you're in a groove.",
+                "Stay active today to maintain your sleep quality.",
+                "Check: is your bedroom still dark and cool enough?",
+                "Maintain your wind-down routine tonight.",
+                "You're on track — try adding 5 min of morning sunlight.",
+                "Consistency is working! Stick with your current bedtime."
+            ]
+            action = actions[cycleDay]
+        default:
+            let actions = [
+                "Log your sleep as soon as you wake up.",
+                "Spend 10 min outside in natural light today.",
+                "Keep a consistent bedtime tonight.",
+                "Check your sleep environment: dark, cool, quiet?",
+                "Avoid heavy meals 2 hours before bed.",
+                "Try a relaxing activity before bedtime.",
+                "Review your sleep data and notice any patterns."
+            ]
+            action = actions[cycleDay]
+        }
+
+        // For issue types without dedicated micro-habits, use "default" key.
+        let keyBase: String
+        switch issueKey {
+        case .delayedPhase, .insufficientDuration, .irregularSchedule,
+             .socialJetlag, .fragmentedSleep, .maintenance:
+            keyBase = issueKey.rawValue
+        default:
+            keyBase = "default"
+        }
+
+        return MicroHabit(
+            issueKey: issueKey,
+            cycleDay: cycleDay,
+            action: action,
+            actionKey: "coach.microhabit.\(keyBase).\(cycleDay)"
+        )
+    }
+
+    // MARK: - Weekly Digest
+
+    /// Build a weekly digest comparing the last 7 records vs the 7 before that.
+    public static func generateWeeklyDigest(
+        records: [SleepRecord],
+        stats: SleepStats,
+        previousStats: SleepStats?,
+        compositeScore: Int,
+        previousCompositeScore: Int
+    ) -> WeeklyDigest? {
+        guard records.count >= 6 else { return nil }
+
+        // Split: last 7 vs previous 7
+        let count = records.count
+        let thisWeek = Array(records.suffix(min(7, count)))
+        let prevWeek: [SleepRecord]
+        if count > 7 {
+            let start = max(0, count - 14)
+            let end = count - min(7, count)
+            prevWeek = Array(records[start..<end])
+        } else {
+            return nil // Not enough for two-week comparison
+        }
+        guard prevWeek.count >= 3 else { return nil }
+
+        // Compute per-week means
+        let twBed = circularMeanHour(thisWeek.map(\.bedtimeHour))
+        let pwBed = circularMeanHour(prevWeek.map(\.bedtimeHour))
+        let twWake = circularMeanHour(thisWeek.map(\.wakeupHour))
+        let pwWake = circularMeanHour(prevWeek.map(\.wakeupHour))
+        let twDur = thisWeek.map(\.sleepDuration).reduce(0, +) / Double(thisWeek.count)
+        let pwDur = prevWeek.map(\.sleepDuration).reduce(0, +) / Double(prevWeek.count)
+        let twSRI = stats.sri
+        let pwSRI = previousStats?.sri ?? 0
+
+        // Best/worst day by duration (index within thisWeek)
+        let bestIdx = thisWeek.enumerated().max(by: { $0.element.sleepDuration < $1.element.sleepDuration })
+        let worstIdx = thisWeek.enumerated().min(by: { $0.element.sleepDuration < $1.element.sleepDuration })
+        // Map to weekday: last record is "today", count back
+        // Since we don't have dates, use relative position. Use isWeekend as a rough guide.
+        let bestDay: Int? = bestIdx.map { $0.element.isWeekend ? 7 : 2 }
+        let worstDay: Int? = worstIdx.map { $0.element.isWeekend ? 7 : 2 }
+
+        return WeeklyDigest(
+            meanBedtime: twBed,
+            prevMeanBedtime: pwBed,
+            meanWakeTime: twWake,
+            prevMeanWakeTime: pwWake,
+            meanDuration: twDur,
+            prevMeanDuration: pwDur,
+            sri: twSRI,
+            prevSRI: pwSRI,
+            compositeScore: compositeScore,
+            prevCompositeScore: previousCompositeScore,
+            bestDay: bestDay,
+            worstDay: worstDay,
+            thisWeekRecordCount: thisWeek.count,
+            prevWeekRecordCount: prevWeek.count
+        )
+    }
+
+    // MARK: - Event Acknowledgments
+
+    /// Look at recent events (last 48h worth) and correlate with sleep quality.
+    public static func acknowledgeEvents(
+        events: [CircadianEvent],
+        records: [SleepRecord]
+    ) -> [EventAcknowledgment] {
+        guard !events.isEmpty, records.count >= 2 else { return [] }
+        var acknowledgments: [EventAcknowledgment] = []
+
+        let lastRecord = records[records.count - 1]
+        let prevRecord = records[records.count - 2]
+
+        // Check for exercise events
+        let recentExercise = events.filter { $0.type == .exercise }
+        if !recentExercise.isEmpty {
+            let durationDelta = (lastRecord.sleepDuration - prevRecord.sleepDuration) * 60
+            let bedtimeDelta = circularDiffMinutes(actual: lastRecord.bedtimeHour, target: prevRecord.bedtimeHour)
+
+            if bedtimeDelta < -10 || durationDelta > 15 {
+                // Fell asleep earlier or slept longer after exercise
+                acknowledgments.append(EventAcknowledgment(
+                    eventType: .exercise,
+                    effect: .positive,
+                    message: "Yesterday's exercise may have helped — you fell asleep \(abs(Int(bedtimeDelta))) min earlier.",
+                    messageKey: "coach.event.exercise.positive",
+                    args: [abs(bedtimeDelta)]
+                ))
+            }
+        }
+
+        // Check for caffeine events
+        let recentCaffeine = events.filter { $0.type == .caffeine }
+        if !recentCaffeine.isEmpty {
+            let bedtimeDelta = circularDiffMinutes(actual: lastRecord.bedtimeHour, target: prevRecord.bedtimeHour)
+            if bedtimeDelta > 20 {
+                acknowledgments.append(EventAcknowledgment(
+                    eventType: .caffeine,
+                    effect: .negative,
+                    message: "Caffeine may have delayed your sleep by about \(Int(bedtimeDelta)) min.",
+                    messageKey: "coach.event.caffeine.negative",
+                    args: [bedtimeDelta]
+                ))
+            }
+        }
+
+        // Check for alcohol events
+        let recentAlcohol = events.filter { $0.type == .alcohol }
+        if !recentAlcohol.isEmpty {
+            // Alcohol often increases fragmentation
+            let lastFrag = lastRecord.hourlyActivity.filter { $0.activity > 0.3 }.count
+            let prevFrag = prevRecord.hourlyActivity.filter { $0.activity > 0.3 }.count
+            if lastFrag > prevFrag + 1 {
+                acknowledgments.append(EventAcknowledgment(
+                    eventType: .alcohol,
+                    effect: .negative,
+                    message: "Alcohol may have fragmented your sleep — more wake-ups than usual.",
+                    messageKey: "coach.event.alcohol.negative",
+                    args: [Double(lastFrag - prevFrag)]
+                ))
+            }
+        }
+
+        // Check for light events (positive for delayed phase)
+        let recentLight = events.filter { $0.type == .light }
+        if !recentLight.isEmpty {
+            let bedtimeDelta = circularDiffMinutes(actual: lastRecord.bedtimeHour, target: prevRecord.bedtimeHour)
+            if bedtimeDelta < -10 {
+                acknowledgments.append(EventAcknowledgment(
+                    eventType: .light,
+                    effect: .positive,
+                    message: "Morning light exposure may have helped you fall asleep \(abs(Int(bedtimeDelta))) min earlier.",
+                    messageKey: "coach.event.light.positive",
+                    args: [abs(bedtimeDelta)]
+                ))
+            }
+        }
+
+        // Check for melatonin events
+        let recentMelatonin = events.filter { $0.type == .melatonin }
+        if !recentMelatonin.isEmpty {
+            let bedtimeDelta = circularDiffMinutes(actual: lastRecord.bedtimeHour, target: prevRecord.bedtimeHour)
+            if bedtimeDelta < -15 {
+                acknowledgments.append(EventAcknowledgment(
+                    eventType: .melatonin,
+                    effect: .positive,
+                    message: "Melatonin may have advanced your bedtime by \(abs(Int(bedtimeDelta))) min.",
+                    messageKey: "coach.event.melatonin.positive",
+                    args: [abs(bedtimeDelta)]
+                ))
+            }
+        }
+
+        return acknowledgments
+    }
 }

@@ -1,6 +1,14 @@
 import CoreGraphics
 import CoreText
-import UIKit  // Only for UIFont (toll-free bridged to CTFont)
+#if canImport(UIKit)
+import UIKit
+private typealias PlatformFont = UIFont
+private typealias PlatformColor = UIColor
+#elseif canImport(AppKit)
+import AppKit
+private typealias PlatformFont = NSFont
+private typealias PlatformColor = NSColor
+#endif
 import SpiralKit
 
 /// Generates a multi-page PDF report suitable for sharing with a healthcare provider.
@@ -18,10 +26,10 @@ enum PDFReportGenerator {
 
     // MARK: - Fixed Colors (CGColor for Core Text compatibility)
 
-    private static let pdfBlack: CGColor      = UIColor.black.cgColor
-    private static let pdfGray: CGColor       = UIColor(white: 0.45, alpha: 1).cgColor
-    private static let pdfLightGray: CGColor  = UIColor(white: 0.65, alpha: 1).cgColor
-    private static let pdfSeparator: CGColor  = UIColor(white: 0.80, alpha: 1).cgColor
+    private static let pdfBlack: CGColor      = PlatformColor.black.cgColor
+    private static let pdfGray: CGColor       = PlatformColor(white: 0.45, alpha: 1).cgColor
+    private static let pdfLightGray: CGColor  = PlatformColor(white: 0.65, alpha: 1).cgColor
+    private static let pdfSeparator: CGColor  = PlatformColor(white: 0.80, alpha: 1).cgColor
 
     // MARK: - Localization Helper
 
@@ -117,11 +125,11 @@ enum PDFReportGenerator {
         let y: CGFloat = margin
 
         ctDrawLine(ctx, text: loc("pdf.report.title", bundle: bundle),
-                   font: UIFont.systemFont(ofSize: 22, weight: .light), color: pdfBlack,
+                   font: PlatformFont.systemFont(ofSize: 22, weight: .light), color: pdfBlack,
                    at: CGPoint(x: margin, y: y))
 
         ctDrawLine(ctx, text: loc("pdf.report.subtitle", bundle: bundle),
-                   font: UIFont.monospacedSystemFont(ofSize: 9, weight: .regular), color: pdfGray,
+                   font: PlatformFont.monospacedSystemFont(ofSize: 9, weight: .regular), color: pdfGray,
                    at: CGPoint(x: margin, y: y + 28))
 
         // Separator line
@@ -350,7 +358,7 @@ enum PDFReportGenerator {
         ctx.addLine(to: CGPoint(x: rect.width - margin, y: footerY - 6))
         ctx.strokePath()
 
-        let footerFont = UIFont.monospacedSystemFont(ofSize: 7, weight: .regular)
+        let footerFont = PlatformFont.monospacedSystemFont(ofSize: 7, weight: .regular)
 
         ctDrawLine(ctx, text: loc("pdf.footer.disclaimer", bundle: bundle),
                    font: footerFont, color: pdfLightGray,
@@ -372,7 +380,7 @@ enum PDFReportGenerator {
     private static func ctDrawLine(
         _ ctx: CGContext,
         text: String,
-        font: UIFont,
+        font: PlatformFont,
         color: CGColor,
         at point: CGPoint
     ) {
@@ -396,7 +404,7 @@ enum PDFReportGenerator {
     }
 
     /// Measure the width of a single-line text string.
-    private static func ctTextWidth(_ text: String, font: UIFont) -> CGFloat {
+    private static func ctTextWidth(_ text: String, font: PlatformFont) -> CGFloat {
         let attrs: [NSAttributedString.Key: Any] = [.font: font]
         let attrStr = NSAttributedString(string: text, attributes: attrs)
         let line = CTLineCreateWithAttributedString(attrStr)
@@ -408,7 +416,7 @@ enum PDFReportGenerator {
     private static func ctDrawMultiline(
         _ ctx: CGContext,
         text: String,
-        font: UIFont,
+        font: PlatformFont,
         color: CGColor,
         rect: CGRect
     ) -> CGFloat {
@@ -461,36 +469,36 @@ enum PDFReportGenerator {
 
     private static func drawSectionTitle(_ ctx: CGContext, _ text: String, at y: CGFloat, margin: CGFloat) -> CGFloat {
         ctDrawLine(ctx, text: text,
-                   font: UIFont.systemFont(ofSize: 14, weight: .semibold), color: pdfBlack,
+                   font: PlatformFont.systemFont(ofSize: 14, weight: .semibold), color: pdfBlack,
                    at: CGPoint(x: margin, y: y))
         return y + 22
     }
 
     private static func drawKeyValue(_ ctx: CGContext, _ key: String, value: String, at y: CGFloat, margin: CGFloat, width: CGFloat) -> CGFloat {
         ctDrawLine(ctx, text: key,
-                   font: UIFont.monospacedSystemFont(ofSize: 9, weight: .medium), color: pdfGray,
+                   font: PlatformFont.monospacedSystemFont(ofSize: 9, weight: .medium), color: pdfGray,
                    at: CGPoint(x: margin, y: y))
         ctDrawLine(ctx, text: value,
-                   font: UIFont.monospacedSystemFont(ofSize: 9, weight: .regular), color: pdfBlack,
+                   font: PlatformFont.monospacedSystemFont(ofSize: 9, weight: .regular), color: pdfBlack,
                    at: CGPoint(x: margin + width * 0.45, y: y))
         return y + 16
     }
 
     private static func drawBody(_ ctx: CGContext, _ text: String, at y: CGFloat, margin: CGFloat, width: CGFloat) -> CGFloat {
         let h = ctDrawMultiline(ctx, text: text,
-                                font: UIFont.systemFont(ofSize: 8), color: pdfGray,
+                                font: PlatformFont.systemFont(ofSize: 8), color: pdfGray,
                                 rect: CGRect(x: margin, y: y, width: width, height: 200))
         return y + h + 6
     }
 
     private static func drawBullet(_ ctx: CGContext, _ title: String, detail: String, at y: CGFloat, margin: CGFloat, width: CGFloat) -> CGFloat {
         ctDrawLine(ctx, text: title,
-                   font: UIFont.systemFont(ofSize: 9, weight: .medium), color: pdfBlack,
+                   font: PlatformFont.systemFont(ofSize: 9, weight: .medium), color: pdfBlack,
                    at: CGPoint(x: margin + 8, y: y))
         var nextY = y + 14
 
         let h = ctDrawMultiline(ctx, text: detail,
-                                font: UIFont.systemFont(ofSize: 8), color: pdfGray,
+                                font: PlatformFont.systemFont(ofSize: 8), color: pdfGray,
                                 rect: CGRect(x: margin + 16, y: nextY, width: width - 16, height: 200))
         nextY += h + 8
         return nextY
@@ -525,7 +533,7 @@ enum PDFReportGenerator {
         for key in terms {
             let text = loc(key, bundle: bundle)
             let h = ctDrawMultiline(ctx, text: text,
-                                    font: UIFont.systemFont(ofSize: 8), color: pdfGray,
+                                    font: PlatformFont.systemFont(ofSize: 8), color: pdfGray,
                                     rect: CGRect(x: margin, y: y, width: width, height: 120))
             y += h + 6
         }

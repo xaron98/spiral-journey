@@ -45,6 +45,10 @@ struct SpiralView: View {
     var showGrid: Bool = true
     /// Inner radius of the spiral in points. Scale down for smaller screens (e.g. Watch: ~15).
     var startRadius: Double = 75
+    /// Predicted bedtime hour for tonight (0-24). Draws dashed prediction arc if set.
+    var predictedBedHour: Double? = nil
+    /// Predicted wake hour for tonight (0-24). Draws dashed prediction arc if set.
+    var predictedWakeHour: Double? = nil
 
 
     @Environment(\.colorScheme) private var colorScheme
@@ -100,23 +104,21 @@ struct SpiralView: View {
         let camZ: Double
 
         /// Build camera that frames `[fromTurns, upToTurns]` with perspective.
-        /// The spiral stays centered on `geo.cx/cy` — no XY recentering.
+        /// The outermost visible turn always projects at scale ≈ 1.0 so the
+        /// spiral fills the clock-face grid area. depthScale only controls how
+        /// much inner turns shrink (depth gradient).
         init(fromTurns: Double, upToTurns: Double, focusTurns: Double,
              geo: SpiralGeometry, depthScale: Double) {
             let zStep    = geo.maxRadius * depthScale
             let focalLen = geo.maxRadius * 1.2
-            let nearPlane = focalLen * 0.1
-            let safetyMargin = nearPlane * 1.0
 
             let margin = 0.5
             let tRef = upToTurns + margin
 
-            let spanZ = max((upToTurns - fromTurns), 0.5) * zStep
-            let maxRatio = 5.0
-            let dzFarForRatio = spanZ / (maxRatio - 1.0)
-            let dzFarMin = nearPlane + safetyMargin
-            let dzFar = max(dzFarForRatio, dzFarMin)
-            let camZ = margin * zStep - dzFar
+            // Anchor: outermost visible turn (upToTurns) → scale = 1.0
+            // dz_front = margin * zStep - camZ  →  focalLen / dz_front = 1
+            // ⇒ camZ = margin * zStep - focalLen
+            let camZ = margin * zStep - focalLen
 
             self.tRef     = tRef
             self.zStep    = zStep
@@ -253,7 +255,10 @@ struct SpiralView: View {
         }
         // 15. Rephase target markers
         drawTargetMarkers(context: context, geo: geo, upToTurns: state.renderUpToTurns)
-
+        // 16. Prediction overlay — dashed arc for predicted sleep tonight
+        if let bedH = predictedBedHour, let wakeH = predictedWakeHour {
+            drawPredictionOverlay(context: context, geo: geo, camera: camera, bedHour: bedH, wakeHour: wakeH)
+        }
 
     }
 
@@ -886,6 +891,47 @@ struct SpiralView: View {
                            style: StrokeStyle(lineWidth: 1.5, lineCap: .round,
                                               dash: [4, 5]))
         }
+    }
+
+    // MARK: - Prediction Overlay
+
+    /// Draws a dashed prediction arc showing predicted sleep for tonight.
+    /// Appears as a translucent purple dashed arc on the current/next spiral turn.
+    private func drawPredictionOverlay(context: GraphicsContext, geo: SpiralGeometry, camera: CameraState,
+                                        bedHour: Double, wakeHour: Double) {
+        // Place prediction on the cursor's current day
+        guard let cursorH = cursorAbsHour else { return }
+        let dayBase = floor(cursorH / geo.period) * geo.period
+
+        let bedAbs = dayBase + bedHour
+        let wakeAbs: Double = {
+            let w = dayBase + wakeHour
+            return w <= bedAbs ? w + geo.period : w
+        }()
+
+        let bedTurns = bedAbs / geo.period
+        let wakeTurns = wakeAbs / geo.period
+
+        // Perspective guard
+        let sc = camera.perspectiveScale(turns: bedTurns)
+        guard sc > 0.10 else { return }
+
+        let steps = 40
+        let tRange = wakeTurns - bedTurns
+        guard tRange > 0 else { return }
+
+        var path = Path()
+        for i in 0...steps {
+            let frac = Double(i) / Double(steps)
+            let t = bedTurns + frac * tRange
+            let pt = camera.project(turns: t, geo: geo)
+            if i == 0 { path.move(to: pt) }
+            else { path.addLine(to: pt) }
+        }
+
+        let lw = max(4.0, min(sc * 14.0, 18.0))
+        context.stroke(path, with: .color(Color(hex: "a78bfa").opacity(0.35)),
+                       style: StrokeStyle(lineWidth: lw, lineCap: .round, dash: [6, 4]))
     }
 
     // MARK: - Context Blocks

@@ -5,6 +5,11 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>
+		<string>processing</string>
+	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.spiral-journey.model-retrain</string>
 	</array>
 	<key>NSHealthShareUsageDescription</key>
 	<string>Spiral Journey reads your sleep data and heart rate variability from Apple Health to analyze your circadian rhythm, calculate sleep statistics, and provide personalized recommendations. Your data is never shared with third parties and is only used within the app.</string>

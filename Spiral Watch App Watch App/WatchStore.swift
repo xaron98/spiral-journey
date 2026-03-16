@@ -50,8 +50,8 @@ final class WatchStore {
     var spiralType: SpiralType = .archimedean
     /// Circadian period synced from iPhone (hours, typically 24.0).
     var period: Double = 24.0
-    /// Depth scale for perspective projection, synced from iPhone. Default 1.5.
-    var depthScale: Double = 1.5
+    /// Depth scale for perspective projection, synced from iPhone. Default 0.3.
+    var depthScale: Double = 0.3
 
     // Stored episodes (persisted locally)
     private var episodes: [SleepEpisode] = []

@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		840E5A9C2F5D238100339438 /* Spiral Watch App Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 840E5A7C2F5D238000339438 /* Spiral Watch App Watch App.app */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		840E5AB72F5D263600339438 /* SpiralKit in Frameworks */ = {isa = PBXBuildFile; productRef = 840E5AB62F5D263600339438 /* SpiralKit */; };
+		84BF12DD2F6890DE008C9FC0 /* LLM in Frameworks */ = {isa = PBXBuildFile; productRef = DD000002DD000002DD000002 /* LLM */; };
 		AA000003AAAAAAAA00000003 /* SpiralKit in Frameworks */ = {isa = PBXBuildFile; productRef = AA000002AAAAAAAA00000002 /* SpiralKit */; };
 		BB000004BB000004BB000004 /* SpiralKit in Frameworks */ = {isa = PBXBuildFile; productRef = BB000003BB000003BB000003 /* SpiralKit */; };
 		BB000005BB000005BB000005 /* SpiralWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = BB000006BB000006BB000006 /* SpiralWidget.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -185,6 +186,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				84BF12DD2F6890DE008C9FC0 /* LLM in Frameworks */,
 				AA000003AAAAAAAA00000003 /* SpiralKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -351,6 +353,7 @@
 			name = "spiral journey project";
 			packageProductDependencies = (
 				AA000002AAAAAAAA00000002 /* SpiralKit */,
+				DD000002DD000002DD000002 /* LLM */,
 			);
 			productName = "spiral journey project";
 			productReference = 84729FC62F5D1263006CECC6 /* spiral journey project.app */;
@@ -473,6 +476,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				8472A0062F5D1E0B006CECC6 /* XCLocalSwiftPackageReference "SpiralKit" */,
+				DD000001DD000001DD000001 /* XCRemoteSwiftPackageReference "LLM" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 84729FC72F5D1263006CECC6 /* Products */;
@@ -1283,6 +1287,17 @@
 		};
 /* End XCLocalSwiftPackageReference section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		DD000001DD000001DD000001 /* XCRemoteSwiftPackageReference "LLM" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/eastriverlee/LLM.swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.2.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
 		840E5AB62F5D263600339438 /* SpiralKit */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -1298,6 +1313,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = AA000001AAAAAAAA00000001 /* XCLocalSwiftPackageReference "SpiralKit" */;
 			productName = SpiralKit;
+		};
+		DD000002DD000002DD000002 /* LLM */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DD000001DD000001DD000001 /* XCRemoteSwiftPackageReference "LLM" */;
+			productName = LLM;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

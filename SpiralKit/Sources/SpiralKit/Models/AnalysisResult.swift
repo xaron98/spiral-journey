@@ -216,6 +216,9 @@ public struct AnalysisResult: Codable, Sendable {
     /// The single most important coaching insight for the current goal.
     /// nil when the analysis was produced without a SleepGoal (backward compatible).
     public var coachInsight: CoachInsight?
+    /// Enhanced coaching data: temporal patterns, celebrations, streaks, micro-habits, weekly digest.
+    /// nil when the analysis was produced without enhanced evaluation.
+    public var enhancedCoach: EnhancedCoachResult?
 
     public init(
         composite: Int = 0,
@@ -228,7 +231,8 @@ public struct AnalysisResult: Codable, Sendable {
         signatures: [DisorderSignature] = [],
         stats: SleepStats = SleepStats(),
         consistency: SpiralConsistencyScore? = nil,
-        coachInsight: CoachInsight? = nil
+        coachInsight: CoachInsight? = nil,
+        enhancedCoach: EnhancedCoachResult? = nil
     ) {
         self.composite = composite
         self.label = label
@@ -241,5 +245,6 @@ public struct AnalysisResult: Codable, Sendable {
         self.stats = stats
         self.consistency = consistency
         self.coachInsight = coachInsight
+        self.enhancedCoach = enhancedCoach
     }
 }

@@ -15,6 +15,19 @@ struct WatchStatsView: View {
         ScrollView {
             VStack(spacing: 8) {
 
+                if store.records.isEmpty {
+                    Spacer()
+                    Image(systemName: "chart.bar")
+                        .font(.system(size: 20))
+                        .foregroundStyle(SpiralColors.muted(app))
+                    Text(String(localized: "watch.stats.empty", bundle: bundle))
+                        .font(.system(size: 10))
+                        .foregroundStyle(SpiralColors.muted(app))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 8)
+                    Spacer()
+                } else {
+
                 // Score arc
                 ZStack {
                     Circle()
@@ -71,6 +84,7 @@ struct WatchStatsView: View {
                     }
                     .padding(.vertical, 2)
                 }
+            } // else has records
             }
             .padding(.horizontal, 6)
         }

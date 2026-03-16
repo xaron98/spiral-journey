@@ -28,7 +28,8 @@ private func makeWindow(effective: Int, count: Int, requested: Int? = nil, clamp
         startIndex: max(0, effective - count + 1),
         endIndex: effective,
         visibleCount: count,
-        clampedToDataBounds: clamped
+        clampedToDataBounds: clamped,
+        viewportFromFractional: Double(max(0, effective - count + 1))
     )
 }
 
@@ -143,14 +144,14 @@ struct VisibleDayWindowTests {
         #expect(window.endIndex == 11)
     }
 
-    @Test("Cursor far ahead of data — effective follows cursor, window covers viewport")
+    @Test("Cursor far ahead of data — effective clamped to lastDayIndex")
     func cursorFarAhead() {
-        // Cursor at 30, viewport [26, 34] → effective follows cursor at 30
+        // Cursor at 30, viewport [26, 34] → effective clamped to 13 (lastDayIndex)
         let window = SpiralVisibilityEngine.computeVisibleDayWindow(
             activeTurns: 30.0, viewportFromTurns: 26.0, viewportUpToTurns: 34.0, bounds: bounds14)
         #expect(window.requestedActiveIndex == 30)
-        #expect(window.effectiveActiveIndex == 30)
-        #expect(!window.clampedToDataBounds)
+        #expect(window.effectiveActiveIndex == 13)
+        #expect(window.clampedToDataBounds)
         #expect(window.startIndex == 26)
         #expect(window.endIndex == 34)
     }
@@ -208,12 +209,12 @@ struct VisibilityStateTests {
         #expect(vis.distanceFromActive == 0)
     }
 
-    @Test("One day back → opacity 0.75")
+    @Test("One day back → opacity 0.85")
     func oneDayBack() {
         let window = makeWindow(effective: 10, count: 7)
         let vis = SpiralVisibilityEngine.visibilityState(for: 9, window: window)
         #expect(vis.isVisible)
-        #expect(vis.opacity == 0.75)
+        #expect(vis.opacity == 0.85)  // opacityCurve[1]
     }
 
     @Test("Distant day inside window → visible with opacity floor 0.05")
@@ -224,45 +225,61 @@ struct VisibilityStateTests {
         #expect(vis.opacity >= 0.05, "Opacity floor must be at least 0.05, got \(vis.opacity)")
     }
 
-    @Test("Day outside window → invisible")
-    func outsideWindow() {
+    @Test("Day far from active → fades but no hard cutoff")
+    func dayFarFromActive() {
         let window = makeWindow(effective: 10, count: 7)
-        let vis = SpiralVisibilityEngine.visibilityState(for: 3, window: window)  // outside [4..10]
-        #expect(!vis.isVisible)
-        #expect(vis.opacity == 0)
+        let vis = SpiralVisibilityEngine.visibilityState(for: 3, window: window)  // dist = 7
+        // No hard window boundary — uses distance-based fade
+        // opacityCurve[7] = 0.15
+        #expect(vis.isVisible)
+        #expect(vis.opacity == 0.15)
     }
 
-    @Test("Day past endIndex → invisible")
+    @Test("Day just past endIndex → still visible via distance fade")
     func pastEndIndex() {
         let window = makeWindow(effective: 10, count: 7)
-        let vis = SpiralVisibilityEngine.visibilityState(for: 11, window: window)
-        #expect(!vis.isVisible)
+        let vis = SpiralVisibilityEngine.visibilityState(for: 11, window: window)  // dist = 1
+        // No hard window boundary — day 11 is 1 step from effective (10)
+        #expect(vis.isVisible)
+        #expect(vis.opacity == 0.85)  // opacityCurve[1]
     }
 
-    @Test("After clamping: all days inside window are visible")
-    func clampedWindowAllVisible() {
-        // Viewport-derived window [7…13], effective clamped to 13
+    @Test("After clamping: data near cursor stays visible")
+    func clampedWindowVisible() {
+        // Cursor at 15 (just past data), effective clamped to 13
+        // cursorDist for day 13 = |15-13| = 2 → within maxCurveDist (8) → cursorFade = 1.0
         let clampedWindow = VisibleDayWindow(
-            requestedActiveIndex: 30,
+            requestedActiveIndex: 15,
             effectiveActiveIndex: 13,
             startIndex: 7,
-            endIndex: 13,
-            visibleCount: 7,
-            clampedToDataBounds: true
+            endIndex: 15,
+            visibleCount: 9,
+            clampedToDataBounds: true,
+            viewportFromFractional: 7.0
         )
-        // Day 13 should be fully visible
+        // Day 13: dist=0, cursorDist=2 → opacity 1.0
         let vis13 = SpiralVisibilityEngine.visibilityState(for: 13, window: clampedWindow)
         #expect(vis13.isVisible)
         #expect(vis13.opacity == 1.0)
 
-        // Day 7 should be visible (inside window, opacity >= 0.05)
+        // Day 7: dist=6, cursorDist=8 → within maxCurveDist → cursorFade=1.0
         let vis7 = SpiralVisibilityEngine.visibilityState(for: 7, window: clampedWindow)
         #expect(vis7.isVisible)
         #expect(vis7.opacity >= 0.05)
 
-        // Day 6 (outside window) should be invisible
-        let vis6 = SpiralVisibilityEngine.visibilityState(for: 6, window: clampedWindow)
-        #expect(!vis6.isVisible)
+        // Day far from cursor (cursor=15): when cursor goes far enough, data fades
+        // requestedActive=30 makes cursorDist(day13)=17, beyond maxCurveDist → data fades
+        let farWindow = VisibleDayWindow(
+            requestedActiveIndex: 30,
+            effectiveActiveIndex: 13,
+            startIndex: 7,
+            endIndex: 30,
+            visibleCount: 24,
+            clampedToDataBounds: true,
+            viewportFromFractional: 7.0
+        )
+        let visFar = SpiralVisibilityEngine.visibilityState(for: 13, window: farWindow)
+        #expect(!visFar.isVisible, "Data should fade when cursor is far past it")
     }
 
     @Test("strokeScale and blur degrade with distance")
@@ -287,7 +304,8 @@ struct NoDataFallbackTests {
         let empty = DataDayBounds(firstDayIndex: 0, lastDayIndex: 0, hasData: false)
         let window = VisibleDayWindow(
             requestedActiveIndex: 0, effectiveActiveIndex: 0,
-            startIndex: 0, endIndex: 0, visibleCount: 7, clampedToDataBounds: false)
+            startIndex: 0, endIndex: 0, visibleCount: 7, clampedToDataBounds: false,
+            viewportFromFractional: 0.0)
         #expect(SpiralVisibilityEngine.shouldShowNoDataFallback(bounds: empty, window: window))
     }
 
@@ -296,7 +314,8 @@ struct NoDataFallbackTests {
         let bounds = DataDayBounds(firstDayIndex: 0, lastDayIndex: 13, hasData: true)
         let window = VisibleDayWindow(
             requestedActiveIndex: 13, effectiveActiveIndex: 13,
-            startIndex: 7, endIndex: 13, visibleCount: 7, clampedToDataBounds: false)
+            startIndex: 7, endIndex: 13, visibleCount: 7, clampedToDataBounds: false,
+            viewportFromFractional: 7.0)
         #expect(!SpiralVisibilityEngine.shouldShowNoDataFallback(bounds: bounds, window: window))
     }
 
@@ -306,7 +325,8 @@ struct NoDataFallbackTests {
         // After clamping, window is [7…13], data is [0…13] → overlap → no fallback
         let window = VisibleDayWindow(
             requestedActiveIndex: 100, effectiveActiveIndex: 13,
-            startIndex: 7, endIndex: 13, visibleCount: 7, clampedToDataBounds: true)
+            startIndex: 7, endIndex: 13, visibleCount: 7, clampedToDataBounds: true,
+            viewportFromFractional: 7.0)
         #expect(!SpiralVisibilityEngine.shouldShowNoDataFallback(bounds: bounds, window: window))
     }
 
@@ -452,9 +472,8 @@ struct RenderTurnRangeTests {
 
     @Test("Normal case: render range covers camera window")
     func normalRange() {
-        let bounds = DataDayBounds(firstDayIndex: 0, lastDayIndex: 13, hasData: true)
         let result = SpiralVisibilityEngine.computeRenderTurnRange(
-            cameraFrom: 4.0, cameraUpTo: 11.0, viewportFrom: 4.0, bounds: bounds,
+            cameraFrom: 4.0, cameraUpTo: 11.0, viewportFrom: 4.0,
             backboneCapTurn: 11.15, cameraMaxTurn: 20.0)
         #expect(result.from <= 4.0)
         #expect(result.upTo >= 11.0)
@@ -462,9 +481,8 @@ struct RenderTurnRangeTests {
 
     @Test("Render range extends to camera upTo + margin")
     func backboneExtension() {
-        let bounds = DataDayBounds(firstDayIndex: 0, lastDayIndex: 13, hasData: true)
         let result = SpiralVisibilityEngine.computeRenderTurnRange(
-            cameraFrom: 7.0, cameraUpTo: 14.0, viewportFrom: 7.0, bounds: bounds,
+            cameraFrom: 7.0, cameraUpTo: 14.0, viewportFrom: 7.0,
             backboneCapTurn: 14.15, cameraMaxTurn: 20.0)
         #expect(result.upTo >= 14.0,
                 "Render range should cover camera upTo")
@@ -472,9 +490,8 @@ struct RenderTurnRangeTests {
 
     @Test("Wide camera → render range covers full range")
     func wideViewport() {
-        let bounds = DataDayBounds(firstDayIndex: 0, lastDayIndex: 13, hasData: true)
         let result = SpiralVisibilityEngine.computeRenderTurnRange(
-            cameraFrom: 0.0, cameraUpTo: 100.0, viewportFrom: 0.0, bounds: bounds,
+            cameraFrom: 0.0, cameraUpTo: 100.0, viewportFrom: 0.0,
             backboneCapTurn: 100.15, cameraMaxTurn: 50.0)
         #expect(result.from == 0.0)
         #expect(result.upTo >= 50.0)
@@ -482,9 +499,8 @@ struct RenderTurnRangeTests {
 
     @Test("Narrow camera → render range matches camera + margin")
     func narrowViewport() {
-        let bounds = DataDayBounds(firstDayIndex: 0, lastDayIndex: 5, hasData: true)
         let result = SpiralVisibilityEngine.computeRenderTurnRange(
-            cameraFrom: 2.0, cameraUpTo: 4.0, viewportFrom: 2.0, bounds: bounds,
+            cameraFrom: 2.0, cameraUpTo: 4.0, viewportFrom: 2.0,
             backboneCapTurn: 4.15, cameraMaxTurn: 3.0)
         #expect(result.from <= 2.0)
         #expect(result.upTo >= 3.0)
@@ -492,9 +508,8 @@ struct RenderTurnRangeTests {
 
     @Test("Empty dataset → range governed by camera + backbone")
     func emptyDataset() {
-        let bounds = DataDayBounds(firstDayIndex: 0, lastDayIndex: 0, hasData: false)
         let result = SpiralVisibilityEngine.computeRenderTurnRange(
-            cameraFrom: 0.0, cameraUpTo: 6.0, viewportFrom: 0.0, bounds: bounds,
+            cameraFrom: 0.0, cameraUpTo: 6.0, viewportFrom: 0.0,
             backboneCapTurn: 6.15, cameraMaxTurn: 3.0)
         #expect(result.from == 0.0)
         #expect(result.upTo >= 3.0)
@@ -502,9 +517,8 @@ struct RenderTurnRangeTests {
 
     @Test("Non-degenerate range safety — upTo always > from")
     func nonDegenerateRange() {
-        let bounds = DataDayBounds(firstDayIndex: 5, lastDayIndex: 5, hasData: true)
         let result = SpiralVisibilityEngine.computeRenderTurnRange(
-            cameraFrom: 3.0, cameraUpTo: 6.0, viewportFrom: 3.0, bounds: bounds,
+            cameraFrom: 3.0, cameraUpTo: 6.0, viewportFrom: 3.0,
             backboneCapTurn: 6.15, cameraMaxTurn: 0.1)
         #expect(result.upTo > result.from,
                 Comment(rawValue: "Render range must be non-degenerate: from=\(result.from) upTo=\(result.upTo)"))
@@ -598,7 +612,8 @@ struct ResolveIntegrationTests {
         #expect(state.dataBounds.hasData)
         #expect(state.dataBounds.firstDayIndex == 0)
         #expect(state.dataBounds.lastDayIndex == 13)
-        #expect(state.visibleWindow.visibleCount == 7)
+        // viewport [6.0, 13.0] → startIndex=6, endIndex=13 → count=8
+        #expect(state.visibleWindow.visibleCount >= 7)
         #expect(state.renderUpToTurns > state.renderFromTurns)
         #expect(!state.showNoDataFallback)
     }
@@ -623,18 +638,19 @@ struct ResolveIntegrationTests {
         }
     }
 
-    @Test("contextVisibility(for:) follows day visibility + context marker flag")
+    @Test("contextVisibility(for:) follows day visibility + context marker flag + behind cursor")
     func contextVisibilityFollowsDayVis() {
         let records = (0..<14).map { makeRecord(day: $0) }
         let state = resolveState(records: records, activeTurns: 10.0, visibleDays: 7.0)
         for day in 0...13 {
             let ctx = state.contextVisibility(for: day)
             let dayVis = state.dayVisibility(for: day)
-            if dayVis.isVisible && state.markerState.shouldRenderContextMarkers {
-                #expect(ctx.isVisible, "Context should be visible for visible day \(day)")
+            let behindCursor = day <= state.visibleWindow.requestedActiveIndex
+            if dayVis.isVisible && state.markerState.shouldRenderContextMarkers && behindCursor {
+                #expect(ctx.isVisible, "Context should be visible for visible day \(day) behind cursor")
                 #expect(ctx.opacity == dayVis.opacity)
             } else {
-                #expect(!ctx.isVisible, "Context should be hidden for invisible day \(day)")
+                #expect(!ctx.isVisible, "Context should be hidden for day \(day)")
             }
         }
     }
@@ -665,25 +681,33 @@ struct ResolveIntegrationTests {
         #expect(state.contextVisibility(for: 0).isVisible)
     }
 
-    @Test("Full pipeline: data exists → cannot have invisible spiral + gray fallback")
+    @Test("Full pipeline: data exists → no false gray fallback, data visible near cursor")
     func fullPipelineNoFalseGray() {
         let records = (0..<14).map { makeRecord(day: $0) }
 
-        // Test many cursor+zoom combos
+        // Test cursor+zoom combos. Data [0..13].
+        // When cursor is near data, at least one day must be visible.
+        // When cursor is far past data with small zoom, cursorFade correctly
+        // makes data invisible — this is intended behavior, not a bug.
         let cursors = [0.0, 5.0, 13.0, 14.0, 20.0, 50.0, 100.0]
         let zooms   = [0.15, 1.0, 2.0, 5.0, 7.0, 13.0, 50.0, 100.0]
         for cursor in cursors {
             for zoom in zooms {
                 let state = resolveState(records: records, activeTurns: cursor, visibleDays: zoom)
+                // Fallback must always be false when data exists
                 #expect(!state.showNoDataFallback,
                         "False fallback at cursor=\(cursor) zoom=\(zoom)")
 
-                // At least one data day must be visible
-                let anyVisible = (0...13).contains { dayIdx in
-                    state.dayVisibility(for: dayIdx).isVisible
+                // Data days are visible when cursor is near data
+                // (within ~8 turns, the opacityCurve range)
+                let cursorNearData = cursor <= 21.0  // lastDayIndex(13) + maxCurveDist(8)
+                if cursorNearData || zoom >= cursor {
+                    let anyVisible = (0...13).contains { dayIdx in
+                        state.dayVisibility(for: dayIdx).isVisible
+                    }
+                    #expect(anyVisible,
+                            "No visible data day at cursor=\(cursor) zoom=\(zoom)")
                 }
-                #expect(anyVisible,
-                        "No visible data day at cursor=\(cursor) zoom=\(zoom)")
             }
         }
     }
@@ -725,14 +749,17 @@ struct ResolveIntegrationTests {
     @Test("Zoom max + cursor extreme → visible window clamp correct, no false fallback")
     func zoomMaxCursorExtreme() {
         let records = (0..<14).map { makeRecord(day: $0) }
+        // Cursor at 500 is far past data — cursorFade makes data invisible.
+        // But showNoDataFallback must still be false (data exists, just faded).
         let state = resolveState(records: records, activeTurns: 500.0, visibleDays: 500.0)
-        // Window must be clamped
         #expect(state.effectiveActiveIndex == 13)
-        // No fallback
         #expect(!state.showNoDataFallback)
-        // Data day 13 must be visible
-        #expect(state.dayVisibility(for: 13).isVisible)
-        #expect(state.dayVisibility(for: 13).opacity == 1.0)
+
+        // With cursor close to data, day 13 is fully visible
+        let closeState = resolveState(records: records, activeTurns: 15.0, visibleDays: 15.0)
+        #expect(closeState.effectiveActiveIndex == 13)
+        #expect(closeState.dayVisibility(for: 13).isVisible)
+        #expect(closeState.dayVisibility(for: 13).opacity == 1.0)
     }
 
     @Test("Zoom min + origin → origin stays visible")
@@ -795,7 +822,9 @@ struct NoDeadZoneTests {
     }
 
     /// Sweep zoom with extreme cursor offset (cursor far past data).
-    @Test("Zoom sweep with cursor far past data: no dead zones")
+    /// Data fades when cursor moves far past it (cursorFade), which is intentional.
+    /// But showNoDataFallback must always be false when data exists.
+    @Test("Zoom sweep with cursor far past data: no false fallback")
     func zoomSweepCursorFarPast() {
         let records = (0..<14).map { makeRecord(day: $0) }
         let cursors: [Double] = [14.0, 20.0, 50.0, 100.0, 500.0]
@@ -808,11 +837,15 @@ struct NoDeadZoneTests {
                     totalTurns: cursor, cameraMaxTurn: max(cursor, 50.0))
                 #expect(!state.showNoDataFallback,
                         "False fallback at cursor=\(cursor) zoom=\(zoom)")
-                let anyVisible = (0...13).contains {
-                    state.dayVisibility(for: $0).isVisible
+                // Data is visible when cursor is within cursorFade range (~21 turns)
+                let cursorNearData = cursor <= 21.0
+                if cursorNearData || zoom >= cursor {
+                    let anyVisible = (0...13).contains {
+                        state.dayVisibility(for: $0).isVisible
+                    }
+                    #expect(anyVisible,
+                            "No visible data day at cursor=\(cursor) zoom=\(zoom)")
                 }
-                #expect(anyVisible,
-                        "No visible data day at cursor=\(cursor) zoom=\(zoom)")
             }
         }
     }
@@ -836,8 +869,9 @@ struct NoDeadZoneTests {
 @Suite("SpiralVisibilityEngine — Context Band Coherence")
 struct ContextBandCoherenceTests {
 
-    /// If a day is visible, its context block must also be visible (when context markers enabled).
-    @Test("Context visibility is coherent with day visibility")
+    /// If a day is visible AND behind the cursor, its context block must also be visible.
+    /// Context blocks are only shown behind cursor per rendering rules.
+    @Test("Context visibility is coherent with day visibility for days behind cursor")
     func contextCoherentWithDayVisibility() {
         let records = (0..<14).map { makeRecord(day: $0) }
         let zooms: [Double] = [0.15, 1.0, 2.0, 5.0, 7.0, 13.0, 50.0, 100.0]
@@ -846,9 +880,10 @@ struct ContextBandCoherenceTests {
             for day in 0...13 {
                 let dayVis = state.dayVisibility(for: day)
                 let ctxVis = state.contextVisibility(for: day)
-                if dayVis.isVisible {
+                let behindCursor = day <= state.visibleWindow.requestedActiveIndex
+                if dayVis.isVisible && behindCursor {
                     #expect(ctxVis.isVisible,
-                            "Day \(day) visible but context hidden at zoom=\(zoom)")
+                            "Day \(day) visible+behind cursor but context hidden at zoom=\(zoom)")
                     #expect(ctxVis.opacity == dayVis.opacity,
                             "Context opacity \(ctxVis.opacity) != day opacity \(dayVis.opacity) at zoom=\(zoom)")
                 }
@@ -856,8 +891,8 @@ struct ContextBandCoherenceTests {
         }
     }
 
-    /// Zoom sweep: if any data day is rendered, its context band opacity must match.
-    @Test("Zoom sweep: context opacity matches day opacity everywhere")
+    /// Zoom sweep: if any data day is rendered AND behind cursor, context band opacity must match.
+    @Test("Zoom sweep: context opacity matches day opacity for days behind cursor")
     func zoomSweepContextOpacityMatchesDayOpacity() {
         let records = (0..<14).map { makeRecord(day: $0) }
         var z = 0.15
@@ -866,7 +901,8 @@ struct ContextBandCoherenceTests {
             for day in 0...13 {
                 let dayVis = state.dayVisibility(for: day)
                 let ctxVis = state.contextVisibility(for: day)
-                if dayVis.isVisible {
+                let behindCursor = day <= state.visibleWindow.requestedActiveIndex
+                if dayVis.isVisible && behindCursor {
                     #expect(ctxVis.opacity == dayVis.opacity,
                             "Mismatch at day=\(day) zoom=\(z): ctx=\(ctxVis.opacity) day=\(dayVis.opacity)")
                 }
@@ -875,9 +911,9 @@ struct ContextBandCoherenceTests {
         }
     }
 
-    /// No "blue bands missing" scenario: at every zoom level where data is visible,
-    /// context for those days is also visible.
-    @Test("No missing blue bands when spiral data is visible")
+    /// No "blue bands missing" scenario: at every zoom level where data is visible
+    /// and behind cursor, context for those days is also visible.
+    @Test("No missing blue bands when spiral data is visible behind cursor")
     func noMissingBlueBands() {
         let records = (0..<14).map { makeRecord(day: $0) }
         let cursors: [Double] = [5.0, 13.0, 30.0, 100.0]
@@ -888,14 +924,16 @@ struct ContextBandCoherenceTests {
                 let state = resolveState(
                     records: records, activeTurns: cursor, visibleDays: zoom,
                     totalTurns: max(cursor, 14.0), cameraMaxTurn: max(cursor, 50.0))
-                let visibleDays = (0...13).filter {
-                    state.dayVisibility(for: $0).isVisible
+                let requestedActive = state.visibleWindow.requestedActiveIndex
+                // Context only shows for days behind cursor
+                let visibleDaysBehindCursor = (0...13).filter {
+                    state.dayVisibility(for: $0).isVisible && $0 <= requestedActive
                 }
                 let contextVisibleDays = (0...13).filter {
                     state.contextVisibility(for: $0).isVisible
                 }
-                #expect(Set(visibleDays) == Set(contextVisibleDays),
-                        "Visible days \(visibleDays) != context days \(contextVisibleDays) at cursor=\(cursor) zoom=\(zoom)")
+                #expect(Set(visibleDaysBehindCursor) == Set(contextVisibleDays),
+                        "Visible behind-cursor \(visibleDaysBehindCursor) != context \(contextVisibleDays) at cursor=\(cursor) zoom=\(zoom)")
             }
         }
     }
@@ -958,17 +996,18 @@ struct ZoomContinuityTests {
         }
     }
 
-    /// With cursor far past data, effective active should stay at lastDayIndex.
-    @Test("Cursor far past data: effective active follows cursor across all zooms")
-    func effectiveActiveFollowsCursorPastData() {
+    /// With cursor far past data, effective active should stay clamped at lastDayIndex
+    /// so that data near the cursor stays at high opacity.
+    @Test("Cursor far past data: effective active clamped to lastDayIndex across all zooms")
+    func effectiveActiveClampedPastData() {
         let records = (0..<14).map { makeRecord(day: $0) }
         for zoom in [0.15, 1.0, 5.0, 10.0, 50.0, 200.0] {
             let state = resolveState(
                 records: records, activeTurns: 500.0, visibleDays: zoom,
                 totalTurns: 500.0, cameraMaxTurn: 500.0)
-            // effectiveActive follows cursor directly (no clamping to data bounds)
-            #expect(state.effectiveActiveIndex == 500,
-                    "At zoom=\(zoom), effective should be 500 but got \(state.effectiveActiveIndex)")
+            // effectiveActive is clamped to lastDayIndex (13) to keep data bright
+            #expect(state.effectiveActiveIndex == 13,
+                    "At zoom=\(zoom), effective should be 13 (clamped) but got \(state.effectiveActiveIndex)")
         }
     }
 }

@@ -38,6 +38,9 @@ final class HealthKitManager {
     private var observerQuery: HKObserverQuery?
     /// Prevents concurrent calls to importAndAdjustEpoch (e.g. foreground + observer firing together).
     private var isImporting = false
+    /// When true, another import is queued while one is already running.
+    /// Ensures observer callbacks aren't silently dropped.
+    private var needsRetryAfterImport = false
 
     // MARK: - Authorization
 
@@ -191,11 +194,24 @@ final class HealthKitManager {
             return nil
         }
         guard !isImporting else {
-            print("[HK] importAndAdjustEpoch: already in progress, skipping")
+            // Don't drop the request — mark for retry once the current import finishes.
+            // This prevents lost observer callbacks when foreground + observer overlap.
+            print("[HK] importAndAdjustEpoch: already in progress, queuing retry")
+            needsRetryAfterImport = true
             return nil
         }
         isImporting = true
-        defer { isImporting = false }
+        defer {
+            isImporting = false
+            // If another request came in while we were importing, fire a retry
+            // so freshly synced Watch data isn't missed.
+            if needsRetryAfterImport {
+                needsRetryAfterImport = false
+                Task { @MainActor in
+                    self.onNewSleepData?()
+                }
+            }
+        }
         let calendar = Calendar.current
         let end = Date()
         guard let searchStart = calendar.date(byAdding: .day, value: -Self.maxImportDays, to: end) else { return nil }
@@ -217,6 +233,27 @@ final class HealthKitManager {
         print("[HK] second pass: \(episodes.count) episodes, returning epoch=\(realEpoch)")
         return (episodes, realEpoch)
     }
+
+    /// Incremental fetch: only queries the last 3 days from HealthKit and returns
+    /// episodes whose sample UUID is not yet in `knownIDs`. Much cheaper than a
+    /// full 365-day import — used by the periodic poll and observer callback.
+    func fetchRecentNewEpisodes(epoch: Date, knownIDs: Set<String>) async -> [SleepEpisode] {
+        guard isAvailable, isAuthorized else { return [] }
+        let calendar = Calendar.current
+        let end = Date()
+        guard let start = calendar.date(byAdding: .day, value: -3, to: end) else { return [] }
+
+        let recent = await fetchSleepEpisodes(from: start, to: end, epoch: epoch)
+        let newOnly = recent.filter { ep in
+            guard let hkID = ep.healthKitSampleID else { return true }
+            return !knownIDs.contains(hkID)
+        }
+        if !newOnly.isEmpty {
+            print("[HK] incremental: \(newOnly.count) new episodes from last 3 days")
+        }
+        return newOnly
+    }
+
     // MARK: - HRV Data Query
 
     /// Fetch nightly HRV (SDNN) samples for the given date range.

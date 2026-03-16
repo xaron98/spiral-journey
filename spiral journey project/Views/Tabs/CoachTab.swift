@@ -8,6 +8,7 @@ struct CoachTab: View {
     @Environment(SpiralStore.self) private var store
     @Environment(\.languageBundle) private var bundle
     @State private var showJetLagSetup = false
+    @State private var showCoachChat = false
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -16,17 +17,41 @@ struct CoachTab: View {
                     emptyState
                 } else {
                     header
+                    // ⚠️ Trend context — alert banner at the top
+                    if hasTrendContext { trendContextCard }
+                    // 🎉 Celebration card (only if there's a positive achievement)
+                    if let celebration = store.analysis.enhancedCoach?.celebrations.first {
+                        celebrationCard(celebration)
+                    }
                     insightCard
+                    // 🔥 Streak card (only if active streak ≥2)
+                    if let streak = store.analysis.enhancedCoach?.streak, streak.isActive {
+                        streakCard(streak)
+                    }
                     habitCard
                     actionCard
+                    // ✅ Micro-habit card
+                    if let habit = store.analysis.enhancedCoach?.microHabit {
+                        microHabitCard(habit)
+                    }
+                    // 📊 Weekly digest card
+                    if let digest = store.analysis.enhancedCoach?.weeklyDigest, digest.isValid {
+                        weeklyDigestCard(digest)
+                    }
+                    // 📅 Temporal pattern cards
+                    ForEach(store.analysis.enhancedCoach?.temporalPatterns ?? []) { pattern in
+                        temporalPatternCard(pattern)
+                    }
+                    // 🏃 Event acknowledgments
+                    ForEach(store.analysis.enhancedCoach?.eventAcknowledgments ?? []) { ack in
+                        eventAcknowledgmentCard(ack)
+                    }
                     // Nap recommendation — only when Process S is high enough
                     if let nap = napRecommendation { napCard(nap) }
                     // Jet lag planner button
                     jetLagButton
                     // Conflict trend — if we have enough history
                     if let trend = store.conflictTrend { conflictTrendCard(trend) }
-                    // Trend context — only if there's something notable
-                    if hasTrendContext { trendContextCard }
                 }
             }
             .padding(.horizontal, 16)
@@ -38,6 +63,9 @@ struct CoachTab: View {
         .background(SpiralColors.bg.ignoresSafeArea())
         .sheet(isPresented: $showJetLagSetup) {
             JetLagSetupView()
+        }
+        .sheet(isPresented: $showCoachChat) {
+            CoachChatView()
         }
     }
 
@@ -54,9 +82,25 @@ struct CoachTab: View {
                     .foregroundStyle(SpiralColors.subtle)
             }
             Spacer()
-            Image(systemName: "lightbulb.min.fill")
-                .font(.system(size: 20))
-                .foregroundStyle(SpiralColors.accent)
+            if store.llmEnabled {
+                Button {
+                    showCoachChat = true
+                } label: {
+                    Image(systemName: "brain.head.profile")
+                        .font(.system(size: 18))
+                        .foregroundStyle(SpiralColors.accent)
+                        .frame(width: 36, height: 36)
+                        .overlay(
+                            Circle()
+                                .stroke(SpiralColors.accent.opacity(0.4), lineWidth: 1)
+                        )
+                }
+                .buttonStyle(.plain)
+            } else {
+                Image(systemName: "lightbulb.min.fill")
+                    .font(.system(size: 20))
+                    .foregroundStyle(SpiralColors.accent)
+            }
         }
         .padding(.bottom, 4)
     }
@@ -321,6 +365,282 @@ struct CoachTab: View {
             )
         }
         .buttonStyle(.plain)
+    }
+
+    // MARK: - Celebration Card
+
+    private func celebrationCard(_ celebration: ProgressCelebration) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: "star.fill")
+                .font(.system(size: 22))
+                .foregroundStyle(.yellow)
+                .frame(width: 36)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(loc("coach.celebration.eyebrow"))
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(SpiralColors.subtle)
+                    .textCase(.uppercase)
+                Text(localizedCoachString(celebration.messageKey, fallback: celebration.message, args: celebration.args))
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(SpiralColors.text)
+            }
+            Spacer()
+        }
+        .padding(14)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 14).fill(.ultraThinMaterial)
+                RoundedRectangle(cornerRadius: 14).fill(Color.yellow.opacity(0.08))
+                RoundedRectangle(cornerRadius: 14).stroke(Color.yellow.opacity(0.25), lineWidth: 0.8)
+            }
+        )
+    }
+
+    // MARK: - Streak Card
+
+    private func streakCard(_ streak: StreakData) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: "flame.fill")
+                .font(.system(size: 22))
+                .foregroundStyle(.orange)
+                .frame(width: 36)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(loc("coach.streak.eyebrow"))
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(SpiralColors.subtle)
+                    .textCase(.uppercase)
+                HStack(spacing: 6) {
+                    Text(String(format: loc("coach.streak.current"), streak.currentStreak))
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(SpiralColors.text)
+                    if streak.bestStreak > streak.currentStreak {
+                        Text("·")
+                            .foregroundStyle(SpiralColors.muted)
+                        Text(String(format: loc("coach.streak.best"), streak.bestStreak))
+                            .font(.system(size: 11))
+                            .foregroundStyle(SpiralColors.muted)
+                    } else if streak.isNewRecord {
+                        Text("🏆")
+                            .font(.system(size: 12))
+                    }
+                }
+            }
+            Spacer()
+        }
+        .padding(14)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 14).fill(.ultraThinMaterial)
+                RoundedRectangle(cornerRadius: 14).fill(Color.orange.opacity(0.06))
+                RoundedRectangle(cornerRadius: 14).stroke(Color.orange.opacity(0.18), lineWidth: 0.8)
+            }
+        )
+    }
+
+    // MARK: - Micro-Habit Card
+
+    private func microHabitCard(_ habit: MicroHabit) -> some View {
+        let isCompleted = store.isMicroHabitCompleted(habit)
+        return HStack(spacing: 12) {
+            Button {
+                store.toggleMicroHabit(habit)
+            } label: {
+                Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 22))
+                    .foregroundStyle(isCompleted ? SpiralColors.good : SpiralColors.muted)
+                    .frame(width: 36)
+            }
+            .buttonStyle(.plain)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(String(format: loc("coach.microhabit.eyebrow"), habit.cycleDay + 1))
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(SpiralColors.subtle)
+                    .textCase(.uppercase)
+                Text(localizedCoachString(habit.actionKey, fallback: habit.action, args: []))
+                    .font(.system(size: 13, weight: isCompleted ? .regular : .semibold))
+                    .foregroundStyle(isCompleted ? SpiralColors.muted : SpiralColors.text)
+                    .strikethrough(isCompleted)
+            }
+            Spacer()
+        }
+        .padding(14)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 14).fill(.ultraThinMaterial)
+                RoundedRectangle(cornerRadius: 14).fill(SpiralColors.good.opacity(isCompleted ? 0.08 : 0.03))
+                RoundedRectangle(cornerRadius: 14).stroke(SpiralColors.good.opacity(0.15), lineWidth: 0.8)
+            }
+        )
+    }
+
+    // MARK: - Weekly Digest Card
+
+    private func weeklyDigestCard(_ digest: WeeklyDigest) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label {
+                Text(loc("coach.digest.eyebrow"))
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(SpiralColors.subtle)
+                    .textCase(.uppercase)
+            } icon: {
+                Image(systemName: "chart.bar.fill")
+                    .font(.system(size: 11))
+                    .foregroundStyle(SpiralColors.accent)
+            }
+
+            // Grid: bedtime, duration, SRI with delta arrows
+            VStack(spacing: 8) {
+                digestRow(
+                    label: loc("coach.digest.bedtime"),
+                    value: SleepStatistics.formatHour(digest.meanBedtime),
+                    delta: digest.bedtimeDeltaMinutes,
+                    unit: "min",
+                    invertColor: true // earlier bedtime = positive
+                )
+                digestRow(
+                    label: loc("coach.digest.duration"),
+                    value: String(format: "%.1fh", digest.meanDuration),
+                    delta: digest.durationDeltaMinutes,
+                    unit: "min",
+                    invertColor: false
+                )
+                digestRow(
+                    label: "SRI",
+                    value: String(format: "%.0f", digest.sri),
+                    delta: digest.sriDelta,
+                    unit: "pts",
+                    invertColor: false
+                )
+                digestRow(
+                    label: loc("coach.digest.score"),
+                    value: "\(digest.compositeScore)",
+                    delta: Double(digest.compositeDelta),
+                    unit: "pts",
+                    invertColor: false
+                )
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(16)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 16).fill(.ultraThinMaterial)
+                RoundedRectangle(cornerRadius: 16).fill(SpiralColors.accent.opacity(0.04))
+                RoundedRectangle(cornerRadius: 16).stroke(SpiralColors.accent.opacity(0.18), lineWidth: 0.8)
+            }
+        )
+    }
+
+    private func digestRow(label: String, value: String, delta: Double, unit: String, invertColor: Bool) -> some View {
+        HStack {
+            Text(label)
+                .font(.system(size: 11))
+                .foregroundStyle(SpiralColors.muted)
+                .frame(width: 65, alignment: .leading)
+            Text(value)
+                .font(.system(size: 13, weight: .semibold, design: .monospaced))
+                .foregroundStyle(SpiralColors.text)
+            Spacer()
+            if abs(delta) >= 1 {
+                let positive = invertColor ? (delta < 0) : (delta > 0)
+                let arrow = delta > 0 ? "↑" : "↓"
+                let color = positive ? SpiralColors.good : SpiralColors.poor
+                Text("\(arrow)\(Int(abs(delta)))\(unit)")
+                    .font(.system(size: 11, design: .monospaced))
+                    .foregroundStyle(color)
+            } else {
+                Text("—")
+                    .font(.system(size: 11))
+                    .foregroundStyle(SpiralColors.muted)
+            }
+        }
+    }
+
+    // MARK: - Temporal Pattern Card
+
+    private func temporalPatternCard(_ pattern: TemporalPattern) -> some View {
+        let bedDir = pattern.bedtimeDeviationMinutes > 0 ? loc("coach.pattern.later") : loc("coach.pattern.earlier")
+        let absMin = Int(abs(pattern.bedtimeDeviationMinutes))
+        let message: String
+        if abs(pattern.bedtimeDeviationMinutes) >= 30 {
+            message = String(format: loc("coach.pattern.bedtime"), pattern.weekdayName, absMin, bedDir)
+        } else {
+            let durDir = pattern.durationDeviationMinutes > 0 ? loc("coach.pattern.longer") : loc("coach.pattern.shorter")
+            let durMin = Int(abs(pattern.durationDeviationMinutes))
+            message = String(format: loc("coach.pattern.duration"), pattern.weekdayName, durMin, durDir)
+        }
+
+        return HStack(spacing: 10) {
+            Image(systemName: "calendar.badge.clock")
+                .font(.system(size: 14))
+                .foregroundStyle(SpiralColors.accent)
+                .frame(width: 20)
+            Text(message)
+                .font(.system(size: 12))
+                .foregroundStyle(SpiralColors.muted)
+                .fixedSize(horizontal: false, vertical: true)
+                .lineSpacing(2)
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(SpiralColors.accent.opacity(0.04))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(SpiralColors.accent.opacity(0.12), lineWidth: 0.6)
+                )
+        )
+    }
+
+    // MARK: - Event Acknowledgment Card
+
+    private func eventAcknowledgmentCard(_ ack: EventAcknowledgment) -> some View {
+        let icon: String
+        let tint: Color
+        switch ack.effect {
+        case .positive: icon = "hand.thumbsup.fill"; tint = SpiralColors.good
+        case .negative: icon = "exclamationmark.triangle"; tint = SpiralColors.moderate
+        case .neutral:  icon = "info.circle"; tint = SpiralColors.muted
+        }
+
+        return HStack(spacing: 10) {
+            Image(systemName: icon)
+                .font(.system(size: 14))
+                .foregroundStyle(tint)
+                .frame(width: 20)
+            Text(localizedCoachString(ack.messageKey, fallback: ack.message, args: ack.args))
+                .font(.system(size: 12))
+                .foregroundStyle(SpiralColors.muted)
+                .fixedSize(horizontal: false, vertical: true)
+                .lineSpacing(2)
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(tint.opacity(0.06))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(tint.opacity(0.15), lineWidth: 0.6)
+                )
+        )
+    }
+
+    // MARK: - Floating Chat Button
+
+    private var chatFloatingButton: some View {
+        Button {
+            showCoachChat = true
+        } label: {
+            Image(systemName: "brain.head.profile")
+                .font(.system(size: 20, weight: .medium))
+                .foregroundStyle(.white)
+                .frame(width: 52, height: 52)
+                .background(SpiralColors.accent.opacity(0.9), in: Circle())
+                .shadow(color: SpiralColors.accent.opacity(0.3), radius: 8, y: 4)
+        }
+        .padding(.trailing, 20)
+        .padding(.bottom, 110)
     }
 
     // MARK: - Data helpers

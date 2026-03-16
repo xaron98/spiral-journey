@@ -177,8 +177,8 @@ enum SpiralVisibilityEngine {
 
     // MARK: - Tunable curves
 
-    /// Progressive opacity by distance from active day (max 7 entries).
-    static let opacityCurve: [Double] = [1.0, 0.75, 0.52, 0.34, 0.20, 0.12, 0.06]
+    /// Progressive opacity by distance from active day (8 entries — all 7 days clearly visible).
+    static let opacityCurve: [Double] = [1.0, 0.85, 0.70, 0.55, 0.42, 0.30, 0.22, 0.15]
     static let blurCurve: [Double] = [0, 0, 0.3, 0.6, 1.0, 1.5, 2.0]
     static let strokeScaleCurve: [Double] = [1.0, 0.95, 0.88, 0.80, 0.72, 0.65, 0.58]
 
@@ -387,11 +387,11 @@ enum SpiralVisibilityEngine {
         // At boundary (7): fade to 0.3
         // Beyond (8+): rapid exponential decay toward 0
         let cursorFade: Double
-        let maxCurveDist = opacityCurve.count  // 7
-        if cursorDist <= maxCurveDist - 1 {
+        let maxCurveDist = opacityCurve.count  // 8
+        if cursorDist <= maxCurveDist {
             cursorFade = 1.0
         } else {
-            let beyond = cursorDist - (maxCurveDist - 1)  // 1 at dist 7, 2 at dist 8, etc.
+            let beyond = cursorDist - maxCurveDist  // 1 at dist 9, 2 at dist 10, etc.
             cursorFade = pow(0.3, Double(beyond))
         }
 

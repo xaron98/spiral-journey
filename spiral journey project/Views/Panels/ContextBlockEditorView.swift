@@ -152,7 +152,9 @@ struct ContextBlockEditorView: View {
             .navigationTitle(existing != nil
                 ? String(localized: "context.editor.editTitle", bundle: bundle)
                 : String(localized: "context.editor.addTitle", bundle: bundle))
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(String(localized: "context.editor.cancel", bundle: bundle)) {

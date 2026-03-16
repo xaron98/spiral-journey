@@ -111,6 +111,28 @@ struct WatchSpiralView: View {
                     .transition(.opacity)
                 }
 
+                // Empty-state overlay — guides the user when no data exists
+                if store.isEmpty && markingState == .idle {
+                    VStack(spacing: 8) {
+                        Spacer()
+                        Image(systemName: "moon.stars")
+                            .font(.system(size: 24))
+                            .foregroundStyle(SpiralColors.accent.opacity(0.7))
+                        Text(String(localized: "watch.spiral.emptyTitle", bundle: bundle))
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(SpiralColors.text)
+                            .multilineTextAlignment(.center)
+                        Text(String(localized: "watch.spiral.emptyHint", bundle: bundle))
+                            .font(.system(size: 9))
+                            .foregroundStyle(SpiralColors.muted)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 16)
+                        Spacer()
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .allowsHitTesting(false)
+                }
+
                 // Time label — bottom-left, just inside safe area
                 VStack(spacing: 0) {
                     Spacer()
@@ -234,7 +256,17 @@ struct WatchSpiralView: View {
 
     private func initFromStore() {
         guard !store.isEmpty else {
-            cursorAbsHour = 0; maxReachedTurns = 1; visibleDays = 2; deferredVisibleDays = 2
+            // No data yet — place the cursor at the current wall-clock time so the
+            // spiral backbone and cursor are visible on the outer edge, ready for
+            // the user to tap the moon button and start logging sleep.
+            let now = store.currentAbsoluteHour
+            cursorAbsHour = now
+            store.cursorAbsoluteHour = now
+            maxReachedTurns = max(1.0, now / store.period)
+            // Camera is centered on cursor; visibleDays is the backward span.
+            // Keep it very tight on Watch's small screen — half turn at start.
+            visibleDays = min(maxReachedTurns, 0.5)
+            deferredVisibleDays = visibleDays
             storeInitialised = false; return
         }
         // Use the same end-of-data logic as dataEndTurns() so the cursor lands
@@ -259,9 +291,9 @@ struct WatchSpiralView: View {
         cursorAbsHour      = bestAbsHour
         store.cursorAbsoluteHour = bestAbsHour
         maxReachedTurns    = max(1.0, endTurns)
-        // Start with a 5-day window so the focus-fade effect is visible from the first load.
-        // The user can scroll back with the crown to reveal older nights progressively.
-        visibleDays        = min(endTurns, 5.0)
+        // Camera is centered on cursor; visibleDays is the backward span.
+        // Half turn keeps the spiral very large on Watch's small screen.
+        visibleDays        = min(endTurns, 0.5)
         deferredVisibleDays = visibleDays
         crownRaw = 0; lastCrownRaw = 0
         storeInitialised = true
@@ -271,9 +303,9 @@ struct WatchSpiralView: View {
 
 // MARK: - Canvas
 
-/// Faithful port of iPhone SpiralView's Canvas drawing code.
-/// Uses the same project(), weekWindowOpacity(), perspectiveScale() math.
-/// startRadius = 15 instead of 75 so the spiral fits a ~184px Watch screen.
+/// Watch spiral canvas using the same CameraState projection model as iPhone.
+/// Camera is centered on the cursor, looking back `visibleDays` turns.
+/// Perspective depth makes recent turns large and older turns shrink away.
 private struct WatchSpiralCanvas: View {
     let records: [SleepRecord]
     let events: [CircadianEvent]
@@ -288,54 +320,72 @@ private struct WatchSpiralCanvas: View {
     var period: Double = 24.0
     var startRadius: Double = 5
 
-    // MARK: - Projection (identical to iPhone SpiralView)
+    // MARK: - CameraState (identical to iPhone SpiralView)
 
-    private func project(turns t: Double, geo: SpiralGeometry) -> CGPoint {
-        let day  = Int(t)
-        let hr   = (t - Double(day)) * geo.period
-        let flat = geo.point(day: day, hour: hr)
+    private struct Cam {
+        let tRef: Double
+        let zStep: Double
+        let focalLen: Double
+        let camZ: Double
 
-        let totalT  = max(spiralExtentTurns, 0.5)
-        let margin  = 0.35
-        let visible = max(visibleDays + margin, 1.0 + margin)
-        let cx = geo.cx, cy = geo.cy
-        let wx = flat.x - cx, wy = flat.y - cy
-        let zStep    = geo.maxRadius * depthScale
-        let tRef     = totalT + margin
-        let wz       = (tRef - t) * zStep
-        let focalLen = geo.maxRadius * 1.2
-        let tTarget  = min(visible, tRef)
-        let rTarget  = max(geo.radius(turns: min(tTarget, totalT)), 1.0)
-        let wzTarget = (tRef - tTarget) * zStep
-        let dzTarget = focalLen * rTarget / geo.maxRadius
-        let camZ     = wzTarget - dzTarget
-        let dz       = wz - camZ
-        let safeDz   = max(dz, focalLen * 0.05)
-        let scale    = focalLen / safeDz
-        return CGPoint(x: cx + wx * scale, y: cy + wy * scale)
-    }
+        init(fromTurns: Double, upToTurns: Double, geo: SpiralGeometry, depthScale: Double) {
+            let zStep    = geo.maxRadius * depthScale
+            let focalLen = geo.maxRadius * 1.2
+            let nearPlane = focalLen * 0.1
+            let safetyMargin = nearPlane * 1.0
 
-    private func cameraMaxVisibleTurn(geo: SpiralGeometry) -> Double {
-        let totalT   = max(spiralExtentTurns, 0.5)
-        let margin   = 0.35
-        let tRef     = totalT + margin
-        let visible  = max(visibleDays + margin, 1.0 + margin)
-        let zStep    = geo.maxRadius * depthScale
-        let focalLen = geo.maxRadius * 1.2
-        let tTarget  = min(visible, tRef)
-        let rTarget  = max(geo.radius(turns: min(tTarget, totalT)), 1.0)
-        let wzTarget = (tRef - tTarget) * zStep
-        let dzTarget = focalLen * rTarget / geo.maxRadius
-        let camZ     = wzTarget - dzTarget
-        return tRef - camZ / zStep
+            let margin = 0.5
+            let tRef = upToTurns + margin
+
+            let spanZ = max((upToTurns - fromTurns), 0.5) * zStep
+            let maxRatio = 5.0
+            let dzFarForRatio = spanZ / (maxRatio - 1.0)
+            let dzFarMin = nearPlane + safetyMargin
+            let dzFar = max(dzFarForRatio, dzFarMin)
+            let camZ = margin * zStep - dzFar
+
+            self.tRef     = tRef
+            self.zStep    = zStep
+            self.focalLen = focalLen
+            self.camZ     = camZ
+        }
+
+        func project(turns t: Double, geo: SpiralGeometry) -> CGPoint {
+            let theta = t * 2 * Double.pi
+            let r     = geo.radius(turns: t)
+            let flatX = geo.cx + r * cos(theta - Double.pi / 2)
+            let flatY = geo.cy + r * sin(theta - Double.pi / 2)
+
+            let wx = flatX - geo.cx
+            let wy = flatY - geo.cy
+            let wz = (tRef - t) * zStep
+            let dz = max(wz - camZ, focalLen * 0.05)
+            let scale = focalLen / dz
+
+            return CGPoint(x: geo.cx + wx * scale,
+                           y: geo.cy + wy * scale)
+        }
+
+        func perspectiveScale(turns t: Double) -> Double {
+            let wz = (tRef - t) * zStep
+            let dz = max(wz - camZ, focalLen * 0.05)
+            return focalLen / dz
+        }
+
+        func isBehindCamera(turns t: Double) -> Bool {
+            let wz = (tRef - t) * zStep
+            let dz = wz - camZ
+            return dz < focalLen * 0.1
+        }
+
+        var maxVisibleTurn: Double {
+            tRef - camZ / zStep
+        }
     }
 
     private func weekWindowOpacity(turns t: Double) -> Double {
-        // Distance-based opacity from cursor position (matches iPhone approach).
-        // Uses cursor turn position as focus, not visibleDays.
         let cursorTurns = cursorAbsHour / period
         let dist = abs(cursorTurns - t)
-        // 5-entry curve: full opacity at cursor, fading over ~5 days
         let curve: [Double] = [1.0, 0.75, 0.50, 0.30, 0.15, 0.06]
         if dist < Double(curve.count) {
             let idx = Int(dist)
@@ -344,40 +394,19 @@ private struct WatchSpiralCanvas: View {
             let hi = idx + 1 < curve.count ? curve[idx + 1] : lo * 0.5
             return lo + (hi - lo) * frac
         }
-        // Beyond curve: exponential decay
         let base = curve.last ?? 0.06
         let extra = dist - Double(curve.count) + 1
         return base * pow(0.5, extra)
-    }
-
-    private func perspectiveScale(turns t: Double, geo: SpiralGeometry) -> Double {
-        let totalT   = max(spiralExtentTurns, 0.5)
-        let margin   = 0.35
-        let visible  = max(visibleDays + margin, 1.0 + margin)
-        let zStep    = geo.maxRadius * depthScale
-        let tRef     = totalT + margin
-        let focalLen = geo.maxRadius * 1.2
-        let tTarget  = min(visible, tRef)
-        let rTarget  = max(geo.radius(turns: min(tTarget, totalT)), 1.0)
-        let wzTarget = (tRef - tTarget) * zStep
-        let dzTarget = focalLen * rTarget / geo.maxRadius
-        let camZ     = wzTarget - dzTarget
-        let wz       = (tRef - t) * zStep
-        let dz       = max(wz - camZ, focalLen * 0.05)
-        return focalLen / dz
     }
 
     // MARK: - Drawing
 
     var body: some View {
         Canvas { context, size in
-            // Fill background before any transform.
             context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(Color(hex: "0c0e14")))
 
             let turns     = max(spiralExtentTurns, 0.1)
             let scaleDays = max(1, Int(ceil(turns)))
-            // Use at least 7 days for maxDays so the spiral spacing stays small
-            // and the arc fills the screen even with just 1-2 nights of data.
             let geo = SpiralGeometry(
                 totalDays: scaleDays,
                 maxDays:   max(scaleDays, 7),
@@ -387,35 +416,29 @@ private struct WatchSpiralCanvas: View {
                 spiralType: spiralType,
                 period:    period
             )
-            let maxVisible = min(turns, cameraMaxVisibleTurn(geo: geo))
 
-            // Scale the spiral content up so it fills the Watch screen better.
-            // SpiralGeometry.maxRadius = min(w,h)/2 - 50, which on a 184×224 Watch
-            // gives only 42 px of usable radius. Scaling by 1.8 gives ~75 px —
-            // much closer to the visual fill seen on iPhone.
-            // We apply the transform only to spiral drawing (rings, lines, data,
-            // cursor); hour labels are drawn afterwards in the original context so
-            // they remain at the screen edge regardless of the scale factor.
-            let spiralScale: CGFloat = 2.6
-            let tx = geo.cx * (1 - spiralScale)
-            let ty = geo.cy * (1 - spiralScale)
-            var scaledCtx = context
-            scaledCtx.concatenate(CGAffineTransform(a: spiralScale, b: 0, c: 0, d: spiralScale, tx: tx, ty: ty))
+            // Build camera centered on cursor, looking back visibleDays turns
+            let cursorTurns = cursorAbsHour / period
+            let span = min(visibleDays, 4.0)
+            let camFrom = max(cursorTurns - span, 0)
+            let camUpTo = cursorTurns + 0.5
+            let cam = Cam(fromTurns: camFrom, upToTurns: camUpTo,
+                          geo: geo, depthScale: depthScale)
+            let maxVisible = min(turns, cam.maxVisibleTurn)
 
-            drawDayRings(context: scaledCtx, geo: geo, upToTurns: maxVisible, size: size)
-            drawRadialLines(context: scaledCtx, geo: geo)
-            drawSpiralPath(context: scaledCtx, geo: geo, upToTurns: maxVisible, size: size)
-            drawDataPoints(context: scaledCtx, geo: geo, size: size)
-            drawEventMarkers(context: scaledCtx, geo: geo)
-            drawSleepArc(context: scaledCtx, geo: geo, size: size)
-            drawCursor(context: scaledCtx, geo: geo)
-            // Hour labels drawn in the original unscaled context so they stay at screen edge.
+            drawDayRings(context: context, geo: geo, cam: cam, maxVisible: maxVisible)
+            drawRadialLines(context: context, geo: geo)
+            drawSpiralPath(context: context, geo: geo, cam: cam, maxVisible: maxVisible)
+            drawDataPoints(context: context, geo: geo, cam: cam)
+            drawEventMarkers(context: context, geo: geo, cam: cam)
+            drawSleepArc(context: context, geo: geo, cam: cam)
+            drawCursor(context: context, geo: geo, cam: cam)
             drawHourLabels(context: context, geo: geo)
         }
     }
 
-    private func drawDayRings(context: GraphicsContext, geo: SpiralGeometry, upToTurns: Double, size: CGSize) {
-        for ring in geo.dayRings() where ring.day > 0 && Double(ring.day) <= upToTurns {
+    private func drawDayRings(context: GraphicsContext, geo: SpiralGeometry, cam: Cam, maxVisible: Double) {
+        for ring in geo.dayRings() where ring.day > 0 && Double(ring.day) <= maxVisible {
             let opac = weekWindowOpacity(turns: Double(ring.day))
             guard opac > 0.01 else { continue }
             let color = ring.isWeekBoundary
@@ -423,12 +446,23 @@ private struct WatchSpiralCanvas: View {
                 : Color.white.opacity(0.09 * opac)
             let lw: CGFloat = ring.isWeekBoundary ? 0.8 : 0.4
             var path = Path()
+            var started = false
             for i in 0...60 {
                 let t  = Double(ring.day) + Double(i) / 60.0
-                let pt = project(turns: t, geo: geo)
-                if i == 0 { path.move(to: pt) } else { path.addLine(to: pt) }
+                if cam.isBehindCamera(turns: t) || cam.perspectiveScale(turns: t) < 0.10 {
+                    // Flush current segment and start fresh after the gap
+                    if started {
+                        context.stroke(path, with: .color(color), lineWidth: lw)
+                        path = Path(); started = false
+                    }
+                    continue
+                }
+                let pt = cam.project(turns: t, geo: geo)
+                if !started { path.move(to: pt); started = true } else { path.addLine(to: pt) }
             }
-            context.stroke(path, with: .color(color), lineWidth: lw)
+            if started {
+                context.stroke(path, with: .color(color), lineWidth: lw)
+            }
         }
     }
 
@@ -469,40 +503,56 @@ private struct WatchSpiralCanvas: View {
         return best
     }
 
-    private func drawSpiralPath(context: GraphicsContext, geo: SpiralGeometry, upToTurns: Double, size: CGSize) {
-        guard upToTurns > 0 else { return }
+    private func drawSpiralPath(context: GraphicsContext, geo: SpiralGeometry, cam: Cam, maxVisible: Double) {
+        let cursorTurns = cursorAbsHour / period
+        let backboneTo = min(cursorTurns + 0.15, maxVisible)
+        let backboneFrom = max(backboneTo - 7.0, 0)
+        guard backboneTo > backboneFrom else { return }
+
         let dataEnd = dataEndTurns(geo: geo)
-        // Don't draw the grey backbone at all if the cursor hasn't gone past the last record
-        guard dataEnd < upToTurns else { return }
+        let skipFrom: Double
+        let skipTo: Double
+        if !records.isEmpty && dataEnd > backboneFrom {
+            let firstDataDay = records.map(\.day).min() ?? 0
+            skipFrom = Double(firstDataDay)
+            skipTo = dataEnd
+        } else {
+            skipFrom = 0; skipTo = 0
+        }
+        let hasSkip = skipTo > skipFrom
+
         let step = 0.015
-        var d = 0.0
+        var d = backboneFrom
         var path = Path()
         var first = true
-        var flushTurn = 0.0
 
-        let backboneWidth: CGFloat = 0.6
+        let backboneColor = Color(hex: "2e3248").opacity(0.4)
+        let backboneWidth: CGFloat = 1.5
+
         func flush() {
             guard !first else { return }
-            let opac = weekWindowOpacity(turns: flushTurn)
-            if opac > 0.01 {
-                context.stroke(path, with: .color(Color(hex: "2e3248").opacity(opac)),
-                               style: StrokeStyle(lineWidth: backboneWidth, lineCap: .round, lineJoin: .round))
-            }
+            context.stroke(path, with: .color(backboneColor),
+                           style: StrokeStyle(lineWidth: backboneWidth, lineCap: .round, lineJoin: .round))
             path = Path(); first = true
         }
-        while d <= upToTurns {
-            let t = min(d, upToTurns)
-            if t < dataEnd { flush(); if d >= upToTurns { break }; d += step; continue }
-            flushTurn = t
-            let pt = project(turns: t, geo: geo)
+
+        while d <= backboneTo {
+            let t = min(d, backboneTo)
+            if hasSkip && t >= skipFrom && t < skipTo {
+                flush(); if d >= backboneTo { break }; d += step; continue
+            }
+            if cam.isBehindCamera(turns: t) {
+                flush(); if d >= backboneTo { break }; d += step; continue
+            }
+            let pt = cam.project(turns: t, geo: geo)
             if first { path.move(to: pt); first = false } else { path.addLine(to: pt) }
-            if d >= upToTurns { break }
+            if d >= backboneTo { break }
             d += step
         }
         flush()
     }
 
-    private func drawDataPoints(context: GraphicsContext, geo: SpiralGeometry, size: CGSize) {
+    private func drawDataPoints(context: GraphicsContext, geo: SpiralGeometry, cam: Cam) {
         let globalCut = dataEndTurns(geo: geo)
 
         struct Run {
@@ -517,18 +567,20 @@ private struct WatchSpiralCanvas: View {
         func drawRun(_ run: Run) {
             guard run.points.count >= 2 else { return }
             let color = phaseColor(run.phase)
-            let maxLW = max(2.0, geo.spacing * 0.65)
+            let maxLW = max(3.0, geo.spacing * 0.65)
             let opac  = weekWindowOpacity(turns: run.points[0].t)
             guard opac > 0.01 else { return }
 
-            // Segment-by-segment with .round caps: lw follows perspective smoothly
-            // along the full arc, and rounded ends overlap seamlessly (no gaps).
             for i in 0..<(run.points.count - 1) {
                 let p0   = run.points[i]
                 let p1   = run.points[i + 1]
+                // Skip segment if either endpoint is behind the camera or too compressed
+                guard !cam.isBehindCamera(turns: p0.t),
+                      !cam.isBehindCamera(turns: p1.t) else { continue }
                 let tSeg = (p0.t + p1.t) * 0.5
-                let sc   = perspectiveScale(turns: tSeg, geo: geo)
-                let lw   = max(1.5, min(sc * maxLW, maxLW))
+                let sc   = cam.perspectiveScale(turns: tSeg)
+                guard sc >= 0.10 else { continue }
+                let lw   = max(2.0, min(sc * maxLW, maxLW))
 
                 var seg = Path()
                 seg.move(to: p0.pt)
@@ -537,24 +589,22 @@ private struct WatchSpiralCanvas: View {
                                style: StrokeStyle(lineWidth: lw, lineCap: .round))
             }
 
-            // Round cap at sleep-block boundaries only (not at internal sleep→sleep joints).
-            // Awake runs skip caps — adjacent sleep caps cover the joint.
             guard isSleep(run.phase) else { return }
             let capStart = run.prevPhase == nil || !isSleep(run.prevPhase!)
             let capEnd   = run.nextPhase == nil || !isSleep(run.nextPhase!)
 
-            if capStart {
+            if capStart, !cam.isBehindCamera(turns: run.points[0].t) {
                 let tFirst = run.points[0].t
-                let sc = perspectiveScale(turns: tFirst, geo: geo)
-                let lw = max(1.5, min(sc * maxLW, maxLW))
+                let sc = cam.perspectiveScale(turns: tFirst)
+                let lw = max(2.0, min(sc * maxLW, maxLW))
                 let r = lw * 0.5; let pt = run.points[0].pt
                 context.fill(Circle().path(in: CGRect(x: pt.x - r, y: pt.y - r, width: lw, height: lw)),
                              with: .color(color.opacity(opac)))
             }
-            if capEnd {
+            if capEnd, !cam.isBehindCamera(turns: run.points[run.points.count - 1].t) {
                 let tLast = run.points[run.points.count - 1].t
-                let sc = perspectiveScale(turns: tLast, geo: geo)
-                let lw = max(1.5, min(sc * maxLW, maxLW))
+                let sc = cam.perspectiveScale(turns: tLast)
+                let lw = max(2.0, min(sc * maxLW, maxLW))
                 let r = lw * 0.5; let pt = run.points[run.points.count - 1].pt
                 context.fill(Circle().path(in: CGRect(x: pt.x - r, y: pt.y - r, width: lw, height: lw)),
                              with: .color(color.opacity(opac)))
@@ -581,41 +631,52 @@ private struct WatchSpiralCanvas: View {
             for (i, phase) in phases.enumerated() {
                 let t = dayT + phase.hour / geo.period
                 if t > cutT { break }
+                let behind = cam.isBehindCamera(turns: t)
+                if behind {
+                    // Point is behind camera — flush the current run segment
+                    // so we don't connect distant visible points with a straight line
+                    if !runPts.isEmpty {
+                        flushRun(nextPhase: phase.phase)
+                        prevPhase = runPhase
+                        runPhase = phase.phase
+                    }
+                    continue
+                }
                 if phase.phase != runPhase {
-                    let edgePt = project(turns: t, geo: geo)
+                    let edgePt = cam.project(turns: t, geo: geo)
                     runPts.append((t, edgePt))
                     flushRun(nextPhase: phase.phase)
                     prevPhase = runPhase
                     runPhase  = phase.phase
                     runPts.append((t, edgePt))
                 } else {
-                    runPts.append((t, project(turns: t, geo: geo)))
+                    runPts.append((t, cam.project(turns: t, geo: geo)))
                 }
                 if i == phases.count - 1 {
                     let tEnd = min(cutT, dayT + 1.0)
-                    runPts.append((tEnd, project(turns: tEnd, geo: geo)))
+                    if !cam.isBehindCamera(turns: tEnd) {
+                        runPts.append((tEnd, cam.project(turns: tEnd, geo: geo)))
+                    }
                     flushRun(nextPhase: nil)
                 }
             }
             flushRun(nextPhase: nil)
 
-            // Draw awake first, sleep on top so sleep caps always win at shared endpoints.
             for run in runs where !isSleep(run.phase) { drawRun(run) }
             for run in runs where  isSleep(run.phase) { drawRun(run) }
         }
     }
 
-    private func drawEventMarkers(context: GraphicsContext, geo: SpiralGeometry) {
+    private func drawEventMarkers(context: GraphicsContext, geo: SpiralGeometry, cam: Cam) {
         for event in events {
             let t = event.absoluteHour / geo.period
-            guard Int(t) < geo.totalDays else { continue }
+            guard !cam.isBehindCamera(turns: t) else { continue }
             let opac = weekWindowOpacity(turns: t)
             guard opac > 0.01 else { continue }
-            let p = project(turns: t, geo: geo)
+            let p = cam.project(turns: t, geo: geo)
             let color = Color(hex: event.type.hexColor)
-            // Scale dot radius with perspective so near turns are larger, far turns are smaller.
-            let sc = perspectiveScale(turns: t, geo: geo)
-            let r = max(1.0, min(sc * 2.5, 4.0))
+            let sc = cam.perspectiveScale(turns: t)
+            let r = max(1.5, min(sc * 3.0, 5.0))
             let rect = CGRect(x: p.x - r, y: p.y - r, width: r * 2, height: r * 2)
             context.fill(Circle().path(in: rect), with: .color(color.opacity(opac)))
         }
@@ -623,7 +684,6 @@ private struct WatchSpiralCanvas: View {
 
     private func drawHourLabels(context: GraphicsContext, geo: SpiralGeometry) {
         let step: Double = geo.period <= 24 ? 6 : (geo.period / 4).rounded()
-        // Place labels near the screen edge regardless of maxRadius (which is small on Watch).
         let labelR = min(geo.cx, geo.cy) - 10
         var h = 0.0
         while h < geo.period {
@@ -640,32 +700,46 @@ private struct WatchSpiralCanvas: View {
         }
     }
 
-    private func drawSleepArc(context: GraphicsContext, geo: SpiralGeometry, size: CGSize) {
+    private func drawSleepArc(context: GraphicsContext, geo: SpiralGeometry, cam: Cam) {
         guard let startH = sleepStartHour else { return }
         let lo = min(startH, cursorAbsHour); let hi = max(startH, cursorAbsHour)
         guard hi - lo > 0.01 else { return }
+        let arcColor = Color(hex: "7c3aed").opacity(0.85)
+        let glowColor = Color.white.opacity(0.15)
+        let style = StrokeStyle(lineWidth: 5, lineCap: .round)
         var path = Path(); var started = false; var h = lo
+
+        func flushArc() {
+            guard started else { return }
+            context.stroke(path, with: .color(arcColor), style: style)
+            context.stroke(path, with: .color(glowColor), style: style)
+            path = Path(); started = false
+        }
+
         while h <= hi {
-            let pt = project(turns: h / geo.period, geo: geo)
-            if !started { path.move(to: pt); started = true } else { path.addLine(to: pt) }
+            let t = h / geo.period
+            if cam.isBehindCamera(turns: t) {
+                flushArc()
+            } else {
+                let pt = cam.project(turns: t, geo: geo)
+                if !started { path.move(to: pt); started = true } else { path.addLine(to: pt) }
+            }
             h = min(h + 0.1, hi); if h >= hi { break }
         }
-        context.stroke(path, with: .color(Color(hex: "7c3aed").opacity(0.85)),
-                       style: StrokeStyle(lineWidth: 5, lineCap: .round))
-        context.stroke(path, with: .color(.white.opacity(0.15)),
-                       style: StrokeStyle(lineWidth: 5, lineCap: .round))
+        flushArc()
     }
 
-    private func drawCursor(context: GraphicsContext, geo: SpiralGeometry) {
+    private func drawCursor(context: GraphicsContext, geo: SpiralGeometry, cam: Cam) {
         let t = cursorAbsHour / geo.period
-        let p = project(turns: t, geo: geo)
-        // r=3 → 6pt dot; after 1.8× canvas scale it renders as ~11pt on screen — compact but tappable.
-        let r = 3.0
+        let p = cam.project(turns: t, geo: geo)
+        let sc = cam.perspectiveScale(turns: t)
+        // Scale cursor with perspective — large when close, min 4pt
+        let r = max(4.0, min(sc * 5.0, 8.0))
         let rect = CGRect(x: p.x - r, y: p.y - r, width: r*2, height: r*2)
-        context.fill(Circle().path(in: rect.insetBy(dx: -2.5, dy: -2.5)),
-                     with: .color(markingColor.opacity(0.22)))
-        context.stroke(Circle().path(in: rect), with: .color(.white.opacity(0.9)), lineWidth: 1.0)
-        context.fill(Circle().path(in: rect.insetBy(dx: 1, dy: 1)), with: .color(markingColor))
+        context.fill(Circle().path(in: rect.insetBy(dx: -3, dy: -3)),
+                     with: .color(markingColor.opacity(0.25)))
+        context.stroke(Circle().path(in: rect), with: .color(.white.opacity(0.9)), lineWidth: 1.5)
+        context.fill(Circle().path(in: rect.insetBy(dx: 1.5, dy: 1.5)), with: .color(markingColor))
     }
 
     private func phaseColor(_ phase: SleepPhase) -> Color {
@@ -678,20 +752,44 @@ private struct WatchSpiralCanvas: View {
     }
 }
 
-#Preview {
+#Preview("With Data") {
     WatchSpiralCanvas(
         records: {
-            let eps = [SleepEpisode(start: 23, end: 31, source: .manual)]
-            return ManualDataConverter.convert(episodes: eps, numDays: 1)
+            // 7 nights of sample data
+            var eps: [SleepEpisode] = []
+            let beds: [Double] = [23, 23.5, 0, 23, 23.5, 1, 0.5]
+            let durs: [Double] = [7.5, 8, 7, 7.5, 8, 6.5, 7]
+            for i in 0..<7 {
+                let base = Double(i) * 24.0
+                eps.append(SleepEpisode(start: base + beds[i], end: base + beds[i] + durs[i], source: .manual))
+            }
+            return ManualDataConverter.convert(episodes: eps, numDays: 7)
         }(),
         events: [],
-        cursorAbsHour: 31,
+        cursorAbsHour: 6 * 24 + 7.5,  // cursor at end of last night
+        sleepStartHour: nil,
+        markingColor: Color(hex: "a78bfa"),
+        numDaysHint: 7,
+        spiralExtentTurns: 6.3,
+        visibleDays: 5.0,
+        depthScale: 0.3
+    )
+    .frame(width: 184, height: 224)
+    .background(Color(hex: "0c0e14"))
+}
+
+#Preview("Empty State") {
+    // Simulates first launch: no records, cursor at current time (~7 days from startDate)
+    WatchSpiralCanvas(
+        records: [],
+        events: [],
+        cursorAbsHour: 168,
         sleepStartHour: nil,
         markingColor: Color(hex: "a78bfa"),
         numDaysHint: 1,
-        spiralExtentTurns: 31.0 / 24.0,
-        visibleDays: 31.0 / 24.0,
-        depthScale: 1.5
+        spiralExtentTurns: 7.0,
+        visibleDays: 7.0,
+        depthScale: 0.3
     )
     .frame(width: 184, height: 224)
     .background(Color(hex: "0c0e14"))

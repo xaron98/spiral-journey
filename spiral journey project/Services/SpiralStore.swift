@@ -112,7 +112,7 @@ final class SpiralStore {
     var linkGrowthToTau: Bool = false {
         didSet { save() }
     }
-    var depthScale: Double = 1.5 {
+    var depthScale: Double = 0.6 {
         didSet { save() }
     }
     var showGrid: Bool = true {
@@ -171,6 +171,36 @@ final class SpiralStore {
         }
     }
 
+    // MARK: - Prediction
+
+    var predictionEnabled: Bool = false {
+        didSet { save() }
+    }
+    var predictionOverlayEnabled: Bool = false {
+        didSet { save() }
+    }
+    /// Use Core ML model instead of heuristic when available.
+    var mlPredictionEnabled: Bool = true {
+        didSet { save() }
+    }
+    private(set) var latestPrediction: PredictionOutput? = nil
+    private(set) var predictionHistory: [PredictionResult] = []
+    /// Whether historical predictions have been retroactively bootstrapped from existing records.
+    var hasBootstrappedPredictions: Bool = false {
+        didSet { save() }
+    }
+
+    // MARK: - Model Training State
+
+    /// Last date the ML model was retrained on-device (nil = never).
+    var lastModelTrainedDate: Date? = nil {
+        didSet { save() }
+    }
+    /// Number of samples used in the last training run.
+    var modelTrainingSampleCount: Int = 0 {
+        didSet { save() }
+    }
+
     // MARK: - Context Blocks
 
     var contextBlocks: [ContextBlock] = [] {
@@ -188,6 +218,48 @@ final class SpiralStore {
     /// Computed conflict trend (current vs previous week).
     var conflictTrend: ConflictTrendEngine.ConflictTrend? {
         ConflictTrendEngine.analyze(snapshots: conflictHistory)
+    }
+
+    // MARK: - Enhanced Coach State
+
+    /// Streak tracking (consecutive nights within goal).
+    private(set) var streakHistory: StreakData = StreakData() {
+        didSet { save() }
+    }
+    /// Stats from the previous week for week-over-week comparison.
+    private(set) var previousWeekStats: SleepStats? = nil {
+        didSet { save() }
+    }
+    /// Previous composite score for celebration detection.
+    private(set) var previousCompositeScore: Int? = nil {
+        didSet { save() }
+    }
+    /// Tracks which micro-habit IDs the user has marked as completed.
+    var microHabitCompletions: [String: Bool] = [:] {
+        didSet { save() }
+    }
+
+    /// Toggle a micro-habit completion. Key is "issueKey.cycleDay".
+    func toggleMicroHabit(_ habit: MicroHabit) {
+        let key = "\(habit.issueKey.rawValue).\(habit.cycleDay)"
+        microHabitCompletions[key] = !(microHabitCompletions[key] ?? false)
+    }
+
+    /// Check if a micro-habit is completed.
+    func isMicroHabitCompleted(_ habit: MicroHabit) -> Bool {
+        let key = "\(habit.issueKey.rawValue).\(habit.cycleDay)"
+        return microHabitCompletions[key] ?? false
+    }
+
+    // MARK: - LLM Chat State
+
+    /// Whether the user has enabled the AI coach chat feature.
+    var llmEnabled: Bool = false {
+        didSet { save() }
+    }
+    /// Persisted chat message history.
+    var chatHistory: [ChatMessage] = [] {
+        didSet { saveLocalOnly() }
     }
 
     // MARK: - CloudKit Sync
@@ -230,6 +302,22 @@ final class SpiralStore {
         }
         #endif
         load()
+
+        #if targetEnvironment(simulator)
+        // Inject realistic mock data for App Store screenshots
+        if sleepEpisodes.isEmpty {
+            let mock = MockDataGenerator.generate()
+            startDate = mock.startDate
+            numDays = 8
+            sleepEpisodes = mock.episodes
+            events = mock.events
+            hasCompletedOnboarding = true
+            hasShownWelcome = true
+            hasCompletedChronotype = true
+            predictionEnabled = true
+        }
+        #endif
+
         // If HealthKit episodes are present, ensure startDate and numDays are
         // consistent with the actual data.
         reconcileEpochWithEpisodes()
@@ -265,6 +353,10 @@ final class SpiralStore {
         let blocks = contextBlocks
         let blocksEnabled = contextBlocksEnabled
         let bufferMins = contextBufferMinutes
+        let prevStats = previousWeekStats
+        let prevComposite = previousCompositeScore
+        let currentStreak = streakHistory
+        let currentEvents = events
         Task.detached(priority: .userInitiated) { [weak self] in
             let newRecords = ManualDataConverter.convert(episodes: eps, numDays: n, startDate: sd)
             // Use context-aware analysis if blocks are enabled
@@ -277,17 +369,34 @@ final class SpiralStore {
                 newConflicts = conflicts
                 newAnalysis = ConclusionsEngine.generate(
                     from: newRecords, goal: activeGoal,
+                    events: currentEvents,
+                    previousStats: prevStats,
+                    previousCompositeScore: prevComposite,
+                    streakHistory: currentStreak,
                     contextBlocks: blocks, conflicts: conflicts
                 )
             } else {
                 newConflicts = []
-                newAnalysis = ConclusionsEngine.generate(from: newRecords, goal: activeGoal)
+                newAnalysis = ConclusionsEngine.generate(
+                    from: newRecords, goal: activeGoal,
+                    events: currentEvents,
+                    previousStats: prevStats,
+                    previousCompositeScore: prevComposite,
+                    streakHistory: currentStreak
+                )
             }
             await MainActor.run { [weak self] in
                 guard let self else { return }
                 self.records = newRecords
                 self.analysis = newAnalysis
                 self.scheduleConflicts = newConflicts
+                // Update enhanced coach state
+                if let enhanced = newAnalysis.enhancedCoach {
+                    self.streakHistory = enhanced.streak
+                }
+                // Save previous stats/score for next week-over-week comparison
+                self.previousWeekStats = newAnalysis.stats
+                self.previousCompositeScore = newAnalysis.composite
                 // Append daily conflict snapshot for trend tracking
                 if !newConflicts.isEmpty {
                     let snapshot = ConflictSnapshot.from(conflicts: newConflicts)
@@ -295,6 +404,21 @@ final class SpiralStore {
                     self.conflictHistory = ConflictTrendEngine.trimmed(self.conflictHistory, maxDays: 90)
                 }
                 self.isProcessing = false
+                // Auto-enable prediction for existing users with enough data
+                if !self.predictionEnabled && self.records.count >= 4 {
+                    self.predictionEnabled = true
+                }
+                // Bootstrap ground truth from historical records (one-time)
+                PredictionService.bootstrapHistoricalPredictions(store: self)
+                // Evaluate past predictions against actual sleep data (ground truth)
+                PredictionService.evaluatePastPredictions(store: self)
+                // Retrain ML model if enough ground truth has accumulated
+                ModelTrainingService.retrainIfNeeded(store: self)
+                // Update sleep prediction (no-op if flag is off)
+                PredictionService.generatePrediction(
+                    store: self,
+                    goalDuration: activeGoal.targetDuration
+                )
                 // Sync to Apple Watch
                 #if os(iOS)
                 WatchConnectivityManager.shared.sendAnalysis(
@@ -433,6 +557,61 @@ final class SpiralStore {
         cloudSync?.enqueueEventDelete(id: id)
     }
 
+    // MARK: - Prediction Updates
+
+    /// Store a new prediction result and update the latest prediction.
+    func updatePrediction(_ result: PredictionResult) {
+        latestPrediction = result.prediction
+        predictionHistory.append(result)
+        // Keep last 90 predictions
+        if predictionHistory.count > 90 {
+            predictionHistory = Array(predictionHistory.suffix(90))
+        }
+        save()
+    }
+
+    /// Append retroactively bootstrapped predictions (already evaluated).
+    func appendBootstrappedPredictions(_ results: [PredictionResult]) {
+        predictionHistory.append(contentsOf: results)
+        // Keep last 90
+        if predictionHistory.count > 90 {
+            predictionHistory = Array(predictionHistory.suffix(90))
+        }
+        save()
+    }
+
+    /// Evaluate unevaluated predictions against actual sleep records (ground truth).
+    ///
+    /// For each prediction in history that has no `actual` data yet, check if
+    /// a SleepRecord exists for the prediction's target date. If so, fill in
+    /// the actual bedtime/wake/duration and compute error metrics.
+    /// This accumulates the training dataset for future Core ML personalisation.
+    func evaluateUnevaluatedPredictions() {
+        let calendar = Calendar.current
+        var updated = false
+
+        for i in predictionHistory.indices {
+            guard predictionHistory[i].actual == nil else { continue }
+
+            let targetDate = predictionHistory[i].prediction.targetDate
+            // Only evaluate predictions ≥ 12 h old so actual data has time to arrive
+            guard Date().timeIntervalSince(targetDate) > 12 * 3600 else { continue }
+
+            if let record = records.first(where: {
+                calendar.isDate($0.date, inSameDayAs: targetDate)
+            }) {
+                predictionHistory[i].evaluate(
+                    bedtime: record.bedtimeHour,
+                    wake: record.wakeupHour,
+                    duration: record.sleepDuration
+                )
+                updated = true
+            }
+        }
+
+        if updated { save() }
+    }
+
     // MARK: - Context Block CRUD
 
     func addContextBlock(_ block: ContextBlock) {
@@ -486,7 +665,7 @@ final class SpiralStore {
         spiralType = .logarithmic          // match property default (was .archimedean — wrong)
         period = 24.0
         linkGrowthToTau = false
-        depthScale = 1.5
+        depthScale = 0.6
         showGrid = true
         language = .systemMatch
         appearance = .dark
@@ -502,6 +681,20 @@ final class SpiralStore {
         contextBlocksEnabled = false
         contextBufferMinutes = 60.0
         conflictHistory = []
+        predictionEnabled = false
+        predictionOverlayEnabled = false
+        mlPredictionEnabled = true
+        latestPrediction = nil
+        predictionHistory = []
+        hasBootstrappedPredictions = false
+        lastModelTrainedDate = nil
+        modelTrainingSampleCount = 0
+        streakHistory = StreakData()
+        previousWeekStats = nil
+        previousCompositeScore = nil
+        microHabitCompletions = [:]
+        llmEnabled = false
+        chatHistory = []
         records = []
         analysis = AnalysisResult()
         scheduleConflicts = []
@@ -557,6 +750,22 @@ final class SpiralStore {
         var contextBlocksEnabled: Bool?
         var contextBufferMinutes: Double?
         var conflictHistory: [ConflictSnapshot]?
+        var predictionEnabled: Bool?
+        var predictionOverlayEnabled: Bool?
+        var mlPredictionEnabled: Bool?
+        var latestPrediction: PredictionOutput?
+        var predictionHistory: [PredictionResult]?
+        var hasBootstrappedPredictions: Bool?
+        var lastModelTrainedDate: Date?
+        var modelTrainingSampleCount: Int?
+        // Enhanced coach
+        var streakHistory: StreakData?
+        var previousWeekStats: SleepStats?
+        var previousCompositeScore: Int?
+        var microHabitCompletions: [String: Bool]?
+        // LLM chat
+        var llmEnabled: Bool?
+        var chatHistory: [ChatMessage]?
     }
 
     private func save() {
@@ -585,7 +794,21 @@ final class SpiralStore {
             contextBlocks: contextBlocks,
             contextBlocksEnabled: contextBlocksEnabled,
             contextBufferMinutes: contextBufferMinutes,
-            conflictHistory: conflictHistory
+            conflictHistory: conflictHistory,
+            predictionEnabled: predictionEnabled,
+            predictionOverlayEnabled: predictionOverlayEnabled,
+            mlPredictionEnabled: mlPredictionEnabled,
+            latestPrediction: latestPrediction,
+            predictionHistory: predictionHistory,
+            hasBootstrappedPredictions: hasBootstrappedPredictions,
+            lastModelTrainedDate: lastModelTrainedDate,
+            modelTrainingSampleCount: modelTrainingSampleCount,
+            streakHistory: streakHistory,
+            previousWeekStats: previousWeekStats,
+            previousCompositeScore: previousCompositeScore,
+            microHabitCompletions: microHabitCompletions,
+            llmEnabled: llmEnabled,
+            chatHistory: chatHistory
         )
         if let data = try? JSONEncoder().encode(stored) {
             sharedDefaults.set(data, forKey: storageKey)
@@ -637,6 +860,20 @@ final class SpiralStore {
         if let cbe = stored.contextBlocksEnabled { contextBlocksEnabled = cbe }
         if let cbm = stored.contextBufferMinutes { contextBufferMinutes = cbm }
         if let ch  = stored.conflictHistory { conflictHistory = ch }
+        if let pe  = stored.predictionEnabled { predictionEnabled = pe }
+        if let poe = stored.predictionOverlayEnabled { predictionOverlayEnabled = poe }
+        if let mpe = stored.mlPredictionEnabled { mlPredictionEnabled = mpe }
+        if let lp  = stored.latestPrediction { latestPrediction = lp }
+        if let ph  = stored.predictionHistory { predictionHistory = ph }
+        if let hbp = stored.hasBootstrappedPredictions { hasBootstrappedPredictions = hbp }
+        if let lmt = stored.lastModelTrainedDate { lastModelTrainedDate = lmt }
+        if let mtc = stored.modelTrainingSampleCount { modelTrainingSampleCount = mtc }
+        if let sh  = stored.streakHistory { streakHistory = sh }
+        if let pws = stored.previousWeekStats { previousWeekStats = pws }
+        if let pcs = stored.previousCompositeScore { previousCompositeScore = pcs }
+        if let mhc = stored.microHabitCompletions { microHabitCompletions = mhc }
+        if let le  = stored.llmEnabled { llmEnabled = le }
+        if let ch  = stored.chatHistory { chatHistory = ch }
 
         // Only restore onboarding state if the stored version matches current.
         // If version is missing or outdated, the flags stay false → tutorial replays.
@@ -675,7 +912,21 @@ final class SpiralStore {
             contextBlocks: contextBlocks,
             contextBlocksEnabled: contextBlocksEnabled,
             contextBufferMinutes: contextBufferMinutes,
-            conflictHistory: conflictHistory
+            conflictHistory: conflictHistory,
+            predictionEnabled: predictionEnabled,
+            predictionOverlayEnabled: predictionOverlayEnabled,
+            mlPredictionEnabled: mlPredictionEnabled,
+            latestPrediction: latestPrediction,
+            predictionHistory: predictionHistory,
+            hasBootstrappedPredictions: hasBootstrappedPredictions,
+            lastModelTrainedDate: lastModelTrainedDate,
+            modelTrainingSampleCount: modelTrainingSampleCount,
+            streakHistory: streakHistory,
+            previousWeekStats: previousWeekStats,
+            previousCompositeScore: previousCompositeScore,
+            microHabitCompletions: microHabitCompletions,
+            llmEnabled: llmEnabled,
+            chatHistory: chatHistory
         )
         if let data = try? JSONEncoder().encode(stored) {
             sharedDefaults.set(data, forKey: storageKey)

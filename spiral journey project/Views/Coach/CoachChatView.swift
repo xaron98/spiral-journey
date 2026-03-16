@@ -1,0 +1,366 @@
+import SwiftUI
+import SpiralKit
+
+/// Full-screen chat sheet for the AI coach.
+///
+/// Presented as a sheet from CoachTab when the user taps the chat button.
+/// Shows download prompt when model is not available, streaming chat when ready.
+struct CoachChatView: View {
+
+    @Environment(SpiralStore.self) private var store
+    @Environment(LLMService.self) private var llm
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.languageBundle) private var bundle
+
+    @State private var inputText: String = ""
+    @State private var messages: [ChatMessage] = []
+    @FocusState private var isInputFocused: Bool
+
+    /// Maximum messages to keep in the conversation.
+    private let maxMessages = 50
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                SpiralColors.bg.ignoresSafeArea()
+
+                switch llm.state {
+                case .notDownloaded, .error:
+                    downloadPrompt
+                case .downloading(let progress):
+                    downloadingView(progress)
+                case .downloaded:
+                    loadingPrompt
+                case .loading:
+                    loadingView
+                case .ready:
+                    chatView
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "brain.head.profile")
+                            .font(.system(size: 13))
+                            .foregroundStyle(SpiralColors.accent)
+                        Text(loc("coach.chat.title"))
+                            .font(.system(size: 15, weight: .medium))
+                            .foregroundStyle(SpiralColors.text)
+                    }
+                }
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(SpiralColors.muted)
+                    }
+                }
+            }
+        }
+        .onAppear {
+            messages = store.chatHistory
+            if llm.state == .downloaded {
+                Task { await llm.loadModel() }
+            }
+        }
+        .onDisappear {
+            // Auto-unload when leaving chat to free memory
+            llm.unloadModel()
+        }
+    }
+
+    // MARK: - Download Prompt
+
+    private var downloadPrompt: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "arrow.down.circle")
+                .font(.system(size: 44))
+                .foregroundStyle(SpiralColors.accent)
+
+            Text(loc("coach.chat.download.title"))
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(SpiralColors.text)
+
+            Text(loc("coach.chat.download.subtitle"))
+                .font(.system(size: 13))
+                .foregroundStyle(SpiralColors.muted)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
+
+            // Size info
+            Text(loc("coach.chat.download.size"))
+                .font(.system(size: 11, design: .monospaced))
+                .foregroundStyle(SpiralColors.subtle)
+
+            Button {
+                Task { await llm.downloadModel() }
+            } label: {
+                Label(loc("coach.chat.download.button"), systemImage: "arrow.down.to.line")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 12)
+                    .background(SpiralColors.accent.opacity(0.9), in: Capsule())
+            }
+
+            // Privacy note
+            HStack(spacing: 4) {
+                Image(systemName: "lock.shield")
+                    .font(.system(size: 10))
+                Text(loc("coach.chat.privacy"))
+                    .font(.system(size: 10))
+            }
+            .foregroundStyle(SpiralColors.subtle)
+
+            if case .error(let msg) = llm.state {
+                Text(msg)
+                    .font(.system(size: 11))
+                    .foregroundStyle(SpiralColors.poor)
+                    .padding(.top, 8)
+            }
+        }
+    }
+
+    // MARK: - Downloading
+
+    private func downloadingView(_ progress: Double) -> some View {
+        VStack(spacing: 16) {
+            ProgressView(value: progress)
+                .tint(SpiralColors.accent)
+                .frame(width: 200)
+
+            Text(loc("coach.chat.downloading"))
+                .font(.system(size: 14))
+                .foregroundStyle(SpiralColors.muted)
+
+            Text("\(Int(progress * 100))%")
+                .font(.system(size: 22, weight: .semibold, design: .monospaced))
+                .foregroundStyle(SpiralColors.text)
+        }
+    }
+
+    // MARK: - Loading Prompt
+
+    private var loadingPrompt: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "brain")
+                .font(.system(size: 36))
+                .foregroundStyle(SpiralColors.accent)
+
+            Text(loc("coach.chat.load.title"))
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(SpiralColors.text)
+
+            Button {
+                Task { await llm.loadModel() }
+            } label: {
+                Label(loc("coach.chat.load.button"), systemImage: "play.fill")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 12)
+                    .background(SpiralColors.accent.opacity(0.9), in: Capsule())
+            }
+        }
+    }
+
+    // MARK: - Loading Spinner
+
+    private var loadingView: some View {
+        VStack(spacing: 16) {
+            ProgressView()
+                .controlSize(.large)
+                .tint(SpiralColors.accent)
+
+            Text(loc("coach.chat.loading"))
+                .font(.system(size: 14))
+                .foregroundStyle(SpiralColors.muted)
+        }
+    }
+
+    // MARK: - Chat View
+
+    private var chatView: some View {
+        VStack(spacing: 0) {
+            // Messages
+            ScrollViewReader { proxy in
+                ScrollView {
+                    LazyVStack(spacing: 10) {
+                        ForEach(messages) { msg in
+                            messageBubble(msg)
+                                .id(msg.id)
+                        }
+
+                        // Streaming indicator
+                        if llm.isGenerating {
+                            streamingBubble
+                                .id("streaming")
+                        }
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.top, 12)
+                    .padding(.bottom, 8)
+                }
+                .onChange(of: messages.count) {
+                    withAnimation(.easeOut(duration: 0.2)) {
+                        if let lastID = messages.last?.id {
+                            proxy.scrollTo(lastID, anchor: .bottom)
+                        }
+                    }
+                }
+                .onChange(of: llm.streamingText) {
+                    if llm.isGenerating {
+                        proxy.scrollTo("streaming", anchor: .bottom)
+                    }
+                }
+            }
+
+            Divider()
+                .overlay(SpiralColors.border)
+
+            // Input bar
+            inputBar
+        }
+    }
+
+    // MARK: - Message Bubble
+
+    private func messageBubble(_ message: ChatMessage) -> some View {
+        HStack {
+            if message.role == .user { Spacer(minLength: 48) }
+
+            VStack(alignment: message.role == .user ? .trailing : .leading, spacing: 4) {
+                Text(message.content)
+                    .font(.system(size: 14))
+                    .foregroundStyle(message.role == .user ? .white : SpiralColors.text)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                    .background(
+                        message.role == .user
+                            ? AnyShapeStyle(SpiralColors.accent.opacity(0.85))
+                            : AnyShapeStyle(.ultraThinMaterial),
+                        in: RoundedRectangle(cornerRadius: 16)
+                    )
+
+                Text(message.timestamp, format: .dateTime.hour().minute())
+                    .font(.system(size: 9, design: .monospaced))
+                    .foregroundStyle(SpiralColors.faint)
+            }
+
+            if message.role == .assistant { Spacer(minLength: 48) }
+        }
+    }
+
+    // MARK: - Streaming Bubble
+
+    private var streamingBubble: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                if llm.streamingText.isEmpty {
+                    HStack(spacing: 4) {
+                        ForEach(0..<3, id: \.self) { i in
+                            Circle()
+                                .fill(SpiralColors.muted)
+                                .frame(width: 6, height: 6)
+                                .opacity(0.6)
+                        }
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 12)
+                } else {
+                    Text(llm.streamingText)
+                        .font(.system(size: 14))
+                        .foregroundStyle(SpiralColors.text)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 10)
+                }
+            }
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+            Spacer(minLength: 48)
+        }
+    }
+
+    // MARK: - Input Bar
+
+    private var inputBar: some View {
+        HStack(spacing: 10) {
+            TextField(loc("coach.chat.placeholder"), text: $inputText, axis: .vertical)
+                .font(.system(size: 14))
+                .lineLimit(1...4)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 20))
+                .focused($isInputFocused)
+
+            Button {
+                sendMessage()
+            } label: {
+                Image(systemName: llm.isGenerating ? "stop.fill" : "arrow.up.circle.fill")
+                    .font(.system(size: 28))
+                    .foregroundStyle(
+                        inputText.trimmingCharacters(in: .whitespaces).isEmpty && !llm.isGenerating
+                            ? SpiralColors.muted
+                            : SpiralColors.accent
+                    )
+            }
+            .disabled(inputText.trimmingCharacters(in: .whitespaces).isEmpty && !llm.isGenerating)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(SpiralColors.bg)
+    }
+
+    // MARK: - Actions
+
+    private func sendMessage() {
+        if llm.isGenerating {
+            llm.stopGeneration()
+            return
+        }
+
+        let text = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return }
+
+        // Add user message
+        let userMsg = ChatMessage.user(text)
+        messages.append(userMsg)
+        inputText = ""
+
+        // Trim if over limit
+        if messages.count > maxMessages {
+            messages.removeFirst(messages.count - maxMessages)
+        }
+
+        // Save to store
+        store.chatHistory = messages
+
+        // Generate response
+        Task {
+            let systemPrompt = LLMContextBuilder.buildSystemPrompt(
+                analysis: store.analysis,
+                goal: store.sleepGoal,
+                records: store.records
+            )
+
+            // Set history on the LLM for context
+            // (The LLM library handles history internally via its template)
+
+            let response = await llm.generate(prompt: text, systemContext: systemPrompt)
+
+            if !response.isEmpty {
+                let assistantMsg = ChatMessage(role: .assistant, content: response)
+                messages.append(assistantMsg)
+                store.chatHistory = messages
+            }
+        }
+    }
+
+    // MARK: - Localization
+
+    private func loc(_ key: String) -> String {
+        NSLocalizedString(key, bundle: bundle, comment: "")
+    }
+}

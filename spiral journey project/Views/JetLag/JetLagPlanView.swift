@@ -37,7 +37,9 @@ struct JetLagPlanView: View {
         }
         .background(SpiralColors.bg.ignoresSafeArea())
         .navigationTitle(String(localized: "jetlag.plan.title", bundle: bundle))
+        #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
+        #endif
     }
 
     // MARK: - Summary

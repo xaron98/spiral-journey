@@ -1,6 +1,11 @@
 {
   "version": 1,
   "skills": {
+    "apple-on-device-ai": {
+      "source": "dpearson2699/swift-ios-skills",
+      "sourceType": "github",
+      "computedHash": "19c22d4931884eaa40610799f37a63dc10b1563728e42ed2ff47bd0ec29e4f10"
+    },
     "swift-best-practices": {
       "source": "secondsky/claude-skills",
       "sourceType": "github",

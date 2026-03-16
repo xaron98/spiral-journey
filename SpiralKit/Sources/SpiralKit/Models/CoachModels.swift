@@ -273,3 +273,310 @@ public struct CircadianAssessment: Codable, Sendable {
         self.recordCount = recordCount
     }
 }
+
+// MARK: - Temporal Pattern
+
+/// A recurring pattern detected by comparing per-weekday averages against the overall mean.
+/// Example: "Mondays you go to bed 45 min later than average."
+public struct TemporalPattern: Codable, Sendable, Identifiable {
+    public var id: UUID
+    /// ISO weekday: 1=Sunday … 7=Saturday
+    public var weekday: Int
+    /// Signed deviation from mean bedtime, in minutes. Positive = later.
+    public var bedtimeDeviationMinutes: Double
+    /// Signed deviation from mean wake time, in minutes. Positive = later.
+    public var wakeDeviationMinutes: Double
+    /// Signed deviation from mean duration, in minutes. Positive = longer.
+    public var durationDeviationMinutes: Double
+    /// Number of samples backing this pattern (to avoid spurious patterns from 1 data point).
+    public var sampleCount: Int
+
+    public init(
+        id: UUID = UUID(),
+        weekday: Int,
+        bedtimeDeviationMinutes: Double,
+        wakeDeviationMinutes: Double,
+        durationDeviationMinutes: Double,
+        sampleCount: Int
+    ) {
+        self.id = id
+        self.weekday = weekday
+        self.bedtimeDeviationMinutes = bedtimeDeviationMinutes
+        self.wakeDeviationMinutes = wakeDeviationMinutes
+        self.durationDeviationMinutes = durationDeviationMinutes
+        self.sampleCount = sampleCount
+    }
+
+    /// Weekday abbreviation (localized via Calendar).
+    public var weekdayName: String {
+        let cal = Calendar.current
+        // Calendar.shortWeekdaySymbols is 0-indexed (Sun=0) but our weekday is 1-indexed (Sun=1)
+        return cal.shortWeekdaySymbols[weekday - 1]
+    }
+
+    /// True if the pattern is significant enough to display (≥2 samples, ≥30 min deviation).
+    public var isSignificant: Bool {
+        sampleCount >= 2 && (abs(bedtimeDeviationMinutes) >= 30 || abs(durationDeviationMinutes) >= 30)
+    }
+}
+
+// MARK: - Progress Celebration
+
+/// A positive event worth celebrating — SRI improved, streak hit, duration on target, etc.
+public struct ProgressCelebration: Codable, Sendable, Identifiable {
+    public var id: UUID
+    public var type: CelebrationType
+    /// Human-readable description (English fallback).
+    public var message: String
+    /// Localization key for view layer.
+    public var messageKey: String
+    /// Numeric args for the localized format (e.g. [5] for "5-day streak").
+    public var args: [Double]
+
+    public init(
+        id: UUID = UUID(),
+        type: CelebrationType,
+        message: String,
+        messageKey: String,
+        args: [Double] = []
+    ) {
+        self.id = id
+        self.type = type
+        self.message = message
+        self.messageKey = messageKey
+        self.args = args
+    }
+
+    public enum CelebrationType: String, Codable, Sendable {
+        case sriImproved          // SRI went up ≥5 pts week-over-week
+        case consistencyStreak    // N consecutive nights within goal
+        case durationOnTarget     // Mean duration within ±30 min of goal for 7 days
+        case bedtimeOnTarget      // Mean bedtime within tolerance for 7 days
+        case bestWeekEver         // Composite score is highest so far
+        case fragmentationDown    // Fragmentation score dropped ≥10 pts
+    }
+}
+
+// MARK: - Micro-Habit
+
+/// A small daily action derived from the current coach issue.
+/// Cycles through 7 variants per issue so the user sees a fresh tip each day.
+public struct MicroHabit: Codable, Sendable, Identifiable {
+    public var id: UUID
+    /// Which coach issue this micro-habit addresses.
+    public var issueKey: CoachIssueKey
+    /// Day within the 7-day cycle (0–6).
+    public var cycleDay: Int
+    /// Short action text (English fallback).
+    public var action: String
+    /// Localization key: "coach.microhabit.<issueKey>.<cycleDay>"
+    public var actionKey: String
+    /// Whether the user has checked this off today.
+    public var isCompleted: Bool
+
+    public init(
+        id: UUID = UUID(),
+        issueKey: CoachIssueKey,
+        cycleDay: Int,
+        action: String,
+        actionKey: String,
+        isCompleted: Bool = false
+    ) {
+        self.id = id
+        self.issueKey = issueKey
+        self.cycleDay = cycleDay
+        self.action = action
+        self.actionKey = actionKey
+        self.isCompleted = isCompleted
+    }
+}
+
+// MARK: - Weekly Digest
+
+/// Summary comparing this week (last 7 days) vs the previous week.
+public struct WeeklyDigest: Codable, Sendable {
+    /// Mean bedtime this week (clock hour).
+    public var meanBedtime: Double
+    /// Mean bedtime previous week (clock hour).
+    public var prevMeanBedtime: Double
+
+    /// Mean wake time this week (clock hour).
+    public var meanWakeTime: Double
+    /// Mean wake time previous week (clock hour).
+    public var prevMeanWakeTime: Double
+
+    /// Mean duration this week (hours).
+    public var meanDuration: Double
+    /// Mean duration previous week (hours).
+    public var prevMeanDuration: Double
+
+    /// SRI this week.
+    public var sri: Double
+    /// SRI previous week.
+    public var prevSRI: Double
+
+    /// Composite score this week.
+    public var compositeScore: Int
+    /// Composite score previous week.
+    public var prevCompositeScore: Int
+
+    /// Best day (weekday 1–7) by duration or alignment.
+    public var bestDay: Int?
+    /// Worst day (weekday 1–7) by duration or alignment.
+    public var worstDay: Int?
+
+    /// Number of records this week.
+    public var thisWeekRecordCount: Int
+    /// Number of records previous week.
+    public var prevWeekRecordCount: Int
+
+    public init(
+        meanBedtime: Double = 0, prevMeanBedtime: Double = 0,
+        meanWakeTime: Double = 0, prevMeanWakeTime: Double = 0,
+        meanDuration: Double = 0, prevMeanDuration: Double = 0,
+        sri: Double = 0, prevSRI: Double = 0,
+        compositeScore: Int = 0, prevCompositeScore: Int = 0,
+        bestDay: Int? = nil, worstDay: Int? = nil,
+        thisWeekRecordCount: Int = 0, prevWeekRecordCount: Int = 0
+    ) {
+        self.meanBedtime = meanBedtime
+        self.prevMeanBedtime = prevMeanBedtime
+        self.meanWakeTime = meanWakeTime
+        self.prevMeanWakeTime = prevMeanWakeTime
+        self.meanDuration = meanDuration
+        self.prevMeanDuration = prevMeanDuration
+        self.sri = sri
+        self.prevSRI = prevSRI
+        self.compositeScore = compositeScore
+        self.prevCompositeScore = prevCompositeScore
+        self.bestDay = bestDay
+        self.worstDay = worstDay
+        self.thisWeekRecordCount = thisWeekRecordCount
+        self.prevWeekRecordCount = prevWeekRecordCount
+    }
+
+    /// Delta in mean bedtime (minutes). Positive = later.
+    public var bedtimeDeltaMinutes: Double { (meanBedtime - prevMeanBedtime) * 60 }
+    /// Delta in mean duration (minutes). Positive = longer.
+    public var durationDeltaMinutes: Double { (meanDuration - prevMeanDuration) * 60 }
+    /// Delta in SRI (points). Positive = improvement.
+    public var sriDelta: Double { sri - prevSRI }
+    /// Delta in composite score (points). Positive = improvement.
+    public var compositeDelta: Int { compositeScore - prevCompositeScore }
+
+    /// True if we have enough data in both weeks to show meaningful comparison.
+    public var isValid: Bool { thisWeekRecordCount >= 3 && prevWeekRecordCount >= 3 }
+}
+
+// MARK: - Streak Data
+
+/// Consecutive nights where the user met their sleep goal.
+public struct StreakData: Codable, Sendable, Identifiable {
+    public var id: UUID
+    /// Current consecutive nights within goal.
+    public var currentStreak: Int
+    /// All-time best streak.
+    public var bestStreak: Int
+    /// Date when the current streak started (nil if streak == 0).
+    public var streakStartDate: Date?
+    /// Date when the best streak was achieved.
+    public var bestStreakDate: Date?
+
+    public init(
+        id: UUID = UUID(),
+        currentStreak: Int = 0,
+        bestStreak: Int = 0,
+        streakStartDate: Date? = nil,
+        bestStreakDate: Date? = nil
+    ) {
+        self.id = id
+        self.currentStreak = currentStreak
+        self.bestStreak = bestStreak
+        self.streakStartDate = streakStartDate
+        self.bestStreakDate = bestStreakDate
+    }
+
+    /// True if streak is worth displaying (≥2 consecutive nights).
+    public var isActive: Bool { currentStreak >= 2 }
+    /// True if current streak equals or exceeds the best ever.
+    public var isNewRecord: Bool { currentStreak >= bestStreak && currentStreak >= 3 }
+}
+
+// MARK: - Event Acknowledgment
+
+/// A note linking a recent circadian event to sleep quality.
+/// Example: "Yesterday's exercise may have helped — you fell asleep 20 min earlier."
+public struct EventAcknowledgment: Codable, Sendable, Identifiable {
+    public var id: UUID
+    /// The event type that was detected.
+    public var eventType: EventType
+    /// Observed effect on sleep (positive or negative).
+    public var effect: EventEffect
+    /// English fallback message.
+    public var message: String
+    /// Localization key.
+    public var messageKey: String
+    /// Numeric arguments for format string.
+    public var args: [Double]
+
+    public init(
+        id: UUID = UUID(),
+        eventType: EventType,
+        effect: EventEffect,
+        message: String,
+        messageKey: String,
+        args: [Double] = []
+    ) {
+        self.id = id
+        self.eventType = eventType
+        self.effect = effect
+        self.message = message
+        self.messageKey = messageKey
+        self.args = args
+    }
+
+    public enum EventEffect: String, Codable, Sendable {
+        case positive   // Event correlated with better sleep
+        case negative   // Event correlated with worse sleep
+        case neutral    // Event detected but no clear effect
+    }
+}
+
+// MARK: - Enhanced Coach Result
+
+/// Container for all enhanced coaching data produced by the engine.
+/// The base `CoachInsight` remains the primary insight; this adds secondary coaching layers.
+public struct EnhancedCoachResult: Codable, Sendable {
+    /// The primary actionable insight (same as AnalysisResult.coachInsight).
+    public var insight: CoachInsight?
+    /// Recurring weekday patterns (e.g. "Mondays you sleep 45 min later").
+    public var temporalPatterns: [TemporalPattern]
+    /// Positive achievements worth celebrating.
+    public var celebrations: [ProgressCelebration]
+    /// Today's micro-habit suggestion.
+    public var microHabit: MicroHabit?
+    /// Weekly summary with deltas.
+    public var weeklyDigest: WeeklyDigest?
+    /// Current streak status.
+    public var streak: StreakData
+    /// Event-sleep correlations (e.g. "exercise helped last night").
+    public var eventAcknowledgments: [EventAcknowledgment]
+
+    public init(
+        insight: CoachInsight? = nil,
+        temporalPatterns: [TemporalPattern] = [],
+        celebrations: [ProgressCelebration] = [],
+        microHabit: MicroHabit? = nil,
+        weeklyDigest: WeeklyDigest? = nil,
+        streak: StreakData = StreakData(),
+        eventAcknowledgments: [EventAcknowledgment] = []
+    ) {
+        self.insight = insight
+        self.temporalPatterns = temporalPatterns
+        self.celebrations = celebrations
+        self.microHabit = microHabit
+        self.weeklyDigest = weeklyDigest
+        self.streak = streak
+        self.eventAcknowledgments = eventAcknowledgments
+    }
+}

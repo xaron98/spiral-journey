@@ -7,6 +7,14 @@ struct spiral_journey_projectApp: App {
     @State private var store = SpiralStore()
     @State private var healthKit = HealthKitManager.shared
     @State private var calendarManager = CalendarManager.shared
+    @State private var llmService = LLMService()
+
+    init() {
+        // Register background processing tasks before the first frame.
+        // Must happen in init(), not in .task{}, because BGTaskScheduler
+        // requires registration before the app finishes launching.
+        BackgroundTaskManager.registerTasks(store: store)
+    }
 
     var body: some Scene {
         WindowGroup {
@@ -14,9 +22,13 @@ struct spiral_journey_projectApp: App {
                 .environment(store)
                 .environment(healthKit)
                 .environment(calendarManager)
+                .environment(llmService)
                 .environment(\.locale, Locale(identifier: store.language.localeIdentifier))
                 .environment(\.languageBundle, languageBundle(for: store.language.localeIdentifier))
                 .task {
+                    // ⓪ Schedule background model retraining
+                    BackgroundTaskManager.scheduleRetrainIfNeeded()
+
                     // ① Let the first frame render before doing any work.
                     //    Without this, the UI appears frozen until the HealthKit
                     //    permission dialog pops up.
@@ -73,8 +85,13 @@ struct spiral_journey_projectApp: App {
 
                         healthKit.onNewSleepData = {
                             Task {
-                                if let result = await healthKit.importAndAdjustEpoch() {
-                                    store.applyHealthKitResult(epoch: result.epoch, episodes: result.episodes)
+                                // Fast incremental merge — only fetches last 3 days
+                                // and adds episodes not yet in the store.
+                                let knownIDs = Set(store.sleepEpisodes.compactMap(\.healthKitSampleID))
+                                let newEpisodes = await healthKit.fetchRecentNewEpisodes(
+                                    epoch: store.startDate, knownIDs: knownIDs)
+                                if !newEpisodes.isEmpty {
+                                    store.mergeHealthKitEpisodes(newEpisodes)
                                 }
                             }
                         }
@@ -110,6 +127,25 @@ struct spiral_journey_projectApp: App {
                         #endif
                         await store.cloudSync?.fetchNow()
                     }
+                }
+                // ⑥ Periodic incremental HealthKit poll while the app is active.
+                // Watch → iPhone HealthKit sync can take seconds; the observer
+                // query doesn't always fire reliably. Every 5s we do a cheap
+                // 3-day fetch and merge only truly new episodes (by UUID).
+                // No full 365-day re-import — that only happens on launch/foreground.
+                .task {
+                    #if !targetEnvironment(simulator)
+                    while !Task.isCancelled {
+                        try? await Task.sleep(for: .seconds(5))
+                        guard healthKit.isAuthorized else { continue }
+                        let knownIDs = Set(store.sleepEpisodes.compactMap(\.healthKitSampleID))
+                        let newEpisodes = await healthKit.fetchRecentNewEpisodes(
+                            epoch: store.startDate, knownIDs: knownIDs)
+                        if !newEpisodes.isEmpty {
+                            store.mergeHealthKitEpisodes(newEpisodes)
+                        }
+                    }
+                    #endif
                 }
         }
     }

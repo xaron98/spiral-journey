@@ -23,9 +23,10 @@ struct WatchContentView: View {
             WatchEventLogView()
                 .tag(3)
         }
+        .tabViewStyle(.page)
         .environment(\.colorScheme, colorScheme)
-        // Do NOT use .page style — that steals the Digital Crown.
-        // Standard tab bar style leaves the Crown free for digitalCrownRotation.
+        // .page uses horizontal swipe for tab navigation, leaving the
+        // Digital Crown free for digitalCrownRotation in WatchSpiralView.
         .task {
             // Register callbacks BEFORE loadData so updates that arrive
             // during or immediately after WCSession activation are not missed.

@@ -532,4 +532,197 @@ struct CoachEngineTests {
         let mid = SleepGoal.generalHealthDefault.targetMidSleepHour
         #expect(abs(mid - 3.0) < 0.1, "generalHealthDefault midSleep should be ~03:00, got \(mid)")
     }
+
+    // MARK: - Enhanced Coach: Temporal Patterns
+
+    @Test("detectTemporalPatterns: weekend vs weekday deviation")
+    func testTemporalPatternsDetectsWeekendDeviation() {
+        // 5 weekdays at 23:00 + 4 weekends at 01:00 → weekend should be >30 min later
+        var records: [SleepRecord] = []
+        for i in 0..<5 {
+            records.append(makeRecord(day: i, bedHour: 23.0, wakeHour: 7.0, duration: 8.0, isWeekend: false))
+        }
+        for i in 5..<9 {
+            records.append(makeRecord(day: i, bedHour: 1.0, wakeHour: 9.0, duration: 8.0, isWeekend: true))
+        }
+        let patterns = CoachEngine.detectTemporalPatterns(records: records)
+        // Should detect at least one pattern (weekend later bedtime)
+        let significant = patterns.filter { $0.isSignificant }
+        #expect(!significant.isEmpty, "Should detect weekend bedtime deviation pattern, got \(patterns)")
+    }
+
+    @Test("detectTemporalPatterns: insufficient data returns empty")
+    func testTemporalPatternsInsufficientData() {
+        let records = (0..<3).map { i in
+            makeRecord(day: i, bedHour: 23.0, wakeHour: 7.0, duration: 8.0)
+        }
+        let patterns = CoachEngine.detectTemporalPatterns(records: records)
+        #expect(patterns.isEmpty, "Less than 7 records should return no patterns")
+    }
+
+    // MARK: - Enhanced Coach: Streak Computation
+
+    @Test("computeStreaks: consecutive nights within goal")
+    func testComputeStreaksConsecutive() {
+        let goal = SleepGoal.generalHealthDefault
+        // All 5 nights within goal (bed 23:00, 8h duration)
+        let records = (0..<5).map { i in
+            makeRecord(day: i, bedHour: 23.0, wakeHour: 7.0, duration: 8.0)
+        }
+        let streak = CoachEngine.computeStreaks(
+            records: records, goal: goal, previousStreak: StreakData()
+        )
+        #expect(streak.currentStreak == 5, "All 5 nights within goal should give streak=5, got \(streak.currentStreak)")
+        #expect(streak.bestStreak == 5)
+    }
+
+    @Test("computeStreaks: break in the middle")
+    func testComputeStreaksBroken() {
+        let goal = SleepGoal.generalHealthDefault
+        var records = (0..<3).map { i in
+            makeRecord(day: i, bedHour: 23.0, wakeHour: 7.0, duration: 8.0)
+        }
+        // Night 4: very late bedtime breaks the streak
+        records.append(makeRecord(day: 3, bedHour: 4.0, wakeHour: 10.0, duration: 6.0))
+        // Night 5: back on track
+        records.append(makeRecord(day: 4, bedHour: 23.0, wakeHour: 7.0, duration: 8.0))
+        let streak = CoachEngine.computeStreaks(
+            records: records, goal: goal, previousStreak: StreakData()
+        )
+        #expect(streak.currentStreak == 1, "Last night is on target but streak reset by night 4, got \(streak.currentStreak)")
+    }
+
+    @Test("computeStreaks: preserves best streak from history")
+    func testComputeStreaksPreservesBest() {
+        let goal = SleepGoal.generalHealthDefault
+        let records = [makeRecord(day: 0, bedHour: 23.0, wakeHour: 7.0, duration: 8.0)]
+        let previous = StreakData(currentStreak: 0, bestStreak: 10)
+        let streak = CoachEngine.computeStreaks(
+            records: records, goal: goal, previousStreak: previous
+        )
+        #expect(streak.bestStreak == 10, "Should preserve previous best streak")
+    }
+
+    // MARK: - Enhanced Coach: Celebration Detection
+
+    @Test("detectCelebrations: SRI improvement >= 5 triggers celebration")
+    func testCelebrationSRIImproved() {
+        let stats = SleepStats(sri: 85)
+        let prev = SleepStats(sri: 78)
+        let celebrations = CoachEngine.detectCelebrations(
+            stats: stats, previousStats: prev,
+            streak: StreakData(), compositeScore: 70,
+            previousCompositeScore: 65, goal: .generalHealthDefault
+        )
+        let hasSRI = celebrations.contains { $0.type == .sriImproved }
+        #expect(hasSRI, "SRI jump from 78→85 should trigger celebration")
+    }
+
+    @Test("detectCelebrations: no celebration without previous stats")
+    func testCelebrationNoPrevious() {
+        let stats = SleepStats(sri: 85)
+        let celebrations = CoachEngine.detectCelebrations(
+            stats: stats, previousStats: nil,
+            streak: StreakData(), compositeScore: 70,
+            previousCompositeScore: nil, goal: .generalHealthDefault
+        )
+        #expect(celebrations.isEmpty, "No previous stats should yield no celebrations")
+    }
+
+    // MARK: - Enhanced Coach: Micro-Habit
+
+    @Test("generateMicroHabit: produces valid habit for each issue key")
+    func testMicroHabitGeneration() {
+        let keys: [CoachIssueKey] = [.delayedPhase, .insufficientDuration, .maintenance, .irregularSchedule]
+        for key in keys {
+            let habit = CoachEngine.generateMicroHabit(issueKey: key)
+            #expect(habit.issueKey == key)
+            #expect(habit.cycleDay >= 0 && habit.cycleDay < 7)
+            #expect(!habit.action.isEmpty, "Habit action for \(key) should not be empty")
+        }
+    }
+
+    // MARK: - Enhanced Coach: Weekly Digest
+
+    @Test("generateWeeklyDigest: requires minimum records")
+    func testWeeklyDigestMinimum() {
+        let records = (0..<5).map { i in
+            makeRecord(day: i, bedHour: 23.0, wakeHour: 7.0, duration: 8.0)
+        }
+        let digest = CoachEngine.generateWeeklyDigest(
+            records: records, stats: SleepStats(meanSleepDuration: 8.0, sri: 80),
+            previousStats: nil, compositeScore: 75, previousCompositeScore: 70
+        )
+        #expect(digest == nil, "5 records should not produce a weekly digest (needs ≥6 with 2 weeks)")
+    }
+
+    @Test("generateWeeklyDigest: produces valid digest with 14 records")
+    func testWeeklyDigestValid() {
+        let records = (0..<14).map { i in
+            makeRecord(day: i, bedHour: 23.0, wakeHour: 7.0, duration: 8.0)
+        }
+        let stats = SleepStats(meanSleepDuration: 8.0, sri: 80)
+        let prevStats = SleepStats(meanSleepDuration: 7.5, sri: 75)
+        let digest = CoachEngine.generateWeeklyDigest(
+            records: records, stats: stats, previousStats: prevStats,
+            compositeScore: 80, previousCompositeScore: 70
+        )
+        #expect(digest != nil, "14 records should produce a weekly digest")
+        if let d = digest {
+            #expect(d.isValid, "Digest should be valid with ≥3 records per week")
+            #expect(d.thisWeekRecordCount == 7)
+        }
+    }
+
+    // MARK: - Enhanced Coach: Event Acknowledgments
+
+    @Test("acknowledgeEvents: exercise with earlier bedtime → positive")
+    func testEventAcknowledgmentExercise() {
+        // Previous night: bed at 1:00 (late)
+        // Last night: bed at 23:00 (earlier, after exercise)
+        let records = [
+            makeRecord(day: 0, bedHour: 1.0, wakeHour: 9.0, duration: 8.0),
+            makeRecord(day: 1, bedHour: 23.0, wakeHour: 7.0, duration: 8.0)
+        ]
+        let events = [CircadianEvent(type: .exercise, absoluteHour: 30.0)] // Some exercise event
+        let acks = CoachEngine.acknowledgeEvents(events: events, records: records)
+        let hasExercise = acks.contains { $0.eventType == .exercise && $0.effect == .positive }
+        #expect(hasExercise, "Exercise + earlier bedtime should produce positive acknowledgment")
+    }
+
+    @Test("acknowledgeEvents: empty events returns empty")
+    func testEventAcknowledgmentEmpty() {
+        let records = [
+            makeRecord(day: 0, bedHour: 23.0, wakeHour: 7.0, duration: 8.0),
+            makeRecord(day: 1, bedHour: 23.0, wakeHour: 7.0, duration: 8.0)
+        ]
+        let acks = CoachEngine.acknowledgeEvents(events: [], records: records)
+        #expect(acks.isEmpty, "No events should produce no acknowledgments")
+    }
+
+    // MARK: - Enhanced Coach: Full evaluateEnhanced
+
+    @Test("evaluateEnhanced: returns complete result with all fields")
+    func testEvaluateEnhancedCompleteness() {
+        let records = (0..<10).map { i in
+            makeRecord(day: i, bedHour: 23.0, wakeHour: 7.0, duration: 8.0,
+                       isWeekend: i >= 5 && i <= 6)
+        }
+        let stats = SleepStats(
+            meanAcrophase: 15.0, stdAcrophase: 0.3, stdBedtime: 0.2,
+            meanAmplitude: 0.4, rhythmStability: 0.85, socialJetlag: 10,
+            weekdayAmp: 0.4, weekendAmp: 0.4, ampDrop: 0,
+            meanSleepDuration: 8.0, meanR2: 0.9, sri: 88
+        )
+        let result = CoachEngine.evaluateEnhanced(
+            records: records, stats: stats,
+            goal: .generalHealthDefault, consistency: nil,
+            events: [], previousStats: nil,
+            previousCompositeScore: nil, compositeScore: 80,
+            streakHistory: StreakData()
+        )
+        #expect(result.insight != nil, "Should always have an insight")
+        #expect(result.microHabit != nil, "Should always have a micro-habit")
+        #expect(result.streak.currentStreak >= 0, "Streak should be non-negative")
+    }
 }

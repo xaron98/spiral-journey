@@ -121,7 +121,9 @@ struct JetLagSetupView: View {
             }
             .background(SpiralColors.bg.ignoresSafeArea())
             .navigationTitle(String(localized: "jetlag.nav.title", bundle: bundle))
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(String(localized: "jetlag.close", bundle: bundle)) { dismiss() }

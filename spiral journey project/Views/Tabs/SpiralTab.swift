@@ -100,7 +100,9 @@ struct SpiralTab: View {
                                     viewportCenterTurns: smoothCameraCenterTurns,
                                     visibleSpanTurns: liveVisibleDays,
                                     depthScale: store.depthScale,
-                                    showGrid: store.showGrid
+                                    showGrid: store.showGrid,
+                                    predictedBedHour: store.predictionOverlayEnabled ? store.latestPrediction?.predictedBedtimeHour : nil,
+                                    predictedWakeHour: store.predictionOverlayEnabled ? store.latestPrediction?.predictedWakeHour : nil
                                 )
                                 #if !os(macOS)
                                 // On macOS the overlay outside the ScrollView handles all cursor
@@ -130,7 +132,7 @@ struct SpiralTab: View {
                                                 totalHours: searchMax
                                             )
                                             // Guard against erroneous nearestHour jumps near spiral origin.
-                                            let maxDelta = store.period * 0.5
+                                            let maxDelta = store.period * 1.0
                                             guard abs(newHour - cursorAbsHour) <= maxDelta else { return }
                                             cursorAbsHour = newHour
                                             // During scrub, camera tracks cursor immediately.
@@ -213,6 +215,13 @@ struct SpiralTab: View {
                                         .padding(.horizontal, 16)
                                         .padding(.top, 10)
 
+                                    // ── Prediction card ──────────────────────────────
+                                    if store.predictionEnabled, let pred = store.latestPrediction {
+                                        predictionCard(pred)
+                                            .padding(.horizontal, 16)
+                                            .padding(.top, 8)
+                                    }
+
                                     // ── Human stats row ───────────────────────────────
                                     humanStatsRow
                                         .padding(.horizontal, 16)
@@ -242,6 +251,9 @@ struct SpiralTab: View {
                             }
                         }
                     }
+                    #if !os(macOS)
+                    .scrollDisabled(isUserInteracting)
+                    #endif
                     #if os(macOS)
                     // Transparent drag overlay positioned over the spiral area.
                     // Placed outside the ScrollView so the scroll view never intercepts
@@ -428,7 +440,7 @@ struct SpiralTab: View {
                     // Don't reset zoom to max — keep current zoom level.
                     // Only expand if current zoom was already at max.
                     if visibleDays >= maxReachedTurns * 0.95 {
-                        let initialZoom = min(needed, 3.0)
+                        let initialZoom = min(needed, 7.0)
                         visibleDays = initialZoom; liveVisibleDays = initialZoom
                         pinchBaseVisibleDays = initialZoom
                     }
@@ -620,6 +632,69 @@ struct SpiralTab: View {
         let localizedLabel = String(localized: String.LocalizationValue(c.label.localizationKey))
         return String(format: String(localized: "spiral.rhythm.subtitle.stable", bundle: bundle),
                       c.nightsUsed, localizedLabel.lowercased())
+    }
+
+    // MARK: - Prediction Card
+
+    private func predictionCard(_ pred: PredictionOutput) -> some View {
+        HStack(spacing: 14) {
+            // Moon icon
+            ZStack {
+                Circle()
+                    .fill(Color(hex: "a78bfa").opacity(0.15))
+                    .frame(width: 52, height: 52)
+                Image(systemName: "moon.stars.fill")
+                    .font(.system(size: 22))
+                    .foregroundStyle(Color(hex: "a78bfa"))
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(String(localized: "prediction.card.title", bundle: bundle))
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(SpiralColors.text)
+
+                HStack(spacing: 16) {
+                    Label(formatClockHour(pred.predictedBedtimeHour), systemImage: "bed.double.fill")
+                    Label(formatClockHour(pred.predictedWakeHour), systemImage: "alarm.fill")
+                    Label(String(format: "%.1fh", pred.predictedDuration), systemImage: "hourglass")
+                }
+                .font(.system(size: 12, design: .monospaced))
+                .foregroundStyle(SpiralColors.muted)
+
+                HStack(spacing: 6) {
+                    predictionConfidenceBadge(pred.confidence)
+                }
+            }
+            Spacer()
+        }
+        .padding(14)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 16).fill(.ultraThinMaterial)
+                RoundedRectangle(cornerRadius: 16).fill(SpiralColors.surface.opacity(0.4))
+                RoundedRectangle(cornerRadius: 16).stroke(Color(hex: "a78bfa").opacity(0.3), lineWidth: 0.8)
+            }
+        )
+    }
+
+    private func predictionConfidenceBadge(_ confidence: PredictionConfidence) -> some View {
+        let (text, color): (String, Color) = {
+            switch confidence {
+            case .high:   return ("●●●", Color(hex: "34d399"))
+            case .medium: return ("●●○", Color(hex: "fbbf24"))
+            case .low:    return ("●○○", Color(hex: "f87171"))
+            }
+        }()
+        return Text(text)
+            .font(.system(size: 10, design: .monospaced))
+            .foregroundStyle(color)
+    }
+
+    private func formatClockHour(_ h: Double) -> String {
+        let total = Int((h * 60).rounded())
+        let hh = ((total / 60) % 24 + 24) % 24
+        let mm = abs(total % 60)
+        return String(format: "%02d:%02d", hh, mm)
     }
 
     // MARK: - Human Stats Row (replaces miniStatsRow)
@@ -825,9 +900,8 @@ struct SpiralTab: View {
             let lastEnd = store.sleepEpisodes.map(\.end).max() ?? 0
             cursorAbsHour = nowAbsHour
             maxReachedTurns = max(minTurns, max(nowAbsHour, lastEnd) / store.period)
-            // Initial zoom: close-up on latest record (~3 turns).
-            // User can pinch to zoom out and see up to 7 days.
-            let initialZoom = min(maxReachedTurns, 3.0)
+            // Initial zoom: show all 7 days.
+            let initialZoom = min(maxReachedTurns, 7.0)
             visibleDays = initialZoom; liveVisibleDays = initialZoom
             pinchBaseVisibleDays = initialZoom
             zoomNorm = visibleDaysToNorm(initialZoom)

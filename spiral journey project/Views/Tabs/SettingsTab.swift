@@ -7,6 +7,7 @@ struct SettingsTab: View {
     @Environment(SpiralStore.self) private var store
     @Environment(HealthKitManager.self) private var healthKit
     @Environment(CalendarManager.self) private var calendarManager
+    @Environment(LLMService.self) private var llm
     @Environment(\.languageBundle) private var bundle
     @State private var isRefreshing = false
     @State private var isImporting = false
@@ -397,6 +398,40 @@ struct SettingsTab: View {
                     }
                 }
 
+                // ── Prediction ─────────────────────────────────────────────
+                SettingsSection(title: String(localized: "settings.prediction.title", bundle: bundle), icon: "moon.stars") {
+                    Toggle(isOn: $store.predictionEnabled) {
+                        Text(String(localized: "settings.prediction.enable", bundle: bundle))
+                            .font(.system(size: 13))
+                            .foregroundStyle(SpiralColors.text)
+                    }
+                    .tint(Color(hex: "a78bfa"))
+                    if store.predictionEnabled {
+                        Toggle(isOn: $store.predictionOverlayEnabled) {
+                            Text(String(localized: "settings.prediction.overlay", bundle: bundle))
+                                .font(.system(size: 13))
+                                .foregroundStyle(SpiralColors.text)
+                        }
+                        .tint(Color(hex: "a78bfa"))
+
+                        // ML model toggle
+                        Toggle(isOn: $store.mlPredictionEnabled) {
+                            Text(String(localized: "settings.prediction.ml", bundle: bundle))
+                                .font(.system(size: 13))
+                                .foregroundStyle(SpiralColors.text)
+                        }
+                        .tint(Color(hex: "a78bfa"))
+
+                        // ML model info
+                        if store.mlPredictionEnabled {
+                            mlModelInfoView
+                        }
+                    }
+                }
+
+                // ── AI Coach ───────────────────────────────────────────────
+                aiCoachSection
+
                 // ── HealthKit ───────────────────────────────────────────────
                 SettingsSection(title: String(localized: "settings.healthData.title", bundle: bundle), icon: "heart.fill") {
                     if !healthKit.isAvailable {
@@ -671,6 +706,171 @@ struct SettingsTab: View {
             .frame(maxWidth: .infinity)
         }
         .background(SpiralColors.bg.ignoresSafeArea())
+    }
+
+    // MARK: - ML Model Info
+
+    @ViewBuilder
+    private var mlModelInfoView: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            // Engine status
+            HStack {
+                Text(String(localized: "settings.prediction.engine", bundle: bundle))
+                    .font(.system(size: 11, design: .monospaced))
+                    .foregroundStyle(SpiralColors.muted)
+                Spacer()
+                Text(MLPredictionEngine.isAvailable
+                     ? (MLPredictionEngine.isPersonalised
+                        ? String(localized: "settings.prediction.personalised", bundle: bundle)
+                        : String(localized: "settings.prediction.generic", bundle: bundle))
+                     : String(localized: "settings.prediction.heuristic", bundle: bundle))
+                    .font(.system(size: 11, weight: .medium, design: .monospaced))
+                    .foregroundStyle(MLPredictionEngine.isPersonalised
+                                    ? Color(hex: "34d399")
+                                    : SpiralColors.text)
+            }
+
+            // Ground truth count
+            let evaluatedCount = store.predictionHistory.filter { $0.actual != nil }.count
+            HStack {
+                Text(String(localized: "settings.prediction.groundTruth", bundle: bundle))
+                    .font(.system(size: 11, design: .monospaced))
+                    .foregroundStyle(SpiralColors.muted)
+                Spacer()
+                Text("\(evaluatedCount) / \(ModelTrainingService.minimumSamples)")
+                    .font(.system(size: 11, weight: .medium, design: .monospaced))
+                    .foregroundStyle(evaluatedCount >= ModelTrainingService.minimumSamples
+                                    ? Color(hex: "34d399")
+                                    : SpiralColors.text)
+            }
+
+            // Progress bar toward minimum samples
+            if evaluatedCount < ModelTrainingService.minimumSamples {
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(Color.white.opacity(0.08))
+                            .frame(height: 4)
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(Color(hex: "a78bfa"))
+                            .frame(
+                                width: geo.size.width * min(1.0, Double(evaluatedCount) / Double(ModelTrainingService.minimumSamples)),
+                                height: 4
+                            )
+                    }
+                }
+                .frame(height: 4)
+            }
+
+            // Last trained info
+            if let lastTrained = store.lastModelTrainedDate {
+                HStack {
+                    Text(String(localized: "settings.prediction.lastTrained", bundle: bundle))
+                        .font(.system(size: 11, design: .monospaced))
+                        .foregroundStyle(SpiralColors.muted)
+                    Spacer()
+                    Text(lastTrained, style: .relative)
+                        .font(.system(size: 11, design: .monospaced))
+                        .foregroundStyle(SpiralColors.text)
+                }
+                if store.modelTrainingSampleCount > 0 {
+                    HStack {
+                        Text(String(localized: "settings.prediction.samplesUsed", bundle: bundle))
+                            .font(.system(size: 11, design: .monospaced))
+                            .foregroundStyle(SpiralColors.muted)
+                        Spacer()
+                        Text("\(store.modelTrainingSampleCount)")
+                            .font(.system(size: 11, design: .monospaced))
+                            .foregroundStyle(SpiralColors.text)
+                    }
+                }
+            }
+
+            // Privacy note
+            Text(String(localized: "settings.prediction.privacyNote", bundle: bundle))
+                .font(.system(size: 10))
+                .foregroundStyle(SpiralColors.muted)
+                .lineSpacing(2)
+                .padding(.top, 2)
+        }
+        .padding(.top, 4)
+    }
+
+    // MARK: - AI Coach Section
+
+    @ViewBuilder
+    private var aiCoachSection: some View {
+        @Bindable var store = store
+        SettingsSection(title: String(localized: "settings.aiCoach.title", bundle: bundle), icon: "brain.head.profile") {
+            Toggle(isOn: $store.llmEnabled) {
+                Text(String(localized: "settings.aiCoach.enable", bundle: bundle))
+                    .font(.system(size: 13))
+                    .foregroundStyle(SpiralColors.text)
+            }
+            .tint(SpiralColors.accent)
+
+            if store.llmEnabled {
+                // Model status
+                HStack {
+                    Text(String(localized: "settings.aiCoach.status", bundle: bundle))
+                        .font(.system(size: 11))
+                        .foregroundStyle(SpiralColors.muted)
+                    Spacer()
+                    Text(llm.state.statusText)
+                        .font(.system(size: 11, design: .monospaced))
+                        .foregroundStyle(SpiralColors.subtle)
+                }
+
+                // Size info
+                if let _ = llm.modelFileSize {
+                    HStack {
+                        Text(String(localized: "settings.aiCoach.space", bundle: bundle))
+                            .font(.system(size: 11))
+                            .foregroundStyle(SpiralColors.muted)
+                        Spacer()
+                        Text(llm.modelFileSizeString)
+                            .font(.system(size: 11, design: .monospaced))
+                            .foregroundStyle(SpiralColors.subtle)
+                    }
+                }
+
+                // Download / Delete buttons
+                switch llm.state {
+                case .notDownloaded, .error:
+                    Button {
+                        Task { await llm.downloadModel() }
+                    } label: {
+                        Label(String(localized: "settings.aiCoach.download", bundle: bundle), systemImage: "arrow.down.to.line")
+                            .font(.system(size: 12))
+                            .foregroundStyle(SpiralColors.accent)
+                    }
+                case .downloading(let progress):
+                    ProgressView(value: progress)
+                        .tint(SpiralColors.accent)
+                case .downloaded, .ready:
+                    Button(role: .destructive) {
+                        llm.deleteModel()
+                        store.chatHistory = []
+                    } label: {
+                        Label(String(localized: "settings.aiCoach.delete", bundle: bundle), systemImage: "trash")
+                            .font(.system(size: 12))
+                            .foregroundStyle(SpiralColors.poor)
+                    }
+                case .loading:
+                    ProgressView()
+                        .controlSize(.small)
+                }
+
+                // Privacy note
+                HStack(spacing: 4) {
+                    Image(systemName: "lock.shield")
+                        .font(.system(size: 9))
+                    Text(String(localized: "settings.aiCoach.privacy", bundle: bundle))
+                        .font(.system(size: 10))
+                }
+                .foregroundStyle(SpiralColors.faint)
+            }
+        }
     }
 }
 

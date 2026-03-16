@@ -419,6 +419,41 @@ public enum ConclusionsEngine {
         return result
     }
 
+    /// Generate with full enhanced coaching: temporal patterns, celebrations, streaks,
+    /// micro-habits, weekly digest, and event acknowledgments.
+    public static func generate(
+        from records: [SleepRecord],
+        goal: SleepGoal,
+        events: [CircadianEvent],
+        previousStats: SleepStats?,
+        previousCompositeScore: Int?,
+        streakHistory: StreakData,
+        contextBlocks: [ContextBlock] = [],
+        conflicts: [ScheduleConflict] = []
+    ) -> AnalysisResult {
+        var result = generate(from: records)
+        let meaningful = records.filter { $0.sleepDuration >= 3.0 }
+        let activeRecords = meaningful.isEmpty ? records : meaningful
+
+        let enhanced = CoachEngine.evaluateEnhanced(
+            records: activeRecords,
+            stats: result.stats,
+            goal: goal,
+            consistency: result.consistency,
+            events: events,
+            previousStats: previousStats,
+            previousCompositeScore: previousCompositeScore,
+            compositeScore: result.composite,
+            streakHistory: streakHistory,
+            contextBlocks: contextBlocks,
+            conflicts: conflicts
+        )
+
+        result.coachInsight = enhanced.insight
+        result.enhancedCoach = enhanced
+        return result
+    }
+
     /// Generate the complete analysis result from a set of sleep records.
     /// `coachInsight` will be `nil`; use `generate(from:goal:)` to populate it.
     public static func generate(from records: [SleepRecord]) -> AnalysisResult {
