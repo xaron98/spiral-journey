@@ -1103,12 +1103,12 @@ struct SpiralView: View {
     }
 
     private func drawCursor(context: GraphicsContext, geo: SpiralGeometry, camera: CameraState, cursorState: CursorRenderState) {
-        // Clamp cursor to camera's visible range so it renders at the
-        // spiral edge when the actual cursor position is past the window.
-        let tRaw = cursorState.turnsPosition
-        let t = min(tRaw, camera.maxVisibleTurn - 0.1)
-        guard !camera.isBehindCamera(turns: t) else { return }
-        let p = camera.project(turns: t, geo: geo)
+        let t = cursorState.turnsPosition
+        // Flat projection — cursor is a UI element, no camera restriction.
+        let theta = t * 2 * Double.pi
+        let rad = geo.radius(turns: t)
+        let p = CGPoint(x: geo.cx + rad * cos(theta - Double.pi / 2),
+                        y: geo.cy + rad * sin(theta - Double.pi / 2))
         let opacity = cursorState.opacity
         #if DEBUG
         print("[SpiralAudit] drawCursor turns=\(String(format: "%.2f", t)) opacity=\(String(format: "%.2f", opacity)) screenPos=(\(String(format: "%.0f", p.x)),\(String(format: "%.0f", p.y)))")
