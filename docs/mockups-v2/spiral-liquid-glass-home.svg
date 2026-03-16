@@ -1,0 +1,65 @@
+<svg width="1170" height="2532" viewBox="0 0 1170 2532" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#081222"/>
+      <stop offset="100%" stop-color="#0C1730"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.06"/>
+    </linearGradient>
+    <filter id="blur20"><feGaussianBlur stdDeviation="20"/></filter>
+    <filter id="blur8"><feGaussianBlur stdDeviation="8"/></filter>
+  </defs>
+
+  <rect width="1170" height="2532" fill="url(#bg)"/>
+  <circle cx="930" cy="470" r="110" fill="#7A4CFF" fill-opacity="0.55" filter="url(#blur20)"/>
+  <circle cx="235" cy="1710" r="140" fill="#3EE6B0" fill-opacity="0.2" filter="url(#blur20)"/>
+
+  <text x="64" y="190" fill="#E8ECF8" font-size="68" font-family="-apple-system, BlinkMacSystemFont, SF Pro Display">Buenos días</text>
+  <text x="64" y="246" fill="#8791A8" font-size="44" font-family="-apple-system, BlinkMacSystemFont, SF Pro Display">lun 16 mar</text>
+
+  <g opacity="0.45" stroke="#8D96AA" stroke-width="2">
+    <line x1="585" y1="340" x2="585" y2="1600"/>
+    <line x1="60" y1="970" x2="1110" y2="970"/>
+    <line x1="130" y1="430" x2="1040" y2="1330"/>
+    <line x1="130" y1="1330" x2="1040" y2="430"/>
+  </g>
+
+  <g transform="translate(585 970)">
+    <circle r="360" fill="none" stroke="#2A395D" stroke-width="2"/>
+    <circle r="250" fill="none" stroke="#33466D" stroke-width="2"/>
+    <circle r="140" fill="none" stroke="#3D5480" stroke-width="2"/>
+
+    <circle r="280" fill="none" stroke="#F3C12A" stroke-width="28" stroke-dasharray="980 790" stroke-linecap="round" transform="rotate(6)"/>
+    <circle r="220" fill="none" stroke="#9B7AFF" stroke-width="22" stroke-dasharray="590 790" stroke-linecap="round" transform="rotate(80)"/>
+    <circle r="170" fill="none" stroke="#F3C12A" stroke-width="16" stroke-dasharray="420 640" stroke-linecap="round" transform="rotate(190)"/>
+    <circle r="130" fill="none" stroke="#A793FF" stroke-width="14" stroke-dasharray="300 520" stroke-linecap="round" transform="rotate(250)"/>
+    <circle r="96" fill="none" stroke="#7FA8FF" stroke-width="13" stroke-dasharray="220 400" stroke-linecap="round" transform="rotate(210)"/>
+
+    <circle cx="-205" cy="222" r="30" fill="#62F3B4"/>
+    <circle cx="-205" cy="222" r="55" fill="#62F3B4" fill-opacity="0.22" filter="url(#blur8)"/>
+  </g>
+
+  <g transform="translate(48 1710)">
+    <rect x="0" y="0" width="1074" height="232" rx="46" fill="url(#glass)" stroke="#FFFFFF" stroke-opacity="0.22"/>
+    <text x="42" y="88" fill="#F5CC3A" font-size="68" font-family="monospace">50</text>
+    <text x="210" y="92" fill="#F1F4FB" font-size="58" font-family="-apple-system, BlinkMacSystemFont, SF Pro Display">Tu ritmo es variable</text>
+    <text x="210" y="152" fill="#A5AFC4" font-size="47" font-family="-apple-system, BlinkMacSystemFont, SF Pro Display">Te acuestas más tarde los fines de semana</text>
+  </g>
+
+  <g transform="translate(48 1976)">
+    <rect x="0" y="0" width="1074" height="238" rx="46" fill="url(#glass)" stroke="#8E7AFF" stroke-opacity="0.55"/>
+    <text x="210" y="92" fill="#F1F4FB" font-size="58" font-family="-apple-system, BlinkMacSystemFont, SF Pro Display">Predicción de esta noche</text>
+    <text x="210" y="154" fill="#AEB6CA" font-size="48" font-family="-apple-system, BlinkMacSystemFont, SF Pro Display">05:43 · 13:37 · 7.9h</text>
+  </g>
+
+  <g transform="translate(66 2276)">
+    <rect x="0" y="0" width="1038" height="170" rx="84" fill="#243654" fill-opacity="0.5" stroke="#FFFFFF" stroke-opacity="0.15"/>
+    <rect x="16" y="12" width="300" height="146" rx="72" fill="#8CF5D0" fill-opacity="0.22"/>
+    <text x="120" y="104" fill="#7DF2C7" font-size="46" font-family="-apple-system, BlinkMacSystemFont, SF Pro Display">Espiral</text>
+    <text x="390" y="104" fill="#D2D8E7" font-size="44" font-family="-apple-system, BlinkMacSystemFont, SF Pro Display">Tendencias</text>
+    <text x="645" y="104" fill="#D2D8E7" font-size="44" font-family="-apple-system, BlinkMacSystemFont, SF Pro Display">Coach</text>
+    <text x="860" y="104" fill="#D2D8E7" font-size="44" font-family="-apple-system, BlinkMacSystemFont, SF Pro Display">Ajustes</text>
+  </g>
+</svg>

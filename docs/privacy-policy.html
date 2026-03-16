@@ -36,11 +36,14 @@
     <li>No personal identifiers (name, email, phone, location)</li>
     <li>No advertising identifiers or tracking</li>
     <li>No analytics services or third-party SDKs</li>
-    <li>No data is transmitted to any server</li>
+    <li>No advertising or analytics data is transmitted to third-party tracking servers</li>
   </ul>
 
   <h2>Data Storage</h2>
-  <p>All data — sleep episodes, events, and settings — is stored exclusively on your device using iOS standard local storage (UserDefaults). Nothing leaves your device.</p>
+  <p>Primary app data (sleep episodes, events, settings) is stored locally on your device. If iCloud is enabled on your Apple account, app records may be synced using Apple CloudKit private database so your own devices stay in sync.</p>
+
+  <h2>On-Device AI Model Download</h2>
+  <p>If you enable the AI coach chat feature, the app downloads an open GGUF model file from Hugging Face to your device. Prompts and generated responses are processed on-device after download.</p>
 
   <h2>Apple Watch</h2>
   <p>Data synced between your iPhone and Apple Watch uses Apple's WatchConnectivity framework. This communication is direct device-to-device and is never routed through external servers.</p>

@@ -498,7 +498,6 @@ public enum CoachEngine {
         // 7. Sufficient duration but timing slightly off
         if assessment.meanDurationHours >= goal.targetDuration - 0.5
         && abs(assessment.midSleepDeviationMinutes) > 45 {
-            let estBed = SleepStatistics.formatHour(assessment.mainSleepStartHour)
             return CoachInsight(
                 issueKey: .sufficientButMisaligned,
                 title: "Good duration, shifted timing",

@@ -1,0 +1,57 @@
+<svg width="1170" height="2532" viewBox="0 0 1170 2532" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0A1428"/>
+      <stop offset="100%" stop-color="#090F1D"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFF" stop-opacity="0.14"/>
+      <stop offset="100%" stop-color="#FFF" stop-opacity="0.04"/>
+    </linearGradient>
+  </defs>
+  <rect width="1170" height="2532" fill="url(#bg)"/>
+
+  <text x="68" y="190" fill="#F0F4FE" font-size="62" font-family="-apple-system">Modo Coach</text>
+  <text x="68" y="244" fill="#97A2B8" font-size="40" font-family="-apple-system">Menos ruido, acciones claras</text>
+
+  <g transform="translate(585 760)">
+    <circle r="270" fill="none" stroke="#2A3A5E" stroke-width="2"/>
+    <circle r="190" fill="none" stroke="#31446C" stroke-width="2"/>
+    <circle r="130" fill="none" stroke="#3A527E" stroke-width="2"/>
+    <circle r="225" fill="none" stroke="#F3C336" stroke-width="20" stroke-dasharray="560 860" stroke-linecap="round" transform="rotate(35)"/>
+    <circle r="172" fill="none" stroke="#A88CFF" stroke-width="16" stroke-dasharray="400 760" stroke-linecap="round" transform="rotate(125)"/>
+    <circle r="130" fill="none" stroke="#85ABFF" stroke-width="12" stroke-dasharray="250 560" stroke-linecap="round" transform="rotate(240)"/>
+  </g>
+
+  <g transform="translate(56 1100)">
+    <rect x="0" y="0" width="1058" height="210" rx="44" fill="url(#glass)" stroke="#FFFFFF" stroke-opacity="0.18"/>
+    <text x="44" y="82" fill="#E9EEFB" font-size="44" font-family="-apple-system">Insight prioritario</text>
+    <text x="44" y="142" fill="#FFFFFF" font-size="52" font-family="-apple-system">Adelanta 30 min tu sueño hoy</text>
+    <text x="44" y="188" fill="#A9B3C8" font-size="36" font-family="-apple-system">Impacto estimado: +8 puntos de regularidad</text>
+  </g>
+
+  <g transform="translate(56 1340)">
+    <rect x="0" y="0" width="1058" height="176" rx="36" fill="url(#glass)" stroke="#8AF1C8" stroke-opacity="0.55"/>
+    <text x="40" y="72" fill="#96F2CE" font-size="40" font-family="-apple-system">Micro-hábito de hoy</text>
+    <text x="40" y="128" fill="#F2F6FF" font-size="48" font-family="-apple-system">Luz solar 15 min al despertar</text>
+  </g>
+
+  <g transform="translate(56 1540)">
+    <rect x="0" y="0" width="510" height="190" rx="34" fill="url(#glass)" stroke="#EBC359" stroke-opacity="0.5"/>
+    <text x="36" y="76" fill="#F3CB67" font-size="38" font-family="-apple-system">Ritmo</text>
+    <text x="36" y="146" fill="#F2D070" font-size="70" font-family="-apple-system">66%</text>
+
+    <rect x="548" y="0" width="510" height="190" rx="34" fill="url(#glass)" stroke="#AC91FF" stroke-opacity="0.5"/>
+    <text x="584" y="76" fill="#CCBCFF" font-size="38" font-family="-apple-system">Variación</text>
+    <text x="584" y="146" fill="#CDBBFF" font-size="70" font-family="-apple-system">+3.4h</text>
+  </g>
+
+  <g transform="translate(80 2282)">
+    <rect x="0" y="0" width="1010" height="154" rx="76" fill="#223353" fill-opacity="0.58" stroke="#FFFFFF" stroke-opacity="0.14"/>
+    <text x="70" y="96" fill="#CBD5E8" font-size="42" font-family="-apple-system">Espiral</text>
+    <text x="324" y="96" fill="#CBD5E8" font-size="42" font-family="-apple-system">Tendencias</text>
+    <rect x="535" y="12" width="230" height="130" rx="65" fill="#AF97FF" fill-opacity="0.22"/>
+    <text x="590" y="96" fill="#D9CBFF" font-size="42" font-family="-apple-system">Coach</text>
+    <text x="822" y="96" fill="#CBD5E8" font-size="42" font-family="-apple-system">Ajustes</text>
+  </g>
+</svg>
