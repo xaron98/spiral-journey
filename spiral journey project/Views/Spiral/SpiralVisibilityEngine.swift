@@ -96,6 +96,9 @@ struct VisibleDayWindow {
     let endIndex: Int
     let visibleCount: Int
     let clampedToDataBounds: Bool
+    /// Raw fractional viewport start — used for smooth edge fading
+    /// so the boundary day fades out gradually instead of snapping.
+    let viewportFromFractional: Double
 
     var fromTurns: Double { Double(max(startIndex, 0)) }
     var upToTurns: Double { Double(endIndex) + 1.0 }
@@ -344,7 +347,8 @@ enum SpiralVisibilityEngine {
             startIndex: startIndex,
             endIndex: endIndex,
             visibleCount: count,
-            clampedToDataBounds: clamped
+            clampedToDataBounds: clamped,
+            viewportFromFractional: viewportFromTurns
         )
     }
 
@@ -391,7 +395,23 @@ enum SpiralVisibilityEngine {
         // In-window minimum: days inside the 7-day window stay clearly visible
         // (at least 20% opacity). Days outside the window are gated by isVisible=false
         // and get opacity 0 — they truly disappear.
-        let opacity = max(rawOpacity, 0.20)
+        var opacity = max(rawOpacity, 0.20)
+
+        // Smooth edge fade: the day at startIndex fades gradually as the
+        // viewport edge crosses it, preventing a hard snap from 1.0 → 0.
+        // edgeFade goes from 1.0 (day fully in window) to 0.0 (about to exit).
+        if dayIndex == window.startIndex {
+            let edgeFade = Double(dayIndex + 1) - window.viewportFromFractional
+            opacity *= max(0, min(1.0, edgeFade))
+        }
+
+        // After edge fade, skip if effectively invisible
+        guard opacity > 0.01 else {
+            return DayVisibilityState(
+                isVisible: false, opacity: 0, emphasis: 0,
+                blur: 0, strokeScale: 0, distanceFromActive: dist
+            )
+        }
 
         return DayVisibilityState(
             isVisible: true, opacity: opacity, emphasis: opacity,
