@@ -573,13 +573,16 @@ struct SpiralView: View {
         let lastRecord = records.last(where: { $0.sleepDuration > 0 })
 
         for record in records {
+            let isLastRecord = record.id == lastRecord?.id
             let dayStartTurns = geo.turns(day: record.day, hour: 0)
             let dayEndTurns = geo.turns(day: record.day + 1, hour: 0)
-            guard dayEndTurns >= fromTurns, dayStartTurns <= upToTurns else { continue }
+            // The last record's awake extension spans from its data day to the cursor,
+            // so don't skip it based on day range — the extension may be in view even
+            // when the data day itself is outside the camera range.
+            guard (dayEndTurns >= fromTurns && dayStartTurns <= upToTurns) || isLastRecord else { continue }
             let phases = record.phases
             guard !phases.isEmpty else { continue }
             let vis = state.dayVisibility(for: record.day)
-            let isLastRecord = record.id == lastRecord?.id
             // Skip records with no visibility UNLESS this is the last record
             // (its live awake extension represents current state and must always draw).
             guard (vis.isVisible && vis.opacity > 0.01) || isLastRecord else { continue }
