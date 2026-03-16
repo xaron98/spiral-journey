@@ -214,7 +214,8 @@ struct SpiralView: View {
         if dataSpanDays <= span {
             vpFrom = min(vpFrom, Double(firstDataDay))
         }
-        let vpUpTo = cursorT
+        // Cap window to exactly `span` days — never wider
+        let vpUpTo = min(cursorT, vpFrom + span)
 
         // ── Camera framing: ALWAYS includes data ──
         //
