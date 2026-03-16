@@ -119,10 +119,12 @@ struct SpiralTab: View {
                                             isUserInteracting = true
                                             interactionMode = .scrub
                                             lastInteractionTime = Date()
-                                            let searchMax = min(
-                                                (maxReachedTurns + 1.5) * store.period,
-                                                Double(maxDays) * store.period
-                                            )
+                                            // Cursor can't go beyond current time + small tail.
+                                            // This prevents scrubbing into the future where
+                                            // the 7-day window would exclude all data.
+                                            let nowHours = Date().timeIntervalSince(store.startDate) / 3600
+                                            let maxHours = nowHours + store.period * 0.25
+                                            let searchMax = min(maxHours, Double(maxDays) * store.period)
                                             let scaleDays = max(1, Int(ceil(maxReachedTurns)))
                                             let newHour = nearestHour(
                                                 at: value.location,
@@ -285,7 +287,9 @@ struct SpiralTab: View {
                                         let spiralSize = CGSize(width: screen.size.width - 32,
                                                                 height: screen.size.width - 32)
                                         let scaleDays = max(1, Int(ceil(maxReachedTurns)))
-                                        let maxHours  = Double(maxDays) * store.period
+                                        let nowH2 = Date().timeIntervalSince(store.startDate) / 3600
+                                        let maxHours  = min(nowH2 + store.period * 0.25,
+                                                            Double(maxDays) * store.period)
                                         let hoursStep = tangentHoursPerPixel(
                                             atHour: cursorAbsHour,
                                             spiralSize: spiralSize,
@@ -319,7 +323,8 @@ struct SpiralTab: View {
                             .onKeyPress(phases: [.down, .repeat]) { press in
                                 let isShift = press.modifiers.contains(.shift)
                                 let stepHours: Double = isShift ? 1.0 : 0.25
-                                let maxHours = min((maxReachedTurns + 1.5) * store.period,
+                                let nowHK = Date().timeIntervalSince(store.startDate) / 3600
+                                let maxHours = min(nowHK + store.period * 0.25,
                                                    Double(maxDays) * store.period)
                                 switch press.key {
                                 case .leftArrow:
