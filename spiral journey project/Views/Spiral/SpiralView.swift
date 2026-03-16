@@ -424,6 +424,12 @@ struct SpiralView: View {
         } else {
             skipFrom = 0; skipTo = 0
         }
+        #if DEBUG
+        do {
+            let f = { (v: Double) -> String in String(format: "%.2f", v) }
+            print("[Backbone] from=\(f(state.renderFromTurns)) to=\(f(state.backboneClipTurns)) skip=[\(f(skipFrom)),\(f(skipTo))] camMaxTurn=\(f(camera.maxVisibleTurn))")
+        }
+        #endif
         drawSpiralPath(context: context, geo: geo, camera: camera,
                        fromTurns: state.renderFromTurns,
                        upToTurns: state.backboneClipTurns,
