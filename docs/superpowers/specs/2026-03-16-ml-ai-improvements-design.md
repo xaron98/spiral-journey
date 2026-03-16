@@ -73,10 +73,10 @@ Convert existing persisted `Codable` structs to `@Model` classes:
 
 | Model | Key Properties | Relationships |
 |-------|---------------|---------------|
-| `SDSleepEpisode` | startAbsoluteHour, endAbsoluteHour, source, healthKitSampleID, modifiedAt | standalone |
+| `SDSleepEpisode` | start, end, source, healthKitSampleID, phase, modifiedAt (new — for change tracking in WatchSyncBridge and CloudSyncManager conflict resolution) | standalone |
 | `SDCircadianEvent` | absoluteHour, type, amount | standalone (matched to episodes by absoluteHour range at query time, as current code does) |
 | `SDPredictionResult` | targetDate, predicted, actual, error, engineType | standalone |
-| `SDCoachMessage` | date, role, content | standalone |
+| `SDCoachMessage` | timestamp, role, content | standalone |
 | `SDUserGoal` | mode, targetBed, targetWake, targetDuration | standalone |
 | `SDPredictionMetrics` | date, mae, accuracy, sampleCount | standalone |
 | `SDTrainingMetrics` | date, preMae, postMae, sampleCount, accepted | standalone |
@@ -98,7 +98,7 @@ Prefix `SD` to avoid collision with existing structs during migration period.
 
 - On first launch: detect existing UserDefaults data via a `migrationCompleted` flag
 - Read → deserialize JSON → insert into SwiftData
-- **Verification:** compare record counts AND spot-check first/last record dates and values (not just counts). Explicitly map enum types (`EpisodeSource`, `ChatRole`) and optional fields (`healthKitSampleID`) during conversion.
+- **Verification:** compare record counts AND spot-check first/last record dates and values (not just counts). Explicitly map enum types (`DataSource`, `ChatRole`) and optional fields (`healthKitSampleID`) during conversion.
 - Mark migration complete with a flag in UserDefaults
 - Delete old JSON only after successful verification
 - If migration fails: keep JSON, retry next launch, log error with details
