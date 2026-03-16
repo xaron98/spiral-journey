@@ -217,24 +217,15 @@ struct SpiralView: View {
         // Cap window to exactly `span` days — never wider
         let vpUpTo = min(cursorT, vpFrom + span)
 
-        // ── Camera framing: ALWAYS includes data ──
+        // ── Camera framing: frames the VISIBILITY WINDOW ──
         //
-        // The camera must frame both data AND cursor so nothing shrinks
-        // to invisible via perspective. When the cursor is far past data,
-        // the camera span widens and depthScale is reduced proportionally
-        // to flatten the perspective so inner turns stay visible.
-        let camFromDefault = max(focusTurns - span, 0)
-        let camFrom = min(camFromDefault, Double(firstDataDay))
-        let camUpTo = focusTurns + cameraZPadding
-
-        let actualSpan = camUpTo - camFrom
-        let effectiveDepthScale: Double
-        if actualSpan > span {
-            // Flatten perspective proportionally to keep data visible
-            effectiveDepthScale = depthScale * (span / actualSpan)
-        } else {
-            effectiveDepthScale = depthScale
-        }
+        // The camera frames [vpFrom, vpUpTo] so the visible spiral fills
+        // the screen. When the cursor is far past data, we do NOT extend
+        // the camera to the cursor — that would shrink the spiral to tiny.
+        // Instead, the cursor is drawn at the window edge (same angle).
+        let camFrom = vpFrom
+        let camUpTo = vpUpTo + cameraZPadding
+        let effectiveDepthScale = depthScale
 
         let camera = CameraState(fromTurns: camFrom, upToTurns: camUpTo,
                                   focusTurns: focusTurns,
@@ -1112,8 +1103,10 @@ struct SpiralView: View {
     }
 
     private func drawCursor(context: GraphicsContext, geo: SpiralGeometry, camera: CameraState, cursorState: CursorRenderState) {
-        let t = cursorState.turnsPosition
-        // FIX: Don't draw cursor if behind camera
+        // Clamp cursor to camera's visible range so it renders at the
+        // spiral edge when the actual cursor position is past the window.
+        let tRaw = cursorState.turnsPosition
+        let t = min(tRaw, camera.maxVisibleTurn - 0.1)
         guard !camera.isBehindCamera(turns: t) else { return }
         let p = camera.project(turns: t, geo: geo)
         let opacity = cursorState.opacity
