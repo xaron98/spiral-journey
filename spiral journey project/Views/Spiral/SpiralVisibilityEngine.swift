@@ -368,7 +368,7 @@ enum SpiralVisibilityEngine {
         } else {
             let base = opacityCurve.last ?? 0.06
             let extra = dist - opacityCurve.count + 1
-            rawOpacity = base * pow(0.6, Double(extra))
+            rawOpacity = base * pow(0.15, Double(extra))
         }
 
         let blur: Double = dist < blurCurve.count ? blurCurve[dist] : (blurCurve.last ?? 2.0)
