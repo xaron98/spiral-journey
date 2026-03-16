@@ -208,11 +208,29 @@ struct SpiralView: View {
         let vpFrom = max(cursorT - span, 0)
         let vpUpTo = cursorT
 
-        let camFrom = max(focusTurns - span, 0)
+        // ── Camera framing: ALWAYS includes data ──
+        //
+        // The camera must frame both data AND cursor so nothing shrinks
+        // to invisible via perspective. When the cursor is far past data,
+        // the camera span widens and depthScale is reduced proportionally
+        // to flatten the perspective so inner turns stay visible.
+        let firstDataDay = records.first(where: { !$0.phases.isEmpty })?.day ?? Int(focusTurns)
+        let camFromDefault = max(focusTurns - span, 0)
+        let camFrom = min(camFromDefault, Double(firstDataDay))
         let camUpTo = focusTurns + cameraZPadding
 
-        let camera = buildCamera(geo: geo, fromTurns: camFrom, upToTurns: camUpTo,
-                                 focusTurns: focusTurns)
+        let actualSpan = camUpTo - camFrom
+        let effectiveDepthScale: Double
+        if actualSpan > span {
+            // Flatten perspective proportionally to keep data visible
+            effectiveDepthScale = depthScale * (span / actualSpan)
+        } else {
+            effectiveDepthScale = depthScale
+        }
+
+        let camera = CameraState(fromTurns: camFrom, upToTurns: camUpTo,
+                                  focusTurns: focusTurns,
+                                  geo: geo, depthScale: effectiveDepthScale)
 
         let backboneVisualTailTurns = 0.15
         let backboneCap = cursorT + backboneVisualTailTurns
