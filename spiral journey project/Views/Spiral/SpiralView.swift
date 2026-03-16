@@ -709,19 +709,21 @@ struct SpiralView: View {
             if record.id == lastRecord?.id,
                let cursorH = cursorAbsHour {
                 let tCursor = cursorH / geo.period
+                // Cap the awake extension to the visibility window (not camera range)
+                let tAwakeCap = min(tCursor, state.visibleWindow.upToTurns)
                 let tWake   = geo.turns(day: record.day, hour: record.wakeupHour)
-                if tCursor > tWake + (0.25 / geo.period) {
+                if tAwakeCap > tWake + (0.25 / geo.period) {
                     // Step every 15 min for smooth rendering
                     var awakePoints: [(t: Double, pt: CGPoint)] = []
                     var t = tWake
                     let tStep = 0.25 / geo.period
-                    while t <= tCursor {
+                    while t <= tAwakeCap {
                         awakePoints.append((t, camera.project(turns: t, geo: geo)))
                         t += tStep
                     }
-                    // Ensure last point lands exactly on cursor
-                    if awakePoints.last?.t ?? 0 < tCursor {
-                        awakePoints.append((tCursor, camera.project(turns: tCursor, geo: geo)))
+                    // Ensure last point lands exactly on cap
+                    if awakePoints.last?.t ?? 0 < tAwakeCap {
+                        awakePoints.append((tAwakeCap, camera.project(turns: tAwakeCap, geo: geo)))
                     }
                     if awakePoints.count >= 2 {
                         runs.append(Run(phase: .awake, points: awakePoints, prevPhase: .light, nextPhase: nil))
