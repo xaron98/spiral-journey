@@ -295,31 +295,51 @@ struct SpiralView: View {
     private func drawDayRings(context: GraphicsContext, geo: SpiralGeometry, camera: CameraState, state: SpiralRenderState) {
         let fromTurns = state.renderFromTurns
         let upToTurns = state.renderUpToTurns
-        for ring in geo.dayRings() where ring.day > 0 && Double(ring.day) >= fromTurns - 1 && Double(ring.day) <= upToTurns {
-            // Day rings follow the same visibility window as data.
-            // Out-of-window rings are invisible.
+        let edgeMargin = 1.5  // same as data segment fade
+        let ringCameraSpan = upToTurns - fromTurns
+        for ring in geo.dayRings() where ring.day > 0 && Double(ring.day) >= fromTurns - 2 && Double(ring.day) <= upToTurns {
             let vis = state.dayVisibility(for: ring.day)
             guard vis.isVisible, vis.opacity > 0.01 else { continue }
-            let ringOpacity = vis.opacity
             let gridScale = colorScheme == .dark ? 1.0 : 1.3
             let baseOpacity = ring.isWeekBoundary ? 0.22 * gridScale : 0.11 * gridScale
-            let color = gridColor.opacity(baseOpacity * ringOpacity)
             let lw: CGFloat = ring.isWeekBoundary ? 0.8 : 0.4
 
+            // Draw per-segment with progressive edge fade (not per-day)
             var path = Path()
             var started = false
+            var currentOpacity = 0.0
             let steps = 60
             for i in 0...steps {
                 let t = Double(ring.day) + Double(i) / Double(steps)
-                // FIX: Skip behind-camera points in day rings
-                if camera.isBehindCamera(turns: t) {
-                    if started { context.stroke(path, with: .color(color), lineWidth: lw); path = Path(); started = false }
+                if camera.isBehindCamera(turns: t) || camera.perspectiveScale(turns: t) < 0.10 {
+                    if started {
+                        context.stroke(path, with: .color(gridColor.opacity(baseOpacity * currentOpacity)), lineWidth: lw)
+                        path = Path(); started = false
+                    }
                     continue
                 }
+                // Per-point edge fade — skip only when zoomed in close to origin
+                let edgeFade: Double
+                if fromTurns <= 0.5 && ringCameraSpan <= 3.5 { edgeFade = 1.0 }
+                else if t < fromTurns { edgeFade = 0.0 }
+                else if t < fromTurns + edgeMargin { edgeFade = (t - fromTurns) / edgeMargin }
+                else { edgeFade = 1.0 }
+                let ptOpacity = vis.opacity * edgeFade
+
+                // Flush when opacity changes significantly (creates gradient effect)
+                if started && abs(ptOpacity - currentOpacity) > 0.08 {
+                    context.stroke(path, with: .color(gridColor.opacity(baseOpacity * currentOpacity)), lineWidth: lw)
+                    path = Path(); started = false
+                }
+
                 let pt = camera.project(turns: t, geo: geo)
-                if !started { path.move(to: pt); started = true } else { path.addLine(to: pt) }
+                if !started {
+                    path.move(to: pt); started = true; currentOpacity = ptOpacity
+                } else {
+                    path.addLine(to: pt)
+                }
             }
-            if started { context.stroke(path, with: .color(color), lineWidth: lw) }
+            if started { context.stroke(path, with: .color(gridColor.opacity(baseOpacity * currentOpacity)), lineWidth: lw) }
         }
     }
 
@@ -349,29 +369,41 @@ struct SpiralView: View {
     // Old perspectiveScale eliminated — all callers use camera.perspectiveScale(turns:).
 
     private func drawSpiralPath(context: GraphicsContext, geo: SpiralGeometry, camera: CameraState, state: SpiralRenderState) {
-        // Backbone skip = intersection of data days AND visible window.
-        // This is where data arcs ACTUALLY render. The backbone must not
-        // draw gray there (arcs would be hidden behind it).
-        //
-        // When the window has no overlap with data → skip is empty →
-        // backbone draws continuously (including over data turns, which
-        // is correct because no data arcs render there).
+        // Backbone skip: only skip where data arcs are opaque enough to cover the backbone.
+        // Where data is fading (camera edge, cursor distance), the backbone draws through,
+        // creating the same smooth continuous path as when there are no records.
         let skipFrom: Double
         let skipTo: Double
         if state.dataBounds.hasData {
             let overlapFirst = max(state.dataBounds.firstDayIndex, state.visibleWindow.startIndex)
             let overlapLast  = min(state.dataBounds.lastDayIndex,  state.visibleWindow.endIndex)
             if overlapFirst <= overlapLast {
-                skipFrom = Double(overlapFirst)
-                skipTo   = Double(overlapLast + 1)
+                // Narrow the skip to only days where data is prominently visible
+                var first = overlapLast + 1
+                var last  = overlapFirst - 1
+                for d in overlapFirst...overlapLast {
+                    let vis = state.dayVisibility(for: d)
+                    if vis.opacity > 0.35 {
+                        first = min(first, d)
+                        last  = max(last, d)
+                    }
+                }
+                if first <= last {
+                    skipFrom = Double(first)
+                    skipTo   = Double(last + 1)
+                } else {
+                    skipFrom = 0; skipTo = 0
+                }
             } else {
                 skipFrom = 0; skipTo = 0
             }
         } else {
             skipFrom = 0; skipTo = 0
         }
+        // Backbone limited to 7 turns before cursor — never show more than a week
+        let backboneFrom = max(state.backboneClipTurns - 7.0, 0)
         drawSpiralPath(context: context, geo: geo, camera: camera,
-                       fromTurns: state.renderFromTurns,
+                       fromTurns: backboneFrom,
                        upToTurns: state.backboneClipTurns,
                        skipFrom: skipFrom, skipTo: skipTo)
     }
@@ -510,24 +542,38 @@ struct SpiralView: View {
 
         func isSleep(_ p: SleepPhase) -> Bool { p != .awake }
 
-        func drawRun(_ run: Run, opacity: Double) {
+        // Per-segment edge fade: smooth progressive fade at the camera boundary,
+        // matching the backbone's natural perspective fade (point-by-point, not per-day).
+        // When zoomed in close to origin (small span), data is solid — no inner edge fade.
+        // When zoomed out (large span), edge fade applies everywhere to prevent
+        // orphan data fragments appearing as a chunk at the origin.
+        let cameraSpan = upToTurns - fromTurns
+        func segmentEdgeFade(t: Double) -> Double {
+            // Only skip edge fade when zoomed in close to origin
+            guard fromTurns > 0.5 || cameraSpan > 3.5 else { return 1.0 }
+            let margin = 1.5
+            if t < fromTurns { return 0.0 }
+            if t < fromTurns + margin { return (t - fromTurns) / margin }
+            return 1.0
+        }
+
+        func drawRun(_ run: Run, opacity: Double, applyEdgeFade: Bool = true) {
             guard run.points.count >= 2 else { return }
 
-            // E: Draw segment-by-segment with interpolated color gradient.
-            // For sleep phases, the final 20% of each run blends toward the next phase color.
-            // Awake arcs use a plain solid stroke (original behavior).
             let baseColor = phaseColor(run.phase)
             let nextColor = run.nextPhase.map { phaseColor($0) } ?? baseColor
 
             for i in 0..<(run.points.count - 1) {
                 let p0   = run.points[i]
                 let p1   = run.points[i + 1]
-                // FIX: Skip segments where either endpoint is behind camera
                 guard !camera.isBehindCamera(turns: p0.t),
                       !camera.isBehindCamera(turns: p1.t) else { continue }
                 let tSeg = (p0.t + p1.t) * 0.5
                 let sc   = camera.perspectiveScale(turns: tSeg)
+                guard sc > 0.10 else { continue } // too compressed by perspective — skip
                 let lw   = max(3.0, min(sc * 20.0, 28.0))
+                let segOpacity = applyEdgeFade ? opacity * segmentEdgeFade(t: tSeg) : opacity
+                guard segOpacity > 0.01 else { continue }
                 // Blend toward nextColor in the final 20% of sleep runs
                 let isSleepRun = run.phase != .awake
                 let progress = (isSleepRun && run.points.count > 2)
@@ -540,13 +586,10 @@ struct SpiralView: View {
                 var seg = Path()
                 seg.move(to: p0.pt)
                 seg.addLine(to: p1.pt)
-                context.stroke(seg, with: .color(segColor.opacity(opacity)),
+                context.stroke(seg, with: .color(segColor.opacity(segOpacity)),
                                style: StrokeStyle(lineWidth: lw, lineCap: .round))
             }
 
-            // For sleep runs, paint a round cap at the true start of the sleep block
-            // (when previous phase is awake or this is the very first point on the spiral)
-            // and at the true end. Awake runs don't need caps — sleep caps cover the joint.
             guard isSleep(run.phase) else { return }
             let capStart = run.prevPhase == nil || !isSleep(run.prevPhase!)
             let capEnd   = run.nextPhase == nil || !isSleep(run.nextPhase!)
@@ -554,18 +597,22 @@ struct SpiralView: View {
             if capStart, !camera.isBehindCamera(turns: run.points[0].t) {
                 let tFirst = run.points[0].t
                 let sc = camera.perspectiveScale(turns: tFirst)
+                guard sc > 0.10 else { return }
+                let capFade = applyEdgeFade ? segmentEdgeFade(t: tFirst) : 1.0
                 let lw = max(3.0, min(sc * 20.0, 28.0))
                 let r  = lw * 0.5; let pt = run.points[0].pt
                 context.fill(Circle().path(in: CGRect(x: pt.x - r, y: pt.y - r, width: lw, height: lw)),
-                             with: .color(baseColor.opacity(opacity)))
+                             with: .color(baseColor.opacity(opacity * capFade)))
             }
             if capEnd, !camera.isBehindCamera(turns: run.points[run.points.count - 1].t) {
                 let tLast = run.points[run.points.count - 1].t
                 let sc = camera.perspectiveScale(turns: tLast)
+                guard sc > 0.10 else { return }
+                let capFade = applyEdgeFade ? segmentEdgeFade(t: tLast) : 1.0
                 let lw = max(3.0, min(sc * 20.0, 28.0))
                 let r  = lw * 0.5; let pt = run.points[run.points.count - 1].pt
                 context.fill(Circle().path(in: CGRect(x: pt.x - r, y: pt.y - r, width: lw, height: lw)),
-                             with: .color(nextColor.opacity(opacity)))
+                             with: .color(nextColor.opacity(opacity * capFade)))
             }
         }
 
@@ -576,17 +623,17 @@ struct SpiralView: View {
             let isLastRecord = record.id == lastRecord?.id
             let dayStartTurns = geo.turns(day: record.day, hour: 0)
             let dayEndTurns = geo.turns(day: record.day + 1, hour: 0)
-            // The last record's awake extension spans from its data day to the cursor,
-            // so don't skip it based on day range — the extension may be in view even
-            // when the data day itself is outside the camera range.
-            guard (dayEndTurns >= fromTurns && dayStartTurns <= upToTurns) || isLastRecord else { continue }
+            // Widen range by 1 turn so partial days aren't skipped as chunks.
+            // Per-segment isBehindCamera + edge fade handle the actual clipping.
+            guard (dayEndTurns >= fromTurns - 1 && dayStartTurns <= upToTurns + 1) || isLastRecord else { continue }
             let phases = record.phases
             guard !phases.isEmpty else { continue }
             let vis = state.dayVisibility(for: record.day)
-            // Skip records with no visibility UNLESS this is the last record
-            // (its live awake extension represents current state and must always draw).
             guard (vis.isVisible && vis.opacity > 0.01) || isLastRecord else { continue }
-            let dataOpacity = vis.opacity
+
+            // Edge fade is now per-segment in drawRun — not per-day.
+            // Last record always visible — it's the most recent sleep data.
+            let dataOpacity = isLastRecord ? max(vis.opacity, 0.35) : vis.opacity
             let cutTurns = min(globalCutTurns, dayEndTurns)
 
             // Build all runs for this record.
@@ -601,8 +648,8 @@ struct SpiralView: View {
                 runPoints.removeAll()
             }
 
-            // Only build data runs if visibility allows it
-            if vis.isVisible && vis.opacity > 0.01 {
+            // Build data runs — always for the last record (sleep data must not vanish)
+            if (vis.isVisible && vis.opacity > 0.01) || isLastRecord {
                 for (i, phase) in phases.enumerated() {
                     let t = geo.turns(day: record.day, hour: phase.hour)
                     if t > cutTurns { break }
@@ -625,13 +672,20 @@ struct SpiralView: View {
                 flushRun(nextPhase: nil)
             }
 
-            // For the last (current) day, extend a live awake run from wakeupHour to the cursor.
-            // This represents current state and always draws at full opacity, regardless of
-            // how far the cursor has moved from the data day.
+            // For the last (current) day, extend a live awake run from where the
+            // recorded data ends to the cursor. Starting from cutTurns (not wakeup)
+            // avoids drawing on top of recorded sleep data — the data already contains
+            // awake phases from wakeup onwards.
             var liveAwakeRun: Run? = nil
             if isLastRecord, let cursorH = cursorAbsHour {
                 let tCursor = cursorH / geo.period
-                let tWake   = geo.turns(day: record.day, hour: record.wakeupHour)
+                // Start where recorded data ends, not from wakeup — prevents
+                // the awake extension from covering sleep data at the same turns.
+                let tWakeRaw = geo.turns(day: record.day, hour: record.wakeupHour)
+                let tDataEnd = cutTurns  // recorded data already covers up to here
+                let tStart = max(tDataEnd, tWakeRaw)
+                // Limit awake extension to 7 turns max — same as data visibility window
+                let tWake = max(tStart, tCursor - 7.0)
                 if tCursor > tWake + (0.25 / geo.period) {
                     var awakePoints: [(t: Double, pt: CGPoint)] = []
                     var t = tWake
@@ -650,14 +704,19 @@ struct SpiralView: View {
                 }
             }
 
-            // Draw data runs with distance-faded opacity
-            for run in runs where !isSleep(run.phase) { drawRun(run, opacity: dataOpacity) }
-            for run in runs where  isSleep(run.phase) { drawRun(run, opacity: dataOpacity) }
+            // Draw order: awake data → live awake extension → sleep data
+            // Sleep phases render ON TOP so they're never hidden by yellow awake lines.
+            let skipEdge = isLastRecord
+            for run in runs where !isSleep(run.phase) { drawRun(run, opacity: dataOpacity, applyEdgeFade: !skipEdge) }
 
-            // Draw live awake extension at full opacity — it's current state, not historical
+            // Live awake extension (yellow, full opacity) draws between awake data and sleep data.
             if let liveRun = liveAwakeRun {
-                drawRun(liveRun, opacity: 1.0)
+                drawRun(liveRun, opacity: 1.0, applyEdgeFade: false)
             }
+
+            // Sleep data always on top — never covered by awake extension
+            for run in runs where  isSleep(run.phase) { drawRun(run, opacity: dataOpacity, applyEdgeFade: !skipEdge) }
+
         }
     }
 
@@ -883,8 +942,11 @@ struct SpiralView: View {
                 }
 
                 guard tEnd > 0 && tStart < upToTurns else { continue }
+                // Clip context blocks to cursor position — don't draw ahead of cursor
+                let cursorClipTurns = cursorAbsHour.map { $0 / geo.period } ?? upToTurns
                 let clampedStart = max(tStart, 0)
-                let clampedEnd = min(tEnd, upToTurns)
+                let clampedEnd = min(tEnd, upToTurns, cursorClipTurns)
+                guard clampedEnd > clampedStart else { continue }
 
                 // Reduce opacity when block overlaps with recorded sleep.
                 let blockOpacity: Double
@@ -966,15 +1028,7 @@ struct SpiralView: View {
             )
         }
 
-        // Structural border ring — always drawn when origin is visible.
-        // Uses a neutral white color, not the accent, so it serves as a
-        // subtle positional anchor without introducing unwanted color.
-        let rect = CGRect(x: p.x - r, y: p.y - r, width: r * 2, height: r * 2)
-        context.stroke(
-            Circle().path(in: rect),
-            with: .color(Color.white.opacity(0.35 * opacity)),
-            lineWidth: 1.0
-        )
+        // Structural border ring removed — visual noise at the origin.
 
         // Debug dot — only when explicitly opted in.
         if markers.shouldRenderOriginDebugDot {

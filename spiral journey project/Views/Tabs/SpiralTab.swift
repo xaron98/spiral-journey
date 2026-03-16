@@ -24,7 +24,7 @@ struct SpiralTab: View {
     @State private var visibleDays: Double = 1
     @State private var liveVisibleDays: Double = 1
     @State private var pinchBaseVisibleDays: Double = 1
-    private let minVisibleDays: Double = 0.15
+    private let minVisibleDays: Double = 0.08
     @State private var pinchStarted: Bool = false
     // Zoom slider: normalised 0→1 in log-space. Derived from visibleDays when not dragging.
     @State private var zoomNorm: Double = 1.0
@@ -80,14 +80,6 @@ struct SpiralTab: View {
                                 .padding(.bottom, 6)
 
                             // ── Spiral — ~57% of viewport height ────────────────────
-                            #if DEBUG
-                            let _ = {
-                                let f = { (v: Double) -> String in String(format: "%.2f", v) }
-                                let cursorTurns = cursorAbsHour / store.period
-                                let vpFrom = max(cursorTurns - 7.0, 0.0)
-                                print("[SpiralTab] cursor=\(f(cursorTurns)) vpFrom=\(f(vpFrom)) vpUpTo=\(f(cursorTurns)) span=7.0 camera=\(f(smoothCameraCenterTurns)) mode=\(isUserInteracting ? interactionMode.rawValue : "autoFollow")")
-                            }()
-                            #endif
                             ZStack(alignment: .topTrailing) {
                                 SpiralView(
                                     records: store.records,
@@ -168,7 +160,8 @@ struct SpiralTab: View {
                                                 pinchStarted = true
                                                 pinchBaseVisibleDays = visibleDays
                                             }
-                                            let clamped = max(minVisibleDays, min(maxReachedTurns, pinchBaseVisibleDays / Double(value.magnification)))
+                                            let maxZoomOut = min(maxReachedTurns, 7.0)
+                                            let clamped = max(minVisibleDays, min(maxZoomOut, pinchBaseVisibleDays / Double(value.magnification)))
                                             liveVisibleDays = clamped
                                             visibleDays     = clamped
                                             zoomNorm        = visibleDaysToNorm(clamped)
@@ -435,7 +428,7 @@ struct SpiralTab: View {
                     // Don't reset zoom to max — keep current zoom level.
                     // Only expand if current zoom was already at max.
                     if visibleDays >= maxReachedTurns * 0.95 {
-                        let initialZoom = min(needed, 7.0)
+                        let initialZoom = min(needed, 3.0)
                         visibleDays = initialZoom; liveVisibleDays = initialZoom
                         pinchBaseVisibleDays = initialZoom
                     }
@@ -796,10 +789,13 @@ struct SpiralTab: View {
 
     // MARK: - Zoom slider helpers (log-space mapping)
 
+    /// Max zoom-out: 7 turns covers the full opacity range.
+    private var maxZoomOutTurns: Double { min(maxReachedTurns, 7.0) }
+
     /// Convert visibleDays → normalised slider value [0,1] in log space.
     private func visibleDaysToNorm(_ vd: Double) -> Double {
         let lo = log(minVisibleDays)
-        let hi = log(max(maxReachedTurns, minVisibleDays + 0.01))
+        let hi = log(max(maxZoomOutTurns, minVisibleDays + 0.01))
         guard hi > lo else { return 1.0 }
         return (log(max(vd, minVisibleDays)) - lo) / (hi - lo)
     }
@@ -807,7 +803,7 @@ struct SpiralTab: View {
     /// Convert normalised slider value [0,1] → visibleDays.
     private func normToVisibleDays(_ n: Double) -> Double {
         let lo = log(minVisibleDays)
-        let hi = log(max(maxReachedTurns, minVisibleDays + 0.01))
+        let hi = log(max(maxZoomOutTurns, minVisibleDays + 0.01))
         return exp(lo + n * (hi - lo))
     }
 
@@ -829,9 +825,9 @@ struct SpiralTab: View {
             let lastEnd = store.sleepEpisodes.map(\.end).max() ?? 0
             cursorAbsHour = nowAbsHour
             maxReachedTurns = max(minTurns, max(nowAbsHour, lastEnd) / store.period)
-            // Initial zoom: 7-turn retrospective window.
-            // Camera, data, opacity all use this same span.
-            let initialZoom = min(maxReachedTurns, 7.0)
+            // Initial zoom: close-up on latest record (~3 turns).
+            // User can pinch to zoom out and see up to 7 days.
+            let initialZoom = min(maxReachedTurns, 3.0)
             visibleDays = initialZoom; liveVisibleDays = initialZoom
             pinchBaseVisibleDays = initialZoom
             zoomNorm = visibleDaysToNorm(initialZoom)
