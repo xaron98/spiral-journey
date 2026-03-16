@@ -192,9 +192,7 @@ struct SpiralView: View {
                                   focusTurns: focusTurns,
                                   geo: geo, depthScale: depthScale)
 
-        let backboneCap = cursorT + 0.15
-        let totalRealDays = records.filter { !$0.phases.isEmpty }.count
-
+        let backboneCap = floor(cursorT) + 1.0   // extend backbone to midnight of cursor day
         let state = SpiralVisibilityEngine.resolve(
             records: records,
             cursorAbsHour: cursorAbsHour,
@@ -391,10 +389,10 @@ struct SpiralView: View {
         func flush() {
             guard !first else { return }
             let pathColor = colorScheme == .dark
-                ? Color(hex: "2e3248")
-                : Color(red: 0.7, green: 0.72, blue: 0.78)
+                ? Color(hex: "2e3248").opacity(0.4)
+                : Color(red: 0.7, green: 0.72, blue: 0.78).opacity(0.3)
             context.stroke(path, with: .color(pathColor),
-                           style: StrokeStyle(lineWidth: 6, lineCap: .round, lineJoin: .round))
+                           style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round))
             path = Path(); first = true
         }
 
@@ -581,8 +579,10 @@ struct SpiralView: View {
             let phases = record.phases
             guard !phases.isEmpty else { continue }
             let vis = state.dayVisibility(for: record.day)
-            // Data opacity: in-window → use visibility gradient. Out-of-window → skip.
-            guard vis.isVisible, vis.opacity > 0.01 else { continue }
+            let isLastRecord = record.id == lastRecord?.id
+            // Skip records with no visibility UNLESS this is the last record
+            // (its live awake extension represents current state and must always draw).
+            guard (vis.isVisible && vis.opacity > 0.01) || isLastRecord else { continue }
             let dataOpacity = vis.opacity
             let cutTurns = min(globalCutTurns, dayEndTurns)
 
@@ -598,36 +598,38 @@ struct SpiralView: View {
                 runPoints.removeAll()
             }
 
-            for (i, phase) in phases.enumerated() {
-                let t = geo.turns(day: record.day, hour: phase.hour)
-                if t > cutTurns { break }
-                if phase.phase != runPhase {
-                    let edgePt = camera.project(turns: t, geo: geo)
-                    runPoints.append((t, edgePt))
-                    flushRun(nextPhase: phase.phase)
-                    prevPhase = runPhase
-                    runPhase  = phase.phase
-                    runPoints.append((t, edgePt))
-                } else {
-                    runPoints.append((t, camera.project(turns: t, geo: geo)))
+            // Only build data runs if visibility allows it
+            if vis.isVisible && vis.opacity > 0.01 {
+                for (i, phase) in phases.enumerated() {
+                    let t = geo.turns(day: record.day, hour: phase.hour)
+                    if t > cutTurns { break }
+                    if phase.phase != runPhase {
+                        let edgePt = camera.project(turns: t, geo: geo)
+                        runPoints.append((t, edgePt))
+                        flushRun(nextPhase: phase.phase)
+                        prevPhase = runPhase
+                        runPhase  = phase.phase
+                        runPoints.append((t, edgePt))
+                    } else {
+                        runPoints.append((t, camera.project(turns: t, geo: geo)))
+                    }
+                    if i == phases.count - 1 {
+                        let tEnd = min(cutTurns, dayEndTurns)
+                        runPoints.append((tEnd, camera.project(turns: tEnd, geo: geo)))
+                        flushRun(nextPhase: nil)
+                    }
                 }
-                if i == phases.count - 1 {
-                    let tEnd = min(cutTurns, dayEndTurns)
-                    runPoints.append((tEnd, camera.project(turns: tEnd, geo: geo)))
-                    flushRun(nextPhase: nil)
-                }
+                flushRun(nextPhase: nil)
             }
-            flushRun(nextPhase: nil)
 
             // For the last (current) day, extend a live awake run from wakeupHour to the cursor.
-            // cursorAbsHour may be on a later calendar day than record.day (e.g. woke up yesterday,
-            // it is now today), so we use absolute turns directly instead of day-relative hours.
-            if record.id == lastRecord?.id,
-               let cursorH = cursorAbsHour {
+            // This represents current state and always draws at full opacity, regardless of
+            // how far the cursor has moved from the data day.
+            var liveAwakeRun: Run? = nil
+            if isLastRecord, let cursorH = cursorAbsHour {
                 let tCursor = cursorH / geo.period
                 let tWake   = geo.turns(day: record.day, hour: record.wakeupHour)
                 if tCursor > tWake + (0.25 / geo.period) {
-                    // Step every 15 min for smooth rendering
                     var awakePoints: [(t: Double, pt: CGPoint)] = []
                     var t = tWake
                     let tStep = 0.25 / geo.period
@@ -636,19 +638,23 @@ struct SpiralView: View {
                         awakePoints.append((t, camera.project(turns: t, geo: geo)))
                         t += tStep
                     }
-                    // Ensure last point lands exactly on cursor
                     if let last = awakePoints.last?.t, last < tCursor, !camera.isBehindCamera(turns: tCursor) {
                         awakePoints.append((tCursor, camera.project(turns: tCursor, geo: geo)))
                     }
                     if awakePoints.count >= 2 {
-                        runs.append(Run(phase: .awake, points: awakePoints, prevPhase: .light, nextPhase: nil))
+                        liveAwakeRun = Run(phase: .awake, points: awakePoints, prevPhase: .light, nextPhase: nil)
                     }
                 }
             }
 
-            // Draw awake runs first, sleep runs on top so sleep caps always win at joints.
+            // Draw data runs with distance-faded opacity
             for run in runs where !isSleep(run.phase) { drawRun(run, opacity: dataOpacity) }
             for run in runs where  isSleep(run.phase) { drawRun(run, opacity: dataOpacity) }
+
+            // Draw live awake extension at full opacity — it's current state, not historical
+            if let liveRun = liveAwakeRun {
+                drawRun(liveRun, opacity: 1.0)
+            }
         }
     }
 
