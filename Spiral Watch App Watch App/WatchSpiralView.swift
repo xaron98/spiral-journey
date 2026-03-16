@@ -331,20 +331,23 @@ private struct WatchSpiralCanvas: View {
     }
 
     private func weekWindowOpacity(turns t: Double) -> Double {
-        // Watch uses a tighter 3-turn focus window (vs 7 on iPhone) so the
-        // fade effect is visible even with just a few nights of data.
-        // Previous 3 turns show at reduced opacity (0.35) then fade to zero.
-        let focusEnd   = visibleDays
-        let focusStart = focusEnd - 3.0
-        func softStep(_ x: Double, edge: Double, half: Double = 0.5) -> Double {
-            max(0.0, min(1.0, (x - (edge - half)) / (2 * half)))
+        // Distance-based opacity from cursor position (matches iPhone approach).
+        // Uses cursor turn position as focus, not visibleDays.
+        let cursorTurns = cursorAbsHour / period
+        let dist = abs(cursorTurns - t)
+        // 5-entry curve: full opacity at cursor, fading over ~5 days
+        let curve: [Double] = [1.0, 0.75, 0.50, 0.30, 0.15, 0.06]
+        if dist < Double(curve.count) {
+            let idx = Int(dist)
+            let frac = dist - Double(idx)
+            let lo = curve[idx]
+            let hi = idx + 1 < curve.count ? curve[idx + 1] : lo * 0.5
+            return lo + (hi - lo) * frac
         }
-        if t >= focusStart {
-            return softStep(t, edge: focusStart + 0.5)
-        } else if t >= focusStart - 3.0 {
-            return 0.35 * softStep(t, edge: focusStart - 2.5)
-        }
-        return 0.0
+        // Beyond curve: exponential decay
+        let base = curve.last ?? 0.06
+        let extra = dist - Double(curve.count) + 1
+        return base * pow(0.5, extra)
     }
 
     private func perspectiveScale(turns t: Double, geo: SpiralGeometry) -> Double {
@@ -477,7 +480,7 @@ private struct WatchSpiralCanvas: View {
         var first = true
         var flushTurn = 0.0
 
-        let backboneWidth = max(1.5, geo.spacing * 0.55)
+        let backboneWidth: CGFloat = 0.6
         func flush() {
             guard !first else { return }
             let opac = weekWindowOpacity(turns: flushTurn)
