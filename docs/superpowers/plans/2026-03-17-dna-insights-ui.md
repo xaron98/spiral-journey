@@ -923,43 +923,71 @@ alignment data for richer contextual responses."
 
 ---
 
-### Task 7: Localization
+### Task 7: Localization (8 languages)
 
 **Files:**
-- Modify: All DNA view sections to support English/Spanish
+- Modify: `spiral journey project/Localizable.xcstrings`
+- Modify: All DNA view sections to use localized string keys
 
-- [ ] **Step 1: Add locale-aware text**
+The app supports 8 languages via `AppLanguage` enum: **en, es, ca, de, fr, zh, ja, ar** (plus system auto-detect).
 
-The existing app uses `@Environment(\.languageBundle)` for localization. In each DNA section, check the locale and use the appropriate text:
+- [ ] **Step 1: Replace hardcoded Spanish strings with localized keys in all DNA sections**
+
+All hardcoded text in DNA views should use `String(localized:)` or SwiftUI `Text("key")` with entries in `Localizable.xcstrings`. Example:
 
 ```swift
-// Pattern used throughout the app:
-@Environment(\.languageBundle) private var bundle
+// BEFORE:
+Text("Tu ritmo hoy")
 
-// For the DNA sections, use a simpler approach:
-// Check Locale.current.language.languageCode == "es" for Spanish, else English
-// Same pattern as LLMContextBuilder
+// AFTER:
+Text("dna.state.title")  // key in Localizable.xcstrings
 ```
 
-Key strings to localize:
-- "Tu ritmo hoy" / "Your rhythm today"
-- "sincronizado" / "synchronized"
-- "en transición" / "in transition"
-- "desalineado" / "misaligned"
-- "Tu código genético" / "Your genetic code"
-- "Déjà vu" (same in both)
-- "Tu salud circadiana" / "Your circadian health"
-- "Qué afecta tu sueño" / "What affects your sleep"
+**Keys to create for all 8 languages:**
 
-**Note:** Check how other views handle localization in this project. If they use `Localizable.xcstrings`, add entries there. If they use inline locale checks, follow that pattern.
+| Key | en | es | ca | de | fr | zh | ja | ar |
+|-----|----|----|----|----|----|----|----|----|
+| `dna.title` | Your Sleep DNA | Tu ADN del Sueño | El teu ADN del Son | Deine Schlaf-DNA | Ton ADN du Sommeil | 你的睡眠DNA | あなたの睡眠DNA | حمضك النووي للنوم |
+| `dna.state.title` | Your rhythm today | Tu ritmo hoy | El teu ritme avui | Dein Rhythmus heute | Ton rythme aujourd'hui | 你今天的节奏 | 今日のリズム | إيقاعك اليوم |
+| `dna.state.synchronized` | synchronized | sincronizado | sincronitzat | synchronisiert | synchronisé | 同步的 | 同期済み | متزامن |
+| `dna.state.transition` | in transition | en transición | en transició | im Übergang | en transition | 过渡中 | 移行中 | في مرحلة انتقالية |
+| `dna.state.misaligned` | misaligned | desalineado | desalineat | fehlausgerichtet | désaligné | 失调 | ずれている | غير متوازن |
+| `dna.state.body` | Your body is | Tu cuerpo está | El teu cos està | Dein Körper ist | Ton corps est | 你的身体处于 | あなたの体は | جسمك |
+| `dna.state.coherence` | Circadian coherence at %@%%. Homeostatic pressure %@. | Coherencia circadiana al %@%%. Presión homeostática %@. | Coherència circadiana al %@%%. Pressió homeostàtica %@. | Zirkadiane Kohärenz bei %@%%. Homöostatischer Druck %@. | Cohérence circadienne à %@%%. Pression homéostatique %@. | 昼夜节律一致性 %@%%。稳态压力%@。| 概日リズム一貫性 %@%%。恒常性圧力%@。| التماسك اليومي %@٪٪. الضغط التوازني %@. |
+| `dna.pressure.normal` | normal | normal | normal | normal | normale | 正常 | 正常 | طبيعي |
+| `dna.pressure.elevated` | elevated | elevada | elevada | erhöht | élevée | 升高 | 上昇 | مرتفع |
+| `dna.pressure.high` | high | alta | alta | hoch | haute | 高 | 高い | عالي |
+| `dna.motif.title` | Your genetic code | Tu código genético | El teu codi genètic | Dein genetischer Code | Ton code génétique | 你的基因密码 | あなたの遺伝コード | شفرتك الجينية |
+| `dna.motif.active` | You're in %@ mode | Estás en modo %@ | Estàs en mode %@ | Du bist im %@-Modus | Tu es en mode %@ | 你处于%@模式 | %@モードです | أنت في وضع %@ |
+| `dna.motif.learning` | Still learning your genetic code. | Aún estoy aprendiendo tu código genético. | Encara estic aprenent el teu codi genètic. | Lerne noch deinen genetischen Code. | J'apprends encore ton code génétique. | 仍在学习你的基因密码。| まだ遺伝コードを学習中です。| لا يزال يتعلم شفرتك الجينية. |
+| `dna.motif.weeks_needed` | Need %@ more weeks for full analysis. | Necesito %@ semanas más para análisis completo. | Necessito %@ setmanes més per a l'anàlisi completa. | Noch %@ Wochen für vollständige Analyse nötig. | Besoin de %@ semaines de plus pour l'analyse complète. | 需要再%@周才能完成分析。| 完全な分析にはあと%@週間必要です。| تحتاج %@ أسابيع إضافية للتحليل الكامل. |
+| `dna.dejavu.title` | Déjà vu | Déjà vu | Déjà vu | Déjà vu | Déjà vu | 似曾相识 | デジャヴ | ديجا فو |
+| `dna.dejavu.similar` | This week resembles %@%% | Esta semana se parece al %@%% | Aquesta setmana s'assembla al %@%% | Diese Woche ähnelt zu %@%% | Cette semaine ressemble à %@%% | 本周相似度 %@%% | 今週の類似度 %@%% | هذا الأسبوع يشبه %@٪٪ |
+| `dna.dejavu.not_enough` | Not enough weeks to compare yet. | Aún no tengo suficientes semanas para comparar. | Encara no tinc prou setmanes per comparar. | Noch nicht genug Wochen zum Vergleichen. | Pas encore assez de semaines pour comparer. | 还没有足够的周数进行比较。| 比較するのに十分な週数がありません。| لا توجد أسابيع كافية للمقارنة بعد. |
+| `dna.health.title` | Your circadian health | Tu salud circadiana | La teva salut circadiana | Deine zirkadiane Gesundheit | Ta santé circadienne | 你的昼夜节律健康 | あなたの概日リズムの健康 | صحتك اليومية |
+| `dna.health.stable` | No alerts — your circadian rhythm is stable | Sin alertas — tu ritmo circadiano está estable | Sense alertes — el teu ritme circadià és estable | Keine Alarme — dein zirkadianer Rhythmus ist stabil | Pas d'alertes — ton rythme circadien est stable | 无警报——你的昼夜节律稳定 | アラートなし——概日リズムは安定しています | لا تنبيهات — إيقاعك اليومي مستقر |
+| `dna.basepairs.title` | What affects your sleep | Qué afecta tu sueño | Què afecta el teu son | Was deinen Schlaf beeinflusst | Ce qui affecte ton sommeil | 什么影响你的睡眠 | 何があなたの睡眠に影響するか | ما يؤثر على نومك |
+| `dna.tier.basic` | basic | básico | bàsic | grundlegend | basique | 基础 | 基本 | أساسي |
+| `dna.tier.intermediate` | intermediate | intermedio | intermedi | mittel | intermédiaire | 中级 | 中級 | متوسط |
+| `dna.tier.full` | complete | completo | complet | vollständig | complet | 完整 | 完全 | كامل |
 
-- [ ] **Step 2: Build and commit**
+- [ ] **Step 2: Add all keys to `Localizable.xcstrings`**
+
+Read the existing `Localizable.xcstrings` to understand the JSON format, then add all the DNA keys with translations for all 8 languages.
+
+- [ ] **Step 3: Update all DNA section views to use the localized keys instead of hardcoded text**
+
+- [ ] **Step 4: Build and verify**
+
+Run: `xcodebuild build -scheme "spiral journey project" -destination "platform=iOS Simulator,id=58B00C42-E274-4903-8E91-84CCA65CBC3A" 2>&1 | tail -5`
+
+- [ ] **Step 5: Commit**
 
 ```bash
-git commit -m "feat: add Spanish/English localization for DNA Insights
+git commit -m "feat: localize DNA Insights in 8 languages
 
-All narrative sections support both languages following
-existing localization patterns."
+English, Spanish, Catalan, German, French, Chinese, Japanese, Arabic.
+All narrative sections use Localizable.xcstrings keys."
 ```
 
 ---
