@@ -9,6 +9,7 @@ struct spiral_journey_projectApp: App {
     @State private var healthKit = HealthKitManager.shared
     @State private var calendarManager = CalendarManager.shared
     @State private var llmService = LLMService()
+    @State private var watchBridge: WatchSyncBridge?
 
     @State private var modelContainer: ModelContainer = {
         let schema = Schema([
@@ -52,6 +53,9 @@ struct spiral_journey_projectApp: App {
 
                     // ①½ Migrate UserDefaults/JSON data to SwiftData (one-time).
                     DataMigrationService.migrateIfNeeded(store: store, container: modelContainer)
+
+                    // Initialize Watch sync bridge for App Group UserDefaults.
+                    watchBridge = WatchSyncBridge(appGroupID: SpiralStore.appGroupID)
 
                     // Receive events and episodes logged on the Apple Watch
                     #if os(iOS)

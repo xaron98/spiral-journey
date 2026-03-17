@@ -704,7 +704,7 @@ final class SpiralStore {
     // MARK: - Persistence
 
     private let storageKey = "spiral-journey-store"
-    private static let appGroupID = "group.xaron.spiral-journey-project"
+    static let appGroupID = "group.xaron.spiral-journey-project"
     private var sharedDefaults: UserDefaults {
         UserDefaults(suiteName: Self.appGroupID) ?? .standard
     }
