@@ -993,7 +993,7 @@ struct SpiralTab: View {
         let geo = SpiralGeometry(
             totalDays: scaleDays, maxDays: scaleDays,
             width: Double(spiralSize.width), height: Double(spiralSize.height),
-            startRadius: 30, spiralType: spiralType,
+            startRadius: 75, spiralType: spiralType,
             period: period, linkGrowthToTau: linkGrowthToTau
         )
         // Camera must match CameraState in SpiralView exactly.
@@ -1049,7 +1049,7 @@ struct SpiralTab: View {
         let geo = SpiralGeometry(
             totalDays: scaleDays, maxDays: scaleDays,
             width: Double(size.width), height: Double(size.height),
-            startRadius: 30, spiralType: spiralType,
+            startRadius: 75, spiralType: spiralType,
             period: period, linkGrowthToTau: linkGrowthToTau
         )
         // Camera must match CameraState in SpiralView exactly.

@@ -44,7 +44,7 @@ struct SpiralView: View {
     /// Whether to draw day ring and radial hour-line guides.
     var showGrid: Bool = true
     /// Inner radius of the spiral in points. Scale down for smaller screens (e.g. Watch: ~15).
-    var startRadius: Double = 30
+    var startRadius: Double = 75
     /// Predicted bedtime hour for tonight (0-24). Draws dashed prediction arc if set.
     var predictedBedHour: Double? = nil
     /// Predicted wake hour for tonight (0-24). Draws dashed prediction arc if set.
