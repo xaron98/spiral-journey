@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 import SpiralKit
 
 @main
@@ -8,6 +9,20 @@ struct spiral_journey_projectApp: App {
     @State private var healthKit = HealthKitManager.shared
     @State private var calendarManager = CalendarManager.shared
     @State private var llmService = LLMService()
+
+    @State private var modelContainer: ModelContainer = {
+        let schema = Schema([
+            SDSleepEpisode.self,
+            SDCircadianEvent.self,
+            SDPredictionResult.self,
+            SDCoachMessage.self,
+            SDUserGoal.self,
+            SDPredictionMetrics.self,
+            SDTrainingMetrics.self
+        ])
+        let config = ModelConfiguration(isStoredInMemoryOnly: false)
+        return try! ModelContainer(for: schema, configurations: [config])
+    }()
 
     init() {
         // Register background processing tasks before the first frame.
@@ -25,6 +40,7 @@ struct spiral_journey_projectApp: App {
                 .environment(llmService)
                 .environment(\.locale, Locale(identifier: store.language.localeIdentifier))
                 .environment(\.languageBundle, languageBundle(for: store.language.localeIdentifier))
+                .modelContainer(modelContainer)
                 .task {
                     // ⓪ Schedule background model retraining
                     BackgroundTaskManager.scheduleRetrainIfNeeded()
