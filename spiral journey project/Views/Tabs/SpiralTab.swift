@@ -102,7 +102,7 @@ struct SpiralTab: View {
                                     spiralExtentTurns: maxReachedTurns,
                                     viewportCenterTurns: smoothCameraCenterTurns,
                                     visibleSpanTurns: liveVisibleDays,
-                                    depthScale: store.flatMode ? 0 : (store.spiralType == .logarithmic ? store.depthScale * 3.5 : store.depthScale),
+                                    depthScale: store.flatMode ? 0 : (store.spiralType == .logarithmic ? store.depthScale * 4.5 : store.depthScale),
                                     showGrid: store.showGrid,
                                     predictedBedHour: store.predictionOverlayEnabled ? store.latestPrediction?.predictedBedtimeHour : nil,
                                     predictedWakeHour: store.predictionOverlayEnabled ? store.latestPrediction?.predictedWakeHour : nil,
@@ -947,8 +947,12 @@ struct SpiralTab: View {
 
     // MARK: - Zoom slider helpers (log-space mapping)
 
-    /// Max zoom-out: 7 turns covers the full opacity range.
-    private var maxZoomOutTurns: Double { min(maxReachedTurns, 7.0) }
+    /// Max zoom-out: 9 turns for 3D logarithmic (exponential arm spacing keeps inner
+    /// turns readable even at higher zoom); 7 turns for all other modes.
+    private var maxZoomOutTurns: Double {
+        let cap = (store.spiralType == .logarithmic && !store.flatMode) ? 9.0 : 7.0
+        return min(maxReachedTurns, cap)
+    }
 
     /// Convert visibleDays → normalised slider value [0,1] in log space.
     private func visibleDaysToNorm(_ vd: Double) -> Double {
@@ -983,9 +987,9 @@ struct SpiralTab: View {
             let lastEnd = store.sleepEpisodes.map(\.end).max() ?? 0
             cursorAbsHour = nowAbsHour
             maxReachedTurns = max(minTurns, max(nowAbsHour, lastEnd) / store.period)
-            // 3D logarithmic mode starts at 7 turns (shows full cone depth effect with
-            // arm spread); 2D flat and Archimedean also use 7.
-            let maxInitialZoom = 7.0
+            // 3D logarithmic starts at 9 turns to show the full cone/depth structure;
+            // 2D flat and Archimedean use 7.
+            let maxInitialZoom = (store.spiralType == .logarithmic && !store.flatMode) ? 9.0 : 7.0
             let initialZoom = min(maxReachedTurns, maxInitialZoom)
             visibleDays = initialZoom; liveVisibleDays = initialZoom
             pinchBaseVisibleDays = initialZoom
