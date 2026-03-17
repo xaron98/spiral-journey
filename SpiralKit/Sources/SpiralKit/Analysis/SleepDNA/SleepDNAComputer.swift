@@ -194,7 +194,58 @@ public actor SleepDNAComputer {
             alignments = []
         }
 
-        // Step 11: Assemble profile
+        // Step 11: Compute Helix Alignment Scores
+        let hasScore: Double?
+        let baselineHAS: Double?
+
+        if let currentWeek = sequences.last, sequences.count >= 2 {
+            // HAS: current week vs most similar historical week
+            let history = Array(sequences.dropLast())
+            var bestScore = 0.0
+            for past in history {
+                let score = DTWEngine.helixAlignmentScore(currentWeek, past, weights: blosum.weights)
+                if score > bestScore { bestScore = score }
+            }
+            hasScore = bestScore
+        } else {
+            hasScore = nil
+        }
+
+        if sequences.count >= 4, nucleotides.count >= 28 {
+            // Baseline: average WeekSequence from the last 28 days
+            let baselineNucs = Array(nucleotides.suffix(28))
+            let baselineWeekNucs = (0..<7).map { dayIdx -> DayNucleotide in
+                // Average features across all 4 occurrences of this weekday slot
+                var avgFeatures = [Double](repeating: 0, count: DayNucleotide.featureCount)
+                var count = 0
+                for weekOffset in 0..<4 {
+                    let nucIdx = weekOffset * 7 + dayIdx
+                    guard nucIdx < baselineNucs.count else { continue }
+                    let nuc = baselineNucs[nucIdx]
+                    for f in 0..<DayNucleotide.featureCount {
+                        avgFeatures[f] += nuc.features[f]
+                    }
+                    count += 1
+                }
+                if count > 0 {
+                    for f in 0..<DayNucleotide.featureCount {
+                        avgFeatures[f] /= Double(count)
+                    }
+                }
+                return DayNucleotide(day: dayIdx, features: avgFeatures)
+            }
+            let baselineSeq = WeekSequence(startDay: 0, nucleotides: baselineWeekNucs)
+
+            if let currentWeek = sequences.last {
+                baselineHAS = DTWEngine.helixAlignmentScore(currentWeek, baselineSeq, weights: blosum.weights)
+            } else {
+                baselineHAS = nil
+            }
+        } else {
+            baselineHAS = nil
+        }
+
+        // Step 12: Assemble profile
         return SleepDNAProfile(
             nucleotides: nucleotides,
             sequences: sequences,
@@ -208,6 +259,8 @@ public actor SleepDNAComputer {
             scoringMatrix: blosum,
             healthMarkers: healthMarkers,
             helixGeometry: helixGeometry,
+            hasScore: hasScore,
+            baselineHAS: baselineHAS,
             tier: tier,
             computedAt: Date(),
             dataWeeks: dataWeeks

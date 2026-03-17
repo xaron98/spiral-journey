@@ -50,6 +50,26 @@ public enum DTWEngine {
         )
     }
 
+    // MARK: - Helix Alignment Score
+
+    /// Helix Alignment Score: normalized [0,1] similarity between two weeks after alignment.
+    ///
+    /// HAS = 1 / (1 + DTW_distance). Close to 1 = very stable habit. Close to 0 = very different weeks.
+    ///
+    /// - Parameters:
+    ///   - a: First week sequence.
+    ///   - b: Second week sequence.
+    ///   - weights: Optional per-feature weight vector. Defaults to uniform 1.0.
+    /// - Returns: A score in [0, 1] where 1 means identical and 0 means maximally different.
+    public static func helixAlignmentScore(
+        _ a: WeekSequence,
+        _ b: WeekSequence,
+        weights: [Double]? = nil
+    ) -> Double {
+        let d = distance(a, b, weights: weights).distance
+        return 1.0 / (1.0 + d)
+    }
+
     // MARK: - Core DTW
 
     /// Standard DTW with cost matrix and backtracking.

@@ -70,7 +70,7 @@ public enum MutationClassifier {
             let (closestMotif, _) = findClosestMotif(sequence: seq, motifs: motifs, weights: w)
             let weekQuality = averageQuality(of: seq)
             let delta = weekQuality - closestMotif.avgQuality
-            let classification = classify(delta: delta)
+            let classification = classify(delta: delta, centroid: closestMotif.centroid)
             let dominantIdx = findDominantChange(sequence: seq, centroid: closestMotif.centroid)
 
             return SleepMutation(
@@ -194,16 +194,48 @@ public enum MutationClassifier {
         return (bestMotif, bestDist)
     }
 
-    /// Classify a quality delta into a mutation type.
-    private static func classify(delta: Double) -> MutationType {
+    /// Classify a quality delta into a mutation type using adaptive thresholds.
+    ///
+    /// Thresholds vary based on the motif's dominant time of day, derived from
+    /// the centroid's bedtime features:
+    /// - **Night hours (23:00-07:00):** stricter thresholds (0.03 / 0.10)
+    /// - **Day hours (07:00-23:00):** relaxed thresholds (0.07 / 0.20)
+    private static func classify(delta: Double, centroid: [DayNucleotide]) -> MutationType {
+        let isNightDominant = Self.isNightDominant(centroid: centroid)
+        let silentThreshold: Double = isNightDominant ? 0.03 : 0.07
+        let missenseThreshold: Double = isNightDominant ? 0.10 : 0.20
+
         let absDelta = abs(delta)
-        if absDelta < 0.05 {
+        if absDelta < silentThreshold {
             return .silent
-        } else if absDelta <= 0.15 {
+        } else if absDelta <= missenseThreshold {
             return .missense
         } else {
             return .nonsense
         }
+    }
+
+    /// Determine whether the motif's centroid represents a night-dominant pattern.
+    ///
+    /// Decodes bedtime from the centroid's mean bedtimeSin and bedtimeCos features
+    /// using `atan2`, then checks if the bedtime falls in the night window (23:00-07:00).
+    private static func isNightDominant(centroid: [DayNucleotide]) -> Bool {
+        guard !centroid.isEmpty else { return true }
+
+        let sinIdx = DayNucleotide.Feature.bedtimeSin.rawValue
+        let cosIdx = DayNucleotide.Feature.bedtimeCos.rawValue
+
+        // Average bedtime sin/cos across the centroid's days
+        let meanSin = centroid.map { $0.features[sinIdx] }.reduce(0, +) / Double(centroid.count)
+        let meanCos = centroid.map { $0.features[cosIdx] }.reduce(0, +) / Double(centroid.count)
+
+        // Decode hour from circular encoding: bedRad = 2*pi*hour/24
+        var radians = atan2(meanSin, meanCos)
+        if radians < 0 { radians += 2 * Double.pi }
+        let hour = radians * 24.0 / (2 * Double.pi)
+
+        // Night window: 23:00 to 07:00 (wraps around midnight)
+        return hour >= 23.0 || hour < 7.0
     }
 
     /// Average sleep quality across all nucleotides in a week sequence.

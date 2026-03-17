@@ -64,6 +64,12 @@ public struct SleepDNAProfile: Codable, Sendable {
     public let healthMarkers: HealthMarkers
     /// Per-day double-helix visualization parameters.
     public let helixGeometry: [DayHelixParams]
+    /// Helix Alignment Score: current week vs most similar historical week [0, 1].
+    /// Close to 1 = very stable habit. `nil` when insufficient data.
+    public let hasScore: Double?
+    /// Helix Alignment Score: current week vs 4-week rolling baseline [0, 1].
+    /// `nil` when fewer than 28 days of data are available.
+    public let baselineHAS: Double?
     /// Data sufficiency tier that was used for this computation.
     public let tier: AnalysisTier
     /// When this profile was computed.
@@ -84,6 +90,8 @@ public struct SleepDNAProfile: Codable, Sendable {
         scoringMatrix: SleepBLOSUM,
         healthMarkers: HealthMarkers,
         helixGeometry: [DayHelixParams],
+        hasScore: Double? = nil,
+        baselineHAS: Double? = nil,
         tier: AnalysisTier,
         computedAt: Date,
         dataWeeks: Int
@@ -100,6 +108,8 @@ public struct SleepDNAProfile: Codable, Sendable {
         self.scoringMatrix = scoringMatrix
         self.healthMarkers = healthMarkers
         self.helixGeometry = helixGeometry
+        self.hasScore = hasScore
+        self.baselineHAS = baselineHAS
         self.tier = tier
         self.computedAt = computedAt
         self.dataWeeks = dataWeeks
