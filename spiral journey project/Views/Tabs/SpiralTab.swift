@@ -987,9 +987,9 @@ struct SpiralTab: View {
             let lastEnd = store.sleepEpisodes.map(\.end).max() ?? 0
             cursorAbsHour = nowAbsHour
             maxReachedTurns = max(minTurns, max(nowAbsHour, lastEnd) / store.period)
-            // 3D logarithmic starts at 9 turns to show the full cone/depth structure;
-            // 2D flat and Archimedean use 7.
-            let maxInitialZoom = (store.spiralType == .logarithmic && !store.flatMode) ? 9.0 : 7.0
+            // 3D logarithmic starts at 5 turns — close enough to see arm detail while
+            // showing enough depth for the cone effect; 2D flat and Archimedean use 7.
+            let maxInitialZoom = (store.spiralType == .logarithmic && !store.flatMode) ? 5.0 : 7.0
             let initialZoom = min(maxReachedTurns, maxInitialZoom)
             visibleDays = initialZoom; liveVisibleDays = initialZoom
             pinchBaseVisibleDays = initialZoom
