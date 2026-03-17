@@ -60,10 +60,28 @@ struct DNAHealthSection: View {
                 .foregroundStyle(alertColor(alert.severity))
                 .frame(width: 20)
 
-            Text(alert.message)
+            Text(localizedMessage(for: alert))
                 .font(.system(size: 13))
                 .foregroundStyle(SpiralColors.muted)
                 .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    /// Map alert type to localized message instead of using hardcoded English from the engine.
+    private func localizedMessage(for alert: HealthAlert) -> String {
+        switch alert.type {
+        case .circadianAnarchy:
+            return loc("dna.health.alert.anarchy")
+        case .highFragmentation:
+            return loc("dna.health.alert.fragmentation")
+        case .severeDrift:
+            return loc("dna.health.alert.drift")
+        case .highDesynchrony:
+            return loc("dna.health.alert.desync")
+        case .remDriftAbnormal:
+            return loc("dna.health.alert.rem")
+        case .novelPattern:
+            return loc("dna.health.alert.novel")
         }
     }
 

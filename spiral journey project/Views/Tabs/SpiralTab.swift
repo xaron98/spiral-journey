@@ -198,9 +198,27 @@ struct SpiralTab: View {
                                             Circle()
                                                 .fill(.ultraThinMaterial)
                                                 .frame(width: 48, height: 48)
-                                            Image(systemName: "dna")
-                                                .font(.system(size: 20, weight: .semibold))
-                                                .foregroundStyle(SpiralColors.accent)
+                                            // Custom double helix icon (works on all iOS versions)
+                                            Canvas { ctx, size in
+                                                let w = size.width, h = size.height
+                                                let midY = h / 2, amp = h * 0.3
+                                                var p1 = Path(), p2 = Path()
+                                                for x in stride(from: CGFloat(0), through: w, by: 1) {
+                                                    let t = (x / w) * 2 * .pi
+                                                    let y1 = midY + sin(t) * amp
+                                                    let y2 = midY + sin(t + .pi) * amp
+                                                    if x == 0 {
+                                                        p1.move(to: CGPoint(x: x, y: y1))
+                                                        p2.move(to: CGPoint(x: x, y: y2))
+                                                    } else {
+                                                        p1.addLine(to: CGPoint(x: x, y: y1))
+                                                        p2.addLine(to: CGPoint(x: x, y: y2))
+                                                    }
+                                                }
+                                                ctx.stroke(p1, with: .color(SpiralColors.accent.opacity(0.9)), lineWidth: 2)
+                                                ctx.stroke(p2, with: .color(.orange.opacity(0.7)), lineWidth: 2)
+                                            }
+                                            .frame(width: 24, height: 18)
                                         }
                                     }
                                     .buttonStyle(.plain)
@@ -1046,11 +1064,14 @@ struct SpiralTab: View {
             return CGPoint(x: geo.cx + mappedR * cos(ang),
                            y: geo.cy + mappedR * sin(ang))
         }
-        let day = Int(t)
-        let hr  = (t - Double(day)) * geo.period
-        let flat = geo.point(day: day, hour: hr)
-        let wx   = flat.x - geo.cx; let wy = flat.y - geo.cy
-        let wz   = (tRef - t) * zStep
+        // Use theta/r directly — must match CameraState.project exactly.
+        // geo.point(day:hour:) recomputes t_inner=(day×24+hour)/period which
+        // diverges from t when period≠24 (tau mode), causing cursor drift.
+        let theta  = t * 2 * Double.pi
+        let r      = geo.radius(turns: t)
+        let wx     = r * cos(theta - Double.pi / 2)
+        let wy     = r * sin(theta - Double.pi / 2)
+        let wz     = (tRef - t) * zStep
         let safeDz = max(wz - camZ, focalLen * 0.05)
         let scale  = focalLen / safeDz
         return CGPoint(x: geo.cx + wx * scale, y: geo.cy + wy * scale)
@@ -1103,20 +1124,21 @@ struct SpiralTab: View {
         }
 
         func project(turns t: Double) -> CGPoint {
-            let day  = Int(t)
-            let hr   = (t - Double(day)) * geo.period
-            let flat = geo.point(day: day, hour: hr)
-            let wx   = flat.x - geo.cx; let wy = flat.y - geo.cy
+            // Mirror CameraState.project exactly: use theta/r directly so the
+            // projection is correct for any period (including tau ≠ 24).
+            // geo.point(day:hour:) recomputes t via (day×24+hour)/period which
+            // diverges from t when period≠24, causing cursor drift.
+            let theta = t * 2 * Double.pi
+            let r     = geo.radius(turns: t)
             if zStep == 0 {
-                // Flat mode: radial zoom matches CameraState.project()
-                let r       = geo.radius(turns: t)
                 let mappedR = max(0.0, (r - flatRInner) / (flatROuter - flatRInner) * geo.maxRadius)
-                let theta   = t * 2 * Double.pi
                 let ang     = theta - Double.pi / 2
                 return CGPoint(x: geo.cx + mappedR * cos(ang),
                                y: geo.cy + mappedR * sin(ang))
             }
-            let wz   = (tRef - t) * zStep
+            let wx     = r * cos(theta - Double.pi / 2)
+            let wy     = r * sin(theta - Double.pi / 2)
+            let wz     = (tRef - t) * zStep
             let safeDz = max(wz - camZ, focalLen * 0.05)
             let scale  = focalLen / safeDz
             return CGPoint(x: geo.cx + wx * scale, y: geo.cy + wy * scale)
