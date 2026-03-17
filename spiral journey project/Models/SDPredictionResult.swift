@@ -25,7 +25,7 @@ final class SDPredictionResult {
     var targetDate: Date
 
     // PredictionInput stored as JSON blob (too many fields to flatten individually)
-    var inputJSON: Data
+    @Attribute(.externalStorage) var inputJSON: Data?
 
     // PredictionActual (optional)
     var actualBedtimeHour: Double?
@@ -47,7 +47,7 @@ final class SDPredictionResult {
         engine: String,
         generatedAt: Date,
         targetDate: Date,
-        inputJSON: Data,
+        inputJSON: Data?,
         actualBedtimeHour: Double? = nil,
         actualWakeHour: Double? = nil,
         actualDuration: Double? = nil,
@@ -98,7 +98,8 @@ final class SDPredictionResult {
     /// Convert back to a SpiralKit PredictionResult.
     func toPredictionResult() -> PredictionResult? {
         let decoder = JSONDecoder()
-        guard let input = try? decoder.decode(PredictionInput.self, from: inputJSON) else {
+        guard let data = inputJSON,
+              let input = try? decoder.decode(PredictionInput.self, from: data) else {
             return nil
         }
 
