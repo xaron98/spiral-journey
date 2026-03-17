@@ -192,6 +192,8 @@ final class SpiralStore {
     var sleepDNAPredictionEnabled: Bool = false {
         didSet { save() }
     }
+    /// Transient: latest SleepDNA profile injected by the app layer for prediction blending.
+    var dnaProfile: SleepDNAProfile?
     private(set) var latestPrediction: PredictionOutput? = nil
     private(set) var predictionHistory: [PredictionResult] = []
     /// Whether historical predictions have been retroactively bootstrapped from existing records.
@@ -462,7 +464,8 @@ final class SpiralStore {
                 // Update sleep prediction (no-op if flag is off)
                 PredictionService.generatePrediction(
                     store: self,
-                    goalDuration: activeGoal.targetDuration
+                    goalDuration: activeGoal.targetDuration,
+                    dnaProfile: self.dnaProfile
                 )
                 // Sync to Apple Watch
                 #if os(iOS)

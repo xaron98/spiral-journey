@@ -105,6 +105,8 @@ final class SleepDNAService {
             latestProfile = profile
             lastComputedAt = profile.computedAt
             error = nil
+            // Keep the store's transient dnaProfile in sync for prediction blending.
+            store.dnaProfile = profile
         } catch is CancellationError {
             // Silently ignore cancellation
         } catch {

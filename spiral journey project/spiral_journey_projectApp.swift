@@ -90,6 +90,8 @@ struct spiral_journey_projectApp: App {
 
                     // ①⅞ Load cached SleepDNA profile from SwiftData.
                     dnaService.loadCachedProfile(context: modelContainer.mainContext)
+                    // Seed the store's dnaProfile for prediction blending.
+                    store.dnaProfile = dnaService.latestProfile
 
                     // Initialize Watch sync bridge for App Group UserDefaults.
                     watchBridge = WatchSyncBridge(appGroupID: SpiralStore.appGroupID)

@@ -95,8 +95,9 @@ enum PredictionService {
     /// - Parameters:
     ///   - store: The app's central store (reads records/events, writes prediction).
     ///   - goalDuration: Target sleep duration in hours (from SleepGoal).
+    ///   - dnaProfile: Optional SleepDNA profile for sequence-alignment blending.
     @MainActor
-    static func generatePrediction(store: SpiralStore, goalDuration: Double) {
+    static func generatePrediction(store: SpiralStore, goalDuration: Double, dnaProfile: SleepDNAProfile? = nil) {
         guard store.predictionEnabled else { return }
         guard !store.records.isEmpty else { return }
 
@@ -128,12 +129,29 @@ enum PredictionService {
         } else {
             prediction = HeuristicPredictionEngine.predict(from: input, targetDate: now)
         }
-        // SleepDNA alignment engine (supplementary)
-        // Full ensemble integration deferred to future iteration
+        // SleepDNA alignment engine (supplementary blend)
+        var blended = prediction
+        if store.sleepDNAPredictionEnabled,
+           let profile = dnaProfile,
+           let seqPred = profile.prediction {
+            // Adaptive weight based on data amount
+            let w: Double
+            switch profile.dataWeeks {
+            case ..<4:  w = 0       // not enough data
+            case 4..<8: w = 0.15    // intermediate tier
+            default:    w = 0.3     // full tier
+            }
+
+            if w > 0 {
+                blended.predictedBedtimeHour = (1 - w) * prediction.predictedBedtimeHour + w * seqPred.predictedBedtime
+                blended.predictedWakeHour    = (1 - w) * prediction.predictedWakeHour    + w * seqPred.predictedWake
+                blended.predictedDuration    = (1 - w) * prediction.predictedDuration    + w * seqPred.predictedDuration
+            }
+        }
 
         // Package result
         let result = PredictionResult(
-            prediction: prediction,
+            prediction: blended,
             input: input
         )
 
