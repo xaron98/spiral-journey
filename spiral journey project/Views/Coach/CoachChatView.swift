@@ -13,6 +13,7 @@ struct CoachChatView: View {
 
     @Environment(SpiralStore.self) private var store
     @Environment(LLMService.self) private var llm
+    @Environment(SleepDNAService.self) private var dnaService
     @Environment(\.dismiss) private var dismiss
     @Environment(\.languageBundle) private var bundle
 
@@ -384,7 +385,11 @@ struct CoachChatView: View {
             let systemPrompt = LLMContextBuilder.buildSystemPrompt(
                 analysis: store.analysis,
                 goal: store.sleepGoal,
-                records: store.records
+                records: store.records,
+                capability: .compact,
+                prediction: nil,
+                modelAccuracy: nil,
+                dnaProfile: dnaService.latestProfile
             )
 
             isGenerating = true

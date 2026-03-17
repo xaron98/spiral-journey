@@ -6,13 +6,15 @@ struct DNAStateSection: View {
 
     let profile: SleepDNAProfile
 
+    @Environment(\.languageBundle) private var bundle
+
     private var coherence: Double { profile.healthMarkers.circadianCoherence }
     private var hb: Double { profile.healthMarkers.homeostasisBalance }
 
     private var stateLabel: String {
-        if coherence > 0.7 { return "sincronizado" }
-        if coherence >= 0.4 { return "en transicion" }
-        return "desalineado"
+        if coherence > 0.7 { return loc("dna.state.synchronized") }
+        if coherence >= 0.4 { return loc("dna.state.transitioning") }
+        return loc("dna.state.misaligned")
     }
 
     private var stateColor: Color {
@@ -27,7 +29,7 @@ struct DNAStateSection: View {
             HStack {
                 Image(systemName: "waveform.path.ecg")
                     .foregroundStyle(SpiralColors.accent)
-                Text("Tu ritmo hoy")
+                Text(loc("dna.state.header"))
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(SpiralColors.subtle)
                     .textCase(.uppercase)
@@ -40,7 +42,7 @@ struct DNAStateSection: View {
                         .font(.system(size: 28, weight: .bold, design: .rounded))
                         .foregroundStyle(stateColor)
 
-                    Text("Coherencia \(Int(coherence * 100))%  \u{00B7}  HB \(String(format: "%.2f", hb))")
+                    Text("\(loc("dna.state.coherence")) \(Int(coherence * 100))%  \u{00B7}  HB \(String(format: "%.2f", hb))")
                         .font(.system(size: 13))
                         .foregroundStyle(SpiralColors.muted)
                 }
@@ -56,5 +58,11 @@ struct DNAStateSection: View {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .fill(SpiralColors.surface)
         )
+    }
+
+    // MARK: - Localization
+
+    private func loc(_ key: String) -> String {
+        NSLocalizedString(key, bundle: bundle, comment: "")
     }
 }

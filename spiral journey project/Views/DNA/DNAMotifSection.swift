@@ -6,6 +6,8 @@ struct DNAMotifSection: View {
 
     let profile: SleepDNAProfile
 
+    @Environment(\.languageBundle) private var bundle
+
     private var hasMotifs: Bool { !profile.motifs.isEmpty }
     private var learningWeeks: Int { profile.dataWeeks }
     private let requiredWeeks = 8
@@ -16,7 +18,7 @@ struct DNAMotifSection: View {
             HStack {
                 Image(systemName: "line.3.horizontal.decrease.circle")
                     .foregroundStyle(SpiralColors.accent)
-                Text("Tu codigo genetico")
+                Text(loc("dna.motif.header"))
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(SpiralColors.subtle)
                     .textCase(.uppercase)
@@ -48,13 +50,13 @@ struct DNAMotifSection: View {
                     .font(.system(size: 17, weight: .semibold))
                     .foregroundStyle(SpiralColors.text)
                 Spacer()
-                Text("\(topMotif.instanceCount) semanas")
+                Text("\(topMotif.instanceCount) \(loc("dna.motif.weeks"))")
                     .font(.system(size: 13))
                     .foregroundStyle(SpiralColors.muted)
             }
 
             if profile.motifs.count > 1 {
-                Text("+\(profile.motifs.count - 1) patrones mas")
+                Text("+\(profile.motifs.count - 1) \(loc("dna.motif.morePatterns"))")
                     .font(.system(size: 13))
                     .foregroundStyle(SpiralColors.subtle)
             }
@@ -81,14 +83,14 @@ struct DNAMotifSection: View {
     @ViewBuilder
     private var learningContent: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Aprendiendo...")
+            Text(loc("dna.motif.learning"))
                 .font(.system(size: 15, weight: .medium))
                 .foregroundStyle(SpiralColors.text)
 
             ProgressView(value: Double(learningWeeks), total: Double(requiredWeeks))
                 .tint(SpiralColors.accent)
 
-            Text("\(learningWeeks) / \(requiredWeeks) semanas")
+            Text("\(learningWeeks) / \(requiredWeeks) \(loc("dna.motif.weeks"))")
                 .font(.system(size: 12))
                 .foregroundStyle(SpiralColors.subtle)
         }
@@ -112,9 +114,15 @@ struct DNAMotifSection: View {
 
     private func mutationLabel(_ type: MutationType) -> String {
         switch type {
-        case .silent:   return "Mutacion silenciosa"
-        case .missense: return "Mutacion de sentido erroneo"
-        case .nonsense: return "Mutacion sin sentido"
+        case .silent:   return loc("dna.motif.mutation.silent")
+        case .missense: return loc("dna.motif.mutation.missense")
+        case .nonsense: return loc("dna.motif.mutation.nonsense")
         }
+    }
+
+    // MARK: - Localization
+
+    private func loc(_ key: String) -> String {
+        NSLocalizedString(key, bundle: bundle, comment: "")
     }
 }

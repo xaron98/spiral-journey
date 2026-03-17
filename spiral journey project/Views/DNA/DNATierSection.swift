@@ -6,11 +6,13 @@ struct DNATierSection: View {
 
     let profile: SleepDNAProfile
 
+    @Environment(\.languageBundle) private var bundle
+
     private var tierLabel: String {
         switch profile.tier {
-        case .basic:        return "Basico"
-        case .intermediate: return "Intermedio"
-        case .full:         return "Completo"
+        case .basic:        return loc("dna.tier.basic")
+        case .intermediate: return loc("dna.tier.intermediate")
+        case .full:         return loc("dna.tier.full")
         }
     }
 
@@ -36,13 +38,13 @@ struct DNATierSection: View {
                 .font(.system(size: 16))
                 .foregroundStyle(tierColor)
 
-            Text("Nivel de analisis: \(tierLabel)")
+            Text("\(loc("dna.tier.analysisLevel")) \(tierLabel)")
                 .font(.system(size: 13))
                 .foregroundStyle(SpiralColors.muted)
 
             Spacer()
 
-            Text("\(profile.dataWeeks) semanas de datos")
+            Text("\(profile.dataWeeks) \(loc("dna.tier.weeksOfData"))")
                 .font(.system(size: 12))
                 .foregroundStyle(SpiralColors.subtle)
         }
@@ -52,5 +54,11 @@ struct DNATierSection: View {
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .fill(SpiralColors.surface.opacity(0.6))
         )
+    }
+
+    // MARK: - Localization
+
+    private func loc(_ key: String) -> String {
+        NSLocalizedString(key, bundle: bundle, comment: "")
     }
 }

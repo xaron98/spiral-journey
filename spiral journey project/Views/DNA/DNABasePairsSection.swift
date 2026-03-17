@@ -7,17 +7,19 @@ struct DNABasePairsSection: View {
 
     let profile: SleepDNAProfile
 
-    // Feature index -> readable name
-    private let contextFeatureNames: [Int: String] = [
-        8: "cafeina", 9: "ejercicio", 10: "alcohol",
-        11: "melatonina", 12: "estres", 13: "fin de semana",
-        14: "deriva horaria", 15: "calidad del sueno"
+    @Environment(\.languageBundle) private var bundle
+
+    // Feature index -> localization key
+    private let contextFeatureKeys: [Int: String] = [
+        8: "dna.basepair.caffeine", 9: "dna.basepair.exercise", 10: "dna.basepair.alcohol",
+        11: "dna.basepair.melatonin", 12: "dna.basepair.stress", 13: "dna.basepair.weekend",
+        14: "dna.basepair.hourlyDrift", 15: "dna.basepair.sleepQuality"
     ]
 
-    private let sleepFeatureNames: [Int: String] = [
-        0: "hora de dormir", 1: "hora de despertar", 2: "duracion",
-        3: "latencia", 4: "sueno profundo", 5: "REM",
-        6: "fragmentacion", 7: "eficiencia"
+    private let sleepFeatureKeys: [Int: String] = [
+        0: "dna.basepair.bedtime", 1: "dna.basepair.wakeTime", 2: "dna.basepair.duration",
+        3: "dna.basepair.latency", 4: "dna.basepair.deepSleep", 5: "dna.basepair.rem",
+        6: "dna.basepair.fragmentation", 7: "dna.basepair.efficiency"
     ]
 
     var body: some View {
@@ -27,7 +29,7 @@ struct DNABasePairsSection: View {
                 HStack {
                     Image(systemName: "link")
                         .foregroundStyle(SpiralColors.accent)
-                    Text("Que afecta tu sueno")
+                    Text(loc("dna.basepair.header"))
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(SpiralColors.subtle)
                         .textCase(.uppercase)
@@ -35,7 +37,7 @@ struct DNABasePairsSection: View {
                 }
 
                 if profile.basePairs.isEmpty {
-                    Text("Sin datos de sincronizacion aun")
+                    Text(loc("dna.basepair.noData"))
                         .font(.system(size: 14))
                         .foregroundStyle(SpiralColors.muted)
                 } else {
@@ -58,9 +60,11 @@ struct DNABasePairsSection: View {
 
     @ViewBuilder
     private func basePairRow(_ pair: BasePairSynchrony) -> some View {
-        let context = contextFeatureNames[pair.contextFeatureIndex] ?? "factor \(pair.contextFeatureIndex)"
-        let sleep   = sleepFeatureNames[pair.sleepFeatureIndex] ?? "sueno"
-        let strength = pair.plv > 0.7 ? "fuerte" : "moderado"
+        let contextKey = contextFeatureKeys[pair.contextFeatureIndex] ?? "dna.basepair.factor"
+        let sleepKey   = sleepFeatureKeys[pair.sleepFeatureIndex] ?? "dna.basepair.sleep"
+        let context = loc(contextKey)
+        let sleep   = loc(sleepKey)
+        let strength = pair.plv > 0.7 ? loc("dna.basepair.strong") : loc("dna.basepair.moderate")
 
         HStack(alignment: .top, spacing: 10) {
             Circle()
@@ -72,12 +76,18 @@ struct DNABasePairsSection: View {
                 Text("\(context.capitalized) \u{2194} \(sleep)")
                     .font(.system(size: 14, weight: .medium))
                     .foregroundStyle(SpiralColors.text)
-                Text("Vinculo \(strength) (PLV \(String(format: "%.2f", pair.plv)))")
+                Text("\(loc("dna.basepair.bond")) \(strength) (PLV \(String(format: "%.2f", pair.plv)))")
                     .font(.system(size: 12))
                     .foregroundStyle(SpiralColors.muted)
             }
 
             Spacer()
         }
+    }
+
+    // MARK: - Localization
+
+    private func loc(_ key: String) -> String {
+        NSLocalizedString(key, bundle: bundle, comment: "")
     }
 }

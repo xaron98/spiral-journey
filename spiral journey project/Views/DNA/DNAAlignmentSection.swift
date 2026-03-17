@@ -6,6 +6,8 @@ struct DNAAlignmentSection: View {
 
     let profile: SleepDNAProfile
 
+    @Environment(\.languageBundle) private var bundle
+
     private var hasAlignments: Bool { !profile.alignments.isEmpty }
 
     var body: some View {
@@ -14,7 +16,7 @@ struct DNAAlignmentSection: View {
             HStack {
                 Image(systemName: "arrow.triangle.branch")
                     .foregroundStyle(SpiralColors.accent)
-                Text("Deja vu")
+                Text(loc("dna.alignment.header"))
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(SpiralColors.subtle)
                     .textCase(.uppercase)
@@ -24,7 +26,7 @@ struct DNAAlignmentSection: View {
             if hasAlignments {
                 alignmentContent
             } else {
-                Text("Necesitas mas semanas de datos")
+                Text(loc("dna.alignment.needMoreData"))
                     .font(.system(size: 14))
                     .foregroundStyle(SpiralColors.muted)
             }
@@ -44,7 +46,7 @@ struct DNAAlignmentSection: View {
 
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("Similitud")
+                Text(loc("dna.alignment.similarity"))
                     .font(.system(size: 14))
                     .foregroundStyle(SpiralColors.muted)
                 Spacer()
@@ -57,10 +59,10 @@ struct DNAAlignmentSection: View {
                 Divider().overlay(SpiralColors.border)
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Prediccion")
+                        Text(loc("dna.alignment.prediction"))
                             .font(.system(size: 12))
                             .foregroundStyle(SpiralColors.subtle)
-                        Text("Dormir \(formatHour(pred.predictedBedtime))  \u{2192}  Despertar \(formatHour(pred.predictedWake))")
+                        Text("\(loc("dna.alignment.sleep")) \(formatHour(pred.predictedBedtime))  \u{2192}  \(loc("dna.alignment.wake")) \(formatHour(pred.predictedWake))")
                             .font(.system(size: 14, weight: .medium))
                             .foregroundStyle(SpiralColors.text)
                     }
@@ -85,5 +87,11 @@ struct DNAAlignmentSection: View {
         let hour = Int(h) % 24
         let min  = Int((h - Double(Int(h))) * 60)
         return String(format: "%02d:%02d", hour, min)
+    }
+
+    // MARK: - Localization
+
+    private func loc(_ key: String) -> String {
+        NSLocalizedString(key, bundle: bundle, comment: "")
     }
 }

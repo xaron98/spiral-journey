@@ -10,6 +10,7 @@ struct DNAInsightsView: View {
     @Environment(SpiralStore.self) private var store
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.languageBundle) private var bundle
 
     var body: some View {
         NavigationStack {
@@ -24,7 +25,7 @@ struct DNAInsightsView: View {
                     emptyState
                 }
             }
-            .navigationTitle("Tu ADN del Sueno")
+            .navigationTitle(loc("dna.nav.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -70,7 +71,7 @@ struct DNAInsightsView: View {
             ProgressView()
                 .controlSize(.large)
                 .tint(SpiralColors.accent)
-            Text("Analizando tu ADN del sueno...")
+            Text(loc("dna.loading"))
                 .font(.system(size: 15))
                 .foregroundStyle(SpiralColors.muted)
         }
@@ -83,11 +84,17 @@ struct DNAInsightsView: View {
             Image(systemName: "dna")
                 .font(.system(size: 40))
                 .foregroundStyle(SpiralColors.subtle)
-            Text("Registra al menos una semana de sueno\npara desbloquear tu ADN.")
+            Text(loc("dna.empty"))
                 .font(.system(size: 15))
                 .foregroundStyle(SpiralColors.muted)
                 .multilineTextAlignment(.center)
         }
         .padding(.horizontal, 32)
+    }
+
+    // MARK: - Localization
+
+    private func loc(_ key: String) -> String {
+        NSLocalizedString(key, bundle: bundle, comment: "")
     }
 }

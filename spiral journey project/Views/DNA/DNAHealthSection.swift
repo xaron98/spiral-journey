@@ -6,6 +6,8 @@ struct DNAHealthSection: View {
 
     let profile: SleepDNAProfile
 
+    @Environment(\.languageBundle) private var bundle
+
     private var markers: HealthMarkers { profile.healthMarkers }
     private var relevantAlerts: [HealthAlert] { markers.alerts }
     private var allGood: Bool { relevantAlerts.isEmpty }
@@ -16,7 +18,7 @@ struct DNAHealthSection: View {
             HStack {
                 Image(systemName: "heart.text.clipboard")
                     .foregroundStyle(SpiralColors.accent)
-                Text("Tu salud circadiana")
+                Text(loc("dna.health.header"))
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(SpiralColors.subtle)
                     .textCase(.uppercase)
@@ -28,7 +30,7 @@ struct DNAHealthSection: View {
                     Image(systemName: "checkmark.seal.fill")
                         .font(.system(size: 20))
                         .foregroundStyle(SpiralColors.good)
-                    Text("Estable")
+                    Text(loc("dna.health.stable"))
                         .font(.system(size: 16, weight: .medium))
                         .foregroundStyle(SpiralColors.good)
                     Spacer()
@@ -79,5 +81,11 @@ struct DNAHealthSection: View {
         case .warning: return SpiralColors.awakeSleep
         case .urgent:  return SpiralColors.poor
         }
+    }
+
+    // MARK: - Localization
+
+    private func loc(_ key: String) -> String {
+        NSLocalizedString(key, bundle: bundle, comment: "")
     }
 }
