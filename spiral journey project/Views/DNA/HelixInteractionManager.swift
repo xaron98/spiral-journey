@@ -62,7 +62,7 @@ final class HelixInteractionManager {
     func applyDrag(translationX: Float, translationY: Float) {
         let sensitivity: Float = 0.008
         rotationY += translationX * sensitivity
-        rotationX -= translationY * sensitivity
+        rotationX += translationY * sensitivity
         // Clamp X rotation to avoid flipping
         rotationX = max(-.pi / 2.5, min(.pi / 2.5, rotationX))
     }

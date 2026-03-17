@@ -46,7 +46,7 @@ struct DNAMotifSection: View {
 
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text(topMotif.name)
+                Text(localizedMotifName(topMotif.name))
                     .font(.system(size: 17, weight: .semibold))
                     .foregroundStyle(SpiralColors.text)
                 Spacer()
@@ -124,5 +124,13 @@ struct DNAMotifSection: View {
 
     private func loc(_ key: String) -> String {
         NSLocalizedString(key, bundle: bundle, comment: "")
+    }
+
+    /// Translate motif engine keys (English) to localized names
+    private func localizedMotifName(_ engineName: String) -> String {
+        let key = "dna.motif.name.\(engineName.lowercased())"
+        let result = loc(key)
+        // If no translation found (key returned as-is), show the engine name
+        return result == key ? engineName : result
     }
 }
