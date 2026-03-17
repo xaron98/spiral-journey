@@ -51,6 +51,8 @@ struct SpiralTab: View {
     @State private var showEventSheet2 = false
     // Rephase editor sheet
     @State private var showRephaseEditor = false
+    // Spiral growth animation — 0→1 drives the spiral's organic grow-from-center reveal
+    @State private var spiralGrowthProgress: Double = 0
     #if os(macOS)
     // Frame of the spiral area in global coordinates — used to position the drag overlay.
     @State private var spiralFrameGlobal: CGRect = .zero
@@ -79,7 +81,7 @@ struct SpiralTab: View {
                                 .padding(.horizontal, 20)
                                 .padding(.bottom, 6)
 
-                            // ── Spiral — ~57% of viewport height ────────────────────
+                            // ── Spiral — dominant visual element (~70% viewport) ─────
                             ZStack(alignment: .topTrailing) {
                                 SpiralView(
                                     records: store.records,
@@ -99,10 +101,11 @@ struct SpiralTab: View {
                                     spiralExtentTurns: maxReachedTurns,
                                     viewportCenterTurns: smoothCameraCenterTurns,
                                     visibleSpanTurns: liveVisibleDays,
-                                    depthScale: store.depthScale,
+                                    depthScale: store.flatMode ? 0 : store.depthScale,
                                     showGrid: store.showGrid,
                                     predictedBedHour: store.predictionOverlayEnabled ? store.latestPrediction?.predictedBedtimeHour : nil,
-                                    predictedWakeHour: store.predictionOverlayEnabled ? store.latestPrediction?.predictedWakeHour : nil
+                                    predictedWakeHour: store.predictionOverlayEnabled ? store.latestPrediction?.predictedWakeHour : nil,
+                                    growthProgress: spiralGrowthProgress
                                 )
                                 #if !os(macOS)
                                 // On macOS the overlay outside the ScrollView handles all cursor
@@ -181,7 +184,9 @@ struct SpiralTab: View {
                                 )
                                 .padding(.horizontal, 16)
                                 .frame(width: screen.size.width,
-                                       height: screen.size.height * 0.57)
+                                       height: screen.size.height * 0.68)
+                                // Flat (2D) mode zoom is handled via radial projection in CameraState.
+                                .opacity(spiralGrowthProgress > 0 ? 1.0 : 0)
                                 .reportFrame(\.spiralArea)
 
                                 // Sleep log button — top right over spiral
@@ -381,7 +386,13 @@ struct SpiralTab: View {
                     .presentationDragIndicator(.visible)
             }
         }
-        .onAppear { initCursor() }
+        .onAppear {
+            initCursor()
+            // Animate the spiral growing from center to the last record
+            withAnimation(.easeInOut(duration: 1.8).delay(0.2)) {
+                spiralGrowthProgress = 1.0
+            }
+        }
         .onChange(of: store.period) { _, _ in initCursor() }
         .task {
             // Smooth camera follow loop — runs at ~30fps.
@@ -457,7 +468,13 @@ struct SpiralTab: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(greetingText)
                     .font(.system(size: 22, weight: .light, design: .default))
-                    .foregroundStyle(SpiralColors.text)
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [SpiralColors.text, SpiralColors.accent.opacity(0.8)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
                 Text(currentDateString)
                     .font(.system(size: 11, design: .monospaced))
                     .foregroundStyle(SpiralColors.subtle)
@@ -582,9 +599,9 @@ struct SpiralTab: View {
             .padding(14)
             .background(
                 ZStack {
-                    RoundedRectangle(cornerRadius: 16).fill(.ultraThinMaterial)
-                    RoundedRectangle(cornerRadius: 16).fill(SpiralColors.surface.opacity(0.4))
-                    RoundedRectangle(cornerRadius: 16).stroke(SpiralColors.border.opacity(0.4), lineWidth: 0.8)
+                    RoundedRectangle(cornerRadius: 20).fill(.ultraThinMaterial)
+                    RoundedRectangle(cornerRadius: 20).fill(SpiralColors.surface.opacity(0.4))
+                    RoundedRectangle(cornerRadius: 20).stroke(SpiralColors.border.opacity(0.4), lineWidth: 0.8)
                 }
             )
         }
@@ -670,9 +687,9 @@ struct SpiralTab: View {
         .padding(14)
         .background(
             ZStack {
-                RoundedRectangle(cornerRadius: 16).fill(.ultraThinMaterial)
-                RoundedRectangle(cornerRadius: 16).fill(SpiralColors.surface.opacity(0.4))
-                RoundedRectangle(cornerRadius: 16).stroke(Color(hex: "a78bfa").opacity(0.3), lineWidth: 0.8)
+                RoundedRectangle(cornerRadius: 20).fill(.ultraThinMaterial)
+                RoundedRectangle(cornerRadius: 20).fill(SpiralColors.surface.opacity(0.4))
+                RoundedRectangle(cornerRadius: 20).stroke(Color(hex: "a78bfa").opacity(0.3), lineWidth: 0.8)
             }
         )
     }
@@ -699,26 +716,51 @@ struct SpiralTab: View {
 
     // MARK: - Human Stats Row (replaces miniStatsRow)
 
-    /// 3 cards in plain language, no jargon.
+    /// Compact inline stats — 3 values in a single row, minimal chrome.
     private var humanStatsRow: some View {
         let s = store.analysis.stats
         let durationVal  = s.meanSleepDuration > 0 ? String(format: "%.1fh", s.meanSleepDuration) : "--"
-        let durationSub  = durationSubtitle(s.meanSleepDuration)
         let driftVal     = driftValue(s)
-        let driftSub     = String(localized: "spiral.stats.variationSub", bundle: bundle)
         let stabilityVal = s.rhythmStability > 0 ? String(format: "%.0f%%", s.rhythmStability * 100) : "--"
-        let stabilitySub = stabilitySubtitle(s.rhythmStability)
 
-        return HStack(spacing: 8) {
-            HumanStatCard(label: String(localized: "spiral.stats.slept",    bundle: bundle),
-                          value: durationVal, sub: durationSub,
-                          color: durationColor(s.meanSleepDuration))
-            HumanStatCard(label: String(localized: "spiral.stats.variation", bundle: bundle),
-                          value: driftVal, sub: driftSub,
-                          color: driftColor(s.stdBedtime > 0 ? s.stdBedtime : s.stdAcrophase))
-            HumanStatCard(label: String(localized: "spiral.stats.rhythm",   bundle: bundle),
-                          value: stabilityVal, sub: stabilitySub,
-                          color: stabilityColor(s.rhythmStability))
+        return HStack(spacing: 0) {
+            compactStat(
+                icon: "bed.double.fill",
+                value: durationVal,
+                color: durationColor(s.meanSleepDuration)
+            )
+            Spacer()
+            compactStat(
+                icon: "waveform.path.ecg",
+                value: driftVal,
+                color: driftColor(s.stdBedtime > 0 ? s.stdBedtime : s.stdAcrophase)
+            )
+            Spacer()
+            compactStat(
+                icon: "metronome.fill",
+                value: stabilityVal,
+                color: stabilityColor(s.rhythmStability)
+            )
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 14).fill(SpiralColors.surface.opacity(0.3))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(SpiralColors.border.opacity(0.25), lineWidth: 0.6)
+                )
+        )
+    }
+
+    private func compactStat(icon: String, value: String, color: Color) -> some View {
+        HStack(spacing: 5) {
+            Image(systemName: icon)
+                .font(.system(size: 10))
+                .foregroundStyle(color.opacity(0.7))
+            Text(value)
+                .font(.system(size: 13, weight: .semibold, design: .monospaced))
+                .foregroundStyle(color)
         }
     }
 
@@ -900,7 +942,7 @@ struct SpiralTab: View {
             let lastEnd = store.sleepEpisodes.map(\.end).max() ?? 0
             cursorAbsHour = nowAbsHour
             maxReachedTurns = max(minTurns, max(nowAbsHour, lastEnd) / store.period)
-            // Initial zoom: show all 7 days.
+            // Initial zoom: show all available turns (up to 7).
             let initialZoom = min(maxReachedTurns, 7.0)
             visibleDays = initialZoom; liveVisibleDays = initialZoom
             pinchBaseVisibleDays = initialZoom
@@ -951,25 +993,34 @@ struct SpiralTab: View {
         let geo = SpiralGeometry(
             totalDays: scaleDays, maxDays: scaleDays,
             width: Double(spiralSize.width), height: Double(spiralSize.height),
-            startRadius: 20, spiralType: spiralType,
+            startRadius: 30, spiralType: spiralType,
             period: period, linkGrowthToTau: linkGrowthToTau
         )
-        // Retrospective camera matching SpiralView (7-turn window)
-        let span: Double = 7.0
-        let camUpTo  = smoothCameraCenterTurns
-        let camFrom  = max(camUpTo - span, 0)
-        let zStep    = geo.maxRadius * store.depthScale
+        // Camera must match CameraState in SpiralView exactly.
+        let effectiveDepth = store.flatMode ? 0.0 : store.depthScale
+        let span     = liveVisibleDays
+        let camUpTo  = smoothCameraCenterTurns + 0.5 // cameraZPadding — follows cursor
+        let camFrom  = max(smoothCameraCenterTurns - span, 0)
+        let zStep    = geo.maxRadius * effectiveDepth
         let focalLen = geo.maxRadius * 1.2
         let margin   = 0.5
         let tRef     = camUpTo + margin
-        let spanZ    = max((camUpTo - camFrom), 0.5) * zStep
-        let maxRatio = 5.0
-        let nearPlane = focalLen * 0.1
-        let safetyMargin = nearPlane * 1.0
-        let dzFar    = max(spanZ / (maxRatio - 1.0), nearPlane + safetyMargin)
-        let camZ     = margin * zStep - dzFar
+        let camZ     = margin * zStep - focalLen   // matches CameraState.init
 
         let t   = absHour / period
+        if zStep == 0 {
+            // Flat mode: radial zoom matches CameraState.project()
+            let tIn      = max(camFrom, 0)
+            let tOut     = camUpTo
+            let rInner   = max(geo.radius(turns: tIn), 1.0)
+            let rOuter   = max(geo.radius(turns: tOut), rInner + 1.0)
+            let r        = geo.radius(turns: t)
+            let mappedR  = max(0.0, (r - rInner) / (rOuter - rInner) * geo.maxRadius)
+            let theta    = t * 2 * Double.pi
+            let ang      = theta - Double.pi / 2
+            return CGPoint(x: geo.cx + mappedR * cos(ang),
+                           y: geo.cy + mappedR * sin(ang))
+        }
         let day = Int(t)
         let hr  = (t - Double(day)) * geo.period
         let flat = geo.point(day: day, hour: hr)
@@ -998,29 +1049,48 @@ struct SpiralTab: View {
         let geo = SpiralGeometry(
             totalDays: scaleDays, maxDays: scaleDays,
             width: Double(size.width), height: Double(size.height),
-            startRadius: 20, spiralType: spiralType,
+            startRadius: 30, spiralType: spiralType,
             period: period, linkGrowthToTau: linkGrowthToTau
         )
-        // Retrospective camera matching SpiralView (7-turn window)
-        let span: Double = 7.0
-        let camUpTo  = smoothCameraCenterTurns
-        let camFrom  = max(camUpTo - span, 0)
-        let zStep    = geo.maxRadius * store.depthScale
+        // Camera must match CameraState in SpiralView exactly.
+        let effectiveDepth = store.flatMode ? 0.0 : store.depthScale
+        // camUpTo always includes the data extent (matches SpiralView)
+        let span     = liveVisibleDays
+        let camFrom  = max(smoothCameraCenterTurns - span, 0)
+        let camUpTo  = max(smoothCameraCenterTurns + 0.5, maxReachedTurns + 0.5)
+        let zStep    = geo.maxRadius * effectiveDepth
         let focalLen = geo.maxRadius * 1.2
         let margin   = 0.5
         let tRef     = camUpTo + margin
-        let spanZ    = max((camUpTo - camFrom), 0.5) * zStep
-        let maxRatio = 5.0
-        let nearPlane = focalLen * 0.1
-        let safetyMargin = nearPlane * 1.0
-        let dzFar    = max(spanZ / (maxRatio - 1.0), nearPlane + safetyMargin)
-        let camZ     = margin * zStep - dzFar
+        let camZ     = margin * zStep - focalLen   // matches CameraState.init
+
+        // Flat mode: precompute radial projection bounds (matches CameraState.init).
+        let flatRInner: Double
+        let flatROuter: Double
+        if zStep == 0 {
+            let tIn  = max(camFrom, 0)
+            let tOut = smoothCameraCenterTurns + 0.5   // matches drawSpiral camUpTo
+            let rIn  = max(geo.radius(turns: tIn), 1.0)
+            flatRInner = rIn
+            flatROuter = max(geo.radius(turns: tOut), rIn + 1.0)
+        } else {
+            flatRInner = 0; flatROuter = 1
+        }
 
         func project(turns t: Double) -> CGPoint {
             let day  = Int(t)
             let hr   = (t - Double(day)) * geo.period
             let flat = geo.point(day: day, hour: hr)
             let wx   = flat.x - geo.cx; let wy = flat.y - geo.cy
+            if zStep == 0 {
+                // Flat mode: radial zoom matches CameraState.project()
+                let r       = geo.radius(turns: t)
+                let mappedR = max(0.0, (r - flatRInner) / (flatROuter - flatRInner) * geo.maxRadius)
+                let theta   = t * 2 * Double.pi
+                let ang     = theta - Double.pi / 2
+                return CGPoint(x: geo.cx + mappedR * cos(ang),
+                               y: geo.cy + mappedR * sin(ang))
+            }
             let wz   = (tRef - t) * zStep
             let safeDz = max(wz - camZ, focalLen * 0.05)
             let scale  = focalLen / safeDz

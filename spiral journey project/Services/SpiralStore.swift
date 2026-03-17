@@ -113,7 +113,7 @@ final class SpiralStore {
     var linkGrowthToTau: Bool = false {
         didSet { save() }
     }
-    var depthScale: Double = 0.15 {
+    var depthScale: Double = 1.5 {
         didSet { save() }
     }
     /// 2D flat mode — disables perspective, uses auto-zoom to fit spiral on screen.
@@ -702,7 +702,7 @@ final class SpiralStore {
         spiralType = .archimedean           // default: uniform arc spacing
         period = 24.0
         linkGrowthToTau = false
-        depthScale = 0.3
+        depthScale = 1.5
         flatMode = false
         showGrid = true
         language = .systemMatch
@@ -882,9 +882,9 @@ final class SpiralStore {
         period = stored.period
         linkGrowthToTau = stored.linkGrowthToTau
         if let ds   = stored.depthScale  {
-            // Migrate: old defaults (0.3–0.6) were too deep, causing spiral
-            // compression at center. Force down to 0.15 for a flatter look.
-            depthScale = ds >= 0.3 ? 0.15 : ds
+            // Migrate: values below 0.2 are leftovers from a stale migration —
+            // restore the proper default so the 3D logarithmic look is correct.
+            depthScale = ds < 0.2 ? 1.5 : ds
         }
         if let grid = stored.showGrid    { showGrid = grid }
         if let lang = stored.language {

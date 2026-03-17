@@ -44,11 +44,15 @@ struct SpiralView: View {
     /// Whether to draw day ring and radial hour-line guides.
     var showGrid: Bool = true
     /// Inner radius of the spiral in points. Scale down for smaller screens (e.g. Watch: ~15).
-    var startRadius: Double = 75
+    var startRadius: Double = 30
     /// Predicted bedtime hour for tonight (0-24). Draws dashed prediction arc if set.
     var predictedBedHour: Double? = nil
     /// Predicted wake hour for tonight (0-24). Draws dashed prediction arc if set.
     var predictedWakeHour: Double? = nil
+    /// Growth animation progress (0→1). When < 1, the spiral draws only a fraction
+    /// of its extent — creating an organic "growing from center" reveal on app launch.
+    /// Default 1.0 = fully drawn (no animation).
+    var growthProgress: Double = 1.0
 
 
     @Environment(\.colorScheme) private var colorScheme
@@ -102,11 +106,17 @@ struct SpiralView: View {
         let zStep: Double
         let focalLen: Double
         let camZ: Double
+        // Flat mode (zStep==0): radial zoom projection bounds, precomputed at init.
+        let flatRInner: Double
+        let flatROuter: Double
+        let flatGeoMaxRadius: Double
 
         /// Build camera that frames `[fromTurns, upToTurns]` with perspective.
         /// The outermost visible turn always projects at scale ≈ 1.0 so the
         /// spiral fills the clock-face grid area. depthScale only controls how
         /// much inner turns shrink (depth gradient).
+        /// In flat mode (depthScale=0) a radial zoom projection is used instead:
+        /// the visible band [fromTurns, upToTurns] is mapped to [0, maxRadius].
         init(fromTurns: Double, upToTurns: Double, focusTurns: Double,
              geo: SpiralGeometry, depthScale: Double) {
             let zStep    = geo.maxRadius * depthScale
@@ -124,13 +134,36 @@ struct SpiralView: View {
             self.zStep    = zStep
             self.focalLen = focalLen
             self.camZ     = camZ
+
+            // Flat mode: precompute radial projection bounds from the visible band.
+            if zStep == 0 {
+                let tIn  = max(fromTurns, 0)
+                let tOut = upToTurns                          // = tRef - margin
+                let rIn  = max(geo.radius(turns: tIn), 1.0)
+                let rOut = max(geo.radius(turns: tOut), rIn + 1.0)
+                flatRInner       = rIn
+                flatROuter       = rOut
+                flatGeoMaxRadius = geo.maxRadius
+            } else {
+                flatRInner = 0; flatROuter = 1; flatGeoMaxRadius = 0
+            }
         }
 
         /// Project a turn value to screen coordinates.
         /// Pure perspective projection pivoting around geo.cx/cy — no XY offset.
+        /// In flat mode uses radial zoom: visible band maps to [0, maxRadius].
         func project(turns t: Double, geo: SpiralGeometry) -> CGPoint {
             let theta = t * 2 * Double.pi
             let r     = geo.radius(turns: t)
+
+            if zStep == 0 {
+                // Flat mode: radial zoom — maps [rInner, rOuter] → [0, maxRadius]
+                let mappedR = max(0.0, (r - flatRInner) / (flatROuter - flatRInner) * flatGeoMaxRadius)
+                let ang     = theta - Double.pi / 2
+                return CGPoint(x: geo.cx + mappedR * cos(ang),
+                               y: geo.cy + mappedR * sin(ang))
+            }
+
             let flatX = geo.cx + r * cos(theta - Double.pi / 2)
             let flatY = geo.cy + r * sin(theta - Double.pi / 2)
 
@@ -145,7 +178,11 @@ struct SpiralView: View {
         }
 
         /// Perspective scale factor at a given turn value (focalLen / dz).
+        /// In flat mode returns the radial zoom factor so per-segment width caps work.
         func perspectiveScale(turns t: Double) -> Double {
+            if zStep == 0 {
+                return flatGeoMaxRadius / max(flatROuter - flatRInner, 1.0)
+            }
             let wz = (tRef - t) * zStep
             let dz = max(wz - camZ, focalLen * 0.05)
             return focalLen / dz
@@ -153,6 +190,7 @@ struct SpiralView: View {
 
         /// True when the given turn value is behind or too close to the camera.
         func isBehindCamera(turns t: Double) -> Bool {
+            guard zStep > 0 else { return false }   // flat mode: nothing behind camera
             let wz = (tRef - t) * zStep
             let dz = wz - camZ
             return dz < focalLen * 0.1
@@ -160,7 +198,8 @@ struct SpiralView: View {
 
         /// Maximum turn value visible in front of the camera.
         var maxVisibleTurn: Double {
-            tRef - camZ / zStep
+            guard zStep > 0 else { return .greatestFiniteMagnitude } // flat mode
+            return tRef - camZ / zStep
         }
     }
 
@@ -188,6 +227,7 @@ struct SpiralView: View {
         let cameraZPadding = 0.5
 
         let camFrom = max(focusTurns - span, 0)
+        // Camera follows cursor — zoom accompanies the focal point.
         let camUpTo = focusTurns + cameraZPadding
 
         let camera = CameraState(fromTurns: camFrom, upToTurns: camUpTo,
@@ -195,47 +235,61 @@ struct SpiralView: View {
                                   geo: geo, depthScale: depthScale)
 
         let backboneCap = floor(cursorT) + 1.0   // extend backbone to midnight of cursor day
+
+        // ── Growth animation clamp ──
+        // growthProgress 0→1 limits how much of the spiral is drawn.
+        // An ease-applied progress creates a smooth grow-from-center effect.
+        let gp = min(max(growthProgress, 0), 1)
+        let growthCutTurns = gp < 1.0 ? extentTurns * gp : Double.greatestFiniteMagnitude
+        let growthBackboneCap = gp < 1.0 ? min(backboneCap, growthCutTurns) : backboneCap
+
+        // Extend the viewport to always include all data so the spiral
+        // never vanishes when scrolling to the past. The camera controls
+        // perspective, but rendering covers the full extent.
+        let renderUpTo = max(camUpTo, extentTurns + cameraZPadding)
+
         let state = SpiralVisibilityEngine.resolve(
             records: records,
             cursorAbsHour: cursorAbsHour,
             viewportFromTurns: camFrom,
-            viewportUpToTurns: camUpTo,
+            viewportUpToTurns: renderUpTo,
             cameraFromTurns: camFrom,
-            cameraUpToTurns: camUpTo,
+            cameraUpToTurns: renderUpTo,
             spiralExtentTurns: extentTurns,
             spiralPeriod: geo.period,
             cameraMaxTurn: camera.maxVisibleTurn,
-            backboneCapTurn: backboneCap
+            backboneCapTurn: growthBackboneCap
         )
 
         // ── Render pipeline ──
-        // 1. Day rings
-        drawDayRings(context: context, geo: geo, camera: camera, state: state)
+        // 1. Day rings — only draw rings within growth frontier
+        drawDayRings(context: context, geo: geo, camera: camera, state: state, growthCutTurns: growthCutTurns)
         // 2. Radial lines
         if showGrid {
-            drawRadialLines(context: context, geo: geo, upToTurns: state.renderUpToTurns)
+            let radialLimit = gp < 1.0 ? min(state.renderUpToTurns, growthCutTurns) : state.renderUpToTurns
+            drawRadialLines(context: context, geo: geo, upToTurns: radialLimit)
         }
         // 3. Vigilia path — spiral structure always visible in camera range
         drawSpiralPath(context: context, geo: geo, camera: camera, state: state)
         // 4. Two-process model
         if showTwoProcess {
-            drawTwoProcess(context: context, geo: geo, camera: camera, state: state)
+            drawTwoProcess(context: context, geo: geo, camera: camera, state: state, growthCutTurns: growthCutTurns)
         }
         // 5. Data points (phase strokes)
-        drawDataPoints(context: context, geo: geo, camera: camera, state: state)
+        drawDataPoints(context: context, geo: geo, camera: camera, state: state, growthCutTurns: growthCutTurns)
         // 6. Context blocks (blue bands) — visibility driven by render state
         if !contextBlocks.isEmpty && state.markerState.shouldRenderContextMarkers {
-            drawContextBlocks(context: context, geo: geo, camera: camera, state: state)
+            drawContextBlocks(context: context, geo: geo, camera: camera, state: state, growthCutTurns: growthCutTurns)
         }
         // 7. Cosinor overlay
         if showCosinor {
-            drawCosinorOverlay(context: context, geo: geo, camera: camera, state: state)
+            drawCosinorOverlay(context: context, geo: geo, camera: camera, state: state, growthCutTurns: growthCutTurns)
         }
         // 8. Events
-        drawEventMarkers(context: context, geo: geo, camera: camera, state: state)
+        drawEventMarkers(context: context, geo: geo, camera: camera, state: state, growthCutTurns: growthCutTurns)
         // 9. Biomarkers
         if showBiomarkers {
-            drawBiomarkers(context: context, geo: geo, camera: camera, state: state)
+            drawBiomarkers(context: context, geo: geo, camera: camera, state: state, growthCutTurns: growthCutTurns)
         }
         // 10. Origin anchor — uses its own zoom-based visibility from render state
         drawOrigin(context: context, geo: geo, camera: camera, originVis: state.originState, markers: state.markerState)
@@ -249,14 +303,16 @@ struct SpiralView: View {
         if let cursor = cursorAbsHour, let sleepStart = sleepStartHour {
             drawSleepArc(context: context, geo: geo, camera: camera, from: sleepStart, to: cursor)
         }
-        // 14. Cursor dot — governed by render state
-        if let cursorSt = state.cursorState, cursorSt.shouldDraw {
+        // 14. Cursor dot — only show when growth is complete (or nearly so)
+        if gp > 0.95, let cursorSt = state.cursorState, cursorSt.shouldDraw {
             drawCursor(context: context, geo: geo, camera: camera, cursorState: cursorSt)
         }
         // 15. Rephase target markers
-        drawTargetMarkers(context: context, geo: geo, upToTurns: state.renderUpToTurns)
+        if gp >= 1.0 {
+            drawTargetMarkers(context: context, geo: geo, upToTurns: state.renderUpToTurns)
+        }
         // 16. Prediction overlay — dashed arc for predicted sleep tonight
-        if let bedH = predictedBedHour, let wakeH = predictedWakeHour {
+        if gp >= 1.0, let bedH = predictedBedHour, let wakeH = predictedWakeHour {
             drawPredictionOverlay(context: context, geo: geo, camera: camera, bedHour: bedH, wakeHour: wakeH)
         }
 
@@ -297,12 +353,12 @@ struct SpiralView: View {
         ))
     }
 
-    private func drawDayRings(context: GraphicsContext, geo: SpiralGeometry, camera: CameraState, state: SpiralRenderState) {
+    private func drawDayRings(context: GraphicsContext, geo: SpiralGeometry, camera: CameraState, state: SpiralRenderState, growthCutTurns: Double = .greatestFiniteMagnitude) {
         let fromTurns = state.renderFromTurns
         let upToTurns = state.renderUpToTurns
         let edgeMargin = 1.5  // same as data segment fade
         let ringCameraSpan = upToTurns - fromTurns
-        for ring in geo.dayRings() where ring.day > 0 && Double(ring.day) >= fromTurns - 2 && Double(ring.day) <= upToTurns {
+        for ring in geo.dayRings() where ring.day > 0 && Double(ring.day) >= fromTurns - 2 && Double(ring.day) <= upToTurns && Double(ring.day) <= growthCutTurns {
             let vis = state.dayVisibility(for: ring.day)
             guard vis.isVisible, vis.opacity > 0.01 else { continue }
             let gridScale = colorScheme == .dark ? 1.0 : 1.3
@@ -316,7 +372,8 @@ struct SpiralView: View {
             let steps = 60
             for i in 0...steps {
                 let t = Double(ring.day) + Double(i) / Double(steps)
-                if camera.isBehindCamera(turns: t) || camera.perspectiveScale(turns: t) < 0.10 {
+                if t > growthCutTurns { break }
+                if camera.isBehindCamera(turns: t) || camera.perspectiveScale(turns: t) < 0.04 {
                     if started {
                         context.stroke(path, with: .color(gridColor.opacity(baseOpacity * currentOpacity)), lineWidth: lw)
                         path = Path(); started = false
@@ -443,8 +500,9 @@ struct SpiralView: View {
                 if d >= upToTurns { break }
                 d += step; continue
             }
-            // Skip behind-camera points to prevent path explosion
-            if camera.isBehindCamera(turns: t) {
+            // Skip behind-camera or extremely compressed points — prevents
+            // disconnected backbone fragments floating at the spiral center.
+            if camera.isBehindCamera(turns: t) || camera.perspectiveScale(turns: t) < 0.08 {
                 flush()
                 if d >= upToTurns { break }
                 d += step; continue
@@ -528,14 +586,14 @@ struct SpiralView: View {
         }
     }
 
-    private func drawDataPoints(context: GraphicsContext, geo: SpiralGeometry, camera: CameraState, state: SpiralRenderState) {
+    private func drawDataPoints(context: GraphicsContext, geo: SpiralGeometry, camera: CameraState, state: SpiralRenderState, growthCutTurns: Double = .greatestFiniteMagnitude) {
         let fromTurns = state.renderFromTurns
         let upToTurns = state.renderUpToTurns
         // For the current (last) day, extend the cut to the cursor so awake phases
         // grow progressively as the day advances. For past days, stop at data end.
         let dataCutTurns = state.dataEndTurns
         let cursorCutTurns = cursorAbsHour.map { $0 / geo.period } ?? dataCutTurns
-        let globalCutTurns = min(max(dataCutTurns, cursorCutTurns), upToTurns)
+        let globalCutTurns = min(min(max(dataCutTurns, cursorCutTurns), upToTurns), growthCutTurns)
 
         // A run is a maximal sequence of 15-min phase intervals sharing the same SleepPhase.
         struct Run {
@@ -575,8 +633,10 @@ struct SpiralView: View {
                       !camera.isBehindCamera(turns: p1.t) else { continue }
                 let tSeg = (p0.t + p1.t) * 0.5
                 let sc   = camera.perspectiveScale(turns: tSeg)
-                guard sc > 0.10 else { continue } // too compressed by perspective — skip
-                let lw   = max(3.0, min(sc * 20.0, 28.0))
+                guard sc > 0.04 else { continue } // too compressed by perspective — skip
+                // Cap stroke to 82% of projected arm spacing so adjacent arms
+                // always have a visible dark gap, both in 2D and 3D.
+                let lw   = max(2.0, min(sc * 20.0, geo.spacing * sc * 0.82))
                 let segOpacity = applyEdgeFade ? opacity * segmentEdgeFade(t: tSeg) : opacity
                 guard segOpacity > 0.01 else { continue }
                 // Blend toward nextColor in the final 20% of sleep runs
@@ -602,9 +662,9 @@ struct SpiralView: View {
             if capStart, !camera.isBehindCamera(turns: run.points[0].t) {
                 let tFirst = run.points[0].t
                 let sc = camera.perspectiveScale(turns: tFirst)
-                guard sc > 0.10 else { return }
+                guard sc > 0.04 else { return }
                 let capFade = applyEdgeFade ? segmentEdgeFade(t: tFirst) : 1.0
-                let lw = max(3.0, min(sc * 20.0, 28.0))
+                let lw = max(2.0, min(sc * 20.0, geo.spacing * sc * 0.82))
                 let r  = lw * 0.5; let pt = run.points[0].pt
                 context.fill(Circle().path(in: CGRect(x: pt.x - r, y: pt.y - r, width: lw, height: lw)),
                              with: .color(baseColor.opacity(opacity * capFade)))
@@ -612,9 +672,9 @@ struct SpiralView: View {
             if capEnd, !camera.isBehindCamera(turns: run.points[run.points.count - 1].t) {
                 let tLast = run.points[run.points.count - 1].t
                 let sc = camera.perspectiveScale(turns: tLast)
-                guard sc > 0.10 else { return }
+                guard sc > 0.04 else { return }
                 let capFade = applyEdgeFade ? segmentEdgeFade(t: tLast) : 1.0
-                let lw = max(3.0, min(sc * 20.0, 28.0))
+                let lw = max(2.0, min(sc * 20.0, geo.spacing * sc * 0.82))
                 let r  = lw * 0.5; let pt = run.points[run.points.count - 1].pt
                 context.fill(Circle().path(in: CGRect(x: pt.x - r, y: pt.y - r, width: lw, height: lw)),
                              with: .color(nextColor.opacity(opacity * capFade)))
@@ -725,12 +785,12 @@ struct SpiralView: View {
         }
     }
 
-    private func drawCosinorOverlay(context: GraphicsContext, geo: SpiralGeometry, camera: CameraState, state: SpiralRenderState) {
+    private func drawCosinorOverlay(context: GraphicsContext, geo: SpiralGeometry, camera: CameraState, state: SpiralRenderState, growthCutTurns: Double = .greatestFiniteMagnitude) {
         let fromTurns = state.renderFromTurns
         let upToTurns = state.renderUpToTurns
         for record in records {
             let dayStartTurns = geo.turns(day: record.day, hour: 0)
-            guard geo.turns(day: record.day + 1, hour: 0) >= fromTurns, dayStartTurns <= upToTurns else { continue }
+            guard geo.turns(day: record.day + 1, hour: 0) >= fromTurns, dayStartTurns <= upToTurns, dayStartTurns <= growthCutTurns else { continue }
             let vis = state.dayVisibility(for: record.day)
             guard vis.isVisible else { continue }
             let cosinor = record.cosinor
@@ -763,7 +823,7 @@ struct SpiralView: View {
         }
     }
 
-    private func drawTwoProcess(context: GraphicsContext, geo: SpiralGeometry, camera: CameraState, state: SpiralRenderState) {
+    private func drawTwoProcess(context: GraphicsContext, geo: SpiralGeometry, camera: CameraState, state: SpiralRenderState, growthCutTurns: Double = .greatestFiniteMagnitude) {
         let fromTurns = state.renderFromTurns
         let upToTurns = state.renderUpToTurns
         let tpPoints = TwoProcessModel.compute(records)
@@ -772,7 +832,7 @@ struct SpiralView: View {
         var prevVis: DayVisibilityState? = nil
         for tp in tpPoints {
             let tpTurns = geo.turns(day: tp.day, hour: Double(tp.hour))
-            guard geo.turns(day: tp.day + 1, hour: 0) >= fromTurns, tpTurns <= upToTurns else { continue }
+            guard geo.turns(day: tp.day + 1, hour: 0) >= fromTurns, tpTurns <= upToTurns, tpTurns <= growthCutTurns else { continue }
             let vis = state.dayVisibility(for: tp.day)
             guard vis.isVisible else { continue }
             let t = geo.turns(day: tp.day, hour: Double(tp.hour))
@@ -792,12 +852,12 @@ struct SpiralView: View {
         }
     }
 
-    private func drawEventMarkers(context: GraphicsContext, geo: SpiralGeometry, camera: CameraState, state: SpiralRenderState) {
+    private func drawEventMarkers(context: GraphicsContext, geo: SpiralGeometry, camera: CameraState, state: SpiralRenderState, growthCutTurns: Double = .greatestFiniteMagnitude) {
         let fromTurns = state.renderFromTurns
         let upToTurns = state.renderUpToTurns
         for event in events {
             let t = event.absoluteHour / geo.period
-            guard Int(t) < geo.totalDays, t >= fromTurns, t <= upToTurns else { continue }
+            guard Int(t) < geo.totalDays, t >= fromTurns, t <= upToTurns, t <= growthCutTurns else { continue }
             guard !camera.isBehindCamera(turns: t) else { continue }
             let vis = state.dayVisibility(for: Int(t))
             guard vis.isVisible else { continue }
@@ -811,12 +871,12 @@ struct SpiralView: View {
         }
     }
 
-    private func drawBiomarkers(context: GraphicsContext, geo: SpiralGeometry, camera: CameraState, state: SpiralRenderState) {
+    private func drawBiomarkers(context: GraphicsContext, geo: SpiralGeometry, camera: CameraState, state: SpiralRenderState, growthCutTurns: Double = .greatestFiniteMagnitude) {
         let fromTurns = state.renderFromTurns
         let upToTurns = state.renderUpToTurns
         for record in records {
             let dayStartTurns = geo.turns(day: record.day, hour: 0)
-            guard geo.turns(day: record.day + 1, hour: 0) >= fromTurns, dayStartTurns <= upToTurns else { continue }
+            guard geo.turns(day: record.day + 1, hour: 0) >= fromTurns, dayStartTurns <= upToTurns, dayStartTurns <= growthCutTurns else { continue }
             let vis = state.dayVisibility(for: record.day)
             guard vis.isVisible else { continue }
             for marker in BiomarkerEstimation.estimatePersonalized(from: record) {
@@ -943,7 +1003,7 @@ struct SpiralView: View {
     /// - Wide arc (12–32 px, scaled by perspective) in block color at opacity 0.18
     /// - Thin border (1.5 px) in block color at opacity 0.55
     /// - Respects perspectiveScale() for 3D consistency
-    private func drawContextBlocks(context: GraphicsContext, geo: SpiralGeometry, camera: CameraState, state: SpiralRenderState) {
+    private func drawContextBlocks(context: GraphicsContext, geo: SpiralGeometry, camera: CameraState, state: SpiralRenderState, growthCutTurns: Double = .greatestFiniteMagnitude) {
         let calendar = Calendar.current
         let enabledBlocks = contextBlocks.filter(\.isEnabled)
         guard !enabledBlocks.isEmpty else { return }
@@ -955,6 +1015,8 @@ struct SpiralView: View {
         // not a loose 0..<maxDay loop. This ensures context blocks follow the
         // same visibility window as all other day-level rendering.
         for day in window.startIndex...window.endIndex {
+            let dayTurns = Double(day)
+            guard dayTurns <= growthCutTurns else { continue }
             let ctxVis = state.contextVisibility(for: day)
             guard ctxVis.isVisible else { continue }
 
