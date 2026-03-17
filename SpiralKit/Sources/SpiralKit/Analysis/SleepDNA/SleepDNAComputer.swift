@@ -169,6 +169,27 @@ public actor SleepDNAComputer {
             chronotype: chronotype
         )
 
+        // Step 9b: Advanced metrics (full tier only)
+        let pchResult: PersistentHomologyResult?
+        let lndResult: LinkingNumberResult?
+        let misResult: MISResult?
+
+        if tier == .full {
+            pchResult = PersistentHomology.compute(
+                nucleotides: nucleotides,
+                helixGeometry: helixGeometry
+            )
+            lndResult = LinkingNumber.compute(
+                nucleotides: nucleotides,
+                helixGeometry: helixGeometry
+            )
+            misResult = MutualInformationSpectrum.compute(records: sortedRecords)
+        } else {
+            pchResult = nil
+            lndResult = nil
+            misResult = nil
+        }
+
         try Task.checkCancellation()
 
         // Step 10: Sequence alignment prediction (intermediate+ tier, needs >= 4 weeks)
@@ -259,6 +280,9 @@ public actor SleepDNAComputer {
             scoringMatrix: blosum,
             healthMarkers: healthMarkers,
             helixGeometry: helixGeometry,
+            persistentHomology: pchResult,
+            linkingNumber: lndResult,
+            mutualInfoSpectrum: misResult,
             hasScore: hasScore,
             baselineHAS: baselineHAS,
             tier: tier,

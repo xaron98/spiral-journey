@@ -64,6 +64,15 @@ public struct SleepDNAProfile: Codable, Sendable {
     public let healthMarkers: HealthMarkers
     /// Per-day double-helix visualization parameters.
     public let helixGeometry: [DayHelixParams]
+    /// Persistent Circadian Homology: topological features of the helix point cloud.
+    /// `nil` when tier is not `.full`.
+    public let persistentHomology: PersistentHomologyResult?
+    /// Linking Number Density between the two helix strands.
+    /// `nil` when tier is not `.full`.
+    public let linkingNumber: LinkingNumberResult?
+    /// Windowed mutual information spectrum between circadian and homeostatic signals.
+    /// `nil` when tier is not `.full` or insufficient data.
+    public let mutualInfoSpectrum: MISResult?
     /// Helix Alignment Score: current week vs most similar historical week [0, 1].
     /// Close to 1 = very stable habit. `nil` when insufficient data.
     public let hasScore: Double?
@@ -90,6 +99,9 @@ public struct SleepDNAProfile: Codable, Sendable {
         scoringMatrix: SleepBLOSUM,
         healthMarkers: HealthMarkers,
         helixGeometry: [DayHelixParams],
+        persistentHomology: PersistentHomologyResult? = nil,
+        linkingNumber: LinkingNumberResult? = nil,
+        mutualInfoSpectrum: MISResult? = nil,
         hasScore: Double? = nil,
         baselineHAS: Double? = nil,
         tier: AnalysisTier,
@@ -108,6 +120,9 @@ public struct SleepDNAProfile: Codable, Sendable {
         self.scoringMatrix = scoringMatrix
         self.healthMarkers = healthMarkers
         self.helixGeometry = helixGeometry
+        self.persistentHomology = persistentHomology
+        self.linkingNumber = linkingNumber
+        self.mutualInfoSpectrum = mutualInfoSpectrum
         self.hasScore = hasScore
         self.baselineHAS = baselineHAS
         self.tier = tier
