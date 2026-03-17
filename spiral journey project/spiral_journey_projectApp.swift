@@ -22,37 +22,24 @@ struct spiral_journey_projectApp: App {
             SDTrainingMetrics.self
         ]
 
-        // Try on-disk first
+        // Local-only: explicitly disable CloudKit (CKSyncEngine handles sync separately).
+        // Without cloudKitDatabase: .none, SwiftData auto-detects the CloudKit entitlement
+        // and requires all attributes to be optional — which we don't want.
+        let schema = Schema(allModels)
+        let config = ModelConfiguration(
+            schema: schema,
+            isStoredInMemoryOnly: false,
+            cloudKitDatabase: .none
+        )
         do {
-            let schema = Schema(allModels)
-            let config = ModelConfiguration(isStoredInMemoryOnly: false)
             return try ModelContainer(for: schema, configurations: [config])
         } catch {
-            print("[SwiftData] On-disk container failed: \(error)")
-
-            // Delete stale store and retry on-disk
-            let fm = FileManager.default
-            let appSupport = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-            for name in ["default.store", "default.store-wal", "default.store-shm"] {
-                try? fm.removeItem(at: appSupport.appendingPathComponent(name))
-            }
-
+            print("[SwiftData] Container failed: \(error). Retrying with fresh store…")
+            try? FileManager.default.removeItem(at: config.url)
             do {
-                let schema = Schema(allModels)
-                let config = ModelConfiguration(isStoredInMemoryOnly: false)
                 return try ModelContainer(for: schema, configurations: [config])
             } catch {
-                print("[SwiftData] On-disk retry also failed: \(error)")
-
-                // Fallback: in-memory so the app can at least launch
-                print("[SwiftData] Falling back to in-memory storage")
-                do {
-                    let schema = Schema(allModels)
-                    let config = ModelConfiguration(isStoredInMemoryOnly: true)
-                    return try ModelContainer(for: schema, configurations: [config])
-                } catch {
-                    fatalError("[SwiftData] Even in-memory failed: \(error)")
-                }
+                fatalError("[SwiftData] Failed after reset: \(error)")
             }
         }
     }()
