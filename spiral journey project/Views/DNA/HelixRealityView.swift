@@ -20,16 +20,35 @@ struct HelixRealityView: View {
     @State private var dragStart: CGSize = .zero
 
     var body: some View {
-        ZStack {
-            // Dark background
-            SpiralColors.bg
+        if profile.helixGeometry.count < 7 {
+            // Not enough data for a full helix turn
+            VStack(spacing: 8) {
+                Image(systemName: "dna")
+                    .font(.system(size: 28))
+                    .foregroundStyle(SpiralColors.subtle)
+                Text(loc("dna.3d.needsdata"))
+                    .font(.system(size: 13))
+                    .foregroundStyle(SpiralColors.muted)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(height: 200)
+            .frame(maxWidth: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(SpiralColors.surface.opacity(0.5))
+            )
+        } else {
+            ZStack {
+                // Dark background
+                SpiralColors.bg
 
-            realityContent
+                realityContent
 
-            overlays
+                overlays
+            }
+            .frame(height: 400)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
-        .frame(height: 400)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
     // MARK: - RealityView

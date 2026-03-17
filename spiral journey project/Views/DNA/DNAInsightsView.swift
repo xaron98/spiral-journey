@@ -52,6 +52,9 @@ struct DNAInsightsView: View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 16) {
                 DNAStateSection(profile: profile)
+                if #available(iOS 18.0, *), profile.helixGeometry.count >= 7 {
+                    HelixRealityView(profile: profile)
+                }
                 DNAMotifSection(profile: profile)
                 DNAAlignmentSection(profile: profile)
                 DNAHealthSection(profile: profile)
