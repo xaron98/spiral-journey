@@ -404,6 +404,14 @@ struct SpiralView: View {
                 }
 
                 let pt = camera.project(turns: t, geo: geo)
+                // Clip to canvas: break ring arc when projected point exits canvas bounds.
+                if pt.x < -20 || pt.x > geo.width + 20 || pt.y < -20 || pt.y > geo.height + 20 {
+                    if started {
+                        context.stroke(path, with: .color(gridColor.opacity(baseOpacity * currentOpacity)), lineWidth: lw)
+                        path = Path(); started = false
+                    }
+                    continue
+                }
                 if !started {
                     path.move(to: pt); started = true; currentOpacity = ptOpacity
                 } else {
@@ -517,6 +525,13 @@ struct SpiralView: View {
                 d += step; continue
             }
             let pt = camera.project(turns: t, geo: geo)
+            // Clip to canvas: Archimedean arms can extend far beyond canvas in 3D mode.
+            // Break the path when projected point exits canvas bounds to prevent edge artifacts.
+            if pt.x < -20 || pt.x > geo.width + 20 || pt.y < -20 || pt.y > geo.height + 20 {
+                flush()
+                if d >= upToTurns { break }
+                d += step; continue
+            }
             if first { path.move(to: pt); first = false } else { path.addLine(to: pt) }
             if d >= upToTurns { break }
             d += step
