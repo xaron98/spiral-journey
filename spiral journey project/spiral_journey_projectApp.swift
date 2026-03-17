@@ -51,7 +51,11 @@ struct spiral_journey_projectApp: App {
         // Register background processing tasks before the first frame.
         // Must happen in init(), not in .task{}, because BGTaskScheduler
         // requires registration before the app finishes launching.
-        BackgroundTaskManager.registerTasks(store: store)
+        BackgroundTaskManager.registerTasks(
+            store: store,
+            modelContainer: modelContainer,
+            dnaService: dnaService
+        )
     }
 
     var body: some Scene {
@@ -66,8 +70,9 @@ struct spiral_journey_projectApp: App {
                 .environment(\.languageBundle, languageBundle(for: store.language.localeIdentifier))
                 .modelContainer(modelContainer)
                 .task {
-                    // ⓪ Schedule background model retraining
+                    // ⓪ Schedule background tasks
                     BackgroundTaskManager.scheduleRetrainIfNeeded()
+                    BackgroundTaskManager.scheduleDNARefresh()
 
                     // ① Let the first frame render before doing any work.
                     //    Without this, the UI appears frozen until the HealthKit
