@@ -9,6 +9,7 @@ import SpiralKit
 struct HelixRealityView: View {
 
     let profile: SleepDNAProfile
+    @Binding var isInteractingWith3D: Bool
 
     @Environment(\.languageBundle) private var bundle
     @State private var manager = HelixInteractionManager()
@@ -20,7 +21,7 @@ struct HelixRealityView: View {
     @State private var dragStart: CGSize = .zero
 
     var body: some View {
-        if profile.helixGeometry.count < 7 {
+        if profile.helixGeometry.count < 3 {
             // Not enough data for a full helix turn
             VStack(spacing: 8) {
                 Image(systemName: "dna")
@@ -94,9 +95,10 @@ struct HelixRealityView: View {
                 )
             }
         }
-        .gesture(dragGesture)
-        .gesture(magnifyGesture)
-        .gesture(tapGesture)
+        .highPriorityGesture(dragGesture)
+        .highPriorityGesture(magnifyGesture)
+        .simultaneousGesture(tapGesture)
+        .contentShape(Rectangle())  // ensure full area is gesture-tappable
         .onAppear {
             startAutoRotation()
         }
@@ -201,6 +203,7 @@ struct HelixRealityView: View {
         DragGesture()
             .onChanged { value in
                 manager.isInteracting = true
+                isInteractingWith3D = true
                 let deltaX = Float(value.translation.width - dragStart.width)
                 let deltaY = Float(value.translation.height - dragStart.height)
                 manager.applyDrag(translationX: deltaX, translationY: deltaY)
@@ -208,6 +211,7 @@ struct HelixRealityView: View {
             }
             .onEnded { _ in
                 manager.isInteracting = false
+                isInteractingWith3D = false
                 dragStart = .zero
             }
     }
@@ -216,12 +220,14 @@ struct HelixRealityView: View {
         MagnifyGesture()
             .onChanged { value in
                 manager.isInteracting = true
+                isInteractingWith3D = true
                 let mag = Float(value.magnification) * baseZoom
                 manager.applyZoom(mag)
             }
             .onEnded { value in
                 baseZoom = manager.zoomScale
                 manager.isInteracting = false
+                isInteractingWith3D = false
             }
     }
 

@@ -12,6 +12,8 @@ struct DNAInsightsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.languageBundle) private var bundle
 
+    @State private var isInteractingWith3D = false
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -52,8 +54,8 @@ struct DNAInsightsView: View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 16) {
                 DNAStateSection(profile: profile)
-                if #available(iOS 18.0, *), profile.helixGeometry.count >= 7 {
-                    HelixRealityView(profile: profile)
+                if #available(iOS 18.0, *), profile.helixGeometry.count >= 3 {
+                    HelixRealityView(profile: profile, isInteractingWith3D: $isInteractingWith3D)
                 }
                 DNAMotifSection(profile: profile)
                 DNAAlignmentSection(profile: profile)
@@ -65,6 +67,7 @@ struct DNAInsightsView: View {
             .padding(.top, 8)
             .padding(.bottom, 40)
         }
+        .scrollDisabled(isInteractingWith3D)
     }
 
     // MARK: - Loading
