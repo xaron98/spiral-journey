@@ -5,6 +5,10 @@ import SpiralKit
 ///
 /// Presented as a sheet from CoachTab when the user taps the chat button.
 /// Shows download prompt when model is not available, streaming chat when ready.
+///
+/// Uses ``CoachProviderFactory`` to pick the best backend:
+/// - Apple Intelligence (Foundation Models) on iOS 26+ with capable hardware — instant, no download.
+/// - Phi-3.5 Mini (GGUF) everywhere else — requires download + load.
 struct CoachChatView: View {
 
     @Environment(SpiralStore.self) private var store
@@ -14,39 +18,59 @@ struct CoachChatView: View {
 
     @State private var inputText: String = ""
     @State private var messages: [ChatMessage] = []
+    @State private var streamingText: String = ""
+    @State private var isGenerating: Bool = false
+    @State private var generationTask: Task<Void, Never>?
     @FocusState private var isInputFocused: Bool
 
     /// Maximum messages to keep in the conversation.
     private let maxMessages = 50
+
+    /// The provider is resolved once via the factory and kept for the view's lifetime.
+    /// Passed in from the app entry point through the environment or created here.
+    @State private var provider: (any CoachLLMProvider)?
 
     var body: some View {
         NavigationStack {
             ZStack {
                 SpiralColors.bg.ignoresSafeArea()
 
-                switch llm.state {
-                case .notDownloaded, .error:
-                    downloadPrompt
-                case .downloading(let progress):
-                    downloadingView(progress)
-                case .downloaded:
-                    loadingPrompt
-                case .loading:
-                    loadingView
-                case .ready:
+                if let provider, !provider.requiresDownload {
+                    // Foundation Models path — no download/load needed
                     chatView
+                } else {
+                    // Phi path — show download/load flow based on LLMService state
+                    switch llm.state {
+                    case .notDownloaded, .error:
+                        downloadPrompt
+                    case .downloading(let progress):
+                        downloadingView(progress)
+                    case .downloaded:
+                        loadingPrompt
+                    case .loading:
+                        loadingView
+                    case .ready:
+                        chatView
+                    }
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "brain.head.profile")
-                            .font(.system(size: 13))
-                            .foregroundStyle(SpiralColors.accent)
-                        Text(loc("coach.chat.title"))
-                            .font(.system(size: 15, weight: .medium))
-                            .foregroundStyle(SpiralColors.text)
+                    VStack(spacing: 1) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "brain.head.profile")
+                                .font(.system(size: 13))
+                                .foregroundStyle(SpiralColors.accent)
+                            Text(loc("coach.chat.title"))
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundStyle(SpiralColors.text)
+                        }
+                        if let provider {
+                            Text(provider.displayName)
+                                .font(.system(size: 9, design: .monospaced))
+                                .foregroundStyle(SpiralColors.faint)
+                        }
                     }
                 }
                 ToolbarItem(placement: .topBarLeading) {
@@ -61,14 +85,26 @@ struct CoachChatView: View {
             }
         }
         .onAppear {
+            // Resolve provider on first appear
+            if provider == nil {
+                provider = CoachProviderFactory.makeProvider(llmService: llm)
+            }
             messages = store.chatHistory
-            if llm.state == .downloaded {
+            // Auto-load Phi if already downloaded
+            if provider?.requiresDownload == true, llm.state == .downloaded {
                 Task { await llm.loadModel() }
             }
         }
         .onDisappear {
-            // Auto-unload when leaving chat to free memory
-            llm.unloadModel()
+            // Cancel any in-flight generation
+            generationTask?.cancel()
+            generationTask = nil
+            isGenerating = false
+            streamingText = ""
+            // Auto-unload Phi when leaving chat to free memory
+            if provider?.requiresDownload == true {
+                llm.unloadModel()
+            }
         }
     }
 
@@ -195,7 +231,7 @@ struct CoachChatView: View {
                         }
 
                         // Streaming indicator
-                        if llm.isGenerating {
+                        if isGenerating {
                             streamingBubble
                                 .id("streaming")
                         }
@@ -211,8 +247,8 @@ struct CoachChatView: View {
                         }
                     }
                 }
-                .onChange(of: llm.streamingText) {
-                    if llm.isGenerating {
+                .onChange(of: streamingText) {
+                    if isGenerating {
                         proxy.scrollTo("streaming", anchor: .bottom)
                     }
                 }
@@ -259,7 +295,7 @@ struct CoachChatView: View {
     private var streamingBubble: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                if llm.streamingText.isEmpty {
+                if streamingText.isEmpty {
                     HStack(spacing: 4) {
                         ForEach(0..<3, id: \.self) { i in
                             Circle()
@@ -271,7 +307,7 @@ struct CoachChatView: View {
                     .padding(.horizontal, 14)
                     .padding(.vertical, 12)
                 } else {
-                    Text(llm.streamingText)
+                    Text(streamingText)
                         .font(.system(size: 14))
                         .foregroundStyle(SpiralColors.text)
                         .padding(.horizontal, 14)
@@ -298,15 +334,15 @@ struct CoachChatView: View {
             Button {
                 sendMessage()
             } label: {
-                Image(systemName: llm.isGenerating ? "stop.fill" : "arrow.up.circle.fill")
+                Image(systemName: isGenerating ? "stop.fill" : "arrow.up.circle.fill")
                     .font(.system(size: 28))
                     .foregroundStyle(
-                        inputText.trimmingCharacters(in: .whitespaces).isEmpty && !llm.isGenerating
+                        inputText.trimmingCharacters(in: .whitespaces).isEmpty && !isGenerating
                             ? SpiralColors.muted
                             : SpiralColors.accent
                     )
             }
-            .disabled(inputText.trimmingCharacters(in: .whitespaces).isEmpty && !llm.isGenerating)
+            .disabled(inputText.trimmingCharacters(in: .whitespaces).isEmpty && !isGenerating)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
@@ -316,8 +352,12 @@ struct CoachChatView: View {
     // MARK: - Actions
 
     private func sendMessage() {
-        if llm.isGenerating {
-            llm.stopGeneration()
+        if isGenerating {
+            generationTask?.cancel()
+            generationTask = nil
+            isGenerating = false
+            // Commit whatever we've streamed so far
+            finalizeStreamingResponse()
             return
         }
 
@@ -337,25 +377,46 @@ struct CoachChatView: View {
         // Save to store
         store.chatHistory = messages
 
-        // Generate response
-        Task {
+        // Generate response via provider
+        generationTask = Task {
+            guard let provider else { return }
+
             let systemPrompt = LLMContextBuilder.buildSystemPrompt(
                 analysis: store.analysis,
                 goal: store.sleepGoal,
                 records: store.records
             )
 
-            // Set history on the LLM for context
-            // (The LLM library handles history internally via its template)
+            isGenerating = true
+            streamingText = ""
 
-            let response = await llm.generate(prompt: text, systemContext: systemPrompt)
-
-            if !response.isEmpty {
-                let assistantMsg = ChatMessage(role: .assistant, content: response)
-                messages.append(assistantMsg)
-                store.chatHistory = messages
+            do {
+                let stream = try await provider.generate(prompt: text, systemContext: systemPrompt)
+                for try await chunk in stream {
+                    guard !Task.isCancelled else { break }
+                    streamingText += chunk
+                }
+            } catch is CancellationError {
+                // User cancelled — keep whatever was streamed
+            } catch {
+                if streamingText.isEmpty {
+                    streamingText = loc("coach.chat.error")
+                }
             }
+
+            isGenerating = false
+            finalizeStreamingResponse()
         }
+    }
+
+    /// Commit the accumulated streaming text as an assistant message.
+    private func finalizeStreamingResponse() {
+        let response = streamingText.trimmingCharacters(in: .whitespacesAndNewlines)
+        streamingText = ""
+        guard !response.isEmpty else { return }
+        let assistantMsg = ChatMessage(role: .assistant, content: response)
+        messages.append(assistantMsg)
+        store.chatHistory = messages
     }
 
     // MARK: - Localization

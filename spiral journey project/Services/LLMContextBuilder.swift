@@ -2,6 +2,16 @@ import Foundation
 import SpiralKit
 import LLM
 
+// MARK: - Prompt Capability
+
+/// Determines the prompt tier based on the backing LLM provider.
+enum PromptCapability {
+    /// Phi-3.5 — compact prompt, no extra prediction data.
+    case compact
+    /// Foundation Models — richer prompt with prediction data and model accuracy.
+    case rich
+}
+
 // MARK: - LLM Context Builder
 
 /// Builds the system prompt for the on-device LLM coach chat.
@@ -10,12 +20,44 @@ import LLM
 /// Keeps the prompt compact to fit within the 2048-token context window.
 enum LLMContextBuilder {
 
+    /// Maximum number of history messages to keep for the given capability tier.
+    static func maxHistoryMessages(for capability: PromptCapability) -> Int {
+        switch capability {
+        case .compact: return 10   // Phi library truncates internally to 4
+        case .rich:    return 10
+        }
+    }
+
     /// Build the system prompt from the current analysis state.
     static func buildSystemPrompt(
         analysis: AnalysisResult,
         goal: SleepGoal,
         records: [SleepRecord],
         locale: Locale = .current
+    ) -> String {
+        buildSystemPrompt(
+            analysis: analysis,
+            goal: goal,
+            records: records,
+            locale: locale,
+            capability: .compact,
+            prediction: nil,
+            modelAccuracy: nil
+        )
+    }
+
+    /// Enhanced system prompt that optionally includes prediction data.
+    ///
+    /// When `capability` is `.rich` and a `prediction` is provided, the prompt
+    /// appends tonight's predicted bedtime and (optionally) the model accuracy.
+    static func buildSystemPrompt(
+        analysis: AnalysisResult,
+        goal: SleepGoal,
+        records: [SleepRecord],
+        locale: Locale = .current,
+        capability: PromptCapability,
+        prediction: PredictionOutput?,
+        modelAccuracy: Double?
     ) -> String {
         let isSpanish = locale.language.languageCode?.identifier == "es"
 
@@ -136,6 +178,26 @@ enum LLMContextBuilder {
             - If asked about non-sleep topics, gently redirect.
             - Never fabricate data you don't have.
             """)
+        }
+
+        // 8. Prediction data (rich tier only)
+        if capability == .rich, let prediction = prediction {
+            let bedtimeStr = SleepStatistics.formatHour(prediction.predictedBedtimeHour)
+            let predHeader = isSpanish ? "PREDICCIÓN PARA ESTA NOCHE:" : "TONIGHT'S PREDICTION:"
+            parts.append(predHeader)
+            if isSpanish {
+                parts.append("- Hora estimada de dormir: \(bedtimeStr)")
+            } else {
+                parts.append("- Predicted bedtime: \(bedtimeStr)")
+            }
+            if let accuracy = modelAccuracy {
+                let pct = String(format: "%.0f%%", accuracy * 100)
+                if isSpanish {
+                    parts.append("- Precisión del modelo: \(pct)")
+                } else {
+                    parts.append("- Model accuracy: \(pct)")
+                }
+            }
         }
 
         return parts.joined(separator: "\n")

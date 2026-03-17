@@ -1,6 +1,7 @@
 import Foundation
 import Observation
 import SwiftUI
+import SwiftData
 import SpiralKit
 import WidgetKit
 
@@ -83,7 +84,7 @@ final class SpiralStore {
     var numDays: Int = 30 {
         didSet { save() }
     }
-    var spiralType: SpiralType = .logarithmic {
+    var spiralType: SpiralType = .archimedean {
         didSet {
             save()
             #if os(iOS)
@@ -112,7 +113,7 @@ final class SpiralStore {
     var linkGrowthToTau: Bool = false {
         didSet { save() }
     }
-    var depthScale: Double = 0.6 {
+    var depthScale: Double = 0.3 {
         didSet { save() }
     }
     var showGrid: Bool = true {
@@ -267,6 +268,42 @@ final class SpiralStore {
     /// Set by the app entry point after CloudSyncManager is initialized.
     var cloudSync: CloudSyncManager?
 
+    // MARK: - SwiftData
+
+    /// Optional SwiftData context — set after the model container is available.
+    var modelContext: ModelContext?
+
+    /// Cached episodes loaded from SwiftData to avoid repeated fetches.
+    private var cachedEpisodes: [SleepEpisode]?
+
+    /// Configure the store with a SwiftData model context.
+    /// Call once from the app entry point after the ModelContainer is created.
+    func configure(with context: ModelContext) {
+        self.modelContext = context
+    }
+
+    /// Load episodes from SwiftData, returning nil if unavailable or empty
+    /// (so the caller can fall back to UserDefaults-backed sleepEpisodes).
+    func loadEpisodesFromSwiftData() -> [SleepEpisode]? {
+        if let cached = cachedEpisodes { return cached }
+        guard let ctx = modelContext else { return nil }
+        let descriptor = FetchDescriptor<SDSleepEpisode>(
+            sortBy: [SortDescriptor(\.start)]
+        )
+        guard let sdEpisodes = try? ctx.fetch(descriptor),
+              !sdEpisodes.isEmpty else {
+            return nil
+        }
+        let episodes = sdEpisodes.map { $0.toSleepEpisode() }
+        cachedEpisodes = episodes
+        return episodes
+    }
+
+    /// Invalidate the cached SwiftData episodes so the next recompute() re-fetches.
+    func invalidateEpisodeCache() {
+        cachedEpisodes = nil
+    }
+
     /// True while applying remote CloudKit changes — prevents save() from re-pushing to CloudKit.
     private var isSyncingFromCloud = false
     /// True during init load — prevents didSet from triggering save() on every property.
@@ -332,13 +369,13 @@ final class SpiralStore {
 
     /// Recompute SleepRecords and AnalysisResult from current episodes.
     func recompute() {
-        guard !sleepEpisodes.isEmpty else {
+        let eps = loadEpisodesFromSwiftData() ?? sleepEpisodes
+        guard !eps.isEmpty else {
             records = []
             analysis = AnalysisResult()
             return
         }
         isProcessing = true
-        let eps = sleepEpisodes
         // Generate records only for days that overlap with at least one episode.
         // lastEndHour/period gives the fractional day of the last wakeup.
         // ceil gives us the first day index that has NO episode — that's our count.
@@ -563,20 +600,12 @@ final class SpiralStore {
     func updatePrediction(_ result: PredictionResult) {
         latestPrediction = result.prediction
         predictionHistory.append(result)
-        // Keep last 90 predictions
-        if predictionHistory.count > 90 {
-            predictionHistory = Array(predictionHistory.suffix(90))
-        }
         save()
     }
 
     /// Append retroactively bootstrapped predictions (already evaluated).
     func appendBootstrappedPredictions(_ results: [PredictionResult]) {
         predictionHistory.append(contentsOf: results)
-        // Keep last 90
-        if predictionHistory.count > 90 {
-            predictionHistory = Array(predictionHistory.suffix(90))
-        }
         save()
     }
 
@@ -662,10 +691,10 @@ final class SpiralStore {
         events = []
         startDate = Calendar.current.startOfDay(for: Date())
         numDays = 30
-        spiralType = .logarithmic          // match property default (was .archimedean — wrong)
+        spiralType = .archimedean           // default: uniform arc spacing
         period = 24.0
         linkGrowthToTau = false
-        depthScale = 0.6
+        depthScale = 0.3
         showGrid = true
         language = .systemMatch
         appearance = .dark
@@ -704,7 +733,7 @@ final class SpiralStore {
     // MARK: - Persistence
 
     private let storageKey = "spiral-journey-store"
-    private static let appGroupID = "group.xaron.spiral-journey-project"
+    static let appGroupID = "group.xaron.spiral-journey-project"
     private var sharedDefaults: UserDefaults {
         UserDefaults(suiteName: Self.appGroupID) ?? .standard
     }

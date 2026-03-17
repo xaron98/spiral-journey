@@ -1,13 +1,18 @@
 import Foundation
 import CoreML
+import os
 import SpiralKit
 
 /// Manages on-device model personalisation via MLUpdateTask.
 ///
-/// When the user accumulates ≥ 50 evaluated prediction/actual pairs,
+/// When the user accumulates ≥ 60 evaluated prediction/actual pairs,
 /// the service fine-tunes the last layer of the bundled updatable neural
 /// network using `MLUpdateTask`.  The personalised model is saved to
 /// Documents/models/ and picked up by `MLPredictionEngine` on next reload.
+///
+/// A held-out 20 % validation split guards against overfitting: if the
+/// post-training MAE is not better than pre-training MAE, the update is
+/// rejected and the personalised model is rolled back.
 ///
 /// Stateless — call `retrainIfNeeded(store:)` from `SpiralStore.recompute()`.
 enum ModelTrainingService {
@@ -15,10 +20,15 @@ enum ModelTrainingService {
     // MARK: - Configuration
 
     /// Minimum evaluated predictions required before retraining is worthwhile.
-    static let minimumSamples = 50
+    static let minimumSamples = 60
 
     /// Don't retrain more than once per week.
     static let retrainCooldownDays = 7
+
+    private static let logger = Logger(
+        subsystem: "xaron.spiral-journey-project",
+        category: "ModelTraining"
+    )
 
     // MARK: - Paths
 
@@ -89,12 +99,21 @@ enum ModelTrainingService {
 
         Task.detached(priority: .utility) {
             do {
-                try await performTraining(samples: samples)
+                let metrics = try await performTraining(samples: samples)
                 await MainActor.run {
-                    // Reload the prediction engine to use the new model
-                    MLPredictionEngine.reloadModel()
-                    // Setting this triggers save() via didSet
-                    store.modelTrainingSampleCount = samples.count
+                    if metrics.accepted {
+                        // Reload the prediction engine to use the new model
+                        MLPredictionEngine.reloadModel()
+                        // Setting this triggers save() via didSet
+                        store.modelTrainingSampleCount = metrics.trainCount + metrics.validationCount
+                        logger.info(
+                            "Training accepted — preMae: \(metrics.preMae, format: .fixed(precision: 3)), postMae: \(metrics.postMae, format: .fixed(precision: 3)), train: \(metrics.trainCount), val: \(metrics.validationCount)"
+                        )
+                    } else {
+                        logger.info(
+                            "Training rejected (regression) — preMae: \(metrics.preMae, format: .fixed(precision: 3)), postMae: \(metrics.postMae, format: .fixed(precision: 3))"
+                        )
+                    }
                 }
             } catch {
                 // Training failed silently — the base model continues to work.
@@ -102,19 +121,31 @@ enum ModelTrainingService {
                 await MainActor.run {
                     store.lastModelTrainedDate = nil
                 }
+                logger.error("Training failed: \(error.localizedDescription)")
             }
         }
     }
 
     // MARK: - Training Implementation
 
-    /// Run MLUpdateTask to fine-tune the updatable model.
+    /// Run MLUpdateTask to fine-tune the updatable model with validation split.
+    ///
+    /// Shuffles all samples, holds out 20 % for validation, trains on 80 %.
+    /// If the post-training MAE on validation is not better than pre-training
+    /// MAE, the personalised model is rolled back and the update is rejected.
     ///
     /// Runs on a background thread.  Throws if the model isn't updatable
     /// or training data can't be built.
     private static func performTraining(
         samples: [(PredictionInput, Double)]
-    ) async throws {
+    ) async throws -> TrainingMetrics {
+        // 0. Shuffle and split 80/20
+        var shuffled = samples
+        shuffled.shuffle()
+        let splitIndex = max(1, Int(Double(shuffled.count) * 0.8))
+        let trainSamples = Array(shuffled[..<splitIndex])
+        let valSamples = Array(shuffled[splitIndex...])
+
         // 1. Locate the updatable model in the bundle
         guard let bundleURL = Bundle.main.url(
             forResource: "SleepPredictorUpdatable", withExtension: "mlmodelc"
@@ -132,17 +163,20 @@ enum ModelTrainingService {
             compiledURL = try await MLModel.compileModel(at: bundleURL)
         }
 
-        // 3. Build training batch
-        let batchProvider = try buildTrainingBatch(samples: samples)
+        // 3. Compute pre-training MAE on validation set with current model
+        let preMae = computeValidationMAE(samples: valSamples)
 
-        // 4. Ensure output directory exists
+        // 4. Build training batch (train split only)
+        let batchProvider = try buildTrainingBatch(samples: trainSamples)
+
+        // 5. Ensure output directory exists
         try FileManager.default.createDirectory(
             at: modelsDir, withIntermediateDirectories: true
         )
 
         let outputURL = personalisedModelURL
 
-        // 5. Run MLUpdateTask
+        // 6. Run MLUpdateTask
         try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
             do {
                 let updateTask = try MLUpdateTask(
@@ -165,6 +199,53 @@ enum ModelTrainingService {
                 cont.resume(throwing: error)
             }
         }
+
+        // 7. Reload model and compute post-training MAE on validation set
+        MLPredictionEngine.reloadModel()
+        let postMae = computeValidationMAE(samples: valSamples)
+
+        // 8. Regression guard: reject if post-training is not better
+        let accepted = postMae < preMae
+
+        if !accepted {
+            // Roll back: delete the personalised model and reload base model
+            try? FileManager.default.removeItem(at: outputURL)
+            MLPredictionEngine.reloadModel()
+            logger.warning(
+                "Regression guard triggered — rolling back personalised model (pre: \(preMae, format: .fixed(precision: 3)), post: \(postMae, format: .fixed(precision: 3)))"
+            )
+        }
+
+        return TrainingMetrics(
+            date: Date(),
+            preMae: preMae,
+            postMae: postMae,
+            trainCount: trainSamples.count,
+            validationCount: valSamples.count,
+            accepted: accepted
+        )
+    }
+
+    // MARK: - Validation
+
+    /// Compute mean absolute error on a set of samples using the current model.
+    ///
+    /// Uses `MLPredictionEngine.predict(from:)` and compares the predicted
+    /// bedtime hour against the target (both in continuous 18-30 space).
+    private static func computeValidationMAE(
+        samples: [(PredictionInput, Double)]
+    ) -> Double {
+        guard !samples.isEmpty else { return .infinity }
+
+        var totalError = 0.0
+        for (input, target) in samples {
+            let output = MLPredictionEngine.predict(from: input)
+            // Convert predicted bedtime to continuous 18-30 space for comparison
+            var predicted = output.predictedBedtimeHour
+            if predicted < 12 { predicted += 24 }  // 0-6 AM → 24-30
+            totalError += abs(predicted - target)
+        }
+        return totalError / Double(samples.count)
     }
 
     // MARK: - Training Data Builder

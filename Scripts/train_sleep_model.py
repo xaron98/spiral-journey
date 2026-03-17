@@ -42,7 +42,18 @@ def generate_synthetic_dataset(n: int):
     """
 
     # --- True parameters (latent) ---
-    base_bed = np.random.normal(23.0, 1.0, n)  # most people ~11 PM ± 1h
+
+    # Chronotype subpopulations (mixture model)
+    #   30% night owls:   mean 25.5 (1:30 AM), std 1.0h
+    #   50% intermediate: mean 23.5 (11:30 PM), std 0.7h
+    #   20% early birds:  mean 22.0 (10:00 PM), std 0.5h
+    chrono_type = np.random.choice(3, size=n, p=[0.30, 0.50, 0.20])
+    chrono_means = np.array([25.5, 23.5, 22.0])
+    chrono_stds  = np.array([1.0, 0.7, 0.5])
+    base_bed = np.array([
+        np.random.normal(chrono_means[c], chrono_stds[c]) for c in chrono_type
+    ])
+
     is_weekend = np.random.binomial(1, 2 / 7, n).astype(float)
     is_tomorrow_weekend = np.random.binomial(1, 2 / 7, n).astype(float)
     weekend_shift = is_tomorrow_weekend * np.random.uniform(0.2, 1.5, n)
@@ -54,16 +65,22 @@ def generate_synthetic_dataset(n: int):
     stress = np.random.poisson(0.4, n).astype(float)
     alcohol = np.random.poisson(0.15, n).astype(float)
 
-    # Event effects (with per-sample noise to simulate individual differences)
-    eff_exercise  = exercise  * np.random.normal(-0.25, 0.10, n)
-    eff_caffeine  = caffeine  * np.random.normal( 0.50, 0.15, n)
-    eff_melatonin = melatonin * np.random.normal(-0.33, 0.10, n)
-    eff_stress    = stress    * np.random.normal( 0.25, 0.10, n)
-    eff_alcohol   = alcohol   * np.random.normal(-0.17, 0.08, n)
+    # Correlated event effects on target bedtime
+    #   Caffeine:   +20-40 min per unit  (delays bedtime)
+    #   Exercise:   -10-20 min per unit  (advances bedtime)
+    #   Alcohol:    +15-30 min per unit  (delays bedtime)
+    #   Melatonin:  -15-30 min per unit  (advances bedtime)
+    #   Stress keeps original effect
+    eff_caffeine  = caffeine  * np.random.uniform(20, 40, n) / 60.0
+    eff_exercise  = exercise  * np.random.uniform(-20, -10, n) / 60.0
+    eff_alcohol   = alcohol   * np.random.uniform(15, 30, n) / 60.0
+    eff_melatonin = melatonin * np.random.uniform(-30, -15, n) / 60.0
+    eff_stress    = stress    * np.random.normal(0.25, 0.10, n)
 
     # Sleep pressure (0-1 scale)
     process_s = np.clip(np.random.normal(0.50, 0.15, n), 0, 1)
-    pressure_effect = np.where(process_s > 0.65, -(process_s - 0.65) * 1.5, 0)
+    # Sleep debt effect: processS > 0.65 → -22.5 min (advances bedtime)
+    pressure_effect = np.where(process_s > 0.65, -22.5 / 60.0, 0.0)
 
     # Sleep debt (hours, negative = undersleeping)
     sleep_debt = np.random.normal(-0.3, 0.8, n)
@@ -74,7 +91,9 @@ def generate_synthetic_dataset(n: int):
     drift_effect = (drift_rate / 60) * 0.5
 
     # Chronotype shift (hours from intermediate 23.5)
-    chrono_shift = np.random.normal(0, 0.7, n)
+    chrono_shift = np.array([
+        (chrono_means[c] - 23.5) for c in chrono_type
+    ]) + np.random.normal(0, 0.2, n)
 
     # --- Actual bedtime (continuous, no wrap) ---
     actual_bed = (
@@ -82,7 +101,6 @@ def generate_synthetic_dataset(n: int):
         + weekend_shift
         + eff_exercise + eff_caffeine + eff_melatonin + eff_stress + eff_alcohol
         + pressure_effect + debt_effect + drift_effect
-        + chrono_shift * 0.3
         + np.random.normal(0, 0.3, n)  # irreducible noise
     )
     # Keep in continuous range (no mod): ~18-30

@@ -1,5 +1,17 @@
 import Foundation
 
+// MARK: - Circular Time Difference
+
+/// Circular difference on a 24-hour clock (returns hours, signed).
+/// Positive means `a` is later than `b`; negative means `a` is earlier.
+/// The result is always in the range (-12, 12].
+public func circularTimeDiff(_ a: Double, _ b: Double) -> Double {
+    var d = a - b
+    if d > 12 { d -= 24 }
+    if d < -12 { d += 24 }
+    return d
+}
+
 // MARK: - Prediction Input (Feature Vector)
 
 /// Feature vector for sleep prediction.
@@ -138,19 +150,11 @@ public struct PredictionResult: Codable, Sendable, Identifiable {
     /// Fill in actual data and compute errors.
     public mutating func evaluate(bedtime: Double, wake: Double, duration: Double) {
         self.actual = PredictionActual(bedtimeHour: bedtime, wakeHour: wake, duration: duration)
-        // Circular difference for bedtime (handles midnight wrap)
-        let bedDiff = circularDiff(prediction.predictedBedtimeHour, bedtime)
-        let wakeDiff = prediction.predictedWakeHour - wake
+        // Circular difference for both bedtime and wake (handles midnight wrap)
+        let bedDiff = circularTimeDiff(prediction.predictedBedtimeHour, bedtime)
+        let wakeDiff = circularTimeDiff(prediction.predictedWakeHour, wake)
         self.errorBedtimeMinutes = bedDiff * 60
         self.errorWakeMinutes = wakeDiff * 60
-    }
-
-    /// Circular difference on a 24h clock (returns hours, signed).
-    private func circularDiff(_ a: Double, _ b: Double) -> Double {
-        var d = a - b
-        if d > 12 { d -= 24 }
-        if d < -12 { d += 24 }
-        return d
     }
 }
 

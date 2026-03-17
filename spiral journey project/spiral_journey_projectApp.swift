@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 import SpiralKit
 
 @main
@@ -8,6 +9,40 @@ struct spiral_journey_projectApp: App {
     @State private var healthKit = HealthKitManager.shared
     @State private var calendarManager = CalendarManager.shared
     @State private var llmService = LLMService()
+    @State private var watchBridge: WatchSyncBridge?
+
+    @State private var modelContainer: ModelContainer = {
+        let allModels: [any PersistentModel.Type] = [
+            SDSleepEpisode.self,
+            SDCircadianEvent.self,
+            SDPredictionResult.self,
+            SDCoachMessage.self,
+            SDUserGoal.self,
+            SDPredictionMetrics.self,
+            SDTrainingMetrics.self
+        ]
+
+        // Local-only: explicitly disable CloudKit (CKSyncEngine handles sync separately).
+        // Without cloudKitDatabase: .none, SwiftData auto-detects the CloudKit entitlement
+        // and requires all attributes to be optional — which we don't want.
+        let schema = Schema(allModels)
+        let config = ModelConfiguration(
+            schema: schema,
+            isStoredInMemoryOnly: false,
+            cloudKitDatabase: .none
+        )
+        do {
+            return try ModelContainer(for: schema, configurations: [config])
+        } catch {
+            print("[SwiftData] Container failed: \(error). Retrying with fresh store…")
+            try? FileManager.default.removeItem(at: config.url)
+            do {
+                return try ModelContainer(for: schema, configurations: [config])
+            } catch {
+                fatalError("[SwiftData] Failed after reset: \(error)")
+            }
+        }
+    }()
 
     init() {
         // Register background processing tasks before the first frame.
@@ -25,6 +60,7 @@ struct spiral_journey_projectApp: App {
                 .environment(llmService)
                 .environment(\.locale, Locale(identifier: store.language.localeIdentifier))
                 .environment(\.languageBundle, languageBundle(for: store.language.localeIdentifier))
+                .modelContainer(modelContainer)
                 .task {
                     // ⓪ Schedule background model retraining
                     BackgroundTaskManager.scheduleRetrainIfNeeded()
@@ -33,6 +69,18 @@ struct spiral_journey_projectApp: App {
                     //    Without this, the UI appears frozen until the HealthKit
                     //    permission dialog pops up.
                     await Task.yield()
+
+                    // Wire up SwiftData context so SpiralStore can read from it.
+                    store.configure(with: modelContainer.mainContext)
+
+                    // ①½ Migrate UserDefaults/JSON data to SwiftData (one-time).
+                    DataMigrationService.migrateIfNeeded(store: store, container: modelContainer)
+
+                    // ①¾ Enforce data retention policies (trim old chat/metrics).
+                    DataRetentionService.enforce(context: modelContainer.mainContext)
+
+                    // Initialize Watch sync bridge for App Group UserDefaults.
+                    watchBridge = WatchSyncBridge(appGroupID: SpiralStore.appGroupID)
 
                     // Receive events and episodes logged on the Apple Watch
                     #if os(iOS)
