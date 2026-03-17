@@ -1,0 +1,120 @@
+import SwiftUI
+import SpiralKit
+
+/// "Tu codigo genetico" — active motifs, instance counts, and recent mutations.
+struct DNAMotifSection: View {
+
+    let profile: SleepDNAProfile
+
+    private var hasMotifs: Bool { !profile.motifs.isEmpty }
+    private var learningWeeks: Int { profile.dataWeeks }
+    private let requiredWeeks = 8
+
+    var body: some View {
+        VStack(spacing: 12) {
+            // Section header
+            HStack {
+                Image(systemName: "line.3.horizontal.decrease.circle")
+                    .foregroundStyle(SpiralColors.accent)
+                Text("Tu codigo genetico")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(SpiralColors.subtle)
+                    .textCase(.uppercase)
+                Spacer()
+            }
+
+            if hasMotifs {
+                motifContent
+            } else {
+                learningContent
+            }
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(SpiralColors.surface)
+        )
+    }
+
+    // MARK: - Motifs Found
+
+    @ViewBuilder
+    private var motifContent: some View {
+        let topMotif = profile.motifs.sorted { $0.instanceCount > $1.instanceCount }.first!
+
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text(topMotif.name)
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(SpiralColors.text)
+                Spacer()
+                Text("\(topMotif.instanceCount) semanas")
+                    .font(.system(size: 13))
+                    .foregroundStyle(SpiralColors.muted)
+            }
+
+            if profile.motifs.count > 1 {
+                Text("+\(profile.motifs.count - 1) patrones mas")
+                    .font(.system(size: 13))
+                    .foregroundStyle(SpiralColors.subtle)
+            }
+
+            // Recent mutation
+            if let lastMut = profile.mutations.last {
+                HStack(spacing: 6) {
+                    mutationBadge(lastMut.classification)
+                    Text(mutationLabel(lastMut.classification))
+                        .font(.system(size: 12))
+                        .foregroundStyle(SpiralColors.muted)
+                    Spacer()
+                    Text(String(format: "%+.0f%%", lastMut.qualityDelta * 100))
+                        .font(.system(size: 12, weight: .medium, design: .monospaced))
+                        .foregroundStyle(lastMut.qualityDelta >= 0 ? SpiralColors.good : SpiralColors.poor)
+                }
+                .padding(.top, 4)
+            }
+        }
+    }
+
+    // MARK: - Learning State
+
+    @ViewBuilder
+    private var learningContent: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Aprendiendo...")
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(SpiralColors.text)
+
+            ProgressView(value: Double(learningWeeks), total: Double(requiredWeeks))
+                .tint(SpiralColors.accent)
+
+            Text("\(learningWeeks) / \(requiredWeeks) semanas")
+                .font(.system(size: 12))
+                .foregroundStyle(SpiralColors.subtle)
+        }
+    }
+
+    // MARK: - Helpers
+
+    private func mutationBadge(_ type: MutationType) -> some View {
+        Circle()
+            .fill(mutationColor(type))
+            .frame(width: 8, height: 8)
+    }
+
+    private func mutationColor(_ type: MutationType) -> Color {
+        switch type {
+        case .silent:   return SpiralColors.good
+        case .missense: return SpiralColors.awakeSleep
+        case .nonsense: return SpiralColors.poor
+        }
+    }
+
+    private func mutationLabel(_ type: MutationType) -> String {
+        switch type {
+        case .silent:   return "Mutacion silenciosa"
+        case .missense: return "Mutacion de sentido erroneo"
+        case .nonsense: return "Mutacion sin sentido"
+        }
+    }
+}

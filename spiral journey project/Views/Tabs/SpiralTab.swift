@@ -13,6 +13,7 @@ struct SpiralTab: View {
     @State private var showCosinor    = false
     @State private var showBiomarkers = false
     @State private var showTwoProcess = false
+    @State private var showDNAInsights = false
 
     // Sleep logging
     @State private var cursorAbsHour: Double = 0
@@ -82,7 +83,7 @@ struct SpiralTab: View {
                                 .padding(.bottom, 6)
 
                             // ── Spiral — dominant visual element (~70% viewport) ─────
-                            ZStack(alignment: .topTrailing) {
+                            ZStack(alignment: .top) {
                                 SpiralView(
                                     records: store.records,
                                     events: store.events,
@@ -189,22 +190,40 @@ struct SpiralTab: View {
                                 .opacity(spiralGrowthProgress > 0 ? 1.0 : 0)
                                 .reportFrame(\.spiralArea)
 
-                                // Sleep log button — top right over spiral
-                                Button { handleLogButton() } label: {
-                                    ZStack {
-                                        Circle()
-                                            .fill(sleepStartHour != nil ? SpiralColors.awakeSleep : Color(hex: "7c3aed"))
-                                            .frame(width: 48, height: 48)
-                                            .shadow(color: (sleepStartHour != nil ? SpiralColors.awakeSleep : Color(hex: "7c3aed")).opacity(0.5), radius: 10)
-                                        Image(systemName: sleepStartHour != nil ? "sun.max.fill" : "moon.fill")
-                                            .font(.system(size: 20, weight: .semibold))
-                                            .foregroundStyle(.white)
+                                // Overlay buttons — DNA (top-leading) + Sleep log (top-trailing)
+                                HStack {
+                                    // DNA insights button — top left over spiral
+                                    Button { showDNAInsights = true } label: {
+                                        ZStack {
+                                            Circle()
+                                                .fill(.ultraThinMaterial)
+                                                .frame(width: 48, height: 48)
+                                            Image(systemName: "dna")
+                                                .font(.system(size: 20, weight: .semibold))
+                                                .foregroundStyle(SpiralColors.accent)
+                                        }
                                     }
+                                    .buttonStyle(.plain)
+
+                                    Spacer()
+
+                                    // Sleep log button — top right over spiral
+                                    Button { handleLogButton() } label: {
+                                        ZStack {
+                                            Circle()
+                                                .fill(sleepStartHour != nil ? SpiralColors.awakeSleep : Color(hex: "7c3aed"))
+                                                .frame(width: 48, height: 48)
+                                                .shadow(color: (sleepStartHour != nil ? SpiralColors.awakeSleep : Color(hex: "7c3aed")).opacity(0.5), radius: 10)
+                                            Image(systemName: sleepStartHour != nil ? "sun.max.fill" : "moon.fill")
+                                                .font(.system(size: 20, weight: .semibold))
+                                                .foregroundStyle(.white)
+                                        }
+                                    }
+                                    .buttonStyle(.plain)
+                                    .reportFrame(\.moonButton)
                                 }
-                                .buttonStyle(.plain)
                                 .padding(.top, 8)
-                                .padding(.trailing, 24)
-                                .reportFrame(\.moonButton)
+                                .padding(.horizontal, 24)
                             }
 
                             // ── Cursor time bar ──────────────────────────────────────
@@ -384,6 +403,9 @@ struct SpiralTab: View {
                 RephaseEditorView(plan: store.rephasePlan)
                     .presentationDetents([.large])
                     .presentationDragIndicator(.visible)
+            }
+            .fullScreenCover(isPresented: $showDNAInsights) {
+                DNAInsightsView()
             }
         }
         .onAppear {

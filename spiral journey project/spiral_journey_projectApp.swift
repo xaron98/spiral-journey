@@ -9,6 +9,7 @@ struct spiral_journey_projectApp: App {
     @State private var healthKit = HealthKitManager.shared
     @State private var calendarManager = CalendarManager.shared
     @State private var llmService = LLMService()
+    @State private var dnaService = SleepDNAService()
     @State private var watchBridge: WatchSyncBridge?
 
     @State private var modelContainer: ModelContainer = {
@@ -60,6 +61,7 @@ struct spiral_journey_projectApp: App {
                 .environment(healthKit)
                 .environment(calendarManager)
                 .environment(llmService)
+                .environment(dnaService)
                 .environment(\.locale, Locale(identifier: store.language.localeIdentifier))
                 .environment(\.languageBundle, languageBundle(for: store.language.localeIdentifier))
                 .modelContainer(modelContainer)
@@ -80,6 +82,9 @@ struct spiral_journey_projectApp: App {
 
                     // ①¾ Enforce data retention policies (trim old chat/metrics).
                     DataRetentionService.enforce(context: modelContainer.mainContext)
+
+                    // ①⅞ Load cached SleepDNA profile from SwiftData.
+                    dnaService.loadCachedProfile(context: modelContainer.mainContext)
 
                     // Initialize Watch sync bridge for App Group UserDefaults.
                     watchBridge = WatchSyncBridge(appGroupID: SpiralStore.appGroupID)
