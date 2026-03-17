@@ -428,7 +428,9 @@ struct SpiralView: View {
         let canvasEdge = max(geo.width, geo.height)
         // Major lines every 6h (00, 06, 12, 18) — more visible
         // Minor lines every 3h (03, 09, 15, 21) — more subtle, like the web version
-        let minorStep: Double = geo.period <= 24 ? 3 : (geo.period / 8).rounded()
+        // Do NOT round for non-24h periods: rounding 25.4/8=3.175 → 3.0 allows h=24
+        // into the loop, creating a duplicate 00:00 line at a slightly wrong angle.
+        let minorStep: Double = geo.period <= 24 ? 3 : geo.period / 8
         let majorStep: Double = minorStep * 2
         var h = 0.0
         while h < geo.period {
@@ -1175,7 +1177,9 @@ struct SpiralView: View {
     }
 
     private func drawHourLabels(context: GraphicsContext, geo: SpiralGeometry, size: CGSize) {
-        let step: Double = geo.period <= 24 ? 3 : (geo.period / 8).rounded()
+        // Do NOT round for non-24h periods: same fix as drawRadialLines — prevents
+        // a duplicate 00:00 label appearing at a slightly-offset angular position.
+        let step: Double = geo.period <= 24 ? 3 : geo.period / 8
         // Place labels in a fixed circle just outside the spiral's outermost ring.
         // Draw in flat (non-projected) screen space so they always form a clean circle
         // regardless of depthScale. radius matches drawRadialLines outer edge.

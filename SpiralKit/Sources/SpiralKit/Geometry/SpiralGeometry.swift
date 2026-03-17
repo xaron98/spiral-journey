@@ -155,7 +155,9 @@ public struct SpiralGeometry: Sendable {
     /// regardless of how many nights have been recorded.
     public func hourLabels() -> [HourLabel] {
         var labels: [HourLabel] = []
-        let step: Double = period <= 24 ? 3 : (period / 8).rounded()
+        // Do NOT round for non-24h periods — rounding e.g. 25.4/8=3.175 → 3 allows
+        // h=24 into the loop, producing a duplicate 00:00 label at the wrong angle.
+        let step: Double = period <= 24 ? 3 : period / 8
         // Use at least 7 days so labels stay near the canvas edge with few records.
         let refDay = max(maxDays, totalDays, 7)
         var h = 0.0
@@ -177,7 +179,8 @@ public struct SpiralGeometry: Sendable {
         let refTurns = Double(max(maxDays, totalDays, 7)) + 1
         let outerR = radius(turns: refTurns) + 20
         var lines: [RadialLine] = []
-        let step: Double = period <= 24 ? 3 : (period / 8).rounded()
+        // Same fix as hourLabels: no rounding to prevent duplicate 00 radial line.
+        let step: Double = period <= 24 ? 3 : period / 8
         var h = 0.0
         while h < period {
             let angle = (h / period) * 2 * Double.pi - Double.pi / 2
