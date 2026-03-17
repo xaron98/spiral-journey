@@ -12,7 +12,7 @@ struct spiral_journey_projectApp: App {
     @State private var watchBridge: WatchSyncBridge?
 
     @State private var modelContainer: ModelContainer = {
-        let schema = Schema([
+        let allModels: [any PersistentModel.Type] = [
             SDSleepEpisode.self,
             SDCircadianEvent.self,
             SDPredictionResult.self,
@@ -20,25 +20,39 @@ struct spiral_journey_projectApp: App {
             SDUserGoal.self,
             SDPredictionMetrics.self,
             SDTrainingMetrics.self
-        ])
-        let config = ModelConfiguration(isStoredInMemoryOnly: false)
+        ]
+
+        // Try on-disk first
         do {
+            let schema = Schema(allModels)
+            let config = ModelConfiguration(isStoredInMemoryOnly: false)
             return try ModelContainer(for: schema, configurations: [config])
         } catch {
-            // Schema mismatch (e.g. model changed during development).
-            // Delete the existing store and retry.
-            print("[SwiftData] Container failed: \(error). Deleting store and retrying…")
+            print("[SwiftData] On-disk container failed: \(error)")
+
+            // Delete stale store and retry on-disk
             let fm = FileManager.default
-            let storeURL = config.url
-            // SwiftData creates .sqlite, .sqlite-wal, .sqlite-shm
-            for suffix in ["", "-wal", "-shm"] {
-                let target = suffix.isEmpty ? storeURL : URL(fileURLWithPath: storeURL.path + suffix)
-                try? fm.removeItem(at: target)
+            let appSupport = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+            for name in ["default.store", "default.store-wal", "default.store-shm"] {
+                try? fm.removeItem(at: appSupport.appendingPathComponent(name))
             }
+
             do {
+                let schema = Schema(allModels)
+                let config = ModelConfiguration(isStoredInMemoryOnly: false)
                 return try ModelContainer(for: schema, configurations: [config])
             } catch {
-                fatalError("Failed to create ModelContainer after reset: \(error)")
+                print("[SwiftData] On-disk retry also failed: \(error)")
+
+                // Fallback: in-memory so the app can at least launch
+                print("[SwiftData] Falling back to in-memory storage")
+                do {
+                    let schema = Schema(allModels)
+                    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+                    return try ModelContainer(for: schema, configurations: [config])
+                } catch {
+                    fatalError("[SwiftData] Even in-memory failed: \(error)")
+                }
             }
         }
     }()
