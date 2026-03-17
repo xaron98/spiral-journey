@@ -102,8 +102,9 @@ struct SpiralTab: View {
                                     spiralExtentTurns: maxReachedTurns,
                                     viewportCenterTurns: smoothCameraCenterTurns,
                                     visibleSpanTurns: liveVisibleDays,
-                                    depthScale: store.flatMode ? 0 : (store.spiralType == .logarithmic ? store.depthScale * 2.5 : store.depthScale),
+                                    depthScale: store.flatMode ? 0 : store.depthScale,
                                     showGrid: store.showGrid,
+                                    startRadius: effectiveStartRadius,
                                     predictedBedHour: store.predictionOverlayEnabled ? store.latestPrediction?.predictedBedtimeHour : nil,
                                     predictedWakeHour: store.predictionOverlayEnabled ? store.latestPrediction?.predictedWakeHour : nil,
                                     growthProgress: spiralGrowthProgress
@@ -947,10 +948,16 @@ struct SpiralTab: View {
 
     // MARK: - Zoom slider helpers (log-space mapping)
 
-    /// Max zoom-out: 9 turns for 3D logarithmic (exponential arm spacing keeps inner
-    /// turns readable even at higher zoom); 7 turns for all other modes.
+    /// Log 3D uses a smaller startRadius so the exponential growth has more room
+    /// (range 20→129pt ≈ 7pt/turn gap) vs Archimedean's 75 (tight 2pt/turn gap).
+    /// The perspective-compressed center is invisible anyway.
+    private var effectiveStartRadius: Double {
+        (store.spiralType == .logarithmic && !store.flatMode) ? 20.0 : 75.0
+    }
+
+    /// Max zoom-out: 7 turns for all modes.
     private var maxZoomOutTurns: Double {
-        let cap = (store.spiralType == .logarithmic && !store.flatMode) ? 9.0 : 7.0
+        let cap = 7.0
         return min(maxReachedTurns, cap)
     }
 
@@ -1040,11 +1047,11 @@ struct SpiralTab: View {
         let geo = SpiralGeometry(
             totalDays: scaleDays, maxDays: scaleDays,
             width: Double(spiralSize.width), height: Double(spiralSize.height),
-            startRadius: 75, spiralType: spiralType,
+            startRadius: effectiveStartRadius, spiralType: spiralType,
             period: period, linkGrowthToTau: linkGrowthToTau
         )
         // Camera must match CameraState in SpiralView exactly.
-        let effectiveDepth = store.flatMode ? 0.0 : (spiralType == .logarithmic ? store.depthScale * 2.5 : store.depthScale)
+        let effectiveDepth = store.flatMode ? 0.0 : (store.depthScale)
         let span     = liveVisibleDays
         let camUpTo  = smoothCameraCenterTurns + 0.5 // cameraZPadding — follows cursor
         let camFrom  = max(smoothCameraCenterTurns - span, 0)
@@ -1099,11 +1106,11 @@ struct SpiralTab: View {
         let geo = SpiralGeometry(
             totalDays: scaleDays, maxDays: scaleDays,
             width: Double(size.width), height: Double(size.height),
-            startRadius: 75, spiralType: spiralType,
+            startRadius: effectiveStartRadius, spiralType: spiralType,
             period: period, linkGrowthToTau: linkGrowthToTau
         )
         // Camera must match CameraState in SpiralView exactly.
-        let effectiveDepth = store.flatMode ? 0.0 : (spiralType == .logarithmic ? store.depthScale * 2.5 : store.depthScale)
+        let effectiveDepth = store.flatMode ? 0.0 : (store.depthScale)
         // camUpTo must match drawSpiral: focusTurns + 0.5 (no reach-back to maxReachedTurns).
         let span     = liveVisibleDays
         let camFrom  = max(smoothCameraCenterTurns - span, 0)
