@@ -698,15 +698,26 @@ public enum MutationClassifier {
 
 - [ ] **Step 1: Write tests**
 
-Test: stable cosinorR² over 14 days → high coherence. Random bedtimes → low coherence. Many awake phases → high fragmentation.
+Test: stable cosinorR² over 14 days → high coherence. Random bedtimes → low coherence. Many awake phases → high fragmentation. HB from aligned C/S → low. REM phases present → RDS and RCE computed. No REM data → RDS and RCE nil.
 
 - [ ] **Step 2: Implement**
 
 ```swift
 public struct HealthMarkers: Codable, Sendable {
+    // Structural markers
     public let circadianCoherence: Double   // mean cosinorR² over 14 days, <0.2 = anarchy
-    public let fragmentationScore: Double   // awake phase transitions per night, normalized
+    public let fragmentationScore: Double   // awake phase transitions per night, normalized [0,1]
     public let driftSeverity: Double        // abs(mean drift), >15min/day = significant
+
+    // Biophysical markers (Two-Process Model)
+    public let homeostasisBalance: Double   // HB: mean|C-S| from TwoProcessPoints, [0,1]
+    public let remDriftSlope: Double?       // RDS: slope of REM centers per night, nil if no phases
+    public let helicalContinuity: Double    // HCI: 1 - awakeBreaks/totalIntervals, [0,1]
+    public let remClusterEntropy: Double?   // RCE: Shannon entropy of REM intervals, nil if no phases
+
+    // Future
+    public let paradoxicalInsomnia: Double? // objective vs subjective discrepancy
+
     public let alerts: [HealthAlert]
 }
 
@@ -718,7 +729,10 @@ public struct HealthAlert: Codable, Sendable, Identifiable {
 }
 
 public enum AlertType: String, Codable, Sendable {
-    case circadianAnarchy, highFragmentation, severeDrift, novelPattern
+    case circadianAnarchy, highFragmentation, severeDrift
+    case highDesynchrony    // HB > 0.3
+    case remDriftAbnormal   // RDS flat or negative
+    case novelPattern
 }
 
 public enum AlertSeverity: String, Codable, Sendable {
@@ -726,12 +740,119 @@ public enum AlertSeverity: String, Codable, Sendable {
 }
 
 public enum HealthMarkerDetector {
-    public static func analyze(records: [SleepRecord]) -> HealthMarkers {
+    public static func analyze(
+        records: [SleepRecord],
+        twoProcessPoints: [TwoProcessPoint]? = nil
+    ) -> HealthMarkers {
         let recent = Array(records.suffix(14))
+
         // Coherence: mean of cosinorR² values
-        // Fragmentation: count .awake phases per night, normalize
-        // Drift: mean of driftMinutes, flag if >15
-        // Generate alerts based on thresholds
+        let coherence = recent.isEmpty ? 0 :
+            recent.map(\.cosinor.r2).reduce(0, +) / Double(recent.count)
+
+        // Fragmentation: awake transitions per night, normalized
+        let fragScores = recent.map { record -> Double in
+            let awakeCount = record.phases.filter { $0.phase == .awake }.count
+            return min(Double(awakeCount) / 10.0, 1.0)
+        }
+        let fragmentation = fragScores.isEmpty ? 0 :
+            fragScores.reduce(0, +) / Double(fragScores.count)
+
+        // Drift: mean absolute drift
+        let drift = recent.isEmpty ? 0 :
+            recent.map { abs($0.driftMinutes) }.reduce(0, +) / Double(recent.count)
+
+        // HB — Homeo-Circadian Balance: mean|C - S| from TwoProcessPoints
+        let hb: Double
+        if let points = twoProcessPoints, !points.isEmpty {
+            hb = points.map { abs($0.c - $0.s) }.reduce(0, +) / Double(points.count)
+        } else {
+            hb = 0.5 // default if no two-process data
+        }
+
+        // HCI — Helical Continuity Index: 1 - breaks/total
+        let hciScores = recent.map { record -> Double in
+            let total = max(record.phases.count, 1)
+            let awake = record.phases.filter { $0.phase == .awake }.count
+            return 1.0 - Double(awake) / Double(total)
+        }
+        let hci = hciScores.isEmpty ? 1.0 :
+            hciScores.reduce(0, +) / Double(hciScores.count)
+
+        // RDS — REM Drift Slope (nil if no phase data)
+        let rds = computeREMDriftSlope(records: recent)
+
+        // RCE — REM Cluster Entropy (nil if no phase data)
+        let rce = computeREMClusterEntropy(records: recent)
+
+        // Generate alerts
+        var alerts: [HealthAlert] = []
+        if coherence < 0.2 {
+            alerts.append(HealthAlert(id: UUID(), type: .circadianAnarchy,
+                severity: .urgent, message: "Circadian rhythm severely disrupted"))
+        }
+        if fragmentation > 0.6 {
+            alerts.append(HealthAlert(id: UUID(), type: .highFragmentation,
+                severity: .warning, message: "Sleep is highly fragmented"))
+        }
+        if drift > 15 {
+            alerts.append(HealthAlert(id: UUID(), type: .severeDrift,
+                severity: .warning, message: "Significant phase drift detected"))
+        }
+        if hb > 0.3 {
+            alerts.append(HealthAlert(id: UUID(), type: .highDesynchrony,
+                severity: .warning, message: "Circadian-homeostatic desynchrony"))
+        }
+
+        return HealthMarkers(
+            circadianCoherence: coherence, fragmentationScore: fragmentation,
+            driftSeverity: drift, homeostasisBalance: hb,
+            remDriftSlope: rds, helicalContinuity: hci,
+            remClusterEntropy: rce, paradoxicalInsomnia: nil,
+            alerts: alerts
+        )
+    }
+
+    /// REM Drift Slope: linear regression of REM block midpoints across a night
+    static func computeREMDriftSlope(records: [SleepRecord]) -> Double? {
+        let allREMCenters = records.flatMap { record -> [Double] in
+            record.phases.filter { $0.phase == .rem }.map(\.hour)
+        }
+        guard allREMCenters.count >= 3 else { return nil }
+        // Simple linear regression slope
+        let n = Double(allREMCenters.count)
+        let xs = (0..<allREMCenters.count).map { Double($0) }
+        let meanX = xs.reduce(0, +) / n
+        let meanY = allREMCenters.reduce(0, +) / n
+        let num = zip(xs, allREMCenters).map { ($0 - meanX) * ($1 - meanY) }.reduce(0, +)
+        let den = xs.map { ($0 - meanX) * ($0 - meanX) }.reduce(0, +)
+        return den > 0 ? num / den : nil
+    }
+
+    /// REM Cluster Entropy: Shannon entropy of intervals between REM blocks
+    static func computeREMClusterEntropy(records: [SleepRecord]) -> Double? {
+        let intervals: [Double] = records.flatMap { record -> [Double] in
+            let remHours = record.phases.filter { $0.phase == .rem }.map(\.hour).sorted()
+            guard remHours.count >= 2 else { return [] }
+            return zip(remHours, remHours.dropFirst()).map { $1 - $0 }
+        }
+        guard intervals.count >= 3 else { return nil }
+        // Bin intervals into 5 bins, compute Shannon entropy
+        let maxI = intervals.max() ?? 1
+        let binSize = max(maxI / 5.0, 0.01)
+        var bins = Array(repeating: 0.0, count: 5)
+        for interval in intervals {
+            let idx = min(Int(interval / binSize), 4)
+            bins[idx] += 1
+        }
+        let total = Double(intervals.count)
+        var entropy = 0.0
+        for count in bins where count > 0 {
+            let p = count / total
+            entropy -= p * log(p)
+        }
+        return entropy
+    }
         // ... implementation
     }
 }

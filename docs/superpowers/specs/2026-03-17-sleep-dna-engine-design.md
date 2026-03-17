@@ -238,14 +238,59 @@ The helix geometry and pattern analysis enable detection of clinical-grade marke
 **Metric:** Difference between objective duration and subjective perceived duration. When objective shows 7h but user reports "slept terribly" → flag.
 **Note:** Requires future subjective logging feature. Engine computes the metric when data is available.
 
+### HB — Homeo-Circadian Balance
+
+**Detection:** Chronic misalignment between the circadian process C(t) and the homeostatic process S(t) — the "fight" between internal clock and sleep pressure.
+**Metric:** `HB = mean(|C(t) - S(t)|)` computed from `TwoProcessModel.computeContinuous()` output. Each `TwoProcessPoint` already contains `.s` and `.c` values per hour.
+**Interpretation:** HB close to 0 → well-aligned processes (sleeping when both signals agree). HB > 0.3 → chronic desynchrony, latent fatigue. Rising HB trend → worsening alignment.
+**Visual:** In 3D, HB maps to strand separation — high HB → strands pull apart.
+
+### RDS — REM Drift Slope
+
+**Detection:** Progressive shift of REM block centers across the night. In healthy sleep, REM periods get longer and shift later. Abnormal drift indicates circadian REM disruption.
+**Metric:** Linear regression slope of REM block midpoints (from `SleepRecord.phases` where `phase == .rem`). Computed per night, tracked across nights.
+**Interpretation:** Positive slope ≈ normal (REM drifts later). Flat or negative slope ≈ REM suppression or disruption. Requires HealthKit phase data.
+
+### HCI — Helical Continuity Index
+
+**Detection:** Sleep fragmentation as a geometric property of the helix — how "continuous" the strand is vs. how many radial breaks (awakenings) interrupt it.
+**Metric:** `HCI = 1 - (awakeInterruptions / totalPhaseIntervals)` per night.
+**Interpretation:** HCI > 0.9 → continuous, restorative sleep. HCI < 0.7 → heavily fragmented. Complements the raw `fragmentationScore` with a geometric interpretation for the 3D view.
+
+### RCE — REM Cluster Entropy
+
+**Detection:** Coherence of REM episode distribution across the night. Measures whether REM blocks are well-organized (clustered, predictable) or chaotic (scattered, irregular).
+**Metric:** Shannon entropy of the intervals between consecutive REM phases: `RCE = -Σ p(i) log p(i)` where p(i) is the normalized interval between REM blocks.
+**Interpretation:** Low entropy → predictable, healthy REM clustering. High entropy → scattered, disorganized REM. Novel metric — no existing sleep app computes this.
+
+### Advanced Metrics (Phase 2 — Future)
+
+The following metrics are defined for future implementation after the core engine is validated:
+
+**PCH/PHH — Persistent Homology:** Topological data analysis on the helix point cloud. Computes Betti numbers (β₁, β₂) to detect topological features (loops, voids) invisible to distance-based methods. Requires Vietoris-Rips complex computation.
+
+**LND — Linking Number Density:** From knot theory — measures how topologically intertwined the two helix strands are. A rigorous version of the PLV-based twist rate. Computed via Gauss linking integral.
+
+**MIS — Mutual Information Spectrum:** Windowed mutual information between C(t) and dH/dt across frequency bands. Reveals frequency-specific coupling between circadian and homeostatic processes.
+
+These require heavy computation (TDA libraries, Gauss integration) and are deferred to avoid premature complexity.
+
 ### Output
 
 ```swift
-struct HealthMarkers {
+struct HealthMarkers: Codable, Sendable {
+    // Existing markers
     let circadianCoherence: Double      // [0,1], <0.2 = anarchy
     let fragmentationScore: Double      // [0,1], higher = more fragmented
     let driftSeverity: Double           // abs(minutes/day), >15 = significant
     let paradoxicalInsomnia: Double?    // discrepancy score, nil if no subjective data
+
+    // Biophysical markers (from Two-Process Model)
+    let homeostasisBalance: Double      // HB: mean|C-S|, [0,1], >0.3 = chronic desync
+    let remDriftSlope: Double?          // RDS: slope of REM centers, nil if no phase data
+    let helicalContinuity: Double       // HCI: 1 - breaks/total, [0,1]
+    let remClusterEntropy: Double?      // RCE: Shannon entropy of REM intervals, nil if no phase data
+
     let alerts: [HealthAlert]           // triggered alerts with severity
 }
 ```
