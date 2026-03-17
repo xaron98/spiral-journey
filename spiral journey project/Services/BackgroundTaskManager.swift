@@ -1,32 +1,52 @@
 import Foundation
 import BackgroundTasks
+import SwiftData
 import SpiralKit
 
-/// Manages BGProcessingTask for weekly model retraining.
+/// Manages BGProcessingTasks for weekly model retraining and daily
+/// SleepDNA profile refresh.
 ///
-/// Schedules a processing task that runs when the device is plugged in
-/// and idle (typically overnight).  The task evaluates new ground truth
-/// and retrains the ML model if enough data has accumulated.
-///
-/// Registration must happen before the app finishes launching.
+/// Schedules processing tasks that run when the device is idle
+/// (typically overnight).  Registration must happen before the app
+/// finishes launching.
 enum BackgroundTaskManager {
 
     /// The identifier registered in Info.plist → BGTaskSchedulerPermittedIdentifiers.
     static let retrainTaskID = "com.spiral-journey.model-retrain"
 
+    /// Daily SleepDNA profile refresh task identifier.
+    static let dnaRefreshTaskID = "com.spiral-journey.dna-refresh"
+
     // MARK: - Registration
 
-    /// Register the background task handler.
+    /// Register all background task handlers.
     /// Call this once, early in the app lifecycle (before the end of
     /// `application(_:didFinishLaunchingWithOptions:)` or the first frame).
     @MainActor
-    static func registerTasks(store: SpiralStore) {
+    static func registerTasks(
+        store: SpiralStore,
+        modelContainer: ModelContainer,
+        dnaService: SleepDNAService
+    ) {
         BGTaskScheduler.shared.register(
             forTaskWithIdentifier: retrainTaskID,
             using: nil        // Main queue
         ) { task in
             guard let processingTask = task as? BGProcessingTask else { return }
             handleRetrainTask(processingTask, store: store)
+        }
+
+        BGTaskScheduler.shared.register(
+            forTaskWithIdentifier: dnaRefreshTaskID,
+            using: nil        // Main queue
+        ) { task in
+            guard let processingTask = task as? BGProcessingTask else { return }
+            handleDNARefreshTask(
+                processingTask,
+                store: store,
+                modelContainer: modelContainer,
+                dnaService: dnaService
+            )
         }
     }
 
@@ -51,7 +71,24 @@ enum BackgroundTaskManager {
         }
     }
 
-    // MARK: - Task Handler
+    /// Schedule the next daily SleepDNA profile refresh.
+    static func scheduleDNARefresh() {
+        let request = BGProcessingTaskRequest(identifier: dnaRefreshTaskID)
+        // Earliest: tomorrow at 4 AM
+        request.earliestBeginDate = nextDNARefreshDate()
+        // DNA computation is lightweight — no charger required
+        request.requiresExternalPower = false
+        // All data is on-device
+        request.requiresNetworkConnectivity = false
+
+        do {
+            try BGTaskScheduler.shared.submit(request)
+        } catch {
+            // Non-fatal — will retry on next foreground.
+        }
+    }
+
+    // MARK: - Task Handlers
 
     @MainActor
     private static func handleRetrainTask(
@@ -79,6 +116,29 @@ enum BackgroundTaskManager {
         scheduleRetrainIfNeeded()
     }
 
+    @MainActor
+    private static func handleDNARefreshTask(
+        _ task: BGProcessingTask,
+        store: SpiralStore,
+        modelContainer: ModelContainer,
+        dnaService: SleepDNAService
+    ) {
+        task.expirationHandler = {
+            task.setTaskCompleted(success: false)
+        }
+
+        let context = ModelContext(modelContainer)
+
+        Task {
+            await dnaService.refreshIfNeeded(store: store, context: context)
+
+            // Schedule next run
+            scheduleDNARefresh()
+
+            task.setTaskCompleted(success: true)
+        }
+    }
+
     // MARK: - Helpers
 
     /// Compute the next retrain date: tomorrow at 3 AM local time.
@@ -87,6 +147,15 @@ enum BackgroundTaskManager {
         let tomorrow = calendar.date(byAdding: .day, value: 1, to: Date()) ?? Date()
         return calendar.date(
             bySettingHour: 3, minute: 0, second: 0, of: tomorrow
+        ) ?? tomorrow
+    }
+
+    /// Compute the next DNA refresh date: tomorrow at 4 AM local time.
+    private static func nextDNARefreshDate() -> Date {
+        let calendar = Calendar.current
+        let tomorrow = calendar.date(byAdding: .day, value: 1, to: Date()) ?? Date()
+        return calendar.date(
+            bySettingHour: 4, minute: 0, second: 0, of: tomorrow
         ) ?? tomorrow
     }
 }
