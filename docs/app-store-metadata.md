@@ -51,7 +51,7 @@ KEY FEATURES
 • Dark, Light, and System appearance modes
 
 PRIVACY FIRST
-All data stays on your device. No accounts, no tracking, no ads. Sleep data is read from Apple Health with your permission and never leaves your iPhone.
+Core sleep/event data is stored locally and can optionally sync through the user's private iCloud account (CloudKit) when enabled by Apple account settings. No ads, no third-party analytics, and no external backend for sleep data. If the user enables on-device AI coach, the model file is downloaded from Hugging Face to the device; chat inference stays on-device.
 
 Scientific terms used in the app (Acrophase, MESOR, Cosinor, SRI, R²) are standard chronobiology terminology.
 ```
@@ -88,7 +88,7 @@ CARACTERÍSTICAS PRINCIPALES
 • Modos de apariencia oscuro, claro y del sistema
 
 PRIVACIDAD ANTE TODO
-Todos los datos permanecen en tu dispositivo. Sin cuentas, sin rastreo, sin anuncios. Los datos de sueño se leen de Apple Health con tu permiso y nunca salen de tu iPhone.
+Los datos principales permanecen en tu dispositivo y pueden sincronizarse opcionalmente mediante iCloud privado (CloudKit) entre tus propios dispositivos Apple. Sin cuentas propias, sin rastreo y sin anuncios. Si activas el coach IA, el modelo se descarga una sola vez al dispositivo y la inferencia se ejecuta localmente.
 ```
 
 ---
@@ -136,7 +136,7 @@ To test without a real device:
 
 The HealthKit integration is optional — the app is fully functional with manually entered data.
 
-No login required. No backend servers. All data is stored locally on device.
+No login required. Sleep/event data has no custom backend and is stored locally, with optional private iCloud sync via CloudKit. Optional on-device AI model download requires internet connection on first setup.
 ```
 
 ---
