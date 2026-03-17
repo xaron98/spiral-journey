@@ -39,11 +39,22 @@
     <li>No advertising or analytics data is transmitted to third-party tracking servers</li>
   </ul>
 
-  <h2>Data Storage</h2>
-  <p>Primary app data (sleep episodes, events, settings) is stored locally on your device. If iCloud is enabled on your Apple account, app records may be synced using Apple CloudKit private database so your own devices stay in sync.</p>
+  <h2>On-Device Processing</h2>
+  <p>All sleep analysis — including the SleepDNA Engine, pattern detection, health markers, and Hilbert phase analysis — is performed entirely on your device. No sleep data is sent to external servers.</p>
 
-  <h2>On-Device AI Model Download</h2>
-  <p>If you enable the AI coach chat feature, the app downloads an open GGUF model file from Hugging Face to your device. Prompts and generated responses are processed on-device after download.</p>
+  <h2>Data Storage</h2>
+  <p>Primary app data (sleep episodes, events, settings) is stored locally on your device using SwiftData as the persistence layer. If iCloud is enabled on your Apple account, app records may be synced using Apple CloudKit private database so your own devices stay in sync.</p>
+
+  <h2>Background Processing</h2>
+  <p>The app performs a daily background analysis task to compute sleep pattern metrics and update your SleepDNA profile. This processing runs entirely on-device; no data is transmitted over the network.</p>
+
+  <h2>On-Device AI Models</h2>
+  <p>If you enable the AI coach chat feature, the app may use one of two on-device model options:</p>
+  <ul>
+    <li><strong>Phi-3.5 GGUF</strong> — an open model file downloaded from Hugging Face to your device. After the initial download, all prompts and responses are processed locally.</li>
+    <li><strong>Apple Foundation Models</strong> — on iOS 26 and later, the coach can use Apple's built-in on-device Foundation Models. No network connection is required and no data is transmitted.</li>
+  </ul>
+  <p>In both cases, your conversations and sleep data remain on your device.</p>
 
   <h2>Apple Watch</h2>
   <p>Data synced between your iPhone and Apple Watch uses Apple's WatchConnectivity framework. This communication is direct device-to-device and is never routed through external servers.</p>
