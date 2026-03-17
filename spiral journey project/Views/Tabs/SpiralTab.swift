@@ -416,6 +416,7 @@ struct SpiralTab: View {
             }
         }
         .onChange(of: store.period) { _, _ in initCursor() }
+        .onChange(of: store.flatMode) { _, _ in initCursor() }
         .task {
             // Smooth camera follow loop — runs at ~30fps.
             // Lerps smoothCameraCenterTurns toward cursorTurns.
@@ -964,9 +965,9 @@ struct SpiralTab: View {
             let lastEnd = store.sleepEpisodes.map(\.end).max() ?? 0
             cursorAbsHour = nowAbsHour
             maxReachedTurns = max(minTurns, max(nowAbsHour, lastEnd) / store.period)
-            // Logarithmic mode starts more zoomed-in (4 turns) for a clear
-            // cone perspective; Archimedean shows the full 7-turn window.
-            let maxInitialZoom = store.spiralType == .logarithmic ? 4.0 : 7.0
+            // 3D logarithmic mode starts more zoomed-in (4 turns) for a clear
+            // cone perspective; 2D flat and Archimedean show the full 7-turn window.
+            let maxInitialZoom = (store.spiralType == .logarithmic && !store.flatMode) ? 4.0 : 7.0
             let initialZoom = min(maxReachedTurns, maxInitialZoom)
             visibleDays = initialZoom; liveVisibleDays = initialZoom
             pinchBaseVisibleDays = initialZoom
@@ -1078,10 +1079,10 @@ struct SpiralTab: View {
         )
         // Camera must match CameraState in SpiralView exactly.
         let effectiveDepth = store.flatMode ? 0.0 : (spiralType == .logarithmic ? store.depthScale * 3.0 : store.depthScale)
-        // camUpTo always includes the data extent (matches SpiralView)
+        // camUpTo must match drawSpiral: focusTurns + 0.5 (no reach-back to maxReachedTurns).
         let span     = liveVisibleDays
         let camFrom  = max(smoothCameraCenterTurns - span, 0)
-        let camUpTo  = max(smoothCameraCenterTurns + 0.5, maxReachedTurns + 0.5)
+        let camUpTo  = smoothCameraCenterTurns + 0.5
         let zStep    = geo.maxRadius * effectiveDepth
         let focalLen = geo.maxRadius * 1.2
         let margin   = 0.5
