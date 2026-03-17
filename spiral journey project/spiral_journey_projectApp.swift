@@ -75,6 +75,9 @@ struct spiral_journey_projectApp: App {
                     // ①½ Migrate UserDefaults/JSON data to SwiftData (one-time).
                     DataMigrationService.migrateIfNeeded(store: store, container: modelContainer)
 
+                    // ①¾ Enforce data retention policies (trim old chat/metrics).
+                    DataRetentionService.enforce(context: modelContainer.mainContext)
+
                     // Initialize Watch sync bridge for App Group UserDefaults.
                     watchBridge = WatchSyncBridge(appGroupID: SpiralStore.appGroupID)
 
