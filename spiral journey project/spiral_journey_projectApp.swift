@@ -69,6 +69,9 @@ struct spiral_journey_projectApp: App {
                     //    permission dialog pops up.
                     await Task.yield()
 
+                    // Wire up SwiftData context so SpiralStore can read from it.
+                    store.configure(with: modelContainer.mainContext)
+
                     // ①½ Migrate UserDefaults/JSON data to SwiftData (one-time).
                     DataMigrationService.migrateIfNeeded(store: store, container: modelContainer)
 
