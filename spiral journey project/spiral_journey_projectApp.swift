@@ -22,7 +22,25 @@ struct spiral_journey_projectApp: App {
             SDTrainingMetrics.self
         ])
         let config = ModelConfiguration(isStoredInMemoryOnly: false)
-        return try! ModelContainer(for: schema, configurations: [config])
+        do {
+            return try ModelContainer(for: schema, configurations: [config])
+        } catch {
+            // Schema mismatch (e.g. model changed during development).
+            // Delete the existing store and retry.
+            print("[SwiftData] Container failed: \(error). Deleting store and retrying…")
+            let fm = FileManager.default
+            let storeURL = config.url
+            // SwiftData creates .sqlite, .sqlite-wal, .sqlite-shm
+            for suffix in ["", "-wal", "-shm"] {
+                let target = suffix.isEmpty ? storeURL : URL(fileURLWithPath: storeURL.path + suffix)
+                try? fm.removeItem(at: target)
+            }
+            do {
+                return try ModelContainer(for: schema, configurations: [config])
+            } catch {
+                fatalError("Failed to create ModelContainer after reset: \(error)")
+            }
+        }
     }()
 
     init() {
