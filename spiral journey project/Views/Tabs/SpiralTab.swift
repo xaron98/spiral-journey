@@ -101,7 +101,7 @@ struct SpiralTab: View {
                                     spiralExtentTurns: maxReachedTurns,
                                     viewportCenterTurns: smoothCameraCenterTurns,
                                     visibleSpanTurns: liveVisibleDays,
-                                    depthScale: store.flatMode ? 0 : store.depthScale,
+                                    depthScale: store.flatMode ? 0 : (store.spiralType == .logarithmic ? store.depthScale * 3.0 : store.depthScale),
                                     showGrid: store.showGrid,
                                     predictedBedHour: store.predictionOverlayEnabled ? store.latestPrediction?.predictedBedtimeHour : nil,
                                     predictedWakeHour: store.predictionOverlayEnabled ? store.latestPrediction?.predictedWakeHour : nil,
@@ -942,8 +942,10 @@ struct SpiralTab: View {
             let lastEnd = store.sleepEpisodes.map(\.end).max() ?? 0
             cursorAbsHour = nowAbsHour
             maxReachedTurns = max(minTurns, max(nowAbsHour, lastEnd) / store.period)
-            // Initial zoom: show all available turns (up to 7).
-            let initialZoom = min(maxReachedTurns, 7.0)
+            // Logarithmic mode starts more zoomed-in (4 turns) for a clear
+            // cone perspective; Archimedean shows the full 7-turn window.
+            let maxInitialZoom = store.spiralType == .logarithmic ? 4.0 : 7.0
+            let initialZoom = min(maxReachedTurns, maxInitialZoom)
             visibleDays = initialZoom; liveVisibleDays = initialZoom
             pinchBaseVisibleDays = initialZoom
             zoomNorm = visibleDaysToNorm(initialZoom)
@@ -997,7 +999,7 @@ struct SpiralTab: View {
             period: period, linkGrowthToTau: linkGrowthToTau
         )
         // Camera must match CameraState in SpiralView exactly.
-        let effectiveDepth = store.flatMode ? 0.0 : store.depthScale
+        let effectiveDepth = store.flatMode ? 0.0 : (spiralType == .logarithmic ? store.depthScale * 3.0 : store.depthScale)
         let span     = liveVisibleDays
         let camUpTo  = smoothCameraCenterTurns + 0.5 // cameraZPadding — follows cursor
         let camFrom  = max(smoothCameraCenterTurns - span, 0)
@@ -1053,7 +1055,7 @@ struct SpiralTab: View {
             period: period, linkGrowthToTau: linkGrowthToTau
         )
         // Camera must match CameraState in SpiralView exactly.
-        let effectiveDepth = store.flatMode ? 0.0 : store.depthScale
+        let effectiveDepth = store.flatMode ? 0.0 : (spiralType == .logarithmic ? store.depthScale * 3.0 : store.depthScale)
         // camUpTo always includes the data extent (matches SpiralView)
         let span     = liveVisibleDays
         let camFrom  = max(smoothCameraCenterTurns - span, 0)

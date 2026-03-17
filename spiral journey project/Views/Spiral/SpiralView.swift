@@ -110,6 +110,9 @@ struct SpiralView: View {
         let flatRInner: Double
         let flatROuter: Double
         let flatGeoMaxRadius: Double
+        /// Minimum visible turn in flat mode — segments before this are culled
+        /// by perspectiveScale() returning 0 so they don't pile up at radius 0.
+        let flatCamFromTurns: Double
 
         /// Build camera that frames `[fromTurns, upToTurns]` with perspective.
         /// The outermost visible turn always projects at scale ≈ 1.0 so the
@@ -144,8 +147,10 @@ struct SpiralView: View {
                 flatRInner       = rIn
                 flatROuter       = rOut
                 flatGeoMaxRadius = geo.maxRadius
+                flatCamFromTurns = tIn
             } else {
                 flatRInner = 0; flatROuter = 1; flatGeoMaxRadius = 0
+                flatCamFromTurns = 0
             }
         }
 
@@ -178,10 +183,14 @@ struct SpiralView: View {
         }
 
         /// Perspective scale factor at a given turn value (focalLen / dz).
-        /// In flat mode returns the radial zoom factor so per-segment width caps work.
+        /// In flat mode returns 1.0 (normalized) so linewidths stay proportional
+        /// to arm spacing, or 0.0 for turns before the visible band (culls them
+        /// so they don't pile up at radius 0 and flood the canvas with colour).
         func perspectiveScale(turns t: Double) -> Double {
             if zStep == 0 {
-                return flatGeoMaxRadius / max(flatROuter - flatRInner, 1.0)
+                // Cull data that maps to negative radius (before visible window).
+                if t < flatCamFromTurns { return 0.0 }
+                return 1.0   // normalised — linewidth uses geo.spacing directly
             }
             let wz = (tRef - t) * zStep
             let dz = max(wz - camZ, focalLen * 0.05)
