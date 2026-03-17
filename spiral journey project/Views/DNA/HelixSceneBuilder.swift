@@ -34,11 +34,26 @@ enum HelixSceneBuilder {
     private static let basePairColor: UIColor = UIColor(white: 1.0, alpha: 0.2)
     private static let highlightColor: UIColor = UIColor(Color(hex: "22d3ee"))  // cyan
 
+    // Sleep-phase colors (from dna_sleep_helix_v2 spec)
+    private static let deepColor: UIColor = UIColor(Color(hex: "1e3a8a"))      // deep blue
+    private static let remColor: UIColor = UIColor(Color(hex: "7c3aed"))       // violet/purple
+    private static let lightColor: UIColor = UIColor(Color(hex: "93c5fd"))     // light blue
+    private static let awakeColor: UIColor = UIColor(white: 0.6, alpha: 0.3)   // translucent gray
+
+    /// Minimum / maximum strand tube radius for thickness modulation.
+    private static let minStrandTubeRadius: Float = 0.003
+    private static let maxStrandTubeRadius: Float = 0.009
+
     // MARK: - Build
 
     /// Build the full helix scene from a SleepDNA profile.
+    /// - Parameters:
+    ///   - profile: The SleepDNA profile containing nucleotides and geometry.
+    ///   - records: Optional sleep records for phase-based coloring. When provided,
+    ///     nucleotide spheres on strand 2 are colored by the dominant sleep phase
+    ///     of each day instead of the quality-based green→red gradient.
     /// - Returns: A root `Entity` containing all helix geometry.
-    static func build(from profile: SleepDNAProfile) -> Entity {
+    static func build(from profile: SleepDNAProfile, records: [SleepRecord] = []) -> Entity {
         let root = Entity()
         root.name = "helix_root"
 
@@ -53,9 +68,15 @@ enum HelixSceneBuilder {
         var geomByDay: [Int: DayHelixParams] = [:]
         for g in geometry { geomByDay[g.day] = g }
 
+        // Build lookup for sleep records by day index (for phase coloring)
+        var recordByDay: [Int: SleepRecord] = [:]
+        for rec in records { recordByDay[rec.day] = rec }
+        let usePhaseColoring = !records.isEmpty
+
         // Previous positions for strand tubes
         var prevPos1: SIMD3<Float>?
         var prevPos2: SIMD3<Float>?
+        var prevStrand2Color: UIColor = strand2Color
 
         for (index, nuc) in nucleotides.enumerated() {
             let dayIndex = index
@@ -65,6 +86,7 @@ enum HelixSceneBuilder {
             let params = geomByDay[nuc.day]
             let helixR = params.map { Float($0.helixRadius) } ?? 0.5
             let twist = params.map { Float($0.twistAngle) } ?? 0.0
+            let thickness = params.map { Float($0.strandThickness) } ?? 0.0
 
             let r = baseRadius + helixR * radiusScale
             let y = Float(dayIndex) * zStep - yOffset
@@ -78,9 +100,18 @@ enum HelixSceneBuilder {
                 r * sin(theta + .pi + twist)
             )
 
-            // Sleep quality color (feature index 15): green (good) -> red (poor)
-            let quality = Float(nuc[.sleepQuality])
-            let nucColor = qualityColor(quality)
+            // Determine nucleotide color for strand 2
+            let nucColor: UIColor
+            if usePhaseColoring, let record = recordByDay[nuc.day] {
+                nucColor = dominantPhaseColor(for: record)
+            } else {
+                // Fallback: quality-based green→red gradient
+                let quality = Float(nuc[.sleepQuality])
+                nucColor = qualityColor(quality)
+            }
+
+            // Strand tube radius modulated by deep-sleep proportion
+            let tubeRadius = minStrandTubeRadius + thickness * (maxStrandTubeRadius - minStrandTubeRadius)
 
             // --- Nucleotide spheres ---
             let sphere1 = nucleotideSphere(color: strand1Color, radius: nucleotideRadius)
@@ -100,18 +131,21 @@ enum HelixSceneBuilder {
 
             // --- Strand tubes (connect to previous nucleotide) ---
             if let prev1 = prevPos1 {
-                let tube1 = strandTube(from: prev1, to: pos1, color: strand1Color)
+                let tube1 = strandTube(from: prev1, to: pos1, color: strand1Color, radius: tubeRadius)
                 tube1.name = "strand1_seg_\(dayIndex)"
                 root.addChild(tube1)
             }
             if let prev2 = prevPos2 {
-                let tube2 = strandTube(from: prev2, to: pos2, color: strand2Color)
+                // Blend color between previous and current for smooth transitions
+                let segColor = usePhaseColoring ? nucColor : prevStrand2Color
+                let tube2 = strandTube(from: prev2, to: pos2, color: segColor, radius: tubeRadius)
                 tube2.name = "strand2_seg_\(dayIndex)"
                 root.addChild(tube2)
             }
 
             prevPos1 = pos1
             prevPos2 = pos2
+            prevStrand2Color = nucColor
         }
 
         return root
@@ -288,7 +322,8 @@ enum HelixSceneBuilder {
     private static func strandTube(
         from a: SIMD3<Float>,
         to b: SIMD3<Float>,
-        color: UIColor
+        color: UIColor,
+        radius: Float = strandTubeRadius
     ) -> ModelEntity {
         let diff = b - a
         let length = simd_length(diff)
@@ -296,7 +331,7 @@ enum HelixSceneBuilder {
             return ModelEntity()
         }
 
-        let mesh = MeshResource.generateCylinder(height: length, radius: strandTubeRadius)
+        let mesh = MeshResource.generateCylinder(height: length, radius: radius)
         let material = SimpleMaterial(color: color, roughness: 0.5, isMetallic: false)
         let entity = ModelEntity(mesh: mesh, materials: [material])
 
@@ -317,5 +352,38 @@ enum HelixSceneBuilder {
         let g: Float = clamped < 0.5 ? clamped * 2.0 : 1.0
         let b: Float = 0.15
         return UIColor(red: CGFloat(r), green: CGFloat(g), blue: CGFloat(b), alpha: 1.0)
+    }
+
+    /// Determine the dominant sleep phase for a record and return its color.
+    ///
+    /// Counts phase intervals for deep, REM, and light sleep. Awake is only
+    /// considered dominant if it exceeds all other phases — otherwise the
+    /// most frequent non-awake phase wins.
+    private static func dominantPhaseColor(for record: SleepRecord) -> UIColor {
+        let phases = record.phases
+        guard !phases.isEmpty else { return lightColor }
+
+        let deepCount = phases.filter { $0.phase == .deep }.count
+        let remCount = phases.filter { $0.phase == .rem }.count
+        let lightCount = phases.filter { $0.phase == .light }.count
+        let awakeCount = phases.filter { $0.phase == .awake }.count
+
+        // Determine dominant non-awake phase
+        let nonAwakeMax = max(deepCount, remCount, lightCount)
+
+        // Awake only wins if it strictly exceeds all sleep phases
+        if awakeCount > nonAwakeMax {
+            return awakeColor
+        }
+
+        // Among non-awake phases, pick the highest count
+        // Tie-breaking priority: deep > REM > light (deep is most significant)
+        if deepCount >= remCount && deepCount >= lightCount {
+            return deepColor
+        } else if remCount >= lightCount {
+            return remColor
+        } else {
+            return lightColor
+        }
     }
 }

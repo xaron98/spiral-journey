@@ -9,6 +9,7 @@ import SpiralKit
 struct HelixRealityView: View {
 
     let profile: SleepDNAProfile
+    var records: [SleepRecord] = []
     @Binding var isInteractingWith3D: Bool
 
     @Environment(\.languageBundle) private var bundle
@@ -58,7 +59,7 @@ struct HelixRealityView: View {
     private var realityContent: some View {
         RealityView { content in
             let anchor = AnchorEntity()
-            let root = HelixSceneBuilder.build(from: profile)
+            let root = HelixSceneBuilder.build(from: profile, records: records)
             anchor.addChild(root)
             content.add(anchor)
             helixRoot = root
@@ -95,8 +96,8 @@ struct HelixRealityView: View {
                 )
             }
         }
-        .highPriorityGesture(dragGesture)
-        .highPriorityGesture(magnifyGesture)
+        .simultaneousGesture(dragGesture)
+        .simultaneousGesture(magnifyGesture)
         .simultaneousGesture(tapGesture)
         .contentShape(Rectangle())  // ensure full area is gesture-tappable
         .onAppear {
@@ -200,13 +201,18 @@ struct HelixRealityView: View {
     // MARK: - Gestures
 
     private var dragGesture: some Gesture {
-        DragGesture()
+        DragGesture(minimumDistance: 5)
             .onChanged { value in
-                manager.isInteracting = true
-                isInteractingWith3D = true
+                if !manager.isInteracting {
+                    // First frame: record start, don't apply yet
+                    manager.isInteracting = true
+                    isInteractingWith3D = true
+                    dragStart = value.translation
+                    return
+                }
                 let deltaX = Float(value.translation.width - dragStart.width)
                 let deltaY = Float(value.translation.height - dragStart.height)
-                manager.applyDrag(translationX: deltaX, translationY: deltaY)
+                manager.applyDrag(translationX: deltaX * 0.5, translationY: deltaY * 0.5)
                 dragStart = value.translation
             }
             .onEnded { _ in

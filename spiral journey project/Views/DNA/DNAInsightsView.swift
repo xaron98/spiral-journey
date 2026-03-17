@@ -55,7 +55,7 @@ struct DNAInsightsView: View {
             VStack(spacing: 16) {
                 DNAStateSection(profile: profile)
                 if #available(iOS 18.0, *), profile.helixGeometry.count >= 3 {
-                    HelixRealityView(profile: profile, isInteractingWith3D: $isInteractingWith3D)
+                    HelixRealityView(profile: profile, records: store.records, isInteractingWith3D: $isInteractingWith3D)
                 }
                 DNAMotifSection(profile: profile)
                 DNAAlignmentSection(profile: profile)

@@ -202,45 +202,98 @@ enum LLMContextBuilder {
             }
         }
 
-        // 9. SleepDNA insights (rich tier only)
+        // 9. SleepDNA insights — structured compact summary (rich tier only)
         if capability == .rich, let dna = dnaProfile {
-            let dnaHeader = isSpanish ? "ANÁLISIS SLEEPDNA:" : "SLEEPDNA ANALYSIS:"
-            parts.append(dnaHeader)
-            if isSpanish {
-                parts.append("- Nivel de análisis: \(dna.tier.rawValue), \(dna.dataWeeks) semanas de datos")
+            parts.append("SLEEP DNA ANALYSIS:")
+            parts.append("Tier: \(dna.tier.rawValue) (\(dna.dataWeeks) weeks)")
+
+            // HAS — habit stability
+            if let has = dna.hasScore {
+                parts.append("HAS: \(String(format: "%.2f", has)) (habit stability)")
+            }
+            // Baseline HAS — vs 4-week average
+            if let baseline = dna.baselineHAS {
+                parts.append("Baseline: \(String(format: "%.2f", baseline)) (vs 4-week average)")
+            }
+
+            // Health markers (compact key-value lines)
+            let hm = dna.healthMarkers
+            parts.append("HB: \(String(format: "%.2f", hm.homeostasisBalance)) (circadian-homeostatic balance)")
+            parts.append("HCI: \(String(format: "%.2f", hm.helicalContinuity)) (sleep continuity)")
+            if let rds = hm.remDriftSlope {
+                let sign = rds >= 0 ? "+" : ""
+                parts.append("RDS: \(sign)\(String(format: "%.0f", rds * 60)) min/day (REM drift)")
+            }
+            if let rce = hm.remClusterEntropy {
+                parts.append("RCE: \(String(format: "%.2f", rce)) (REM coherence)")
+            }
+            parts.append("Drift: \(String(format: "%.0f", hm.driftSeverity)) min/day")
+            parts.append("Coherence: \(String(format: "%.2f", hm.circadianCoherence))")
+
+            // Active pattern — most frequent motif
+            if let topMotif = dna.motifs.first {
+                let weekCount = topMotif.instanceCount
+                parts.append("Active pattern: \"\(topMotif.name)\" (\(weekCount) instances)")
+            }
+
+            // Recent mutation — last non-silent mutation
+            if let recentMutation = dna.mutations.last(where: { $0.classification != .silent }) {
+                let sign = recentMutation.qualityDelta >= 0 ? "+" : ""
+                let pct = String(format: "%.0f", recentMutation.qualityDelta * 100)
+                parts.append("Recent mutation: \(recentMutation.classification.rawValue) (\(sign)\(pct)% quality)")
+            }
+
+            // Similar week — best historical alignment
+            if let bestAlignment = dna.alignments.first {
+                let simPct = String(format: "%.0f", bestAlignment.similarity * 100)
+                parts.append("Similar week: day \(bestAlignment.startDay) (\(simPct)%)")
+            }
+
+            // Top influences — up to 2 strongest synchrony pairs
+            let topPairs = dna.basePairs.prefix(2)
+            if !topPairs.isEmpty {
+                let pairStrs = topPairs.map { pair -> String in
+                    let sleepLabel = Self.featureLabel(pair.sleepFeatureIndex)
+                    let ctxLabel = Self.featureLabel(pair.contextFeatureIndex)
+                    return "\(ctxLabel)\u{2192}\(sleepLabel) (PLV \(String(format: "%.2f", pair.plv)))"
+                }
+                parts.append("Top influences: \(pairStrs.joined(separator: ", "))")
+            }
+
+            // Alerts
+            if dna.healthMarkers.alerts.isEmpty {
+                parts.append("Alerts: none")
             } else {
-                parts.append("- Analysis tier: \(dna.tier.rawValue), \(dna.dataWeeks) weeks of data")
-            }
-
-            // Top synchrony pairs
-            if let topPair = dna.basePairs.first {
-                let sleepFeature = DayNucleotide.Feature(rawValue: topPair.sleepFeatureIndex)
-                let contextFeature = DayNucleotide.Feature(rawValue: topPair.contextFeatureIndex)
-                let plvStr = String(format: "%.2f", topPair.plv)
-                if isSpanish {
-                    parts.append("- Sincronía más fuerte: \(sleepFeature.map { "\($0)" } ?? "?") ↔ \(contextFeature.map { "\($0)" } ?? "?") (PLV \(plvStr))")
-                } else {
-                    parts.append("- Strongest synchrony: \(sleepFeature.map { "\($0)" } ?? "?") ↔ \(contextFeature.map { "\($0)" } ?? "?") (PLV \(plvStr))")
+                for alert in dna.healthMarkers.alerts.prefix(3) {
+                    parts.append("Alert [\(alert.severity.rawValue)]: \(alert.message)")
                 }
-            }
-
-            // Motif summary
-            if !dna.motifs.isEmpty {
-                let motifNames = dna.motifs.prefix(3).map(\.name).joined(separator: ", ")
-                if isSpanish {
-                    parts.append("- Patrones detectados: \(motifNames)")
-                } else {
-                    parts.append("- Detected patterns: \(motifNames)")
-                }
-            }
-
-            // Health alerts from DNA
-            for alert in dna.healthMarkers.alerts.prefix(2) {
-                parts.append("- \(alert.severity.rawValue.uppercased()): \(alert.message)")
             }
         }
 
         return parts.joined(separator: "\n")
+    }
+
+    // MARK: - Feature Labels
+
+    /// Compact human-readable label for a DayNucleotide feature index.
+    private static func featureLabel(_ index: Int) -> String {
+        switch DayNucleotide.Feature(rawValue: index) {
+        case .bedtimeSin, .bedtimeCos: return "bedtime"
+        case .wakeupSin, .wakeupCos:   return "wakeup"
+        case .sleepDuration:           return "duration"
+        case .processS:                return "sleep-pressure"
+        case .cosinorAcrophase:        return "acrophase"
+        case .cosinorR2:               return "rhythm"
+        case .caffeine:                return "caffeine"
+        case .exercise:                return "exercise"
+        case .alcohol:                 return "alcohol"
+        case .melatonin:               return "melatonin"
+        case .stress:                  return "stress"
+        case .isWeekend:               return "weekend"
+        case .driftMinutes:            return "drift"
+        case .sleepQuality:            return "quality"
+        case .none:                    return "f\(index)"
+        }
     }
 
     /// Build a trimmed chat history suitable for context injection.
