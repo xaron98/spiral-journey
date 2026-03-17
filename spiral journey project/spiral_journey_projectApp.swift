@@ -50,6 +50,9 @@ struct spiral_journey_projectApp: App {
                     //    permission dialog pops up.
                     await Task.yield()
 
+                    // ①½ Migrate UserDefaults/JSON data to SwiftData (one-time).
+                    DataMigrationService.migrateIfNeeded(store: store, container: modelContainer)
+
                     // Receive events and episodes logged on the Apple Watch
                     #if os(iOS)
                     WatchConnectivityManager.shared.onEventReceived = { event in
