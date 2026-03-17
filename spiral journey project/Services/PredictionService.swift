@@ -128,6 +128,7 @@ enum PredictionService {
         } else {
             prediction = HeuristicPredictionEngine.predict(from: input, targetDate: now)
         }
+        // TODO: SequenceAlignmentEngine integration
 
         // Package result
         let result = PredictionResult(
