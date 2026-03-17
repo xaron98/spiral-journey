@@ -36,11 +36,12 @@ struct DNAHealthSection: View {
                     Spacer()
                 }
             } else {
-                VStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: 8) {
                     ForEach(relevantAlerts) { alert in
                         alertRow(alert)
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
         .padding(16)
