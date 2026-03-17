@@ -10,7 +10,7 @@ final class SDCoachMessage {
 
     // MARK: Persisted Properties
 
-    @Attribute(.unique) var messageID: UUID
+    var messageID: UUID
     /// Stored as ChatRole.rawValue ("system" | "user" | "assistant").
     var role: String
     var content: String

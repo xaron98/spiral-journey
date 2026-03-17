@@ -11,7 +11,7 @@ final class SDSleepEpisode {
 
     // MARK: Persisted Properties
 
-    @Attribute(.unique) var episodeID: UUID
+    var episodeID: UUID
     var start: Double
     var end: Double
     /// Stored as DataSource.rawValue ("healthKit" | "manual").

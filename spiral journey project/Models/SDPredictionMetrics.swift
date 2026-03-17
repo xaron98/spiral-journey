@@ -10,7 +10,7 @@ final class SDPredictionMetrics {
 
     // MARK: Persisted Properties
 
-    @Attribute(.unique) var metricsID: UUID
+    var metricsID: UUID
     /// The date these metrics cover.
     var date: Date
     /// Mean Absolute Error in minutes.

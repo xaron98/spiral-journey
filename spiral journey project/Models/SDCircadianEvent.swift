@@ -10,7 +10,7 @@ final class SDCircadianEvent {
 
     // MARK: Persisted Properties
 
-    @Attribute(.unique) var eventID: UUID
+    var eventID: UUID
     /// Stored as EventType.rawValue ("light" | "exercise" | "melatonin" | etc.).
     var type: String
     var absoluteHour: Double

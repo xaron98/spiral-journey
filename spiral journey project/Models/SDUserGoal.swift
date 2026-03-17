@@ -10,7 +10,7 @@ final class SDUserGoal {
 
     // MARK: Persisted Properties
 
-    @Attribute(.unique) var goalID: UUID
+    var goalID: UUID
     /// Stored as CoachMode.rawValue ("generalHealth" | "shiftWork" | "customSchedule" | "rephase").
     var mode: String
     var targetBedHour: Double

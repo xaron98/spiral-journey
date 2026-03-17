@@ -11,7 +11,7 @@ final class SDTrainingMetrics {
 
     // MARK: Persisted Properties
 
-    @Attribute(.unique) var trainingID: UUID
+    var trainingID: UUID
     /// When this training run occurred.
     var date: Date
     /// MAE before retraining (minutes).

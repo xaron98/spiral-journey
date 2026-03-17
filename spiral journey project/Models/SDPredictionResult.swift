@@ -11,7 +11,7 @@ final class SDPredictionResult {
 
     // MARK: Persisted Properties
 
-    @Attribute(.unique) var predictionID: UUID
+    var predictionID: UUID
 
     // Flattened PredictionOutput
     var predictedBedtimeHour: Double
