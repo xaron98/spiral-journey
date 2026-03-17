@@ -56,10 +56,9 @@ public enum PredictionFeatureBuilder {
         let meanDuration = recent.map(\.sleepDuration).reduce(0, +) / Double(recent.count)
         let debt = meanDuration - goalDuration
 
-        // Estimate current Process S: hours since last wake
-        let lastWakeAbsHour = Double(latest.day) * period + latest.wakeupHour
-        let hoursSinceWake = max(0, currentAbsHour - lastWakeAbsHour)
-        let currentS = TwoProcessModel.processS(hoursSinceTransition: hoursSinceWake, isAwake: true, s0: 0.2)
+        // Estimate current Process S using continuous cross-day propagation
+        let clockHourInt = Int(clockHour)
+        let currentS = continuousProcessS(from: recent, currentHour: clockHourInt)
 
         // -- Circadian --
         let acro = latest.cosinor.acrophase
@@ -114,6 +113,53 @@ public enum PredictionFeatureBuilder {
             driftRate: drift, consistencyScore: conScore, chronotypeShift: chronoShift,
             dataCount: recent.count
         )
+    }
+
+    // MARK: - Continuous Process S
+
+    /// Compute Process S using cross-day debt propagation from the last 7 days.
+    ///
+    /// Calls `TwoProcessModel.computeContinuous` to propagate sleep debt across
+    /// multiple days, then extracts the S value for the current hour on the last day.
+    /// Falls back to the stateless `processS()` if fewer than 2 records are available.
+    ///
+    /// - Parameters:
+    ///   - records: Recent sleep records (sorted ascending by day).
+    ///   - currentHour: Current clock hour (0-23).
+    /// - Returns: Process S value in the range [0, 1].
+    public static func continuousProcessS(from records: [SleepRecord], currentHour: Int) -> Double {
+        let sorted = records.sorted { $0.day < $1.day }
+        let recent = Array(sorted.suffix(7))
+
+        guard recent.count >= 2 else {
+            // Fall back to stateless processS
+            guard let latest = recent.last else {
+                return TwoProcessModel.processS(hoursSinceTransition: 0, isAwake: true, s0: 0.2)
+            }
+            let hoursSinceWake = max(0, Double(currentHour) - latest.wakeupHour)
+            return TwoProcessModel.processS(hoursSinceTransition: hoursSinceWake, isAwake: true, s0: 0.2)
+        }
+
+        let points = TwoProcessModel.computeContinuous(recent)
+
+        // computeContinuous uses 0-based day indices matching array position
+        let lastDayIndex = recent.count - 1
+
+        // Find the point matching currentHour on the last day
+        let clampedHour = max(0, min(23, currentHour))
+        if let match = points.last(where: { $0.day == lastDayIndex && $0.hour == clampedHour }) {
+            return match.s
+        }
+
+        // If no exact hour match, use the last point from the last day
+        if let lastPoint = points.last(where: { $0.day == lastDayIndex }) {
+            return lastPoint.s
+        }
+
+        // Ultimate fallback: stateless
+        let latest = recent.last!
+        let hoursSinceWake = max(0, Double(currentHour) - latest.wakeupHour)
+        return TwoProcessModel.processS(hoursSinceTransition: hoursSinceWake, isAwake: true, s0: 0.2)
     }
 
     // MARK: - Circular helpers (duplicated from SpiralConsistencyCalculator pattern)
