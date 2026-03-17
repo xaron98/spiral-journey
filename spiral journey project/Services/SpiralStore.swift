@@ -113,7 +113,11 @@ final class SpiralStore {
     var linkGrowthToTau: Bool = false {
         didSet { save() }
     }
-    var depthScale: Double = 0.3 {
+    var depthScale: Double = 0.15 {
+        didSet { save() }
+    }
+    /// 2D flat mode — disables perspective, uses auto-zoom to fit spiral on screen.
+    var flatMode: Bool = false {
         didSet { save() }
     }
     var showGrid: Bool = true {
@@ -182,6 +186,10 @@ final class SpiralStore {
     }
     /// Use Core ML model instead of heuristic when available.
     var mlPredictionEnabled: Bool = true {
+        didSet { save() }
+    }
+    /// Use SleepDNA sequence alignment engine for prediction.
+    var sleepDNAPredictionEnabled: Bool = false {
         didSet { save() }
     }
     private(set) var latestPrediction: PredictionOutput? = nil
@@ -695,6 +703,7 @@ final class SpiralStore {
         period = 24.0
         linkGrowthToTau = false
         depthScale = 0.3
+        flatMode = false
         showGrid = true
         language = .systemMatch
         appearance = .dark
@@ -713,6 +722,7 @@ final class SpiralStore {
         predictionEnabled = false
         predictionOverlayEnabled = false
         mlPredictionEnabled = true
+        sleepDNAPredictionEnabled = false
         latestPrediction = nil
         predictionHistory = []
         hasBootstrappedPredictions = false
@@ -782,6 +792,7 @@ final class SpiralStore {
         var predictionEnabled: Bool?
         var predictionOverlayEnabled: Bool?
         var mlPredictionEnabled: Bool?
+        var sleepDNAPredictionEnabled: Bool?
         var latestPrediction: PredictionOutput?
         var predictionHistory: [PredictionResult]?
         var hasBootstrappedPredictions: Bool?
@@ -795,6 +806,7 @@ final class SpiralStore {
         // LLM chat
         var llmEnabled: Bool?
         var chatHistory: [ChatMessage]?
+        var flatMode: Bool?
     }
 
     private func save() {
@@ -827,6 +839,7 @@ final class SpiralStore {
             predictionEnabled: predictionEnabled,
             predictionOverlayEnabled: predictionOverlayEnabled,
             mlPredictionEnabled: mlPredictionEnabled,
+            sleepDNAPredictionEnabled: sleepDNAPredictionEnabled,
             latestPrediction: latestPrediction,
             predictionHistory: predictionHistory,
             hasBootstrappedPredictions: hasBootstrappedPredictions,
@@ -837,7 +850,8 @@ final class SpiralStore {
             previousCompositeScore: previousCompositeScore,
             microHabitCompletions: microHabitCompletions,
             llmEnabled: llmEnabled,
-            chatHistory: chatHistory
+            chatHistory: chatHistory,
+            flatMode: flatMode
         )
         if let data = try? JSONEncoder().encode(stored) {
             sharedDefaults.set(data, forKey: storageKey)
@@ -867,7 +881,11 @@ final class SpiralStore {
         spiralType = stored.spiralType
         period = stored.period
         linkGrowthToTau = stored.linkGrowthToTau
-        if let ds   = stored.depthScale  { depthScale = ds }
+        if let ds   = stored.depthScale  {
+            // Migrate: old defaults (0.3–0.6) were too deep, causing spiral
+            // compression at center. Force down to 0.15 for a flatter look.
+            depthScale = ds >= 0.3 ? 0.15 : ds
+        }
         if let grid = stored.showGrid    { showGrid = grid }
         if let lang = stored.language {
             // Migrate: if the stored language was set before the "System" option existed,
@@ -892,6 +910,7 @@ final class SpiralStore {
         if let pe  = stored.predictionEnabled { predictionEnabled = pe }
         if let poe = stored.predictionOverlayEnabled { predictionOverlayEnabled = poe }
         if let mpe = stored.mlPredictionEnabled { mlPredictionEnabled = mpe }
+        if let sdpe = stored.sleepDNAPredictionEnabled { sleepDNAPredictionEnabled = sdpe }
         if let lp  = stored.latestPrediction { latestPrediction = lp }
         if let ph  = stored.predictionHistory { predictionHistory = ph }
         if let hbp = stored.hasBootstrappedPredictions { hasBootstrappedPredictions = hbp }
@@ -903,6 +922,7 @@ final class SpiralStore {
         if let mhc = stored.microHabitCompletions { microHabitCompletions = mhc }
         if let le  = stored.llmEnabled { llmEnabled = le }
         if let ch  = stored.chatHistory { chatHistory = ch }
+        if let fm  = stored.flatMode { flatMode = fm }
 
         // Only restore onboarding state if the stored version matches current.
         // If version is missing or outdated, the flags stay false → tutorial replays.
@@ -945,6 +965,7 @@ final class SpiralStore {
             predictionEnabled: predictionEnabled,
             predictionOverlayEnabled: predictionOverlayEnabled,
             mlPredictionEnabled: mlPredictionEnabled,
+            sleepDNAPredictionEnabled: sleepDNAPredictionEnabled,
             latestPrediction: latestPrediction,
             predictionHistory: predictionHistory,
             hasBootstrappedPredictions: hasBootstrappedPredictions,
@@ -955,7 +976,8 @@ final class SpiralStore {
             previousCompositeScore: previousCompositeScore,
             microHabitCompletions: microHabitCompletions,
             llmEnabled: llmEnabled,
-            chatHistory: chatHistory
+            chatHistory: chatHistory,
+            flatMode: flatMode
         )
         if let data = try? JSONEncoder().encode(stored) {
             sharedDefaults.set(data, forKey: storageKey)

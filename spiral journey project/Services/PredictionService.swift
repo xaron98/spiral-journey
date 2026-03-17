@@ -128,6 +128,8 @@ enum PredictionService {
         } else {
             prediction = HeuristicPredictionEngine.predict(from: input, targetDate: now)
         }
+        // SleepDNA alignment engine (supplementary)
+        // Full ensemble integration deferred to future iteration
 
         // Package result
         let result = PredictionResult(

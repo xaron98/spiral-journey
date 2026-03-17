@@ -118,6 +118,7 @@ public enum PredictionConfidence: String, Codable, Sendable {
 public enum PredictionEngine: String, Codable, Sendable {
     case heuristic
     case ml
+    case sequenceAlignment
 }
 
 // MARK: - Prediction Result (Persistence + Evaluation)

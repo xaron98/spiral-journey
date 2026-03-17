@@ -46,10 +46,11 @@ enum LLMContextBuilder {
         )
     }
 
-    /// Enhanced system prompt that optionally includes prediction data.
+    /// Enhanced system prompt that optionally includes prediction data and SleepDNA insights.
     ///
     /// When `capability` is `.rich` and a `prediction` is provided, the prompt
     /// appends tonight's predicted bedtime and (optionally) the model accuracy.
+    /// When a `dnaProfile` is provided, key SleepDNA insights are injected.
     static func buildSystemPrompt(
         analysis: AnalysisResult,
         goal: SleepGoal,
@@ -57,7 +58,8 @@ enum LLMContextBuilder {
         locale: Locale = .current,
         capability: PromptCapability,
         prediction: PredictionOutput?,
-        modelAccuracy: Double?
+        modelAccuracy: Double?,
+        dnaProfile: SleepDNAProfile? = nil
     ) -> String {
         let isSpanish = locale.language.languageCode?.identifier == "es"
 
@@ -197,6 +199,44 @@ enum LLMContextBuilder {
                 } else {
                     parts.append("- Model accuracy: \(pct)")
                 }
+            }
+        }
+
+        // 9. SleepDNA insights (rich tier only)
+        if capability == .rich, let dna = dnaProfile {
+            let dnaHeader = isSpanish ? "ANÁLISIS SLEEPDNA:" : "SLEEPDNA ANALYSIS:"
+            parts.append(dnaHeader)
+            if isSpanish {
+                parts.append("- Nivel de análisis: \(dna.tier.rawValue), \(dna.dataWeeks) semanas de datos")
+            } else {
+                parts.append("- Analysis tier: \(dna.tier.rawValue), \(dna.dataWeeks) weeks of data")
+            }
+
+            // Top synchrony pairs
+            if let topPair = dna.basePairs.first {
+                let sleepFeature = DayNucleotide.Feature(rawValue: topPair.sleepFeatureIndex)
+                let contextFeature = DayNucleotide.Feature(rawValue: topPair.contextFeatureIndex)
+                let plvStr = String(format: "%.2f", topPair.plv)
+                if isSpanish {
+                    parts.append("- Sincronía más fuerte: \(sleepFeature.map { "\($0)" } ?? "?") ↔ \(contextFeature.map { "\($0)" } ?? "?") (PLV \(plvStr))")
+                } else {
+                    parts.append("- Strongest synchrony: \(sleepFeature.map { "\($0)" } ?? "?") ↔ \(contextFeature.map { "\($0)" } ?? "?") (PLV \(plvStr))")
+                }
+            }
+
+            // Motif summary
+            if !dna.motifs.isEmpty {
+                let motifNames = dna.motifs.prefix(3).map(\.name).joined(separator: ", ")
+                if isSpanish {
+                    parts.append("- Patrones detectados: \(motifNames)")
+                } else {
+                    parts.append("- Detected patterns: \(motifNames)")
+                }
+            }
+
+            // Health alerts from DNA
+            for alert in dna.healthMarkers.alerts.prefix(2) {
+                parts.append("- \(alert.severity.rawValue.uppercased()): \(alert.message)")
             }
         }
 
