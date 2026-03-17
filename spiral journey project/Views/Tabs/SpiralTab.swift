@@ -102,7 +102,7 @@ struct SpiralTab: View {
                                     spiralExtentTurns: maxReachedTurns,
                                     viewportCenterTurns: smoothCameraCenterTurns,
                                     visibleSpanTurns: liveVisibleDays,
-                                    depthScale: store.flatMode ? 0 : (store.spiralType == .logarithmic ? store.depthScale * 2.0 : store.depthScale),
+                                    depthScale: store.flatMode ? 0 : (store.spiralType == .logarithmic ? store.depthScale * 3.5 : store.depthScale),
                                     showGrid: store.showGrid,
                                     predictedBedHour: store.predictionOverlayEnabled ? store.latestPrediction?.predictedBedtimeHour : nil,
                                     predictedWakeHour: store.predictionOverlayEnabled ? store.latestPrediction?.predictedWakeHour : nil,
@@ -983,9 +983,9 @@ struct SpiralTab: View {
             let lastEnd = store.sleepEpisodes.map(\.end).max() ?? 0
             cursorAbsHour = nowAbsHour
             maxReachedTurns = max(minTurns, max(nowAbsHour, lastEnd) / store.period)
-            // 3D logarithmic mode starts at 6 turns (enough spread to show the
-            // exponential arm structure with cone depth); 2D flat and Archimedean use 7.
-            let maxInitialZoom = (store.spiralType == .logarithmic && !store.flatMode) ? 6.0 : 7.0
+            // 3D logarithmic mode starts at 7 turns (shows full cone depth effect with
+            // arm spread); 2D flat and Archimedean also use 7.
+            let maxInitialZoom = 7.0
             let initialZoom = min(maxReachedTurns, maxInitialZoom)
             visibleDays = initialZoom; liveVisibleDays = initialZoom
             pinchBaseVisibleDays = initialZoom
