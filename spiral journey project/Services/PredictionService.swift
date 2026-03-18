@@ -101,6 +101,14 @@ enum PredictionService {
         guard store.predictionEnabled else { return }
         guard !store.records.isEmpty else { return }
 
+        // Only 1 prediction per calendar day — duplicates dilute training quality
+        if let lastPrediction = store.latestPrediction {
+            let calendar = Calendar.current
+            if calendar.isDateInToday(lastPrediction.generatedAt) {
+                return
+            }
+        }
+
         // Current absolute hour on the timeline
         let calendar = Calendar.current
         let now = Date()
