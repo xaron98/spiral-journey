@@ -42,6 +42,10 @@ final class HealthKitManager {
     /// Ensures observer callbacks aren't silently dropped.
     private var needsRetryAfterImport = false
 
+    // MARK: - Anchored Object Query (primary live update mechanism)
+    private var sleepAnchor: HKQueryAnchor?
+    private var anchoredQuery: HKAnchoredObjectQuery?
+
     // MARK: - Authorization
 
     var isAvailable: Bool { HKHealthStore.isHealthDataAvailable() }
@@ -83,6 +87,86 @@ final class HealthKitManager {
             if let error {
                 print("[HealthKit] Background delivery failed: \(error.localizedDescription)")
             }
+        }
+    }
+
+    // MARK: - Anchored Sleep Query
+
+    /// Start an anchored object query for live sleep data updates.
+    /// More reliable than HKObserverQuery — delivers new samples directly
+    /// via the updateHandler whenever HealthKit receives new sleep data.
+    func startAnchoredSleepQuery(epoch: Date, onNewEpisodes: @escaping ([SleepEpisode]) -> Void) {
+        guard isAvailable, anchoredQuery == nil else { return }
+
+        let query = HKAnchoredObjectQuery(
+            type: sleepType,
+            predicate: nil,
+            anchor: sleepAnchor,
+            limit: HKObjectQueryNoLimit
+        ) { [weak self] _, newSamples, _, newAnchor, error in
+            guard error == nil else { return }
+            // HealthKit delivers on a background queue — bounce to MainActor
+            // so we can update sleepAnchor and process samples safely.
+            DispatchQueue.main.async {
+                self?.sleepAnchor = newAnchor
+                self?.processAnchoredSamples(newSamples, epoch: epoch, callback: onNewEpisodes)
+            }
+        }
+
+        // updateHandler fires on EVERY new sample added to HealthKit
+        query.updateHandler = { [weak self] _, newSamples, _, newAnchor, error in
+            guard error == nil else { return }
+            DispatchQueue.main.async {
+                self?.sleepAnchor = newAnchor
+                self?.processAnchoredSamples(newSamples, epoch: epoch, callback: onNewEpisodes)
+            }
+        }
+
+        anchoredQuery = query
+        store.execute(query)
+    }
+
+    /// Convert raw HKSamples from the anchored query into SleepEpisodes.
+    /// Same filtering/conversion logic as fetchSleepEpisodes, but operates
+    /// on a pre-delivered sample array instead of running a new query.
+    /// Must be called on the main actor (dispatched from query callbacks).
+    private func processAnchoredSamples(
+        _ samples: [HKSample]?,
+        epoch: Date,
+        callback: @escaping ([SleepEpisode]) -> Void
+    ) {
+        guard let samples = samples as? [HKCategorySample], !samples.isEmpty else { return }
+
+        // Filter out inBed, convert to SleepEpisode
+        let sleepSamples = samples.filter { sample in
+            let value = HKCategoryValueSleepAnalysis(rawValue: sample.value)
+            return value != .inBed
+        }
+
+        var episodes: [SleepEpisode] = []
+        for sample in sleepSamples {
+            let absStart = sample.startDate.absoluteHour(from: epoch)
+            let absEnd = sample.endDate.absoluteHour(from: epoch)
+            guard absEnd > absStart, absStart >= 0 else { continue }
+
+            let hkValue = HKCategoryValueSleepAnalysis(rawValue: sample.value)
+            let phase: SleepPhase?
+            switch hkValue {
+            case .asleepDeep:  phase = .deep
+            case .asleepREM:   phase = .rem
+            case .asleepCore:  phase = .light
+            case .awake:       phase = .awake
+            default:           phase = nil
+            }
+
+            episodes.append(SleepEpisode(
+                start: absStart, end: absEnd, source: .healthKit,
+                healthKitSampleID: sample.uuid.uuidString, phase: phase
+            ))
+        }
+
+        if !episodes.isEmpty {
+            callback(episodes)
         }
     }
 

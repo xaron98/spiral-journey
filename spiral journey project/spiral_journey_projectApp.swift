@@ -171,6 +171,13 @@ struct spiral_journey_projectApp: App {
                             }
                         }
                         healthKit.startObservingNewSleep()
+
+                        // Primary live update: anchored object query delivers new
+                        // samples directly without polling. More reliable than
+                        // HKObserverQuery for Watch → iPhone sync.
+                        healthKit.startAnchoredSleepQuery(epoch: store.startDate) { newEpisodes in
+                            store.mergeHealthKitEpisodes(newEpisodes)
+                        }
                     }
                     #endif
 
@@ -203,15 +210,13 @@ struct spiral_journey_projectApp: App {
                         await store.cloudSync?.fetchNow()
                     }
                 }
-                // ⑥ Periodic incremental HealthKit poll while the app is active.
-                // Watch → iPhone HealthKit sync can take seconds; the observer
-                // query doesn't always fire reliably. We do a cheap 3-day fetch
-                // and merge only truly new episodes (by UUID).
-                // Backoff: 5s → 15s → 30s → 60s when no new data; resets on new data.
-                // No full 365-day re-import — that only happens on launch/foreground.
+                // ⑥ Periodic incremental HealthKit poll — safety net only.
+                // The anchored object query handles fast live updates; this poll
+                // catches anything it might miss (e.g. after background delivery gaps).
+                // Backoff: 30s → 60s → 120s → 300s when no new data; resets on new data.
                 .task {
                     #if !targetEnvironment(simulator)
-                    let backoffSteps: [Int] = [5, 15, 30, 60]
+                    let backoffSteps: [Int] = [30, 60, 120, 300]
                     var backoffIndex = 0
                     while !Task.isCancelled {
                         try? await Task.sleep(for: .seconds(backoffSteps[backoffIndex]))
