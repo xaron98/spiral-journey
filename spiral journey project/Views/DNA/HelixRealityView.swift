@@ -103,6 +103,10 @@ struct HelixRealityView: View {
         .onAppear {
             startAutoRotation()
         }
+        .onDisappear {
+            autoRotationTimer?.invalidate()
+            autoRotationTimer = nil
+        }
     }
 
     // MARK: - Overlays
@@ -256,11 +260,15 @@ struct HelixRealityView: View {
 
     // MARK: - Auto-rotation Timer
 
+    @State private var autoRotationTimer: Timer?
+
     private func startAutoRotation() {
-        // Use a display-link-style timer at ~30fps
-        Timer.scheduledTimer(withTimeInterval: 1.0 / 30.0, repeats: true) { _ in
-            Task { @MainActor in
-                manager.tickAutoRotation()
+        // Invalidate any existing timer first
+        autoRotationTimer?.invalidate()
+        // Low frequency (10fps) to save memory and CPU
+        autoRotationTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 10.0, repeats: true) { _ in
+            Task { @MainActor [weak manager] in
+                manager?.tickAutoRotation()
             }
         }
     }
