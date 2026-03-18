@@ -101,12 +101,15 @@ enum PredictionService {
         guard store.predictionEnabled else { return }
         guard !store.records.isEmpty else { return }
 
-        // Only 1 prediction per calendar day — duplicates dilute training quality
-        if let lastPrediction = store.latestPrediction {
-            let calendar = Calendar.current
-            if calendar.isDateInToday(lastPrediction.generatedAt) {
-                return
-            }
+        // Only 1 prediction per target date — duplicates dilute training quality.
+        // Uses target date (the night being predicted), not generation time,
+        // so it works for any sleep schedule (day sleepers, shift workers, etc.)
+        let targetDate = Date()
+        let cal = Calendar.current
+        if store.predictionHistory.contains(where: {
+            cal.isDate($0.prediction.targetDate, inSameDayAs: targetDate)
+        }) {
+            return
         }
 
         // Current absolute hour on the timeline

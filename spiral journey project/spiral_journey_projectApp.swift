@@ -82,6 +82,9 @@ struct spiral_journey_projectApp: App {
                     // Wire up SwiftData context so SpiralStore can read from it.
                     store.configure(with: modelContainer.mainContext)
 
+                    // Clean up duplicate predictions (one-time migration)
+                    store.deduplicatePredictionHistory()
+
                     // ①½ Migrate UserDefaults/JSON data to SwiftData (one-time).
                     DataMigrationService.migrateIfNeeded(store: store, container: modelContainer)
 

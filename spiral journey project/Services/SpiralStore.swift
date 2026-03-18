@@ -620,6 +620,45 @@ final class SpiralStore {
         save()
     }
 
+    /// Remove duplicate predictions keeping only the best one per target date.
+    /// "Best" = the one with the smallest error if evaluated, or the most recent if not.
+    /// Call once to clean up historical duplicates.
+    func deduplicatePredictionHistory() {
+        let calendar = Calendar.current
+        var seen: [String: Int] = [:]  // dateKey → best index
+
+        for (i, result) in predictionHistory.enumerated() {
+            let key = calendar.startOfDay(for: result.prediction.targetDate).description
+            if let existing = seen[key] {
+                let existingResult = predictionHistory[existing]
+                // Prefer evaluated over unevaluated
+                if result.actual != nil && existingResult.actual == nil {
+                    seen[key] = i
+                } else if result.actual == nil && existingResult.actual != nil {
+                    // keep existing
+                } else if let newErr = result.errorBedtimeMinutes,
+                          let oldErr = existingResult.errorBedtimeMinutes {
+                    // Both evaluated: keep smaller error
+                    if abs(newErr) < abs(oldErr) { seen[key] = i }
+                }
+                // Otherwise keep the first one (existing)
+            } else {
+                seen[key] = i
+            }
+        }
+
+        let keepIndices = Set(seen.values)
+        let before = predictionHistory.count
+        predictionHistory = predictionHistory.enumerated()
+            .filter { keepIndices.contains($0.offset) }
+            .map(\.element)
+        let removed = before - predictionHistory.count
+        if removed > 0 {
+            print("[SpiralStore] Deduplicated predictions: removed \(removed) duplicates, kept \(predictionHistory.count)")
+            save()
+        }
+    }
+
     /// Evaluate unevaluated predictions against actual sleep records (ground truth).
     ///
     /// For each prediction in history that has no `actual` data yet, check if
