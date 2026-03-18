@@ -1,4 +1,6 @@
+#if canImport(Accelerate)
 import Accelerate
+#endif
 import Foundation
 
 /// Synchrony measurement between a strand-1 (sleep) and strand-2 (context) feature pair.
@@ -70,8 +72,9 @@ public enum HilbertPhaseAnalyzer {
         return results.sorted { $0.plv > $1.plv }
     }
 
-    // MARK: - Hilbert Transform (FFT-based)
+    // MARK: - Hilbert Transform
 
+    #if canImport(Accelerate)
     /// Compute instantaneous phase via the Hilbert Transform using Accelerate FFT.
     ///
     /// Algorithm:
@@ -156,6 +159,67 @@ public enum HilbertPhaseAnalyzer {
 
         return phases
     }
+
+    #else
+    /// Fallback: Compute instantaneous phase via a naive DFT-based Hilbert Transform.
+    /// Used on platforms where Accelerate is unavailable (e.g. Linux).
+    static func instantaneousPhase(_ signal: [Double]) -> [Double]? {
+        let n = signal.count
+        guard n >= minimumLength else { return nil }
+
+        // Check for constant signal (zero variance) -- phase is undefined
+        let mean = signal.reduce(0, +) / Double(n)
+        let centered = signal.map { $0 - mean }
+        let variance = centered.reduce(0) { $0 + $1 * $1 } / Double(n)
+        if variance < 1e-14 { return nil }
+
+        // Forward DFT: X[k] = sum_{t=0}^{N-1} x[t] * exp(-i * 2pi * k * t / N)
+        var freqReal = [Double](repeating: 0, count: n)
+        var freqImag = [Double](repeating: 0, count: n)
+        for k in 0..<n {
+            var sumR = 0.0, sumI = 0.0
+            for t in 0..<n {
+                let angle = -2.0 * .pi * Double(k) * Double(t) / Double(n)
+                sumR += signal[t] * cos(angle)
+                sumI += signal[t] * sin(angle)
+            }
+            freqReal[k] = sumR
+            freqImag[k] = sumI
+        }
+
+        // Apply Hilbert transform in frequency domain
+        let halfLen = n / 2
+        // DC (k=0): keep as is
+        // Positive frequencies (k = 1..<halfLen): multiply by 2
+        for k in 1..<halfLen {
+            freqReal[k] *= 2.0
+            freqImag[k] *= 2.0
+        }
+        // Nyquist (k = halfLen): keep as is (only for even n)
+        // Negative frequencies: zero out
+        for k in (halfLen + 1)..<n {
+            freqReal[k] = 0.0
+            freqImag[k] = 0.0
+        }
+
+        // Inverse DFT: x[t] = (1/N) * sum_{k=0}^{N-1} X[k] * exp(+i * 2pi * k * t / N)
+        let scale = 1.0 / Double(n)
+        var phases = [Double](repeating: 0, count: n)
+        for t in 0..<n {
+            var sumR = 0.0, sumI = 0.0
+            for k in 0..<n {
+                let angle = 2.0 * .pi * Double(k) * Double(t) / Double(n)
+                sumR += freqReal[k] * cos(angle) - freqImag[k] * sin(angle)
+                sumI += freqReal[k] * sin(angle) + freqImag[k] * cos(angle)
+            }
+            let re = sumR * scale
+            let im = sumI * scale
+            phases[t] = atan2(im, re)
+        }
+
+        return phases
+    }
+    #endif
 
     // MARK: - PLV Computation
 

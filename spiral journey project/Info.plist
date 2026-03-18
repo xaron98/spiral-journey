@@ -20,7 +20,5 @@
 	<string>Spiral Journey can import your calendar events as context blocks (work, study, commute) to detect conflicts between your sleep schedule and daily obligations. Your calendar data stays on your device and is never shared.</string>
 	<key>NSCalendarsUsageDescription</key>
 	<string>Spiral Journey can import your calendar events as context blocks (work, study, commute) to detect conflicts between your sleep schedule and daily obligations. Your calendar data stays on your device and is never shared.</string>
-	<key>NSUserTrackingUsageDescription</key>
-	<string>Spiral Journey does not track you.</string>
 </dict>
 </plist>

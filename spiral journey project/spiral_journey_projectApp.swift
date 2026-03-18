@@ -42,7 +42,16 @@ struct spiral_journey_projectApp: App {
             do {
                 return try ModelContainer(for: schema, configurations: [config])
             } catch {
-                fatalError("[SwiftData] Failed after reset: \(error)")
+                print("[SwiftData] Failed after reset: \(error). Falling back to in-memory store.")
+                let inMemoryConfig = ModelConfiguration(
+                    schema: schema,
+                    isStoredInMemoryOnly: true,
+                    cloudKitDatabase: .none
+                )
+                // Last resort: in-memory container so the app can still launch.
+                // SwiftData features will work for the session but won't persist.
+                // swiftlint:disable:next force_try
+                return try! ModelContainer(for: schema, configurations: [inMemoryConfig])
             }
         }
     }()
@@ -195,19 +204,25 @@ struct spiral_journey_projectApp: App {
                 }
                 // ⑥ Periodic incremental HealthKit poll while the app is active.
                 // Watch → iPhone HealthKit sync can take seconds; the observer
-                // query doesn't always fire reliably. Every 5s we do a cheap
-                // 3-day fetch and merge only truly new episodes (by UUID).
+                // query doesn't always fire reliably. We do a cheap 3-day fetch
+                // and merge only truly new episodes (by UUID).
+                // Backoff: 5s → 15s → 30s → 60s when no new data; resets on new data.
                 // No full 365-day re-import — that only happens on launch/foreground.
                 .task {
                     #if !targetEnvironment(simulator)
+                    let backoffSteps: [Int] = [5, 15, 30, 60]
+                    var backoffIndex = 0
                     while !Task.isCancelled {
-                        try? await Task.sleep(for: .seconds(5))
+                        try? await Task.sleep(for: .seconds(backoffSteps[backoffIndex]))
                         guard healthKit.isAuthorized else { continue }
                         let knownIDs = Set(store.sleepEpisodes.compactMap(\.healthKitSampleID))
                         let newEpisodes = await healthKit.fetchRecentNewEpisodes(
                             epoch: store.startDate, knownIDs: knownIDs)
                         if !newEpisodes.isEmpty {
                             store.mergeHealthKitEpisodes(newEpisodes)
+                            backoffIndex = 0 // Reset to fast polling on new data
+                        } else {
+                            backoffIndex = min(backoffIndex + 1, backoffSteps.count - 1)
                         }
                     }
                     #endif
