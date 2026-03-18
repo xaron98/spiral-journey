@@ -100,15 +100,18 @@ enum HelixSceneBuilder {
                 r * sin(theta + .pi + twist)
             )
 
-            // Determine nucleotide color for strand 2
-            let nucColor: UIColor
-            if usePhaseColoring, let record = recordByDay[nuc.day] {
-                nucColor = dominantPhaseColor(for: record)
+            // Strand 1 color: phase-based if available, quality-based fallback
+            let strand1Color: UIColor
+            if usePhaseColoring, let record = recordByDay[nuc.day], !record.phases.isEmpty {
+                strand1Color = dominantPhaseColor(for: record)
             } else {
-                // Fallback: quality-based green→red gradient
                 let quality = Float(nuc[.sleepQuality])
-                nucColor = qualityColor(quality)
+                strand1Color = qualityColor(quality)
             }
+
+            // Strand 2 color: context-based (orange intensity by activity level)
+            let contextIntensity = CGFloat(nuc[.caffeine] + nuc[.exercise] + nuc[.stress]) / 3.0
+            let strand2Color = UIColor.orange.withAlphaComponent(0.4 + contextIntensity * 0.5)
 
             // Strand tube radius modulated by deep-sleep proportion
             let tubeRadius = minStrandTubeRadius + thickness * (maxStrandTubeRadius - minStrandTubeRadius)
@@ -119,7 +122,7 @@ enum HelixSceneBuilder {
             sphere1.position = pos1
             root.addChild(sphere1)
 
-            let sphere2 = nucleotideSphere(color: nucColor, radius: nucleotideRadius)
+            let sphere2 = nucleotideSphere(color: strand2Color, radius: nucleotideRadius)
             sphere2.name = "nucleotide_2_\(dayIndex)"
             sphere2.position = pos2
             root.addChild(sphere2)
@@ -137,7 +140,7 @@ enum HelixSceneBuilder {
             }
             if let prev2 = prevPos2 {
                 // Blend color between previous and current for smooth transitions
-                let segColor = usePhaseColoring ? nucColor : prevStrand2Color
+                let segColor = strand2Color
                 let tube2 = strandTube(from: prev2, to: pos2, color: segColor, radius: tubeRadius)
                 tube2.name = "strand2_seg_\(dayIndex)"
                 root.addChild(tube2)
@@ -145,7 +148,7 @@ enum HelixSceneBuilder {
 
             prevPos1 = pos1
             prevPos2 = pos2
-            prevStrand2Color = nucColor
+            prevStrand2Color = strand2Color
         }
 
         return root
