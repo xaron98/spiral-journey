@@ -1,4 +1,5 @@
 import Foundation
+import SwiftData
 import SpiralKit
 import LLM
 
@@ -51,6 +52,7 @@ enum LLMContextBuilder {
     /// When `capability` is `.rich` and a `prediction` is provided, the prompt
     /// appends tonight's predicted bedtime and (optionally) the model accuracy.
     /// When a `dnaProfile` is provided, key SleepDNA insights are injected.
+    /// When a `questionnaire` is provided, the user's latest self-report is included.
     static func buildSystemPrompt(
         analysis: AnalysisResult,
         goal: SleepGoal,
@@ -59,7 +61,8 @@ enum LLMContextBuilder {
         capability: PromptCapability,
         prediction: PredictionOutput?,
         modelAccuracy: Double?,
-        dnaProfile: SleepDNAProfile? = nil
+        dnaProfile: SleepDNAProfile? = nil,
+        questionnaire: SDQuestionnaireResponse? = nil
     ) -> String {
         let isSpanish = locale.language.languageCode?.identifier == "es"
 
@@ -202,33 +205,33 @@ enum LLMContextBuilder {
             }
         }
 
-        // 9. SleepDNA insights — structured compact summary (rich tier only)
+        // 9. SleepDNA insights — plain-language descriptions (rich tier only)
         if capability == .rich, let dna = dnaProfile {
             parts.append("SLEEP DNA ANALYSIS:")
             parts.append("Tier: \(dna.tier.rawValue) (\(dna.dataWeeks) weeks)")
 
             // HAS — habit stability
             if let has = dna.hasScore {
-                parts.append("HAS: \(String(format: "%.2f", has)) (habit stability)")
+                parts.append("Habit stability (HAS): \(String(format: "%.2f", has)) — how similar this week is to your most similar historical week. 1.0 = identical habits.")
             }
             // Baseline HAS — vs 4-week average
             if let baseline = dna.baselineHAS {
-                parts.append("Baseline: \(String(format: "%.2f", baseline)) (vs 4-week average)")
+                parts.append("Baseline comparison: \(String(format: "%.2f", baseline)) — how similar this week is to your 4-week average. Dropping = changing habits.")
             }
 
-            // Health markers (compact key-value lines)
+            // Health markers — plain language descriptions
             let hm = dna.healthMarkers
-            parts.append("HB: \(String(format: "%.2f", hm.homeostasisBalance)) (circadian-homeostatic balance)")
-            parts.append("HCI: \(String(format: "%.2f", hm.helicalContinuity)) (sleep continuity)")
+            parts.append("Circadian-homeostatic balance (HB): \(String(format: "%.2f", hm.homeostasisBalance)) — how well your internal clock and sleep pressure are aligned. Lower is better. Above 0.3 means significant misalignment.")
+            parts.append("Sleep continuity (HCI): \(String(format: "%.2f", hm.helicalContinuity)) — how uninterrupted your sleep is. 1.0 = perfect, below 0.8 = fragmented with frequent awakenings.")
             if let rds = hm.remDriftSlope {
                 let sign = rds >= 0 ? "+" : ""
-                parts.append("RDS: \(sign)\(String(format: "%.0f", rds * 60)) min/day (REM drift)")
+                parts.append("REM drift (RDS): \(sign)\(String(format: "%.0f", rds * 60)) min/day — your REM phases are shifting \(String(format: "%.0f", abs(rds * 60))) minutes \(rds >= 0 ? "later" : "earlier") each day. Normal is positive (REM drifts later). Flat or negative may indicate disruption.")
             }
             if let rce = hm.remClusterEntropy {
-                parts.append("RCE: \(String(format: "%.2f", rce)) (REM coherence)")
+                parts.append("REM coherence (RCE): \(String(format: "%.2f", rce)) — how organized your REM episodes are. Lower entropy = more predictable, healthier pattern.")
             }
-            parts.append("Drift: \(String(format: "%.0f", hm.driftSeverity)) min/day")
-            parts.append("Coherence: \(String(format: "%.2f", hm.circadianCoherence))")
+            parts.append("Drift: \(String(format: "%.0f", hm.driftSeverity)) min/day — your bedtime is shifting by \(String(format: "%.0f", hm.driftSeverity)) minutes each day. Above 15 = significant.")
+            parts.append("Circadian coherence: \(String(format: "%.2f", hm.circadianCoherence)) — overall rhythm stability. Above 0.7 = synchronized. Below 0.4 = rhythm disrupted.")
 
             // Active pattern — most frequent motif
             if let topMotif = dna.motifs.first {
@@ -268,6 +271,44 @@ enum LLMContextBuilder {
                     parts.append("Alert [\(alert.severity.rawValue)]: \(alert.message)")
                 }
             }
+        }
+
+        // 10. User self-report questionnaire
+        if let q = questionnaire {
+            let qHeader = isSpanish ? "AUTO-REPORTE DEL USUARIO (esta semana):" : "USER SELF-REPORT (this week):"
+            parts.append(qHeader)
+            if isSpanish {
+                parts.append("- Calidad del sueño: \(q.sleepQuality)/5")
+                parts.append("- Somnolencia diurna: \(q.daytimeSleepiness)/5")
+                parts.append("- Precisión del patrón: \(q.patternAccuracy)")
+                parts.append("- Diferencia fin de semana: \(q.weekendDifference ? "sí" : "no")")
+                if let notes = q.notes, !notes.isEmpty {
+                    parts.append("- Notas: \"\(notes)\"")
+                }
+            } else {
+                parts.append("- Sleep quality: \(q.sleepQuality)/5")
+                parts.append("- Daytime sleepiness: \(q.daytimeSleepiness)/5")
+                parts.append("- Pattern accuracy: \(q.patternAccuracy)")
+                parts.append("- Weekend difference: \(q.weekendDifference ? "yes" : "no")")
+                if let notes = q.notes, !notes.isEmpty {
+                    parts.append("- Notes: \"\(notes)\"")
+                }
+            }
+        }
+
+        // 11. Metric explanation rule
+        if isSpanish {
+            parts.append("""
+            IMPORTANTE: Cuando hables de métricas, siempre explícalas en lenguaje sencillo. \
+            Nunca uses abreviaturas como HB, HCI, RDS, RCE sin explicar qué significan. \
+            El usuario puede no conocer estos términos.
+            """)
+        } else {
+            parts.append("""
+            IMPORTANT: When discussing metrics, always explain them in plain language. \
+            Never use abbreviations like HB, HCI, RDS, RCE without explaining what they mean. \
+            The user may not know these terms.
+            """)
         }
 
         return parts.joined(separator: "\n")

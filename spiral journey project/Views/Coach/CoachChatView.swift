@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 import SpiralKit
 
 /// Full-screen chat sheet for the AI coach.
@@ -14,6 +15,7 @@ struct CoachChatView: View {
     @Environment(SpiralStore.self) private var store
     @Environment(LLMService.self) private var llm
     @Environment(SleepDNAService.self) private var dnaService
+    @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Environment(\.languageBundle) private var bundle
 
@@ -382,6 +384,9 @@ struct CoachChatView: View {
         generationTask = Task {
             guard let provider else { return }
 
+            // Fetch latest questionnaire from SwiftData
+            let latestQuestionnaire = Self.fetchLatestQuestionnaire(context: modelContext)
+
             let systemPrompt = LLMContextBuilder.buildSystemPrompt(
                 analysis: store.analysis,
                 goal: store.sleepGoal,
@@ -389,7 +394,8 @@ struct CoachChatView: View {
                 capability: .compact,
                 prediction: nil,
                 modelAccuracy: nil,
-                dnaProfile: dnaService.latestProfile
+                dnaProfile: dnaService.latestProfile,
+                questionnaire: latestQuestionnaire
             )
 
             isGenerating = true
@@ -422,6 +428,17 @@ struct CoachChatView: View {
         let assistantMsg = ChatMessage(role: .assistant, content: response)
         messages.append(assistantMsg)
         store.chatHistory = messages
+    }
+
+    // MARK: - Questionnaire Fetch
+
+    /// Fetch the most recent weekly questionnaire response from SwiftData.
+    private static func fetchLatestQuestionnaire(context: ModelContext) -> SDQuestionnaireResponse? {
+        var descriptor = FetchDescriptor<SDQuestionnaireResponse>(
+            sortBy: [SortDescriptor(\.completedAt, order: .reverse)]
+        )
+        descriptor.fetchLimit = 1
+        return try? context.fetch(descriptor).first
     }
 
     // MARK: - Localization
