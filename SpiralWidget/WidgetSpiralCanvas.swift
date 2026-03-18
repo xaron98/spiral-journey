@@ -114,17 +114,12 @@ struct WidgetSpiralCanvas: View {
     }
 
     private func weekWindowOpacity(turns t: Double) -> Double {
-        let focusEnd   = visibleDays
-        let focusStart = focusEnd - 3.0
-        func softStep(_ x: Double, edge: Double, half: Double = 0.5) -> Double {
-            max(0.0, min(1.0, (x - (edge - half)) / (2 * half)))
-        }
-        if t >= focusStart {
-            return softStep(t, edge: focusStart + 0.5)
-        } else if t >= focusStart - 3.0 {
-            return 0.35 * softStep(t, edge: focusStart - 2.5)
-        }
-        return 0.0
+        // Widget shows all available data — no aggressive fading.
+        // Only fade the very start slightly for visual depth.
+        let extent = max(spiralExtentTurns, 1.0)
+        let fraction = t / extent  // 0 = oldest, 1 = newest
+        // Oldest data at 40% opacity, newest at 100%
+        return 0.4 + fraction * 0.6
     }
 
     private func perspectiveScale(turns t: Double, geo: SpiralGeometry) -> Double {
