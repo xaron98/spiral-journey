@@ -33,5 +33,6 @@ struct SpiralWatchApp: App {
             Task { await store.refreshFromHealthKit() }
         }
         hk.startObservingNewSleep()
+        hk.startAnchoredSleepQuery()
     }
 }

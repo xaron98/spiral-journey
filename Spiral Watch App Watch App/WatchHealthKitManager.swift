@@ -21,6 +21,8 @@ final class WatchHealthKitManager {
         set { UserDefaults.standard.set(newValue, forKey: "watchHKAuthorized") }
     }
     private var observerQuery: HKObserverQuery?
+    private var anchoredQuery: HKAnchoredObjectQuery?
+    private var sleepAnchor: HKQueryAnchor?
 
     /// Called whenever HealthKit delivers new sleep data.
     var onNewSleepData: (() -> Void)?
@@ -60,6 +62,38 @@ final class WatchHealthKitManager {
         observerQuery = query
         store.execute(query)
         store.enableBackgroundDelivery(for: sleepType, frequency: .immediate) { _, _ in }
+    }
+
+    // MARK: - Anchored Query (more reliable than observer)
+
+    /// Start an anchored query that fires on every new sleep sample.
+    func startAnchoredSleepQuery() {
+        guard isAvailable, anchoredQuery == nil else { return }
+        print("[WatchHK-Anchor] Starting anchored query")
+
+        let query = HKAnchoredObjectQuery(
+            type: sleepType,
+            predicate: nil,
+            anchor: sleepAnchor,
+            limit: HKObjectQueryNoLimit
+        ) { [weak self] _, _, _, newAnchor, error in
+            guard error == nil else { return }
+            self?.sleepAnchor = newAnchor
+            // Initial fetch — don't trigger callback (loadData already ran)
+        }
+
+        query.updateHandler = { [weak self] _, newSamples, _, newAnchor, error in
+            guard error == nil else { return }
+            guard let samples = newSamples, !samples.isEmpty else { return }
+            print("[WatchHK-Anchor] UPDATE: \(samples.count) new samples!")
+            DispatchQueue.main.async {
+                self?.sleepAnchor = newAnchor
+                self?.onNewSleepData?()
+            }
+        }
+
+        anchoredQuery = query
+        store.execute(query)
     }
 
     // MARK: - Sleep Data Query
