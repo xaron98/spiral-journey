@@ -13,6 +13,8 @@ struct DNAInsightsView: View {
     @Environment(\.languageBundle) private var bundle
 
     @State private var isInteractingWith3D = false
+    @State private var showQuestionnaire = false
+    @State private var questionnaireAvailable = false
 
     var body: some View {
         NavigationStack {
@@ -43,6 +45,12 @@ struct DNAInsightsView: View {
             }
             .task {
                 await dnaService.refreshIfNeeded(store: store, context: modelContext)
+                questionnaireAvailable = WeeklyQuestionnaireView.isAvailable(context: modelContext)
+            }
+            .sheet(isPresented: $showQuestionnaire) {
+                WeeklyQuestionnaireView {
+                    questionnaireAvailable = false
+                }
             }
         }
     }
@@ -53,6 +61,11 @@ struct DNAInsightsView: View {
     private func profileContent(_ profile: SleepDNAProfile) -> some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 16) {
+                // Weekly check-in banner
+                if questionnaireAvailable {
+                    questionnaireBanner
+                }
+
                 DNAStateSection(profile: profile)
                 if #available(iOS 18.0, *), profile.helixGeometry.count >= 3 {
                     HelixRealityView(profile: profile, records: store.records, isInteractingWith3D: $isInteractingWith3D)
@@ -68,6 +81,40 @@ struct DNAInsightsView: View {
             .padding(.bottom, 40)
         }
         .scrollDisabled(isInteractingWith3D)
+    }
+
+    // MARK: - Questionnaire Banner
+
+    private var questionnaireBanner: some View {
+        Button {
+            showQuestionnaire = true
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "list.clipboard")
+                    .font(.system(size: 14))
+                    .foregroundStyle(SpiralColors.accent)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(loc("questionnaire.banner.title"))
+                        .font(.system(size: 12, weight: .medium, design: .monospaced))
+                        .foregroundStyle(SpiralColors.text)
+                    Text(loc("questionnaire.banner.subtitle"))
+                        .font(.system(size: 10))
+                        .foregroundStyle(SpiralColors.muted)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(SpiralColors.accent)
+            }
+            .padding(12)
+            .background(SpiralColors.accent.opacity(0.08))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .strokeBorder(SpiralColors.accent.opacity(0.2), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Loading

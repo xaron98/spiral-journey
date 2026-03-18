@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 import SpiralKit
 
 /// Settings tab: appearance, language, spiral controls, HealthKit, data management.
@@ -8,6 +9,8 @@ struct SettingsTab: View {
     @Environment(HealthKitManager.self) private var healthKit
     @Environment(CalendarManager.self) private var calendarManager
     @Environment(LLMService.self) private var llm
+    @Environment(SleepDNAService.self) private var dnaService
+    @Environment(\.modelContext) private var modelContext
     @Environment(\.languageBundle) private var bundle
     @State private var isRefreshing = false
     @State private var isImporting = false
@@ -16,6 +19,9 @@ struct SettingsTab: View {
     @State private var showResetAllConfirm = false
     @State private var showContextBlockEditor = false
     @State private var editingBlock: ContextBlock? = nil
+    @State private var isExporting = false
+    @State private var exportURL: URL?
+    @State private var showExportShare = false
 
     // MARK: - Helpers
 
@@ -561,6 +567,40 @@ struct SettingsTab: View {
                             .foregroundStyle(SpiralColors.muted)
                         Spacer()
                     }
+
+                    // CSV export for scientific validation
+                    Button {
+                        isExporting = true
+                        Task {
+                            exportURL = DataExporter.exportAll(
+                                store: store,
+                                dnaProfile: dnaService.latestProfile,
+                                context: modelContext
+                            )
+                            isExporting = false
+                            if exportURL != nil {
+                                showExportShare = true
+                            }
+                        }
+                    } label: {
+                        HStack {
+                            if isExporting { ProgressView().scaleEffect(0.7) }
+                            Label(
+                                String(localized: "settings.data.exportCSV", bundle: bundle),
+                                systemImage: "square.and.arrow.up"
+                            )
+                            .font(.system(size: 11, design: .monospaced))
+                            .foregroundStyle(SpiralColors.accent)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(isExporting)
+                    .sheet(isPresented: $showExportShare) {
+                        if let url = exportURL {
+                            ShareSheet(activityItems: [url])
+                        }
+                    }
+
                     Button(role: .destructive) {
                         showClearManualConfirm = true
                     } label: {
@@ -905,3 +945,18 @@ private struct SettingsSection<Content: View>: View {
         .panelStyle()
     }
 }
+
+// MARK: - Share Sheet
+
+#if os(iOS)
+/// Minimal UIKit wrapper to present a UIActivityViewController via SwiftUI `.sheet`.
+private struct ShareSheet: UIViewControllerRepresentable {
+    let activityItems: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+}
+#endif

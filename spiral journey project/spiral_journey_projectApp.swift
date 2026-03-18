@@ -22,7 +22,8 @@ struct spiral_journey_projectApp: App {
             SDPredictionMetrics.self,
             SDTrainingMetrics.self,
             SDSleepDNASnapshot.self,
-            SDSleepBLOSUM.self
+            SDSleepBLOSUM.self,
+            SDQuestionnaireResponse.self
         ]
 
         // Local-only: explicitly disable CloudKit (CKSyncEngine handles sync separately).
