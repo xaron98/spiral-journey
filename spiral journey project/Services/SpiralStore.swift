@@ -567,11 +567,16 @@ final class SpiralStore {
             return !existingIDs.contains(hkID)
         }
         if !toAdd.isEmpty {
+            print("[Store] mergeHealthKitEpisodes: adding \(toAdd.count) new episodes")
             sleepEpisodes.append(contentsOf: toAdd)
             sleepEpisodes.sort { $0.start < $1.start }
+            // Ensure numDays covers through today so new data is visible
+            reconcileEpochWithEpisodes()
             recompute()
             // Push new episodes to CloudKit
             for ep in toAdd { cloudSync?.enqueueEpisodeSave(ep) }
+        } else {
+            print("[Store] mergeHealthKitEpisodes: 0 new (all \(newEpisodes.count) already known)")
         }
     }
 

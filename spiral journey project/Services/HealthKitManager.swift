@@ -98,15 +98,16 @@ final class HealthKitManager {
     func startAnchoredSleepQuery(epoch: Date, onNewEpisodes: @escaping ([SleepEpisode]) -> Void) {
         guard isAvailable, anchoredQuery == nil else { return }
 
+        print("[HK-Anchor] Starting anchored query, existing anchor: \(String(describing: sleepAnchor))")
+
         let query = HKAnchoredObjectQuery(
             type: sleepType,
             predicate: nil,
             anchor: sleepAnchor,
             limit: HKObjectQueryNoLimit
         ) { [weak self] _, newSamples, _, newAnchor, error in
-            guard error == nil else { return }
-            // HealthKit delivers on a background queue — bounce to MainActor
-            // so we can update sleepAnchor and process samples safely.
+            if let error { print("[HK-Anchor] initial error: \(error)"); return }
+            print("[HK-Anchor] initial fetch: \(newSamples?.count ?? 0) samples")
             DispatchQueue.main.async {
                 self?.sleepAnchor = newAnchor
                 self?.processAnchoredSamples(newSamples, epoch: epoch, callback: onNewEpisodes)
@@ -115,7 +116,8 @@ final class HealthKitManager {
 
         // updateHandler fires on EVERY new sample added to HealthKit
         query.updateHandler = { [weak self] _, newSamples, _, newAnchor, error in
-            guard error == nil else { return }
+            if let error { print("[HK-Anchor] update error: \(error)"); return }
+            print("[HK-Anchor] UPDATE: \(newSamples?.count ?? 0) new samples received!")
             DispatchQueue.main.async {
                 self?.sleepAnchor = newAnchor
                 self?.processAnchoredSamples(newSamples, epoch: epoch, callback: onNewEpisodes)
