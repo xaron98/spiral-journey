@@ -37,10 +37,8 @@ struct WidgetSpiralCanvas: View {
 
     var body: some View {
         Canvas { context, size in
-            context.fill(
-                Path(CGRect(origin: .zero, size: size)),
-                with: .color(Color(hex: "0c0e14"))
-            )
+            // Background handled by .containerBackground on the widget —
+            // no manual fill here to avoid a visible inner rectangle.
 
             let turns = max(spiralExtentTurns, 0.1)
             let scaleDays = max(1, Int(ceil(turns)))
