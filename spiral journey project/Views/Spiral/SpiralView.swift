@@ -241,36 +241,37 @@ struct SpiralView: View {
         let extentTurns = spiralExtentTurns ?? Double(max(records.count, 1))
         let cursorTurns: Double? = cursorAbsHour.map { $0 / max(geo.period, 1.0) }
 
-        // ── RETROSPECTIVE WINDOW MODEL ──
+        // ── SLIDING WINDOW CAMERA ──
         //
-        // ── Simple model: camera follows cursor, opacity by distance ──
+        // The camera always frames a 7-turn window around the cursor.
+        // Cursor moves freely (past/future). Only the visible window is rendered.
+        // Zoom auto-adjusts to fit the window. No fragments possible because
+        // nothing outside the window is drawn.
         let cursorT = cursorTurns ?? extentTurns
         let focusTurns = viewportCenterTurns ?? cursorT
         let span = visibleSpanTurns ?? 7.0
         let cameraZPadding = 0.5
 
-        let camFrom = max(focusTurns - span, 0)
-        // Camera follows cursor — zoom accompanies the focal point.
+        // Camera window: cursor is at the leading edge, window extends back
         let camUpTo = focusTurns + cameraZPadding
+        let camFrom = max(camUpTo - span - cameraZPadding, 0)
 
         let camera = CameraState(fromTurns: camFrom, upToTurns: camUpTo,
                                   focusTurns: focusTurns,
                                   geo: geo, depthScale: depthScale,
                                   perspectivePower: perspectivePower)
 
-        let backboneCap = floor(cursorT) + 1.0
+        // Only render what's in the window — nothing beyond
+        let renderFrom = camFrom
+        let renderUpTo = camUpTo
+
+        // Backbone: only within the visible window
+        let backboneCap = min(floor(cursorT) + 1.0, renderUpTo)
 
         // ── Growth animation clamp ──
-        // growthProgress 0→1 limits how much of the spiral is drawn.
-        // An ease-applied progress creates a smooth grow-from-center effect.
         let gp = min(max(growthProgress, 0), 1)
         let growthCutTurns = gp < 1.0 ? extentTurns * gp : Double.greatestFiniteMagnitude
         let growthBackboneCap = gp < 1.0 ? min(backboneCap, growthCutTurns) : backboneCap
-
-        // Extend the viewport to always include all data so the spiral
-        // never vanishes when scrolling to the past. The camera controls
-        // perspective, but rendering covers the full extent.
-        let renderUpTo = max(camUpTo, extentTurns + cameraZPadding)
 
         let state = SpiralVisibilityEngine.resolve(
             records: records,
