@@ -528,8 +528,22 @@ struct SpiralView: View {
         } else {
             skipFrom = 0; skipTo = 0
         }
-        // Backbone limited to 7 turns before cursor — never show more than a week
-        let backboneFrom = max(state.backboneClipTurns - 7.0, 0)
+        // Backbone limited to turns before cursor — never show more than a week.
+        // In Archimedean 3D, further limit to only draw where perspective is
+        // reasonable — prevents compressed old turns from creating center fragments.
+        var backboneFrom = max(state.backboneClipTurns - 7.0, 0)
+        if camera.zStep > 0 && geo.spiralType == .archimedean {
+            // Find the earliest turn with acceptable perspective scale
+            let minAcceptableScale = 0.15
+            var t = state.backboneClipTurns
+            while t > backboneFrom {
+                if camera.perspectiveScale(turns: t) < minAcceptableScale {
+                    backboneFrom = t + 0.1
+                    break
+                }
+                t -= 0.5
+            }
+        }
         drawSpiralPath(context: context, geo: geo, camera: camera,
                        fromTurns: backboneFrom,
                        upToTurns: state.backboneClipTurns,
@@ -574,17 +588,6 @@ struct SpiralView: View {
                 d += step; continue
             }
             let pt = camera.project(turns: t, geo: geo)
-            // Archimedean 3D only: hard clip anything near the spiral center.
-            // Old turns compress there due to perspective, creating fragments.
-            // Log 3D handles this differently (sqrt perspective) — don't apply.
-            if camera.zStep > 0 && geo.spiralType == .archimedean {
-                let centerDist = hypot(pt.x - geo.cx, pt.y - geo.cy)
-                if centerDist < geo.startRadius * 0.7 {
-                    flush()
-                    if d >= upToTurns { break }
-                    d += step; continue
-                }
-            }
             // Clip to canvas: Archimedean arms can extend far beyond canvas in 3D mode.
             // Break the path when projected point exits canvas bounds to prevent edge artifacts.
             if pt.x < -20 || pt.x > geo.width + 20 || pt.y < -20 || pt.y > geo.height + 20 {
