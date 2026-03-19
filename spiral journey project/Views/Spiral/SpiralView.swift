@@ -245,38 +245,20 @@ struct SpiralView: View {
         //
         // ── Simple model: camera follows cursor, opacity by distance ──
         let cursorT = cursorTurns ?? extentTurns
-        let rawFocusTurns = viewportCenterTurns ?? cursorT
-        // In 3D, clamp camera focus to data extent + 1 so the zoom stays
-        // framed on actual content when the cursor goes to future days.
-        let focusTurns = depthScale > 0
-            ? min(rawFocusTurns, extentTurns + 1.0)
-            : rawFocusTurns
+        let focusTurns = viewportCenterTurns ?? cursorT
         let span = visibleSpanTurns ?? 7.0
         let cameraZPadding = 0.5
 
         let camFrom = max(focusTurns - span, 0)
         // Camera follows cursor — zoom accompanies the focal point.
-        // In 3D, clamp camUpTo so the camera doesn't zoom out into
-        // empty future space. Max = data extent + 1 turn.
-        let rawCamUpTo = focusTurns + cameraZPadding
-        let camUpTo: Double
-        if depthScale > 0 {
-            camUpTo = min(rawCamUpTo, extentTurns + 1.0)
-        } else {
-            camUpTo = rawCamUpTo
-        }
+        let camUpTo = focusTurns + cameraZPadding
 
         let camera = CameraState(fromTurns: camFrom, upToTurns: camUpTo,
                                   focusTurns: focusTurns,
                                   geo: geo, depthScale: depthScale,
                                   perspectivePower: perspectivePower)
 
-        // Backbone extends to cursor day, but in 3D clamp to data extent + 1
-        // to prevent drawing into compressed center (center fragment artifact).
-        let rawBackboneCap = floor(cursorT) + 1.0
-        let backboneCap = depthScale > 0
-            ? min(rawBackboneCap, extentTurns + 1.0)
-            : rawBackboneCap
+        let backboneCap = floor(cursorT) + 1.0
 
         // ── Growth animation clamp ──
         // growthProgress 0→1 limits how much of the spiral is drawn.
@@ -288,13 +270,7 @@ struct SpiralView: View {
         // Extend the viewport to always include all data so the spiral
         // never vanishes when scrolling to the past. The camera controls
         // perspective, but rendering covers the full extent.
-        // In 3D, cap at data extent + 1 to avoid rendering into the compressed center.
-        let renderUpTo: Double
-        if depthScale > 0 {
-            renderUpTo = min(max(camUpTo, extentTurns + cameraZPadding), extentTurns + 1.5)
-        } else {
-            renderUpTo = max(camUpTo, extentTurns + cameraZPadding)
-        }
+        let renderUpTo = max(camUpTo, extentTurns + cameraZPadding)
 
         let state = SpiralVisibilityEngine.resolve(
             records: records,
@@ -528,22 +504,8 @@ struct SpiralView: View {
         } else {
             skipFrom = 0; skipTo = 0
         }
-        // Backbone limited to turns before cursor — never show more than a week.
-        // In Archimedean 3D, further limit to only draw where perspective is
-        // reasonable — prevents compressed old turns from creating center fragments.
-        var backboneFrom = max(state.backboneClipTurns - 7.0, 0)
-        if camera.zStep > 0 && geo.spiralType == .archimedean {
-            // Find the earliest turn with acceptable perspective scale
-            let minAcceptableScale = 0.15
-            var t = state.backboneClipTurns
-            while t > backboneFrom {
-                if camera.perspectiveScale(turns: t) < minAcceptableScale {
-                    backboneFrom = t + 0.1
-                    break
-                }
-                t -= 0.5
-            }
-        }
+        // Backbone limited to 7 turns before cursor — never show more than a week
+        let backboneFrom = max(state.backboneClipTurns - 7.0, 0)
         drawSpiralPath(context: context, geo: geo, camera: camera,
                        fromTurns: backboneFrom,
                        upToTurns: state.backboneClipTurns,
