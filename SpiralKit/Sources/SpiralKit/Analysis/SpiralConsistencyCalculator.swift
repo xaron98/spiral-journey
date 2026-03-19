@@ -251,28 +251,72 @@ public enum SpiralConsistencyCalculator {
                 continue
             }
 
-            // ── Local disruption: fragmentation concentrated in ≤25% of night arc ─
+            // ── Local disruption: detect mid-sleep awakenings ─────────────
+            // Works for any schedule: day sleepers, night sleepers, split sleep.
+            //
+            // Strategy: look at awake phases WITHIN sleep blocks, not at the
+            // full 24h awake vector (which includes normal waking hours).
+            // A local disruption = awake phases that interrupt expected sleep.
+
             let awakeVec = awakeVector(night)
-            _ = max(night.sleepDuration, 1.0)  // nightDuration reserved for threshold tuning
-            // Find contiguous awake bins
-            let localBins = contiguousAwakeBins(awakeVec, threshold: 0.4)
-            if let widest = localBins.max(by: { $0.count < $1.count }) {
-                let binFraction = Double(widest.count) / 24.0
-                let totalAwakeFraction = awakeVec.filter { $0 > 0.4 }.count
-                if binFraction <= 0.25 && Double(totalAwakeFraction) / 24 > 0.08 {
-                    let startH = Double(widest.first ?? 0)
-                    let endH   = Double((widest.last ?? 0) + 1)
-                    localDays.append(dayIdx)
-                    insights.append(PatternInsight(
-                        type: .local,
-                        title: "Disrupción localizada",
-                        summary: String(format: "Despertares concentrados alrededor de las %02.0f:00–%02.0f:00",
-                                        startH, endH),
-                        severity: 1,
-                        affectedStart: startH,
-                        affectedEnd: endH,
-                        recommendedAction: "Revisa temperatura, ruido o luz en esa franja. Considera reducir líquidos por la tarde."
-                    ))
+
+            // Method 1: Phase-based (more reliable with HealthKit data)
+            // Count awake phases that occur DURING sleep (between bedtime and wake)
+            let sleepPhases = night.phases.filter { $0.phase != .awake }
+            let awakeInSleep = night.phases.filter { phase in
+                guard phase.phase == .awake else { return false }
+                // Only count awakenings within the sleep window, not before/after
+                let sleepStart = night.bedtimeHour
+                let sleepEnd = night.wakeupHour
+                if sleepStart > sleepEnd {
+                    // Crosses midnight
+                    return phase.hour >= sleepStart || phase.hour < sleepEnd
+                } else {
+                    return phase.hour >= sleepStart && phase.hour < sleepEnd
+                }
+            }
+
+            // Threshold: >2 awake phases during sleep = local disruption
+            // (Apple Watch records awake phases at 15-min resolution, so 2 phases = 30+ min awake)
+            if awakeInSleep.count >= 2 && !sleepPhases.isEmpty {
+                // Find the cluster of awakenings
+                let awakeHours = awakeInSleep.map(\.hour).sorted()
+                let startH = awakeHours.first ?? 0
+                let endH = (awakeHours.last ?? 0) + 0.25
+
+                localDays.append(dayIdx)
+                insights.append(PatternInsight(
+                    type: .local,
+                    title: "Disrupción localizada",
+                    summary: String(format: "Se detectaron %d despertares durante el sueño (%02.0f:00–%02.0f:00)",
+                                    awakeInSleep.count, startH, endH),
+                    severity: awakeInSleep.count >= 4 ? 2 : 1,
+                    affectedStart: startH,
+                    affectedEnd: endH,
+                    recommendedAction: "Revisa temperatura, ruido o luz en esa franja. Considera reducir líquidos por la tarde."
+                ))
+            }
+            // Method 2: Fallback for records without phase data
+            else if sleepPhases.isEmpty {
+                let localBins = contiguousAwakeBins(awakeVec, threshold: 0.3) // lowered from 0.4
+                if let widest = localBins.max(by: { $0.count < $1.count }) {
+                    let binFraction = Double(widest.count) / 24.0
+                    let totalAwakeCount = awakeVec.filter { $0 > 0.3 }.count
+                    if binFraction <= 0.30 && Double(totalAwakeCount) / 24 > 0.06 { // relaxed thresholds
+                        let startH = Double(widest.first ?? 0)
+                        let endH   = Double((widest.last ?? 0) + 1)
+                        localDays.append(dayIdx)
+                        insights.append(PatternInsight(
+                            type: .local,
+                            title: "Disrupción localizada",
+                            summary: String(format: "Despertares concentrados alrededor de las %02.0f:00–%02.0f:00",
+                                            startH, endH),
+                            severity: 1,
+                            affectedStart: startH,
+                            affectedEnd: endH,
+                            recommendedAction: "Revisa temperatura, ruido o luz en esa franja. Considera reducir líquidos por la tarde."
+                        ))
+                    }
                 }
             }
 
