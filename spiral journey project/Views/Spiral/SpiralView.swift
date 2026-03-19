@@ -574,15 +574,12 @@ struct SpiralView: View {
                 d += step; continue
             }
             let pt = camera.project(turns: t, geo: geo)
-            // 3D only: skip points that project too close to center — prevents
-            // disconnected fragments when sqrt perspective compresses old turns.
-            // Use a dynamic threshold that scales with perspective: compressed
-            // points (low perspScale) need a larger exclusion zone.
-            if camera.zStep > 0 {
+            // Archimedean 3D only: hard clip anything near the spiral center.
+            // Old turns compress there due to perspective, creating fragments.
+            // Log 3D handles this differently (sqrt perspective) — don't apply.
+            if camera.zStep > 0 && geo.spiralType == .archimedean {
                 let centerDist = hypot(pt.x - geo.cx, pt.y - geo.cy)
-                let pScale = camera.perspectiveScale(turns: t)
-                let dynamicThreshold = max(35.0, 25.0 / max(pScale, 0.05))
-                if centerDist < dynamicThreshold {
+                if centerDist < geo.startRadius * 0.7 {
                     flush()
                     if d >= upToTurns { break }
                     d += step; continue
