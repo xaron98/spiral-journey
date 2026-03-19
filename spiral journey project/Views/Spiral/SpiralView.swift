@@ -251,7 +251,15 @@ struct SpiralView: View {
 
         let camFrom = max(focusTurns - span, 0)
         // Camera follows cursor — zoom accompanies the focal point.
-        let camUpTo = focusTurns + cameraZPadding
+        // In 3D, clamp camUpTo so the camera doesn't zoom out into
+        // empty future space. Max = data extent + 1 turn.
+        let rawCamUpTo = focusTurns + cameraZPadding
+        let camUpTo: Double
+        if depthScale > 0 {
+            camUpTo = min(rawCamUpTo, extentTurns + 1.0)
+        } else {
+            camUpTo = rawCamUpTo
+        }
 
         let camera = CameraState(fromTurns: camFrom, upToTurns: camUpTo,
                                   focusTurns: focusTurns,
