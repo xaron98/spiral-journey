@@ -505,8 +505,10 @@ struct SpiralView: View {
         } else {
             skipFrom = 0; skipTo = 0
         }
-        // Backbone limited to 7 turns before cursor — never show more than a week
-        let backboneFrom = max(state.backboneClipTurns - 7.0, 0)
+        // Backbone starts from the camera window start — not from an arbitrary
+        // "7 turns back". This ensures the backbone only draws within the visible
+        // range and never creates disconnected fragments at the spiral origin.
+        let backboneFrom = max(state.renderFromTurns, 0)
         drawSpiralPath(context: context, geo: geo, camera: camera,
                        fromTurns: backboneFrom,
                        upToTurns: state.backboneClipTurns,
@@ -744,6 +746,14 @@ struct SpiralView: View {
             guard !phases.isEmpty else { continue }
             let vis = state.dayVisibility(for: record.day)
             guard vis.isVisible && vis.opacity > 0.01 else { continue }
+            // 3D: skip entire record if its midpoint perspective is too compressed.
+            // Prevents disconnected data fragments at the spiral center when the
+            // camera window has moved far ahead of this record.
+            if camera.zStep > 0 {
+                let midT = (dayStartTurns + dayEndTurns) / 2
+                let midScale = camera.perspectiveScale(turns: midT)
+                guard midScale > 0.12 else { continue }
+            }
 
             let dataOpacity = vis.opacity
             let cutTurns = min(globalCutTurns, dayEndTurns)
