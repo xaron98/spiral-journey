@@ -10,6 +10,7 @@ struct ConsistencyDetailView: View {
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.languageBundle) private var bundle
+    @State private var showLegendHelp = false
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -152,7 +153,20 @@ struct ConsistencyDetailView: View {
     private var weeklyHeatmapSection: some View {
         let nights = recentNights(count: consistency.nightsUsed)
         return VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(String(format: String(localized: "consistency.heatmap.title", bundle: bundle), consistency.nightsUsed))
+            HStack {
+                sectionHeader(String(format: String(localized: "consistency.heatmap.title", bundle: bundle), consistency.nightsUsed))
+                Spacer()
+                Button { showLegendHelp = true } label: {
+                    Image(systemName: "questionmark.circle")
+                        .font(.system(size: 14))
+                        .foregroundStyle(SpiralColors.muted)
+                }
+            }
+            .sheet(isPresented: $showLegendHelp) {
+                ConsistencyLegendSheet()
+                    .presentationDetents([.medium])
+                    .presentationDragIndicator(.visible)
+            }
 
             if nights.isEmpty {
                 Text(String(localized: "consistency.heatmap.noData", bundle: bundle))
@@ -453,6 +467,70 @@ private struct InsightDetailCard: View {
                         .stroke(accentColor.opacity(0.2), lineWidth: 0.5)
                 )
         )
+    }
+}
+
+// MARK: - Legend Help Sheet
+
+private struct ConsistencyLegendSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.languageBundle) private var bundle
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    legendItem(
+                        color: Color(hex: "5bffa8"),
+                        title: loc("consistency.help.normal.title"),
+                        description: loc("consistency.help.normal.desc")
+                    )
+                    legendItem(
+                        color: Color(hex: "f5c842"),
+                        title: loc("consistency.help.local.title"),
+                        description: loc("consistency.help.local.desc")
+                    )
+                    legendItem(
+                        color: Color(hex: "f05050"),
+                        title: loc("consistency.help.global.title"),
+                        description: loc("consistency.help.global.desc")
+                    )
+                }
+                .padding(20)
+            }
+            .background(SpiralColors.bg.ignoresSafeArea())
+            .navigationTitle(loc("consistency.help.title"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button { dismiss() } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(SpiralColors.muted)
+                    }
+                }
+            }
+        }
+    }
+
+    private func legendItem(color: Color, title: String, description: String) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            RoundedRectangle(cornerRadius: 4)
+                .fill(color.opacity(0.8))
+                .frame(width: 28, height: 28)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(SpiralColors.text)
+                Text(description)
+                    .font(.system(size: 13))
+                    .foregroundStyle(SpiralColors.muted)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    private func loc(_ key: String) -> String {
+        NSLocalizedString(key, bundle: bundle, comment: "")
     }
 }
 
