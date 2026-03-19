@@ -202,8 +202,18 @@ struct spiral_journey_projectApp: App {
                         // recorded while the app was backgrounded appears immediately.
                         #if !targetEnvironment(simulator)
                         if healthKit.isAuthorized {
-                            if let result = await healthKit.importAndAdjustEpoch() {
-                                store.applyHealthKitResult(epoch: result.epoch, episodes: result.episodes)
+                            // Fast path: incremental merge of last 3 days (quick, no 365-day scan)
+                            let knownIDs = Set(store.sleepEpisodes.compactMap(\.healthKitSampleID))
+                            let newEpisodes = await healthKit.fetchRecentNewEpisodes(
+                                epoch: store.startDate, knownIDs: knownIDs)
+                            if !newEpisodes.isEmpty {
+                                store.mergeHealthKitEpisodes(newEpisodes)
+                            } else {
+                                // Fallback: full re-import if incremental found nothing
+                                // (covers edge cases like epoch mismatch)
+                                if let result = await healthKit.importAndAdjustEpoch() {
+                                    store.applyHealthKitResult(epoch: result.epoch, episodes: result.episodes)
+                                }
                             }
                         }
                         #endif
