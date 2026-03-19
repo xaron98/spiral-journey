@@ -197,15 +197,46 @@ public enum SpiralConsistencyCalculator {
         let meanWake  = mean(wakes)
         let sdOnset   = circularSD(onsets)
         let sdWake    = standardDeviation(wakes)
-        _ = sdWake   // Reserved for future pattern analysis refinements
 
-        for (_, night) in nights.enumerated() {
+        // Detect if user has irregular schedule (high variance)
+        let isIrregularSchedule = sdOnset > 2.0 || sdWake > 2.0
+
+        for (i, night) in nights.enumerated() {
             let dayIdx = night.day
             let onsetDiff = abs(circularDiff(night.bedtimeHour, meanOnset))
             let wakeDiff  = abs(night.wakeupHour - meanWake)
 
-            // ── Global shift: both onset AND wake deviate significantly ───
-            let globalThresholdH = max(1.5, sdOnset * 2.0)
+            // ── Day/Night phase reversal: detect switch between day and night sleep ─
+            // Compare this night's onset against the PREVIOUS night, not just the mean.
+            // A shift of >6h between consecutive nights is always significant.
+            if i > 0 {
+                let prevOnset = nights[i - 1].bedtimeHour
+                let consecutiveDiff = abs(circularDiff(night.bedtimeHour, prevOnset))
+                if consecutiveDiff > 6.0 {
+                    globalDays.append(dayIdx)
+                    let dir = circularDiff(night.bedtimeHour, prevOnset) > 0 ? "más tarde" : "más temprano"
+                    insights.append(PatternInsight(
+                        type: .global,
+                        title: "Cambio de fase día/noche",
+                        summary: String(format: "Tu horario se desplazó %.0f horas %@ respecto a la noche anterior",
+                                       consecutiveDiff, dir),
+                        severity: 3,
+                        recommendedAction: "Un cambio de fase tan grande puede afectar tu ritmo circadiano durante varios días."
+                    ))
+                    continue
+                }
+            }
+
+            // ── Global shift: onset AND wake deviate significantly ───
+            // For irregular schedules, use a fixed threshold (1.5h) so
+            // disruptions are still detected despite high baseline variance.
+            // For regular schedules, use adaptive threshold.
+            let globalThresholdH: Double
+            if isIrregularSchedule {
+                globalThresholdH = 1.5  // fixed: don't let high SD mask real shifts
+            } else {
+                globalThresholdH = max(1.5, sdOnset * 2.0)
+            }
             if onsetDiff > globalThresholdH && wakeDiff > globalThresholdH * 0.8 {
                 globalDays.append(dayIdx)
                 let dir = circularDiff(night.bedtimeHour, meanOnset) > 0 ? "más tarde" : "más temprano"
