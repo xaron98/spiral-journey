@@ -266,7 +266,12 @@ struct SpiralView: View {
                                   geo: geo, depthScale: depthScale,
                                   perspectivePower: perspectivePower)
 
-        let backboneCap = floor(cursorT) + 1.0   // extend backbone to midnight of cursor day
+        // Backbone extends to cursor day, but in 3D clamp to data extent + 1
+        // to prevent drawing into compressed center (center fragment artifact).
+        let rawBackboneCap = floor(cursorT) + 1.0
+        let backboneCap = depthScale > 0
+            ? min(rawBackboneCap, extentTurns + 1.0)
+            : rawBackboneCap
 
         // ── Growth animation clamp ──
         // growthProgress 0→1 limits how much of the spiral is drawn.
@@ -278,7 +283,13 @@ struct SpiralView: View {
         // Extend the viewport to always include all data so the spiral
         // never vanishes when scrolling to the past. The camera controls
         // perspective, but rendering covers the full extent.
-        let renderUpTo = max(camUpTo, extentTurns + cameraZPadding)
+        // In 3D, cap at data extent + 1 to avoid rendering into the compressed center.
+        let renderUpTo: Double
+        if depthScale > 0 {
+            renderUpTo = min(max(camUpTo, extentTurns + cameraZPadding), extentTurns + 1.5)
+        } else {
+            renderUpTo = max(camUpTo, extentTurns + cameraZPadding)
+        }
 
         let state = SpiralVisibilityEngine.resolve(
             records: records,
