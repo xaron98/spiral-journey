@@ -119,8 +119,8 @@ struct SpiralTab: View {
                                             isUserInteracting = true
                                             interactionMode = .scrub
                                             lastInteractionTime = Date()
-                                            // Log 3D: tighter cursor limit prevents center fragments
-                                            let cursorPadding = isLog3D ? 0.5 : 1.5
+                                            // 3D: tight cursor limit prevents center fragments and zoom drift
+                                            let cursorPadding = (store.flatMode ? 1.5 : 0.5)
                                             let searchMax = min(
                                                 (maxReachedTurns + cursorPadding) * store.period,
                                                 Double(maxDays) * store.period
