@@ -237,12 +237,14 @@ public enum ConclusionsEngine {
         let dur2 = mean(second.map(\.sleepDuration))
         let durDelta = dur2 - dur1
         if durDelta > 0.3 {
+            let formatted = SpiralConsistencyCalculator.formatDuration(hours: durDelta)
             improving.append(TrendItem(label: "Sleep Duration",
-                detail: String(format: "+%.0f min/night", durDelta * 60),
+                detail: "+\(formatted)/night",
                 labelKey: .sleepDuration, detailKey: .durationUp, detailArgs: [durDelta * 60]))
         } else if durDelta < -0.3 {
+            let formatted = SpiralConsistencyCalculator.formatDuration(hours: abs(durDelta))
             deteriorating.append(TrendItem(label: "Sleep Duration",
-                detail: String(format: "%.0f min/night", durDelta * 60),
+                detail: "-\(formatted)/night",
                 labelKey: .sleepDuration, detailKey: .durationDown, detailArgs: [durDelta * 60]))
         } else {
             stable.append(TrendItem(label: "Sleep Duration",
@@ -324,14 +326,16 @@ public enum ConclusionsEngine {
         }
 
         if jl > 90 {
+            let formatted = SpiralConsistencyCalculator.formatDuration(hours: jl / 60)
             recs.append(Recommendation(priority: 1,
                 title: "Reduce social jetlag",
-                text: String(format: "%.0f minutes of difference between weekdays and weekend — equivalent to crossing time zones every week. Affects metabolism and cognition.", jl),
+                text: "\(formatted) of difference between weekdays and weekend — equivalent to crossing time zones every week. Affects metabolism and cognition.",
                 key: .reduceSocialJetlag, args: [jl]))
         } else if jl > 45 {
+            let formatted = SpiralConsistencyCalculator.formatDuration(hours: jl / 60)
             recs.append(Recommendation(priority: 2,
                 title: "Minimize weekend lag",
-                text: String(format: "%.0f min of lag. Try keeping weekend schedules closer to weekdays.", jl),
+                text: "\(formatted) of lag. Try keeping weekend schedules closer to weekdays.",
                 key: .minimizeWeekendLag, args: [jl]))
         }
 

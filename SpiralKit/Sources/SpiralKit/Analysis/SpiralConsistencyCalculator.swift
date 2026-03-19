@@ -218,8 +218,7 @@ public enum SpiralConsistencyCalculator {
                     insights.append(PatternInsight(
                         type: .global,
                         title: "Cambio de fase día/noche",
-                        summary: String(format: "Tu horario se desplazó %.0f horas %@ respecto a la noche anterior",
-                                       consecutiveDiff, dir),
+                        summary: "Tu horario se desplazó \(formatDuration(hours: consecutiveDiff)) \(dir) respecto a la noche anterior",
                         severity: 3,
                         recommendedAction: "Un cambio de fase tan grande puede afectar tu ritmo circadiano durante varios días."
                     ))
@@ -243,8 +242,7 @@ public enum SpiralConsistencyCalculator {
                 insights.append(PatternInsight(
                     type: .global,
                     title: "Desplazamiento global del sueño",
-                    summary: String(format: "Esta noche tu patrón se desplazó %.0f min %@",
-                                   onsetDiff * 60, dir),
+                    summary: "Esta noche tu patrón se desplazó \(formatDuration(hours: onsetDiff)) \(dir)",
                     severity: onsetDiff > 2 ? 2 : 1,
                     recommendedAction: "Intenta mantener una hora de inicio y despertar estable, incluso en fines de semana."
                 ))
@@ -340,6 +338,24 @@ public enum SpiralConsistencyCalculator {
         // Sort by severity descending
         insights.sort { $0.severity > $1.severity }
         return (insights, localDays, globalDays)
+    }
+
+    // MARK: - Time Formatting
+
+    /// Format a duration in hours as human-readable text.
+    /// <1h → "45 min", ≥1h → "2.5 horas", handles fractional hours.
+    static func formatDuration(hours: Double) -> String {
+        let totalMinutes = abs(hours) * 60
+        if totalMinutes < 60 {
+            return String(format: "%.0f min", totalMinutes)
+        } else {
+            let h = totalMinutes / 60
+            if h == h.rounded() {
+                return String(format: "%.0f horas", h)
+            } else {
+                return String(format: "%.1f horas", h)
+            }
+        }
     }
 
     // MARK: - Math Helpers
