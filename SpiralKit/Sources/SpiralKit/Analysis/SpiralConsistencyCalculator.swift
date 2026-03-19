@@ -343,17 +343,18 @@ public enum SpiralConsistencyCalculator {
     // MARK: - Time Formatting
 
     /// Format a duration in hours as human-readable text.
-    /// <1h → "45 min", ≥1h → "2.5 horas", handles fractional hours.
+    /// <1h → "45 min", ≥1h → "1h 30min", "2h 48min", etc.
     static func formatDuration(hours: Double) -> String {
-        let totalMinutes = abs(hours) * 60
+        let totalMinutes = Int((abs(hours) * 60).rounded())
         if totalMinutes < 60 {
-            return String(format: "%.0f min", totalMinutes)
+            return "\(totalMinutes) min"
         } else {
             let h = totalMinutes / 60
-            if h == h.rounded() {
-                return String(format: "%.0f horas", h)
+            let m = totalMinutes % 60
+            if m == 0 {
+                return "\(h)h"
             } else {
-                return String(format: "%.1f horas", h)
+                return "\(h)h \(m)min"
             }
         }
     }
