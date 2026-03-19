@@ -287,14 +287,14 @@ struct SpiralView: View {
         )
 
         // ── Render pipeline ──
-        // 1. Day rings — only draw rings within growth frontier
+        // 1. Day rings
         drawDayRings(context: context, geo: geo, camera: camera, state: state, growthCutTurns: growthCutTurns)
         // 2. Radial lines
         if showGrid {
             let radialLimit = gp < 1.0 ? min(state.renderUpToTurns, growthCutTurns) : state.renderUpToTurns
             drawRadialLines(context: context, geo: geo, upToTurns: radialLimit)
         }
-        // 3. Vigilia path — spiral structure always visible in camera range
+        // 3. Vigilia path (backbone)
         drawSpiralPath(context: context, geo: geo, camera: camera, state: state)
         // 4. Two-process model
         if showTwoProcess {
@@ -302,7 +302,7 @@ struct SpiralView: View {
         }
         // 5. Data points (phase strokes)
         drawDataPoints(context: context, geo: geo, camera: camera, state: state, growthCutTurns: growthCutTurns)
-        // 6. Context blocks (blue bands) — visibility driven by render state
+        // 6. Context blocks
         if !contextBlocks.isEmpty && state.markerState.shouldRenderContextMarkers {
             drawContextBlocks(context: context, geo: geo, camera: camera, state: state, growthCutTurns: growthCutTurns)
         }
@@ -738,17 +738,14 @@ struct SpiralView: View {
             let isLastRecord = record.id == lastRecord?.id
             let dayStartTurns = geo.turns(day: record.day, hour: 0)
             let dayEndTurns = geo.turns(day: record.day + 1, hour: 0)
-            // Widen range by 1 turn so partial days aren't skipped as chunks.
-            // Per-segment isBehindCamera + edge fade handle the actual clipping.
-            guard (dayEndTurns >= fromTurns - 1 && dayStartTurns <= upToTurns + 1) || isLastRecord else { continue }
+            // Only draw records within the visible window (±1 turn margin for partial days).
+            guard dayEndTurns >= fromTurns - 1 && dayStartTurns <= upToTurns + 1 else { continue }
             let phases = record.phases
             guard !phases.isEmpty else { continue }
             let vis = state.dayVisibility(for: record.day)
-            guard (vis.isVisible && vis.opacity > 0.01) || isLastRecord else { continue }
+            guard vis.isVisible && vis.opacity > 0.01 else { continue }
 
-            // Edge fade is now per-segment in drawRun — not per-day.
-            // Last record always visible — it's the most recent sleep data.
-            let dataOpacity = isLastRecord ? max(vis.opacity, 0.35) : vis.opacity
+            let dataOpacity = vis.opacity
             let cutTurns = min(globalCutTurns, dayEndTurns)
 
             // Build all runs for this record.
@@ -763,8 +760,8 @@ struct SpiralView: View {
                 runPoints.removeAll()
             }
 
-            // Build data runs — always for the last record (sleep data must not vanish)
-            if (vis.isVisible && vis.opacity > 0.01) || isLastRecord {
+            // Build data runs within visible window
+            if vis.isVisible && vis.opacity > 0.01 {
                 for (i, phase) in phases.enumerated() {
                     let t = geo.turns(day: record.day, hour: phase.hour)
                     if t > cutTurns { break }
@@ -792,7 +789,7 @@ struct SpiralView: View {
             // avoids drawing on top of recorded sleep data — the data already contains
             // awake phases from wakeup onwards.
             var liveAwakeRun: Run? = nil
-            if isLastRecord, let cursorH = cursorAbsHour {
+            if isLastRecord, let cursorH = cursorAbsHour, vis.isVisible {
                 let tCursor = cursorH / geo.period
                 // Start where recorded data ends, not from wakeup — prevents
                 // the awake extension from covering sleep data at the same turns.
@@ -821,7 +818,7 @@ struct SpiralView: View {
 
             // Draw order: awake data → live awake extension → sleep data
             // Sleep phases render ON TOP so they're never hidden by yellow awake lines.
-            let skipEdge = isLastRecord
+            let skipEdge = isLastRecord && vis.isVisible
             for run in runs where !isSleep(run.phase) { drawRun(run, opacity: dataOpacity, applyEdgeFade: !skipEdge) }
 
             // Live awake extension (yellow, full opacity) draws between awake data and sleep data.
