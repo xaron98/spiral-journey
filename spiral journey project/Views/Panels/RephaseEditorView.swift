@@ -35,6 +35,41 @@ struct RephaseEditorView: View {
         return max(1.0, lastEnd / store.period)
     }
 
+    // Match SpiralTab's effective params for log/arch consistency
+    private var isLog3D: Bool {
+        store.spiralType == .logarithmic && !store.flatMode
+    }
+
+    private var effectiveStartRadius: Double {
+        isLog3D ? 60.0 : 75.0
+    }
+
+    private var effectiveDepthScale: Double {
+        let ds = store.depthScale
+        guard isLog3D else { return ds }
+        return max(ds, 0.5)
+    }
+
+    private var effectivePerspectivePower: Double {
+        isLog3D ? 0.5 : 1.0
+    }
+
+    private var effectiveSpiralExtent: Double {
+        if store.spiralType == .logarithmic {
+            let dataDays = Double(store.records.count)
+            return max(min(maxTurns, dataDays + 1), 7)
+        }
+        return maxTurns
+    }
+
+    private var effectiveLinkGrowthToTau: Bool {
+        if store.spiralType == .logarithmic && store.linkGrowthToTau {
+            let tauRate = log(max(store.period, 23) / 24) / (2 * .pi)
+            if abs(tauRate) < 0.001 { return false }
+        }
+        return store.linkGrowthToTau
+    }
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -111,7 +146,7 @@ struct RephaseEditorView: View {
                     events: store.events,
                     spiralType: store.spiralType,
                     period: store.period,
-                    linkGrowthToTau: store.linkGrowthToTau,
+                    linkGrowthToTau: effectiveLinkGrowthToTau,
                     showCosinor: false,
                     showBiomarkers: false,
                     showTwoProcess: false,
@@ -119,11 +154,13 @@ struct RephaseEditorView: View {
                     onSelectDay: { _ in },
                     contextBlocks: store.contextBlocksEnabled ? store.contextBlocks : [],
                     numDaysHint: maxDays,
-                    spiralExtentTurns: turns,
+                    spiralExtentTurns: effectiveSpiralExtent,
                     visibleSpanTurns: liveVisibleDays,
-                    depthScale: store.depthScale,
+                    depthScale: store.flatMode ? 0 : effectiveDepthScale,
+                    perspectivePower: effectivePerspectivePower,
                     targetWakeHour: plan.targetWakeHour,
-                    targetBedHour: plan.derivedTargetBedHour
+                    targetBedHour: plan.derivedTargetBedHour,
+                    startRadius: effectiveStartRadius
                 )
                 // Drag to set wake hour (same angle-finding logic as SpiralTab)
                 .simultaneousGesture(
