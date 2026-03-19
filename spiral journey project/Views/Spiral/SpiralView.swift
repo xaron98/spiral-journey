@@ -245,7 +245,12 @@ struct SpiralView: View {
         //
         // ── Simple model: camera follows cursor, opacity by distance ──
         let cursorT = cursorTurns ?? extentTurns
-        let focusTurns = viewportCenterTurns ?? cursorT
+        let rawFocusTurns = viewportCenterTurns ?? cursorT
+        // In 3D, clamp camera focus to data extent + 1 so the zoom stays
+        // framed on actual content when the cursor goes to future days.
+        let focusTurns = depthScale > 0
+            ? min(rawFocusTurns, extentTurns + 1.0)
+            : rawFocusTurns
         let span = visibleSpanTurns ?? 7.0
         let cameraZPadding = 0.5
 
