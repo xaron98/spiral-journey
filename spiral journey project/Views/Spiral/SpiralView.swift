@@ -37,6 +37,8 @@ struct SpiralView: View {
     /// Higher = more perspective separation between turns (stronger 3D effect).
     /// Range 0.2 (flat) … 4.0 (very deep). Default 1.5.
     var depthScale: Double = 1.5
+    /// Perspective power: 1.0 = standard 1/z, 0.5 = sqrt (softer cone, more even arm spacing).
+    var perspectivePower: Double = 1.0
     /// Optional rephase target wake hour (0-24) — draws a subtle dashed radial line.
     var targetWakeHour: Double? = nil
     /// Optional rephase target bedtime hour (0-24) — draws a subtle dashed radial line.
@@ -106,6 +108,7 @@ struct SpiralView: View {
         let zStep: Double
         let focalLen: Double
         let camZ: Double
+        let perspPow: Double
         // Flat mode (zStep==0): radial zoom projection bounds, precomputed at init.
         let flatRInner: Double
         let flatROuter: Double
@@ -121,7 +124,7 @@ struct SpiralView: View {
         /// In flat mode (depthScale=0) a radial zoom projection is used instead:
         /// the visible band [fromTurns, upToTurns] is mapped to [0, maxRadius].
         init(fromTurns: Double, upToTurns: Double, focusTurns: Double,
-             geo: SpiralGeometry, depthScale: Double) {
+             geo: SpiralGeometry, depthScale: Double, perspectivePower: Double = 1.0) {
             let zStep    = geo.maxRadius * depthScale
             let focalLen = geo.maxRadius * 1.2
 
@@ -137,8 +140,10 @@ struct SpiralView: View {
             self.zStep    = zStep
             self.focalLen = focalLen
             self.camZ     = camZ
+            self.perspPow = perspectivePower
 
             // Flat mode: precompute radial projection bounds from the visible band.
+            // Maps [rInner, rOuter] → [0, maxRadius] so the visible turns fill the canvas.
             if zStep == 0 {
                 let tIn  = max(fromTurns, 0)
                 let tOut = upToTurns                          // = tRef - margin
@@ -176,7 +181,8 @@ struct SpiralView: View {
             let wy = flatY - geo.cy
             let wz = (tRef - t) * zStep
             let dz = max(wz - camZ, focalLen * 0.05)
-            let scale = focalLen / dz
+            let rawScale = focalLen / dz
+            let scale = perspPow == 1.0 ? rawScale : pow(rawScale, perspPow)
 
             return CGPoint(x: geo.cx + wx * scale,
                            y: geo.cy + wy * scale)
@@ -194,7 +200,8 @@ struct SpiralView: View {
             }
             let wz = (tRef - t) * zStep
             let dz = max(wz - camZ, focalLen * 0.05)
-            return focalLen / dz
+            let raw = focalLen / dz
+            return perspPow == 1.0 ? raw : pow(raw, perspPow)
         }
 
         /// True when the given turn value is behind or too close to the camera.
@@ -209,6 +216,13 @@ struct SpiralView: View {
         var maxVisibleTurn: Double {
             guard zStep > 0 else { return .greatestFiniteMagnitude } // flat mode
             return tRef - camZ / zStep
+        }
+
+        /// Minimum perspectiveScale below which segments are culled.
+        /// For sqrt perspective (perspPow < 1), the threshold is higher because
+        /// scales are compressed into a narrower range.
+        var cullThreshold: Double {
+            perspPow == 1.0 ? 0.10 : pow(0.10, perspPow)
         }
     }
 
@@ -241,7 +255,8 @@ struct SpiralView: View {
 
         let camera = CameraState(fromTurns: camFrom, upToTurns: camUpTo,
                                   focusTurns: focusTurns,
-                                  geo: geo, depthScale: depthScale)
+                                  geo: geo, depthScale: depthScale,
+                                  perspectivePower: perspectivePower)
 
         let backboneCap = floor(cursorT) + 1.0   // extend backbone to midnight of cursor day
 
@@ -382,7 +397,7 @@ struct SpiralView: View {
             for i in 0...steps {
                 let t = Double(ring.day) + Double(i) / Double(steps)
                 if t > growthCutTurns { break }
-                if camera.isBehindCamera(turns: t) || camera.perspectiveScale(turns: t) < 0.04 {
+                if camera.isBehindCamera(turns: t) || camera.perspectiveScale(turns: t) < camera.cullThreshold {
                     if started {
                         context.stroke(path, with: .color(gridColor.opacity(baseOpacity * currentOpacity)), lineWidth: lw)
                         path = Path(); started = false
@@ -404,6 +419,14 @@ struct SpiralView: View {
                 }
 
                 let pt = camera.project(turns: t, geo: geo)
+                // 3D only: skip points too close to center (fragment rings in sqrt perspective)
+                if camera.zStep > 0 && hypot(pt.x - geo.cx, pt.y - geo.cy) < 25 {
+                    if started {
+                        context.stroke(path, with: .color(gridColor.opacity(baseOpacity * currentOpacity)), lineWidth: lw)
+                        path = Path(); started = false
+                    }
+                    continue
+                }
                 // Clip to canvas: break ring arc when projected point exits canvas bounds.
                 if pt.x < -20 || pt.x > geo.width + 20 || pt.y < -20 || pt.y > geo.height + 20 {
                     if started {
@@ -521,12 +544,26 @@ struct SpiralView: View {
             }
             // Skip behind-camera or extremely compressed points — prevents
             // disconnected backbone fragments floating at the spiral center.
-            if camera.isBehindCamera(turns: t) || camera.perspectiveScale(turns: t) < 0.08 {
+            if camera.isBehindCamera(turns: t) || camera.perspectiveScale(turns: t) < camera.cullThreshold {
                 flush()
                 if d >= upToTurns { break }
                 d += step; continue
             }
             let pt = camera.project(turns: t, geo: geo)
+            // 3D only: skip points that project too close to center — prevents
+            // disconnected fragments when sqrt perspective compresses old turns.
+            // Use a dynamic threshold that scales with perspective: compressed
+            // points (low perspScale) need a larger exclusion zone.
+            if camera.zStep > 0 {
+                let centerDist = hypot(pt.x - geo.cx, pt.y - geo.cy)
+                let pScale = camera.perspectiveScale(turns: t)
+                let dynamicThreshold = max(35.0, 25.0 / max(pScale, 0.05))
+                if centerDist < dynamicThreshold {
+                    flush()
+                    if d >= upToTurns { break }
+                    d += step; continue
+                }
+            }
             // Clip to canvas: Archimedean arms can extend far beyond canvas in 3D mode.
             // Break the path when projected point exits canvas bounds to prevent edge artifacts.
             if pt.x < -20 || pt.x > geo.width + 20 || pt.y < -20 || pt.y > geo.height + 20 {
