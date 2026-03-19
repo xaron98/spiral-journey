@@ -924,13 +924,17 @@ struct SpiralView: View {
             guard !camera.isBehindCamera(turns: t) else { continue }
             let vis = state.dayVisibility(for: Int(t))
             guard vis.isVisible else { continue }
+            let pScale = camera.perspectiveScale(turns: t)
+            guard pScale >= camera.cullThreshold else { continue }
             let p = camera.project(turns: t, geo: geo)
             let color = Color(hex: event.type.hexColor)
-            let r = 5.0
+            let baseR = 5.0
+            let r = max(2.0, min(baseR * pScale, baseR * 2.0))
             let rect = CGRect(x: p.x - r/2, y: p.y - r/2, width: r, height: r)
             context.fill(Circle().path(in: rect), with: .color(color.opacity(vis.opacity)))
-            context.stroke(Circle().path(in: rect.insetBy(dx: -1, dy: -1)),
-                           with: .color(color.opacity(0.4 * vis.opacity)), lineWidth: 1)
+            let strokeR = max(0.5, 1.0 * pScale)
+            context.stroke(Circle().path(in: rect.insetBy(dx: -strokeR, dy: -strokeR)),
+                           with: .color(color.opacity(0.4 * vis.opacity)), lineWidth: strokeR)
         }
     }
 
