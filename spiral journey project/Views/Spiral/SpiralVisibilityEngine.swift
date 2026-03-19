@@ -177,8 +177,8 @@ enum SpiralVisibilityEngine {
 
     // MARK: - Tunable curves
 
-    /// Progressive opacity by distance from active day (8 entries — all 7 days clearly visible).
-    static let opacityCurve: [Double] = [1.0, 0.85, 0.70, 0.55, 0.42, 0.30, 0.22, 0.15]
+    /// Progressive opacity by distance from active day — short, aggressive fade.
+    static let opacityCurve: [Double] = [1.0, 0.45, 0.10, 0.02]
     static let blurCurve: [Double] = [0, 0, 0.3, 0.6, 1.0, 1.5, 2.0]
     static let strokeScaleCurve: [Double] = [1.0, 0.95, 0.88, 0.80, 0.72, 0.65, 0.58]
 
