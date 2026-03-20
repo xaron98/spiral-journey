@@ -791,51 +791,38 @@ struct SpiralView: View {
                 flushRun(nextPhase: nil)
             }
 
-            // For the last (current) day, extend a live awake run from where the
-            // recorded data ends to the cursor. Starting from cutTurns (not wakeup)
-            // avoids drawing on top of recorded sleep data — the data already contains
-            // awake phases from wakeup onwards.
-            var liveAwakeRun: Run? = nil
-            if isLastRecord, let cursorH = cursorAbsHour {
-                let tCursor = cursorH / geo.period
-                // Start where recorded data ends, not from wakeup — prevents
-                // the awake extension from covering sleep data at the same turns.
-                let tWakeRaw = geo.turns(day: record.day, hour: record.wakeupHour)
-                let tDataEnd = cutTurns  // recorded data already covers up to here
-                let tStart = max(tDataEnd, tWakeRaw)
-                // Limit awake extension to 7 turns max — same as data visibility window
-                let tWake = max(tStart, tCursor - 7.0)
-                if tCursor > tWake + (0.25 / geo.period) {
-                    var awakePoints: [(t: Double, pt: CGPoint)] = []
-                    var t = tWake
-                    let tStep = 0.25 / geo.period
-                    while t <= tCursor {
-                        guard !camera.isBehindCamera(turns: t) else { t += tStep; continue }
-                        awakePoints.append((t, camera.project(turns: t, geo: geo)))
-                        t += tStep
-                    }
-                    if let last = awakePoints.last?.t, last < tCursor, !camera.isBehindCamera(turns: tCursor) {
-                        awakePoints.append((tCursor, camera.project(turns: tCursor, geo: geo)))
-                    }
-                    if awakePoints.count >= 2 {
-                        liveAwakeRun = Run(phase: .awake, points: awakePoints, prevPhase: .light, nextPhase: nil)
-                    }
+            // Draw order: awake data → sleep data (sleep always on top)
+            for run in runs where !isSleep(run.phase) { drawRun(run, opacity: dataOpacity) }
+            for run in runs where  isSleep(run.phase) { drawRun(run, opacity: dataOpacity) }
+        }
+
+        // ── Live awake extension ──
+        // Drawn OUTSIDE the record loop so it always renders, even when
+        // the last record is not visible (cursor far in the future).
+        // The vigilia path extends from where data ends to the cursor.
+        if let lastRec = lastRecord, let cursorH = cursorAbsHour {
+            let tCursor = cursorH / geo.period
+            let tWakeRaw = geo.turns(day: lastRec.day, hour: lastRec.wakeupHour)
+            let tDataEnd = state.dataEndTurns
+            let tStart = max(tDataEnd, tWakeRaw)
+            let tWake = max(tStart, tCursor - 7.0)
+            if tCursor > tWake + (0.25 / geo.period) {
+                var awakePoints: [(t: Double, pt: CGPoint)] = []
+                var t = tWake
+                let tStep = 0.25 / geo.period
+                while t <= tCursor {
+                    guard !camera.isBehindCamera(turns: t) else { t += tStep; continue }
+                    awakePoints.append((t, camera.project(turns: t, geo: geo)))
+                    t += tStep
+                }
+                if let last = awakePoints.last?.t, last < tCursor, !camera.isBehindCamera(turns: tCursor) {
+                    awakePoints.append((tCursor, camera.project(turns: tCursor, geo: geo)))
+                }
+                if awakePoints.count >= 2 {
+                    let liveRun = Run(phase: .awake, points: awakePoints, prevPhase: .light, nextPhase: nil)
+                    drawRun(liveRun, opacity: 1.0, applyEdgeFade: false)
                 }
             }
-
-            // Draw order: awake data → live awake extension → sleep data
-            // Sleep phases render ON TOP so they're never hidden by yellow awake lines.
-            // All records apply edge fade equally — no exceptions
-            for run in runs where !isSleep(run.phase) { drawRun(run, opacity: dataOpacity) }
-
-            // Live awake extension (yellow, full opacity) draws between awake data and sleep data.
-            if let liveRun = liveAwakeRun {
-                drawRun(liveRun, opacity: 1.0, applyEdgeFade: false)
-            }
-
-            // Sleep data always on top — never covered by awake extension
-            for run in runs where  isSleep(run.phase) { drawRun(run, opacity: dataOpacity) }
-
         }
     }
 
