@@ -61,7 +61,6 @@ struct SpiralTab: View {
     @State private var showCoachTip = false
     // Tap info panel — shows details when user taps a spiral element
     @State private var selectedElementInfo: SpiralElementInfo? = nil
-    @State private var tapGlowPosition: CGPoint? = nil
     @State private var elementInfoDismissTask: Task<Void, Never>? = nil
 
     // Drag tracking — tangent-based cursor advancement (smooth, no jitter).
@@ -131,9 +130,8 @@ struct SpiralTab: View {
                                 let maxHours = Double(maxDays) * store.period
 
                                 if dragIsNew {
-                                    // First touch: check if it's near the cursor.
-                                    // If near cursor → start dragging.
-                                    // If far from cursor → show info panel (handled in onEnded).
+                                    // First touch: snap cursor to tapped position.
+                                    // Camera only follows if this becomes a drag (not a tap).
                                     dragIsNew = false
                                     dragPrevLocation = value.location
                                     let newHour = nearestHour(
@@ -146,20 +144,11 @@ struct SpiralTab: View {
                                         linkGrowthToTau: effectiveLinkGrowthToTau,
                                         totalHours: maxHours
                                     )
-                                    // Only move cursor if touch is within ~2 hours of cursor
-                                    let maxSnapDelta = 2.0
-                                    guard abs(newHour - cursorAbsHour) <= maxSnapDelta else {
-                                        interactionMode = .none  // not a cursor drag
-                                        return
-                                    }
                                     cursorAbsHour = newHour
-                                    smoothCameraCenterTurns = newHour / store.period
-                                    return
-                                }
-
-                                // If touch wasn't near cursor, don't drag — just track for tap
-                                guard interactionMode == .scrub else {
-                                    dragPrevLocation = value.location
+                                    // DON'T update smoothCameraCenterTurns here —
+                                    // wait to see if it's a tap or drag.
+                                    // If drag: onChanged will update camera.
+                                    // If tap: camera stays, path doesn't redraw.
                                     return
                                 }
 
@@ -193,16 +182,15 @@ struct SpiralTab: View {
                                 dragIsNew = true
                                 lastInteractionTime = Date()
 
-                                // Detect tap on path: if barely moved and wasn't a cursor drag
+                                // Detect tap: if barely moved, show info for cursor position.
+                                // The cursor already jumped to the tapped location in onChanged,
+                                // so we use cursorAbsHour (which is precise).
                                 let dist = hypot(value.translation.width, value.translation.height)
                                 if dist < 8 {
-                                    let spiralSize = CGSize(
-                                        width: screen.size.width - 32,
-                                        height: screen.size.height
-                                    )
-                                    handleSpiralTap(at: value.startLocation, spiralSize: spiralSize, maxDays: maxDays)
+                                    showInfoForCursorPosition()
                                 } else {
-                                    // Drag ended — dismiss any open info card
+                                    // Drag ended — update camera to follow cursor
+                                    smoothCameraCenterTurns = cursorAbsHour / store.period
                                     selectedElementInfo = nil
                                 }
                             }
@@ -307,21 +295,6 @@ struct SpiralTab: View {
                             .reportFrame(\.cursorBar)
                             .opacity(floatingElementsVisible ? 1 : 0)
                             .padding(.bottom, 180)
-                    }
-
-                    // ── Layer 4a: Tap glow indicator ──────────────────────
-                    if let glow = tapGlowPosition {
-                        Circle()
-                            .fill(Color.white.opacity(0.3))
-                            .frame(width: 20, height: 20)
-                            .overlay(
-                                Circle()
-                                    .stroke(Color.white.opacity(0.6), lineWidth: 1.5)
-                            )
-                            .position(glow)
-                            .allowsHitTesting(false)
-                            .transition(.opacity)
-                            .animation(.easeOut(duration: 0.2), value: tapGlowPosition != nil)
                     }
 
                     // ── Layer 4b: Tap info card ────────────────────────────
@@ -1300,166 +1273,79 @@ struct SpiralTab: View {
 
     // MARK: - Tap info panel
 
-    /// Detects what spiral element is at the tap location and shows an info card.
-    private func handleSpiralTap(at location: CGPoint, spiralSize: CGSize, maxDays: Int) {
-        let scaleDays = max(1, Int(ceil(maxReachedTurns)))
-        let maxHours = Double(maxDays) * store.period
-        // Search ALL visible turns (not just near cursor) for tap detection
-        let tappedHour = nearestHour(
-            at: location,
-            size: spiralSize,
-            numDays: maxDays,
-            scaleDays: scaleDays,
-            period: store.period,
-            spiralType: effectiveSpiralType,
-            linkGrowthToTau: effectiveLinkGrowthToTau,
-            totalHours: maxHours,
-            searchAll: true
-        )
-
-        // Show glow at the projected position of the tapped hour
-        let glowPt = projectedPoint(
-            forHour: tappedHour,
-            spiralSize: spiralSize,
-            scaleDays: scaleDays,
-            period: store.period,
-            spiralType: effectiveSpiralType,
-            linkGrowthToTau: effectiveLinkGrowthToTau
-        )
-        tapGlowPosition = glowPt
-
-        // Auto-dismiss glow after 3 seconds
-        Task { @MainActor in
-            try? await Task.sleep(for: .seconds(3))
-            tapGlowPosition = nil
-        }
-
+    /// Shows info for whatever is at the CURSOR position.
+    /// Called on tap — the cursor already jumped to the tapped location.
+    private func showInfoForCursorPosition() {
         let period = store.period
-        let dayIndex = Int(tappedHour / period)
-        let clockHour = ((tappedHour.truncatingRemainder(dividingBy: period))
+        let dayIndex = Int(cursorAbsHour / period)
+        let clockHour = ((cursorAbsHour.truncatingRemainder(dividingBy: period))
             .truncatingRemainder(dividingBy: 24) + 24)
             .truncatingRemainder(dividingBy: 24)
-
-        #if DEBUG
-        print("[TAP] tappedHour=\(String(format:"%.1f", tappedHour)) dayIndex=\(dayIndex) clockHour=\(String(format:"%.1f", clockHour))")
-        print("[TAP] records days: \(store.records.map(\.day).sorted())")
-        if let record = store.records.first(where: { $0.day == dayIndex }) {
-            print("[TAP] MATCH record day=\(record.day) bed=\(String(format:"%.1f", record.bedtimeHour)) wake=\(String(format:"%.1f", record.wakeupHour))")
-        } else {
-            // Try finding closest record
-            let closest = store.records.min(by: { abs($0.day - dayIndex) < abs($1.day - dayIndex) })
-            print("[TAP] NO MATCH for dayIndex=\(dayIndex). Closest record day=\(closest?.day ?? -1)")
-        }
-        #endif
         let cal = Calendar.current
-        let tappedDate = cal.date(byAdding: .day, value: dayIndex, to: store.startDate)
-            ?? store.startDate
+        let tappedDate = cal.date(byAdding: .day, value: dayIndex, to: store.startDate) ?? store.startDate
 
-        // 1. Check context blocks at this hour
-        let allBlocks = store.contextBlocksEnabled ? store.contextBlocks : []
-        #if DEBUG
-        print("[TAP] tappedDate=\(tappedDate) totalBlocks=\(allBlocks.count) enabled=\(allBlocks.filter(\.isEnabled).count)")
-        for b in allBlocks.filter(\.isEnabled) {
-            let active = b.isActive(on: tappedDate)
-            print("[TAP]   block '\(b.label)' specific=\(String(describing: b.specificDate)) active=\(active) hours=\(String(format:"%.1f",b.startHour))-\(String(format:"%.1f",b.endHour))")
-        }
-        #endif
-        let activeBlocks = allBlocks.filter { $0.isEnabled && $0.isActive(on: tappedDate) }
+        // 1. Context blocks
+        let activeBlocks = (store.contextBlocksEnabled ? store.contextBlocks : [])
+            .filter { $0.isEnabled && $0.isActive(on: tappedDate) }
         for block in activeBlocks {
             let s = block.startHour, e = block.endHour
-            let inRange: Bool
-            if s <= e {
-                inRange = clockHour >= s && clockHour <= e
-            } else {
-                inRange = clockHour >= s || clockHour <= e
-            }
+            let inRange = s <= e ? (clockHour >= s && clockHour <= e) : (clockHour >= s || clockHour <= e)
             if inRange {
-                let dur = block.durationHours
-                let info = SpiralElementInfo(
+                showElementInfo(SpiralElementInfo(
                     label: block.label,
                     timeRange: block.timeRangeString,
-                    duration: formatDurationCompact(dur),
+                    duration: formatDurationCompact(block.durationHours),
                     color: Color(hex: block.type.hexColor)
-                )
-                showElementInfo(info)
+                ))
                 return
             }
         }
 
-        // 2. Check sleep records — search current day AND adjacent days
-        // Sleep paths can visually cross day boundaries (overnight sleep),
-        // so the path you see at clockHour on dayIndex may belong to day-1 or day+1.
-        let candidateDays = [dayIndex, dayIndex - 1, dayIndex + 1]
-        for candidateDay in candidateDays {
+        // 2. Sleep (search current + adjacent days)
+        for candidateDay in [dayIndex, dayIndex - 1, dayIndex + 1] {
             guard let record = store.records.first(where: { $0.day == candidateDay }) else { continue }
-
-            // Check phases first (most accurate)
             let phaseAtHour = record.phases.last(where: { $0.hour <= clockHour })
             let isSleepPhase = phaseAtHour != nil && phaseAtHour!.phase != .awake
-
-            let bedH = record.bedtimeHour
-            let wakeH = record.wakeupHour
-
-            // Check if clockHour falls in this record's sleep range
+            let bedH = record.bedtimeHour, wakeH = record.wakeupHour
             let inSleepRange: Bool
-            if bedH > wakeH {
-                // Overnight: e.g. 23:00–07:00
-                inSleepRange = clockHour >= bedH || clockHour <= wakeH
-            } else if bedH < wakeH {
-                inSleepRange = clockHour >= bedH && clockHour <= wakeH
-            } else {
-                inSleepRange = false
-            }
+            if bedH > wakeH { inSleepRange = clockHour >= bedH || clockHour <= wakeH }
+            else if bedH < wakeH { inSleepRange = clockHour >= bedH && clockHour <= wakeH }
+            else { inSleepRange = false }
 
             if isSleepPhase || inSleepRange {
-                let bedStr = formatClockHour(bedH)
-                let wakeStr = formatClockHour(wakeH)
-                let info = SpiralElementInfo(
+                showElementInfo(SpiralElementInfo(
                     label: loc("spiral.info.sleep"),
-                    timeRange: "\(bedStr) – \(wakeStr)",
+                    timeRange: "\(formatClockHour(bedH)) – \(formatClockHour(wakeH))",
                     duration: formatDurationCompact(record.sleepDuration),
                     color: Color(hex: "a855f7")
-                )
-                showElementInfo(info)
+                ))
                 return
             }
         }
 
-        // 3. If no sleep match found, check if there's a record for this day → awake
+        // 3. Awake (record exists but not sleeping)
         if let record = store.records.first(where: { $0.day == dayIndex }) {
-            let awakeDuration = period - record.sleepDuration
-            let info = SpiralElementInfo(
+            showElementInfo(SpiralElementInfo(
                 label: loc("spiral.info.awake"),
                 timeRange: "\(formatClockHour(record.wakeupHour)) – \(formatClockHour(record.bedtimeHour))",
-                duration: formatDurationCompact(max(0, awakeDuration)),
+                duration: formatDurationCompact(max(0, period - record.sleepDuration)),
                 color: SpiralColors.awakeSleep
-            )
-            showElementInfo(info)
+            ))
             return
         }
 
-        // 4. No data — check if cursor is live (vigilia)
+        // 4. Vigilia (no record, live day)
         let nowAbsHour = Date().timeIntervalSince(store.startDate) / 3600
-        let nowDayIndex = Int(nowAbsHour / period)
-        if dayIndex == nowDayIndex {
-            // On today with no sleep record — show vigilia if we have a previous wake
-            if let lastRecord = store.records.last {
-                let wakeStr = formatClockHour(lastRecord.wakeupHour)
-                let nowStr = formatClockHour(clockHour)
-                let info = SpiralElementInfo(
-                    label: loc("spiral.info.vigilia"),
-                    timeRange: "\(wakeStr) → \(nowStr)",
-                    duration: "",
-                    color: SpiralColors.awakeSleep
-                )
-                showElementInfo(info)
-                return
-            }
+        if dayIndex >= Int(nowAbsHour / period) - 1 {
+            showElementInfo(SpiralElementInfo(
+                label: loc("spiral.info.vigilia"),
+                timeRange: "\(formatClockHour(clockHour)) → now",
+                duration: "",
+                color: SpiralColors.awakeSleep
+            ))
         }
-
-        // Nothing found — dismiss
-        selectedElementInfo = nil
     }
+
 
     /// Shows the info card and schedules auto-dismiss after 3 seconds.
     private func showElementInfo(_ info: SpiralElementInfo) {
