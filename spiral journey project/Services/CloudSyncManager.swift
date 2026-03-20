@@ -202,9 +202,14 @@ final class CloudSyncManager: NSObject, CKSyncEngineDelegate {
         }
 
         for deletion in e.deletions {
-            if let uuid = UUID(uuidString: deletion.recordID.recordName) {
+            guard let uuid = UUID(uuidString: deletion.recordID.recordName) else { continue }
+            switch deletion.recordType {
+            case CloudRecordConverter.episodeType:
                 deletedEpisodeIDs.append(uuid)
+            case CloudRecordConverter.eventType:
                 deletedEventIDs.append(uuid)
+            default:
+                logger.info("  ignoring deletion of unknown type: \(deletion.recordType)")
             }
         }
 

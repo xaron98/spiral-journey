@@ -7121,6 +7121,24 @@
     },
     "coach.chat.download.button" : {
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تحميل النموذج"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descarregar model"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modell herunterladen"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -7132,43 +7150,411 @@
             "state" : "translated",
             "value" : "Descargar modelo"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Télécharger le modèle"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "モデルをダウンロード"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下载模型"
+          }
         }
       }
     },
-    "coach.chat.download.size" : {
+    "coach.chat.download.lowStorage" : {
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مساحة تخزين منخفضة — يُنصح بتوفر 3 جيجابايت على الأقل."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Emmagatzematge baix — es recomanen almenys 3 GB lliures."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wenig Speicher — mindestens 3 GB freier Speicherplatz empfohlen."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "~2.3 GB · Wi-Fi recommended"
+            "value" : "Low storage — at least 3 GB free space recommended."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "~2.3 GB · Wi-Fi recomendado"
+            "value" : "Almacenamiento bajo — se recomiendan al menos 3 GB libres."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stockage faible — au moins 3 Go d'espace libre recommandés."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ストレージ不足 — 3 GB以上の空き容量を推奨します。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "存储空间不足 - 建议至少有 3 GB 可用空间。"
+          }
+        }
+      }
+    },
+    "coach.chat.download.modelName" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "النموذج: Phi-3.5-mini"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Model: Phi-3.5-mini"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modell: Phi-3.5-mini"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Model: Phi-3.5-mini"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modelo: Phi-3.5-mini"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modèle : Phi-3.5-mini"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "モデル: Phi-3.5-mini"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模型: Phi-3.5-mini"
+          }
+        }
+      }
+    },
+    "coach.chat.download.modelSize" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الحجم: ~2.4 جيجابايت"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mida: ~2,4 GB"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Größe: ~2,4 GB"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Size: ~2.4 GB"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tamaño: ~2,4 GB"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Taille : ~2,4 Go"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サイズ: 約2.4 GB"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "大小: ~2.4 GB"
+          }
+        }
+      }
+    },
+    "coach.chat.download.onDevice" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يعمل الاستدلال على الجهاز بعد التحميل. لا تغادر بياناتك جهازك."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La inferència s'executa al dispositiu després de la descàrrega. Les teves dades no surten del dispositiu."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inferenz läuft nach dem Download auf dem Gerät. Keine Daten verlassen Ihr Gerät."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inference runs on-device after download. No data leaves your device."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La inferencia se ejecuta en el dispositivo tras la descarga. Tus datos no salen del dispositivo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'inférence s'exécute sur l'appareil après le téléchargement. Aucune donnée ne quitte votre appareil."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ダウンロード後はデバイス上で推論を実行します。データがデバイスから出ることはありません。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下载后在设备上运行推理。您的数据不会离开设备。"
+          }
+        }
+      }
+    },
+    "coach.chat.download.size" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "~2.4 جيجابايت · يُنصح بالواي فاي"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "~2,4 GB · Wi-Fi recomanat"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "~2,4 GB · WLAN empfohlen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "~2.4 GB · Wi-Fi recommended"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "~2,4 GB · Wi-Fi recomendado"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "~2,4 Go · Wi-Fi recommandé"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "約2.4 GB · Wi-Fi推奨"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "~2.4 GB · 建议使用 Wi-Fi"
+          }
+        }
+      }
+    },
+    "coach.chat.download.source" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "المصدر: Hugging Face (تحميل لمرة واحدة)"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Font: Hugging Face (descàrrega única)"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quelle: Hugging Face (einmaliger Download)"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Source: Hugging Face (one-time download)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fuente: Hugging Face (descarga única)"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Source : Hugging Face (téléchargement unique)"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ソース: Hugging Face（1回限りのダウンロード）"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "来源: Hugging Face（一次性下载）"
           }
         }
       }
     },
     "coach.chat.download.subtitle" : {
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يعمل مدرب الذكاء الاصطناعي بالكامل على جهازك. يحتاج إلى تحميل نموذج لغوي أولاً (~2.4 جيجابايت). يتم ذلك مرة واحدة فقط."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El coach d'IA s'executa completament al teu dispositiu. Necessita descarregar un model de llenguatge (~2,4 GB). Només cal fer-ho una vegada."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der KI-Coach läuft vollständig auf Ihrem Gerät. Er muss zuerst ein Sprachmodell herunterladen (~2,4 GB). Dies geschieht nur einmal."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The AI coach runs entirely on your device. It needs to download a language model first (~2.3 GB). This only happens once."
+            "value" : "The AI coach runs entirely on your device. It needs to download a language model first (~2.4 GB). This only happens once."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "El coach IA funciona completamente en tu dispositivo. Necesita descargar un modelo de lenguaje (~2.3 GB). Solo se descarga una vez."
+            "value" : "El coach IA funciona completamente en tu dispositivo. Necesita descargar un modelo de lenguaje (~2,4 GB). Solo se descarga una vez."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le coach IA fonctionne entièrement sur votre appareil. Il doit d'abord télécharger un modèle de langage (~2,4 Go). Cela ne se fait qu'une seule fois."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AIコーチはデバイス上で完全に動作します。まず言語モデルをダウンロードする必要があります（約2.4 GB）。ダウンロードは1回のみです。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI 教练完全在您的设备上运行。需要先下载语言模型（约 2.4 GB）。仅需下载一次。"
           }
         }
       }
     },
     "coach.chat.download.title" : {
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تحميل نموذج الذكاء الاصطناعي"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descarregar model d'IA"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "KI-Modell herunterladen"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -7180,11 +7566,151 @@
             "state" : "translated",
             "value" : "Descargar modelo IA"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Télécharger le modèle IA"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AIモデルをダウンロード"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下载 AI 模型"
+          }
+        }
+      }
+    },
+    "coach.chat.download.wifi" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يُنصح بالواي فاي"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wi-Fi recomanat"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WLAN empfohlen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wi-Fi recommended"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wi-Fi recomendado"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wi-Fi recommandé"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wi-Fi推奨"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "建议使用 Wi-Fi"
+          }
+        }
+      }
+    },
+    "coach.chat.deleteHint" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لتحرير المساحة، يمكنك حذف النموذج في الإعدادات."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Per alliberar espai, pots eliminar el model a Configuració."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Um Speicher freizugeben, können Sie das Modell in den Einstellungen löschen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To free space, you can delete the model in Settings."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para liberar espacio, puedes eliminar el modelo en Ajustes."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pour libérer de l'espace, vous pouvez supprimer le modèle dans Réglages."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "空き容量を確保するには、設定でモデルを削除できます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "如需释放空间，可以在设置中删除模型。"
+          }
         }
       }
     },
     "coach.chat.downloading" : {
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "جارٍ تحميل النموذج…"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descarregant model…"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modell wird heruntergeladen…"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -7196,11 +7722,47 @@
             "state" : "translated",
             "value" : "Descargando modelo…"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Téléchargement du modèle…"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "モデルをダウンロード中…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在下载模型…"
+          }
         }
       }
     },
     "coach.chat.load.button" : {
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "بدء المحادثة"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Iniciar xat"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chat starten"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -7212,11 +7774,47 @@
             "state" : "translated",
             "value" : "Iniciar chat"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Démarrer le chat"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "チャットを開始"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开始聊天"
+          }
         }
       }
     },
     "coach.chat.load.title" : {
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "النموذج جاهز"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Model preparat"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modell bereit"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -7228,11 +7826,47 @@
             "state" : "translated",
             "value" : "Modelo listo"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modèle prêt"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "モデル準備完了"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模型已就绪"
+          }
         }
       }
     },
     "coach.chat.loading" : {
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "جارٍ تحميل النموذج…"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carregant model…"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modell wird geladen…"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -7244,11 +7878,47 @@
             "state" : "translated",
             "value" : "Cargando modelo…"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chargement du modèle…"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "モデルを読み込み中…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在加载模型…"
+          }
         }
       }
     },
     "coach.chat.placeholder" : {
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اسأل عن نومك…"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pregunta sobre el teu son…"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frage zu deinem Schlaf…"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -7260,11 +7930,47 @@
             "state" : "translated",
             "value" : "Pregunta sobre tu sueño…"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Posez une question sur votre sommeil…"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "睡眠について質問…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "询问你的睡眠…"
+          }
         }
       }
     },
     "coach.chat.privacy" : {
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "100% على الجهاز · لا تغادر بياناتك هاتفك"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "100% al dispositiu · Les teves dades no surten del telèfon"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "100% auf dem Gerät · Keine Daten verlassen Ihr Telefon"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -7276,11 +7982,47 @@
             "state" : "translated",
             "value" : "100% en dispositivo · Tus datos no salen del teléfono"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "100% sur l'appareil · Aucune donnée ne quitte votre téléphone"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "100%デバイス上 · データは端末から送信されません"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "100% 在设备上运行 · 数据不会离开您的手机"
+          }
         }
       }
     },
     "coach.chat.title" : {
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مدرب الذكاء الاصطناعي"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coach IA"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "KI-Coach"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -7292,57 +8034,23 @@
             "state" : "translated",
             "value" : "Coach IA"
           }
-        }
-      }
-    },
-    "coach.disclaimer" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ردود الذكاء الاصطناعي للأغراض المعلوماتية فقط، وليست نصيحة طبية."
-          }
-        },
-        "ca" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Les respostes d'IA són només informatives, no consell mèdic."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "KI-Antworten dienen nur zur Information und stellen keine medizinische Beratung dar."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AI responses are informational only, not medical advice."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Las respuestas de IA son solo informativas, no consejo médico."
-          }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Les réponses de l'IA sont uniquement informatives et ne constituent pas un avis médical."
+            "value" : "Coach IA"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "AI の回答は情報提供のみを目的としており、医療アドバイスではありません。"
+            "value" : "AIコーチ"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "AI 回复仅供参考，不构成医疗建议。"
+            "value" : "AI 教练"
           }
         }
       }
@@ -7407,6 +8115,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Puntuación"
+          }
+        }
+      }
+    },
+    "coach.disclaimer" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ردود الذكاء الاصطناعي للأغراض المعلوماتية فقط، وليست نصيحة طبية."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les respostes d'IA són només informatives, no consell mèdic."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "KI-Antworten dienen nur zur Information und stellen keine medizinische Beratung dar."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI responses are informational only, not medical advice."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las respuestas de IA son solo informativas, no consejo médico."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les réponses de l'IA sont uniquement informatives et ne constituent pas un avis médical."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI の回答は情報提供のみを目的としており、医療アドバイスではありません。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI 回复仅供参考，不构成医疗建议。"
           }
         }
       }
@@ -34179,6 +34939,10 @@
         }
       }
     },
+    "Send message" : {
+      "comment" : "A button label that says \"Send message\".",
+      "isCommentAutoGenerated" : true
+    },
     "settings.about.description" : {
       "localizations" : {
         "ar" : {
@@ -37781,6 +38545,13 @@
       "comment" : "The title of the full-screen conclusions report sheet.",
       "isCommentAutoGenerated" : true
     },
+    "Spiral Journey v1.0" : {
+
+    },
+    "spiral.a11y.label" : {
+      "comment" : "A voice-over label that announces the current day of the spiral. The first argument is the total number of days in the spiral. The second argument is the current day number.",
+      "isCommentAutoGenerated" : true
+    },
     "spiral.controls.archimedean" : {
       "localizations" : {
         "ar" : {
@@ -41342,6 +42113,10 @@
           }
         }
       }
+    },
+    "Stop generating" : {
+      "comment" : "An accessibility label for the button that stops generating text.",
+      "isCommentAutoGenerated" : true
     },
     "tab.coach" : {
       "localizations" : {

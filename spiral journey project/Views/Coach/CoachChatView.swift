@@ -113,8 +113,15 @@ struct CoachChatView: View {
 
     // MARK: - Download Prompt
 
+    /// Available disk space in bytes, or nil if unavailable.
+    private var freeDiskSpace: Int64? {
+        try? URL(fileURLWithPath: NSHomeDirectory())
+            .resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey])
+            .volumeAvailableCapacityForImportantUsage
+    }
+
     private var downloadPrompt: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 16) {
             Image(systemName: "arrow.down.circle")
                 .font(.system(size: 44))
                 .foregroundStyle(SpiralColors.accent)
@@ -129,10 +136,28 @@ struct CoachChatView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
 
-            // Size info
-            Text(loc("coach.chat.download.size"))
-                .font(.system(size: 11, design: .monospaced))
-                .foregroundStyle(SpiralColors.subtle)
+            // Model details card
+            VStack(alignment: .leading, spacing: 6) {
+                modelInfoRow(icon: "cpu", text: loc("coach.chat.download.modelName"))
+                modelInfoRow(icon: "externaldrive", text: loc("coach.chat.download.modelSize"))
+                modelInfoRow(icon: "arrow.down.doc", text: loc("coach.chat.download.source"))
+                modelInfoRow(icon: "wifi", text: loc("coach.chat.download.wifi"))
+            }
+            .padding(12)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
+            .padding(.horizontal, 32)
+
+            // Low storage warning
+            if let free = freeDiskSpace, free < 3_000_000_000 {
+                HStack(spacing: 6) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 11))
+                    Text(loc("coach.chat.download.lowStorage"))
+                        .font(.system(size: 11))
+                }
+                .foregroundStyle(.orange)
+                .padding(.horizontal, 32)
+            }
 
             Button {
                 Task { await llm.downloadModel() }
@@ -149,7 +174,7 @@ struct CoachChatView: View {
             HStack(spacing: 4) {
                 Image(systemName: "lock.shield")
                     .font(.system(size: 10))
-                Text(loc("coach.chat.privacy"))
+                Text(loc("coach.chat.download.onDevice"))
                     .font(.system(size: 10))
             }
             .foregroundStyle(SpiralColors.subtle)
@@ -160,6 +185,18 @@ struct CoachChatView: View {
                     .foregroundStyle(SpiralColors.poor)
                     .padding(.top, 8)
             }
+        }
+    }
+
+    private func modelInfoRow(icon: String, text: String) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.system(size: 10))
+                .foregroundStyle(SpiralColors.muted)
+                .frame(width: 14)
+            Text(text)
+                .font(.system(size: 11))
+                .foregroundStyle(SpiralColors.text)
         }
     }
 
@@ -203,6 +240,15 @@ struct CoachChatView: View {
                     .padding(.vertical, 12)
                     .background(SpiralColors.accent.opacity(0.9), in: Capsule())
             }
+
+            // Delete model hint
+            HStack(spacing: 4) {
+                Image(systemName: "trash")
+                    .font(.system(size: 9))
+                Text(loc("coach.chat.deleteHint"))
+                    .font(.system(size: 9))
+            }
+            .foregroundStyle(SpiralColors.faint)
         }
     }
 
