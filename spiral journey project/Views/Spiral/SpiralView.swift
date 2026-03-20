@@ -347,8 +347,12 @@ struct SpiralView: View {
         if showTwoProcess {
             drawTwoProcess(context: context, geo: geo, camera: camera, state: state, growthCutTurns: growthCutTurns)
         }
+        // 4.5. Liquid Glass base glow (translucent refraction halo under data)
+        drawDataGlow(context: context, geo: geo, camera: camera, state: state)
         // 5. Data points (phase strokes)
         drawDataPoints(context: context, geo: geo, camera: camera, state: state, growthCutTurns: growthCutTurns)
+        // 5.5. Liquid Glass specular highlight (thin white stroke on top of data)
+        drawGlassHighlight(context: context, geo: geo, camera: camera, state: state, growthCutTurns: growthCutTurns)
         // 6. Context blocks
         if !contextBlocks.isEmpty && state.markerState.shouldRenderContextMarkers {
             drawContextBlocks(context: context, geo: geo, camera: camera, state: state, growthCutTurns: growthCutTurns)
@@ -687,6 +691,63 @@ struct SpiralView: View {
                 }
             }
             flushGlow()
+        }
+    }
+
+    // MARK: - Glass Specular Highlight
+
+    /// Draws a thin white highlight stroke on top of sleep data segments,
+    /// simulating a cylindrical specular reflection for the Liquid Glass aesthetic.
+    /// Only applied to segments close to camera (perspectiveScale > 0.15) for performance.
+    private func drawGlassHighlight(context: GraphicsContext, geo: SpiralGeometry, camera: CameraState, state: SpiralRenderState, growthCutTurns: Double = .greatestFiniteMagnitude) {
+        let fromTurns = state.renderFromTurns
+        let upToTurns = state.renderUpToTurns
+        let dataCutTurns = state.dataEndTurns
+        let cursorCutTurns = cursorAbsHour.map { $0 / geo.period } ?? dataCutTurns
+        let globalCutTurns = min(min(max(dataCutTurns, cursorCutTurns), upToTurns), growthCutTurns)
+        let highlightColor = Color.white.opacity(0.45)
+
+        for record in records {
+            let dayStartTurns = geo.turns(day: record.day, hour: 0)
+            let dayEndTurns = geo.turns(day: record.day + 1, hour: 0)
+            guard dayEndTurns >= fromTurns, dayStartTurns <= upToTurns else { continue }
+            guard !camera.isRangeCulled(from: dayStartTurns, to: dayEndTurns) else { continue }
+            let vis = state.dayVisibility(for: record.day)
+            guard vis.isVisible && vis.opacity > 0.01 else { continue }
+            let phases = record.phases
+            guard !phases.isEmpty else { continue }
+            let cutTurns = min(globalCutTurns, dayEndTurns)
+
+            for (i, phase) in phases.enumerated() {
+                // Only draw highlight over sleep segments (not awake)
+                guard phase.phase != .awake else { continue }
+                let t = geo.turns(day: record.day, hour: phase.hour)
+                if t > cutTurns { break }
+                let nextT: Double
+                if i + 1 < phases.count {
+                    nextT = geo.turns(day: record.day, hour: phases[i + 1].hour)
+                } else {
+                    nextT = min(cutTurns, dayEndTurns)
+                }
+                guard nextT > t else { continue }
+                let tMid = (t + nextT) * 0.5
+                guard !camera.isBehindCamera(turns: t), !camera.isBehindCamera(turns: nextT) else { continue }
+                let sc = camera.perspectiveScale(turns: tMid)
+                // LOD: only draw glass highlight on close segments
+                guard sc > 0.15 else { continue }
+                let baseLW = max(2.0, min(sc * 20.0, geo.spacing * sc * 0.82))
+                // Highlight is a thin stroke offset slightly "upward" from center
+                let hlLW = max(1.0, baseLW * 0.15)
+                let offset = baseLW * 0.2
+
+                let p0 = camera.project(turns: t, geo: geo)
+                let p1 = camera.project(turns: nextT, geo: geo)
+                var seg = Path()
+                seg.move(to: CGPoint(x: p0.x, y: p0.y - offset))
+                seg.addLine(to: CGPoint(x: p1.x, y: p1.y - offset))
+                context.stroke(seg, with: .color(highlightColor.opacity(vis.opacity)),
+                               style: StrokeStyle(lineWidth: hlLW, lineCap: .round))
+            }
         }
     }
 

@@ -65,6 +65,20 @@ struct HelixRealityView: View {
             let anchor = AnchorEntity()
             let root = HelixSceneBuilder.build(from: profile, records: records)
             anchor.addChild(root)
+
+            // Directional light for glass material reflections
+            let light = Entity()
+            var directional = DirectionalLightComponent()
+            directional.intensity = 1200
+            directional.color = .white
+            light.components.set(directional)
+            // Diagonal angle: 45° on X, 30° on Y
+            light.transform.rotation = simd_quatf(
+                angle: -.pi / 4,
+                axis: SIMD3<Float>(1, 0.5, 0.3)
+            )
+            anchor.addChild(light)
+
             content.add(anchor)
             helixRoot = root
         } update: { content in

@@ -170,11 +170,7 @@ enum HelixSceneBuilder {
             .map(\.weekIndex)
         let allHighlightWeeks = Set(similarWeeks + [selectedWeek])
 
-        let highlightMaterial = SimpleMaterial(
-            color: highlightColor,
-            roughness: 0.3,
-            isMetallic: true
-        )
+        let highlightMaterial = glassMaterial(tint: highlightColor, opacity: 0.8)
 
         for day in 0..<totalDays {
             let week = day / 7
@@ -192,16 +188,12 @@ enum HelixSceneBuilder {
 
     // MARK: - Reset Highlights
 
-    /// Restore all nucleotides to their default colors.
+    /// Restore all nucleotides to their default glass materials.
     static func resetHighlights(root: Entity, totalDays: Int) {
-        let strand1Mat = SimpleMaterial(
-            color: strand1Color,
-            roughness: 0.5,
-            isMetallic: false
-        )
+        let strand1Mat = glassMaterial(tint: strand1Color)
 
         for day in 0..<totalDays {
-            // Strand 1: always purple
+            // Strand 1: always purple glass
             let name1 = "nucleotide_1_\(day)"
             if let entity = root.findEntity(named: name1),
                var model = entity.components[ModelComponent.self] {
@@ -209,16 +201,11 @@ enum HelixSceneBuilder {
                 entity.components[ModelComponent.self] = model
             }
 
-            // Strand 2: restore by name — we store quality in the entity itself
-            // Since we can't easily retrieve original quality, re-apply orange
+            // Strand 2: restore orange glass
             let name2 = "nucleotide_2_\(day)"
             if let entity = root.findEntity(named: name2),
                var model = entity.components[ModelComponent.self] {
-                let mat = SimpleMaterial(
-                    color: strand2Color,
-                    roughness: 0.5,
-                    isMetallic: false
-                )
+                let mat = glassMaterial(tint: strand2Color)
                 model.materials = [mat]
                 entity.components[ModelComponent.self] = model
             }
@@ -284,12 +271,32 @@ enum HelixSceneBuilder {
         }
     }
 
+    // MARK: - Glass Material
+
+    /// Create a PhysicallyBasedMaterial with a translucent glass appearance.
+    /// Used for nucleotide spheres to achieve the Liquid Glass aesthetic.
+    private static func glassMaterial(tint: UIColor, opacity: Float = 0.6) -> PhysicallyBasedMaterial {
+        var mat = PhysicallyBasedMaterial()
+        mat.baseColor = .init(tint: tint.withAlphaComponent(CGFloat(0.4)))
+        mat.roughness = .init(floatLiteral: 0.1)
+        mat.metallic = .init(floatLiteral: 0.3)
+        mat.clearcoat = .init(floatLiteral: 1.0)
+        mat.clearcoatRoughness = .init(floatLiteral: 0.0)
+        mat.blending = .transparent(opacity: .init(floatLiteral: opacity))
+        return mat
+    }
+
+    /// Simple opaque material for small elements (tubes, connectors) where glass is imperceptible.
+    private static func simpleMat(color: UIColor) -> SimpleMaterial {
+        SimpleMaterial(color: color, roughness: 0.5, isMetallic: false)
+    }
+
     // MARK: - Private Helpers
 
-    /// Create a nucleotide sphere entity.
+    /// Create a nucleotide sphere entity with Liquid Glass material.
     private static func nucleotideSphere(color: UIColor, radius: Float) -> ModelEntity {
         let mesh = MeshResource.generateSphere(radius: radius)
-        let material = SimpleMaterial(color: color, roughness: 0.5, isMetallic: false)
+        let material = glassMaterial(tint: color)
         return ModelEntity(mesh: mesh, materials: [material])
     }
 

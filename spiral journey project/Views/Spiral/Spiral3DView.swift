@@ -146,12 +146,19 @@ struct Spiral3DView: View {
             let pt = project(px, 0, py + z, cx: cx, cy: cy, fov: fov, elevation: elevation, azimuth: azimuth)
             if i == 0 { backbone.move(to: pt) } else { backbone.addLine(to: pt) }
         }
+        // Triple-layer Liquid Glass backbone:
+        // 1. Translucent wide base (refraction glow)
         context.stroke(backbone,
-                       with: .color(Color(hex: "3a4055")),
-                       style: StrokeStyle(lineWidth: 9, lineCap: .round, lineJoin: .round))
+                       with: .color(Color(hex: "3a4055").opacity(0.5)),
+                       style: StrokeStyle(lineWidth: 12, lineCap: .round, lineJoin: .round))
+        // 2. Core stroke (slightly translucent body)
         context.stroke(backbone,
-                       with: .color(Color(hex: "8090b0").opacity(0.5)),
-                       style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
+                       with: .color(Color(hex: "5a6a85").opacity(0.7)),
+                       style: StrokeStyle(lineWidth: 6, lineCap: .round, lineJoin: .round))
+        // 3. Specular highlight (thin white top edge)
+        context.stroke(backbone,
+                       with: .color(Color.white.opacity(0.4)),
+                       style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round))
 
         // Draw sleep/wake colored overlay
         drawPhaseOverlay(context: context, size: size, cx: cx, cy: cy,
@@ -174,13 +181,23 @@ struct Spiral3DView: View {
             func commitRun() {
                 guard started else { return }
                 let color = phaseColor3D(runPhase)
-                let lw: Double = runPhase == .awake ? 4.0 : 5.0
+                let isSleep = runPhase != .awake
+                let lw: Double = isSleep ? 5.0 : 4.0
+                // Triple-layer Liquid Glass:
+                // 1. Wide translucent glow (refraction)
                 context.stroke(path,
-                               with: .color(color.opacity(0.25)),
-                               style: StrokeStyle(lineWidth: lw + 4, lineCap: .round, lineJoin: .round))
+                               with: .color(color.opacity(0.2)),
+                               style: StrokeStyle(lineWidth: lw + 6, lineCap: .round, lineJoin: .round))
+                // 2. Core stroke (glass body)
                 context.stroke(path,
-                               with: .color(color.opacity(0.9)),
+                               with: .color(color.opacity(isSleep ? 0.7 : 0.5)),
                                style: StrokeStyle(lineWidth: lw, lineCap: .round, lineJoin: .round))
+                // 3. Specular highlight (top edge for sleep only)
+                if isSleep {
+                    context.stroke(path,
+                                   with: .color(Color.white.opacity(0.35)),
+                                   style: StrokeStyle(lineWidth: 1.0, lineCap: .round, lineJoin: .round))
+                }
                 path = Path()
                 started = false
             }
