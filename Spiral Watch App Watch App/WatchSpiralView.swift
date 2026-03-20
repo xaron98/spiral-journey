@@ -197,7 +197,7 @@ struct WatchSpiralView: View {
         if newTurns > maxReachedTurns { maxReachedTurns = newTurns }
         // Move visibleDays by the same delta as the cursor — zoom level stays constant,
         // cursor and camera window move together like the iPhone drag behaviour.
-        visibleDays = max(1.0, min(maxReachedTurns, visibleDays + turnsDelta))
+        visibleDays = max(3.0, min(maxReachedTurns, visibleDays + turnsDelta))
         // Schedule a deferred canvas flush. The canvas uses deferredVisibleDays so
         // the heavy redraw doesn't block every single crown tick. We yield to the
         // run loop once (Task) so multiple rapid ticks coalesce into one redraw.
@@ -293,7 +293,7 @@ struct WatchSpiralView: View {
         maxReachedTurns    = max(1.0, endTurns)
         // Camera is centered on cursor; visibleDays is the backward span.
         // Half turn keeps the spiral very large on Watch's small screen.
-        visibleDays        = min(endTurns, 0.5)
+        visibleDays        = min(endTurns, 7.0)
         deferredVisibleDays = visibleDays
         crownRaw = 0; lastCrownRaw = 0
         storeInitialised = true
@@ -319,6 +319,7 @@ private struct WatchSpiralCanvas: View {
     var spiralType: SpiralType = .archimedean
     var period: Double = 24.0
     var startRadius: Double = 5
+    var linkGrowthToTau: Bool = false
 
     // MARK: - CameraState (identical to iPhone SpiralView)
 
@@ -414,12 +415,13 @@ private struct WatchSpiralCanvas: View {
                 height:    size.height,
                 startRadius: startRadius,
                 spiralType: spiralType,
-                period:    period
+                period:    period,
+                linkGrowthToTau: linkGrowthToTau
             )
 
             // Build camera centered on cursor, looking back visibleDays turns
             let cursorTurns = cursorAbsHour / period
-            let span = min(visibleDays, 4.0)
+            let span = visibleDays
             let camFrom = max(cursorTurns - span, 0)
             let camUpTo = cursorTurns + 0.5
             let cam = Cam(fromTurns: camFrom, upToTurns: camUpTo,

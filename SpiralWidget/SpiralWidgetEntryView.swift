@@ -17,6 +17,7 @@ struct SpiralWidgetEntryView: View {
                 showHourLabels: family != .systemSmall
             )
             .frame(width: geo.size.width, height: geo.size.height)
+            .clipShape(ContainerRelativeShape())
         }
         .ignoresSafeArea()
     }

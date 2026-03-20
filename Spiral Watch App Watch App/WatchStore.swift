@@ -52,6 +52,10 @@ final class WatchStore {
     var period: Double = 24.0
     /// Depth scale for perspective projection, synced from iPhone. Default 0.3.
     var depthScale: Double = 0.3
+    /// 2D flat mode synced from iPhone — disables perspective.
+    var flatMode: Bool = false
+    /// Link growth rate to circadian period, synced from iPhone.
+    var linkGrowthToTau: Bool = false
 
     // Stored episodes (persisted locally)
     private var episodes: [SleepEpisode] = []
@@ -280,6 +284,12 @@ final class WatchStore {
         }
         if let d = context["depthScale"] as? Double {
             depthScale = d
+        }
+        if let fm = context["flatMode"] as? Bool {
+            flatMode = fm
+        }
+        if let lgt = context["linkGrowthToTau"] as? Bool {
+            linkGrowthToTau = lgt
         }
         // Sync startDate from iPhone so absoluteHour values in events and records
         // are interpreted on the same timeline reference on both devices.

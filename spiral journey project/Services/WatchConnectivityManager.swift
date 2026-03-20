@@ -29,7 +29,9 @@ final class WatchConnectivityManager: NSObject, WCSessionDelegate, @unchecked Se
                       spiralType: String? = nil, period: Double? = nil,
                       startDate: Date? = nil,
                       contextBlocks: [ContextBlock]? = nil,
-                      scheduleConflicts: [ScheduleConflict]? = nil) {
+                      scheduleConflicts: [ScheduleConflict]? = nil,
+                      flatMode: Bool? = nil, linkGrowthToTau: Bool? = nil,
+                      depthScale: Double? = nil) {
         guard WCSession.default.activationState == .activated,
               WCSession.default.isWatchAppInstalled else { return }
 
@@ -58,6 +60,15 @@ final class WatchConnectivityManager: NSObject, WCSessionDelegate, @unchecked Se
         }
         if let period {
             context["period"] = period
+        }
+        if let flatMode {
+            context["flatMode"] = flatMode
+        }
+        if let linkGrowthToTau {
+            context["linkGrowthToTau"] = linkGrowthToTau
+        }
+        if let depthScale {
+            context["depthScale"] = depthScale
         }
         if let startDate {
             context["startDate"] = startDate.timeIntervalSince1970
@@ -134,7 +145,9 @@ final class WatchConnectivityManager: NSObject, WCSessionDelegate, @unchecked Se
     /// Sends just settings (language, appearance, spiralType, period) without re-encoding full analysis data.
     /// Call this when the user changes a setting.
     func sendSettings(language: String, appearance: String,
-                      spiralType: String? = nil, period: Double? = nil) {
+                      spiralType: String? = nil, period: Double? = nil,
+                      flatMode: Bool? = nil, linkGrowthToTau: Bool? = nil,
+                      depthScale: Double? = nil) {
         guard WCSession.default.activationState == .activated,
               WCSession.default.isWatchAppInstalled else { return }
         // Merge into the existing application context so data keys are preserved.
@@ -143,6 +156,9 @@ final class WatchConnectivityManager: NSObject, WCSessionDelegate, @unchecked Se
         context["appearance"] = appearance
         if let spiralType { context["spiralType"] = spiralType }
         if let period { context["period"] = period }
+        if let flatMode { context["flatMode"] = flatMode }
+        if let linkGrowthToTau { context["linkGrowthToTau"] = linkGrowthToTau }
+        if let depthScale { context["depthScale"] = depthScale }
         try? WCSession.default.updateApplicationContext(context)
     }
 

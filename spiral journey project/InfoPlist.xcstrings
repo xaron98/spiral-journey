@@ -113,18 +113,6 @@
           }
         }
       }
-    },
-    "NSUserTrackingUsageDescription" : {
-      "comment" : "Privacy - Tracking Usage Description",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Spiral Journey does not track you."
-          }
-        }
-      }
     }
   },
   "version" : "1.0"

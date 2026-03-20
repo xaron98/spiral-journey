@@ -7119,6 +7119,58 @@
         }
       }
     },
+    "coach.chat.deleteHint" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لتحرير المساحة، يمكنك حذف النموذج في الإعدادات."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Per alliberar espai, pots eliminar el model a Configuració."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Um Speicher freizugeben, können Sie das Modell in den Einstellungen löschen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To free space, you can delete the model in Settings."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para liberar espacio, puedes eliminar el modelo en Ajustes."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pour libérer de l'espace, vous pouvez supprimer le modèle dans Réglages."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "空き容量を確保するには、設定でモデルを削除できます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "如需释放空间，可以在设置中删除模型。"
+          }
+        }
+      }
+    },
     "coach.chat.download.button" : {
       "localizations" : {
         "ar" : {
@@ -7380,6 +7432,7 @@
       }
     },
     "coach.chat.download.size" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -7635,58 +7688,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "建议使用 Wi-Fi"
-          }
-        }
-      }
-    },
-    "coach.chat.deleteHint" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "لتحرير المساحة، يمكنك حذف النموذج في الإعدادات."
-          }
-        },
-        "ca" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Per alliberar espai, pots eliminar el model a Configuració."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Um Speicher freizugeben, können Sie das Modell in den Einstellungen löschen."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "To free space, you can delete the model in Settings."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Para liberar espacio, puedes eliminar el modelo en Ajustes."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pour libérer de l'espace, vous pouvez supprimer le modèle dans Réglages."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "空き容量を確保するには、設定でモデルを削除できます。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "如需释放空间，可以在设置中删除模型。"
           }
         }
       }
@@ -7952,6 +7953,7 @@
       }
     },
     "coach.chat.privacy" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

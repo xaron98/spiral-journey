@@ -158,7 +158,9 @@ struct WidgetSpiralCanvas: View {
     }
 
     private func drawRadialLines(context: GraphicsContext, geo: SpiralGeometry) {
-        let canvasEdge = max(geo.width, geo.height)
+        // Limit to maxRadius so lines don't extend to the canvas edge
+        // (which would create visible rectangular clipping at widget corners).
+        let lineLen = geo.maxRadius
         let minorStep: Double = geo.period <= 24 ? 3 : (geo.period / 8).rounded()
         let majorStep: Double = minorStep * 2
         var h = 0.0
@@ -168,8 +170,8 @@ struct WidgetSpiralCanvas: View {
             var path = Path()
             path.move(to: CGPoint(x: geo.cx, y: geo.cy))
             path.addLine(to: CGPoint(
-                x: geo.cx + canvasEdge * cos(angle),
-                y: geo.cy + canvasEdge * sin(angle)
+                x: geo.cx + lineLen * cos(angle),
+                y: geo.cy + lineLen * sin(angle)
             ))
             context.stroke(path,
                            with: .color(Color.white.opacity(isMajor ? 0.18 : 0.09)),
