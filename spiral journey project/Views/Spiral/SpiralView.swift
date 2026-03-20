@@ -243,30 +243,34 @@ struct SpiralView: View {
 
         // ── SLIDING WINDOW CAMERA ──
         //
-        // The camera always frames a 7-turn window around the cursor.
-        // Cursor moves freely (past/future). Only the visible window is rendered.
-        // Zoom auto-adjusts to fit the window. No fragments possible because
-        // nothing outside the window is drawn.
+        // Cursor moves freely (past/future). The camera frames a window of
+        // `span` turns behind the cursor. Only this window is rendered.
+        // Zoom (span) is user-controllable via pinch. The camera auto-adjusts
+        // so the window always fills the screen.
+        //
+        // Data: only the portion within the window is drawn.
+        // Backbone: drawn within the window (path of vigilia extends to cursor).
+        // No fragments: nothing outside the window exists.
         let cursorT = cursorTurns ?? extentTurns
         let focusTurns = viewportCenterTurns ?? cursorT
         let span = visibleSpanTurns ?? 7.0
-        let cameraZPadding = 0.5
+        let cameraFrontPadding = 0.5
 
-        // Camera window: cursor is at the leading edge, window extends back
-        let camUpTo = focusTurns + cameraZPadding
-        let camFrom = max(camUpTo - span - cameraZPadding, 0)
+        // Window: [cursor - span, cursor + padding]
+        let windowFrom = max(focusTurns - span, 0)
+        let windowUpTo = focusTurns + cameraFrontPadding
 
-        let camera = CameraState(fromTurns: camFrom, upToTurns: camUpTo,
+        let camera = CameraState(fromTurns: windowFrom, upToTurns: windowUpTo,
                                   focusTurns: focusTurns,
                                   geo: geo, depthScale: depthScale,
                                   perspectivePower: perspectivePower)
 
-        // Only render what's in the window — nothing beyond
-        let renderFrom = camFrom
-        let renderUpTo = camUpTo
+        // HARD render bounds = window. Nothing draws outside this.
+        let renderFrom = windowFrom
+        let renderUpTo = windowUpTo
 
-        // Backbone: only within the visible window
-        let backboneCap = min(floor(cursorT) + 1.0, renderUpTo)
+        // Backbone extends to cursor (vigilia path grows with cursor)
+        let backboneCap = min(floor(cursorT) + 1.0, windowUpTo)
 
         // ── Growth animation clamp ──
         let gp = min(max(growthProgress, 0), 1)
@@ -276,9 +280,9 @@ struct SpiralView: View {
         let state = SpiralVisibilityEngine.resolve(
             records: records,
             cursorAbsHour: cursorAbsHour,
-            viewportFromTurns: camFrom,
+            viewportFromTurns: renderFrom,
             viewportUpToTurns: renderUpTo,
-            cameraFromTurns: camFrom,
+            cameraFromTurns: renderFrom,
             cameraUpToTurns: renderUpTo,
             spiralExtentTurns: extentTurns,
             spiralPeriod: geo.period,
@@ -740,7 +744,8 @@ struct SpiralView: View {
             let isLastRecord = record.id == lastRecord?.id
             let dayStartTurns = geo.turns(day: record.day, hour: 0)
             let dayEndTurns = geo.turns(day: record.day + 1, hour: 0)
-            // Only draw records within the visible window (±1 turn margin for partial days).
+            // Draw records that overlap the visible window (original ±1 margin).
+            // Per-segment segmentEdgeFade handles the smooth transition at the camera edge.
             guard dayEndTurns >= fromTurns - 1 && dayStartTurns <= upToTurns + 1 else { continue }
             let phases = record.phases
             guard !phases.isEmpty else { continue }
@@ -754,6 +759,16 @@ struct SpiralView: View {
                 let midScale = camera.perspectiveScale(turns: midT)
                 guard midScale > 0.12 else { continue }
             }
+
+            #if DEBUG
+            // Temporary: log which records actually render, their opacity, and projected center distance
+            let dbgMidT = (dayStartTurns + dayEndTurns) / 2
+            let dbgPt = camera.project(turns: dbgMidT, geo: geo)
+            let dbgCenterDist = hypot(dbgPt.x - geo.cx, dbgPt.y - geo.cy)
+            let dbgScale = camera.perspectiveScale(turns: dbgMidT)
+            let dbgEdgeFade = dbgMidT < fromTurns ? 0.0 : min(1.0, (dbgMidT - fromTurns) / 1.5)
+            print("[DATA-DBG] day=\(record.day) vis=\(String(format:"%.3f",vis.opacity)) scale=\(String(format:"%.3f",dbgScale)) edgeFade=\(String(format:"%.3f",dbgEdgeFade)) centerDist=\(String(format:"%.1f",dbgCenterDist))pt fromT=\(String(format:"%.2f",fromTurns))")
+            #endif
 
             let dataOpacity = vis.opacity
             let cutTurns = min(globalCutTurns, dayEndTurns)
@@ -799,7 +814,7 @@ struct SpiralView: View {
             // avoids drawing on top of recorded sleep data — the data already contains
             // awake phases from wakeup onwards.
             var liveAwakeRun: Run? = nil
-            if isLastRecord, let cursorH = cursorAbsHour, vis.isVisible {
+            if isLastRecord, let cursorH = cursorAbsHour {
                 let tCursor = cursorH / geo.period
                 // Start where recorded data ends, not from wakeup — prevents
                 // the awake extension from covering sleep data at the same turns.
