@@ -87,6 +87,13 @@ struct HelixRealityView: View {
             // Apply interaction transform
             root.transform = manager.sceneTransform
 
+            // Progressive LOD: update materials based on zoom level
+            HelixSceneBuilder.updateMaterialLOD(
+                root: root,
+                totalDays: profile.nucleotides.count,
+                zoomScale: manager.zoomScale
+            )
+
             // Handle motif toggling
             HelixSceneBuilder.toggleMotifRegions(
                 root: root,

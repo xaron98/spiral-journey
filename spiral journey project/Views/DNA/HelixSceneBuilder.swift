@@ -271,6 +271,47 @@ enum HelixSceneBuilder {
         }
     }
 
+    // MARK: - LOD Material Update
+
+    /// Update nucleotide materials based on zoom level for progressive LOD.
+    /// - Close (zoom > 1.5): Full glass PhysicallyBasedMaterial
+    /// - Medium (0.8-1.5): Glass with reduced opacity
+    /// - Far (< 0.8): Simple opaque SimpleMaterial (cheapest)
+    static func updateMaterialLOD(root: Entity, totalDays: Int, zoomScale: Float) {
+        let level: LODLevel = zoomScale > 1.5 ? .high : (zoomScale > 0.8 ? .medium : .low)
+
+        for day in 0..<totalDays {
+            for strand in 1...2 {
+                let name = "nucleotide_\(strand)_\(day)"
+                guard let entity = root.findEntity(named: name),
+                      var model = entity.components[ModelComponent.self] else { continue }
+                // Only update if LOD level has meaningfully changed (avoid churn)
+                let tag = entity.name + "_lod"
+                let currentLOD = entity.components[LODTagComponent.self]?.level
+                guard currentLOD != level else { continue }
+                entity.components[LODTagComponent.self] = LODTagComponent(level: level)
+
+                let color: UIColor = strand == 1 ? strand1Color : strand2Color
+                switch level {
+                case .high:
+                    model.materials = [glassMaterial(tint: color, opacity: 0.6)]
+                case .medium:
+                    model.materials = [glassMaterial(tint: color, opacity: 0.45)]
+                case .low:
+                    model.materials = [simpleMat(color: color)]
+                }
+                entity.components[ModelComponent.self] = model
+            }
+        }
+    }
+
+    enum LODLevel: Equatable { case high, medium, low }
+
+    /// Lightweight ECS component to track current LOD level per entity.
+    struct LODTagComponent: Component {
+        var level: LODLevel
+    }
+
     // MARK: - Glass Material
 
     /// Create a PhysicallyBasedMaterial with a translucent glass appearance.
