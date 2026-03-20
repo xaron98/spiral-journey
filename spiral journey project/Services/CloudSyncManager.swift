@@ -4,7 +4,10 @@ import os
 
 /// Manages CloudKit sync via CKSyncEngine.
 /// Conforms directly to CKSyncEngineDelegate — no intermediary delegate object.
-final class CloudSyncManager: NSObject, CKSyncEngineDelegate, @unchecked Sendable {
+/// All mutable state is isolated to `@MainActor`; the async delegate methods
+/// automatically hop to the main actor when called by CKSyncEngine.
+@MainActor
+final class CloudSyncManager: NSObject, CKSyncEngineDelegate {
 
     // MARK: - Callbacks (set on MainActor before sync events can fire)
 
@@ -132,7 +135,7 @@ final class CloudSyncManager: NSObject, CKSyncEngineDelegate, @unchecked Sendabl
             persistState(e.stateSerialization)
 
         case .fetchedRecordZoneChanges(let e):
-            await processFetchedChanges(e)
+            processFetchedChanges(e)
 
         case .sentRecordZoneChanges(let e):
             processSentChanges(e, syncEngine: syncEngine)
@@ -172,7 +175,7 @@ final class CloudSyncManager: NSObject, CKSyncEngineDelegate, @unchecked Sendabl
 
     // MARK: - Fetched Changes
 
-    private func processFetchedChanges(_ e: CKSyncEngine.Event.FetchedRecordZoneChanges) async {
+    private func processFetchedChanges(_ e: CKSyncEngine.Event.FetchedRecordZoneChanges) {
         var fetchedEpisodes:   [SleepEpisode]  = []
         var fetchedEvents:     [CircadianEvent] = []
         var fetchedSettings:   CloudSettings?
@@ -205,14 +208,12 @@ final class CloudSyncManager: NSObject, CKSyncEngineDelegate, @unchecked Sendabl
             }
         }
 
-        await MainActor.run { [weak self] in
-            guard let self else { return }
-            if !fetchedEpisodes.isEmpty   { onEpisodesFetched?(fetchedEpisodes) }
-            if !fetchedEvents.isEmpty     { onEventsFetched?(fetchedEvents) }
-            if !deletedEpisodeIDs.isEmpty { onEpisodesDeleted?(deletedEpisodeIDs) }
-            if !deletedEventIDs.isEmpty   { onEventsDeleted?(deletedEventIDs) }
-            if let s = fetchedSettings    { onSettingsFetched?(s) }
-        }
+        // Already on @MainActor — invoke callbacks directly.
+        if !fetchedEpisodes.isEmpty   { onEpisodesFetched?(fetchedEpisodes) }
+        if !fetchedEvents.isEmpty     { onEventsFetched?(fetchedEvents) }
+        if !deletedEpisodeIDs.isEmpty { onEpisodesDeleted?(deletedEpisodeIDs) }
+        if !deletedEventIDs.isEmpty   { onEventsDeleted?(deletedEventIDs) }
+        if let s = fetchedSettings    { onSettingsFetched?(s) }
     }
 
     // MARK: - Sent Changes
@@ -236,17 +237,15 @@ final class CloudSyncManager: NSObject, CKSyncEngineDelegate, @unchecked Sendabl
                     syncEngine.state.add(pendingRecordZoneChanges: [.saveRecord(serverRecord.recordID)])
                 } else {
                     // Server is newer — apply server version to local store.
-                    Task { @MainActor [weak self] in
-                        guard let self else { return }
-                        switch serverRecord.recordType {
-                        case CloudRecordConverter.episodeType:
-                            if let ep = CloudRecordConverter.episode(from: serverRecord) { onEpisodesFetched?([ep]) }
-                        case CloudRecordConverter.eventType:
-                            if let ev = CloudRecordConverter.event(from: serverRecord) { onEventsFetched?([ev]) }
-                        case CloudRecordConverter.settingsType:
-                            if let s = CloudRecordConverter.settings(from: serverRecord) { onSettingsFetched?(s) }
-                        default: break
-                        }
+                    // Already on @MainActor — invoke callbacks directly.
+                    switch serverRecord.recordType {
+                    case CloudRecordConverter.episodeType:
+                        if let ep = CloudRecordConverter.episode(from: serverRecord) { onEpisodesFetched?([ep]) }
+                    case CloudRecordConverter.eventType:
+                        if let ev = CloudRecordConverter.event(from: serverRecord) { onEventsFetched?([ev]) }
+                    case CloudRecordConverter.settingsType:
+                        if let s = CloudRecordConverter.settings(from: serverRecord) { onSettingsFetched?(s) }
+                    default: break
                     }
                 }
             } else {
