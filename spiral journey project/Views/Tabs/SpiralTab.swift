@@ -286,7 +286,7 @@ struct SpiralTab: View {
                             .padding(.horizontal, 16)
                             .reportFrame(\.cursorBar)
                             .opacity(floatingElementsVisible ? 1 : 0)
-                            .padding(.bottom, 180)
+                            .padding(.bottom, 188)
                     }
 
                     // ── Layer 4b: Tap info card ────────────────────────────
@@ -992,7 +992,7 @@ struct SpiralTab: View {
     // MARK: - Action Bar (Liquid Glass bottom controls)
 
     private var actionBar: some View {
-        HStack(spacing: 24) {
+        HStack(alignment: .bottom, spacing: 24) {
             // Stats button (left, small)
             Button { showStatsSheet = true } label: {
                 Image(systemName: "gauge.with.dots.needle.33percent")
