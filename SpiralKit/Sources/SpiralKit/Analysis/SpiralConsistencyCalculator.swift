@@ -296,8 +296,9 @@ public enum SpiralConsistencyCalculator {
                 }
             }
 
-            // Disruption if: awake phases in sleep >= 1, OR transitions >= 2
-            let fragmentationDetected = (awakeInSleep.count >= 1 && !sleepPhases.isEmpty) || transitionCount >= 2
+            // Disruption if: awake phases in sleep >= 2, OR transitions >= 4
+            // 1 awakening or 2-3 transitions is normal sleep cycling.
+            let fragmentationDetected = (awakeInSleep.count >= 2 && !sleepPhases.isEmpty) || transitionCount >= 4
 
             if fragmentationDetected {
                 let disruptions = max(awakeInSleep.count, transitionCount / 2)
@@ -305,11 +306,11 @@ public enum SpiralConsistencyCalculator {
                 let endH = night.wakeupHour
 
                 localDays.append(dayIdx)
+                let noun = disruptions == 1 ? "interrupción" : "interrupciones"
                 insights.append(PatternInsight(
                     type: .local,
                     title: "Disrupción localizada",
-                    summary: String(format: "Se detectaron %d interrupciones durante el sueño (%02.0f:00–%02.0f:00)",
-                                    disruptions, startH, endH),
+                    summary: "Se detectaron \(disruptions) \(noun) durante el sueño (\(String(format: "%02.0f:00–%02.0f:00", startH, endH)))",
                     severity: disruptions >= 4 ? 2 : 1,
                     affectedStart: startH,
                     affectedEnd: endH,
