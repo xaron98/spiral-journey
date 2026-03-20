@@ -55,6 +55,8 @@ struct SpiralView: View {
     /// of its extent — creating an organic "growing from center" reveal on app launch.
     /// Default 1.0 = fully drawn (no animation).
     var growthProgress: Double = 1.0
+    /// Glow intensity for sleep data (0 = off, 1 = full). Controls the halo around sleep strokes.
+    var glowIntensity: Double = 0.3
 
 
     @Environment(\.colorScheme) private var colorScheme
@@ -109,7 +111,8 @@ struct SpiralView: View {
         let focalLen: Double
         let camZ: Double
         let perspPow: Double
-        /// Auto-fit scale: shrinks projection so the widest point fits in canvas.
+        /// Scale factor applied to projection. Fixed at 1.0 in 3D mode to prevent
+        /// zoom jumps as the cursor moves. Strokes adapt width to maintain gaps.
         let autoFitScale: Double
         // Flat mode (zStep==0): radial zoom projection bounds, precomputed at init.
         let flatRInner: Double
@@ -136,7 +139,26 @@ struct SpiralView: View {
 
             let tRef = upToTurns + margin
 
-            let camZ = margin * zStep - focalLen
+            // ── Span-based camera zoom (3D only) ──
+            // When the user pinch-zooms in (smaller span), we move the camera
+            // forward toward the spiral. This makes the arms physically spread
+            // apart through perspective — similar to how 2D radial zoom works.
+            // The zoom factor depends ONLY on span (upToTurns - fromTurns), NOT
+            // on cursor position, so it never causes jumps during cursor dragging.
+            // Only changes during pinch-zoom gestures (which is expected behavior).
+            let effectiveSpan = max(upToTurns - fromTurns, 0.5)
+            let referenceSpan = 7.0 // span at which camera is at default position
+            // Move camera forward when zoomed in. Cap at 0.5 * focalLen so
+            // camera never reaches the spiral surface.
+            let zoomForward: Double
+            if zStep > 0 && effectiveSpan < referenceSpan {
+                let zoomRatio = 1.0 - effectiveSpan / referenceSpan // 0→1 as span shrinks
+                zoomForward = focalLen * 0.5 * zoomRatio
+            } else {
+                zoomForward = 0
+            }
+
+            let camZ = margin * zStep - focalLen + zoomForward
 
             self.tRef     = tRef
             self.zStep    = zStep
@@ -160,22 +182,10 @@ struct SpiralView: View {
                 flatRInner = 0; flatROuter = 1; flatGeoMaxRadius = 0
                 flatCamFromTurns = 0
 
-                // Auto-fit: find the max projected radius across all visible turns
-                // and scale so it fits within 90% of maxRadius.
-                var maxProjectedR = 0.0
-                var t = fromTurns
-                while t <= upToTurns {
-                    let r = geo.radius(turns: t)
-                    let wz = (tRef - t) * zStep
-                    let dz = max(wz - camZ, focalLen * 0.05)
-                    let rawScale = focalLen / dz
-                    let scale = perspectivePower == 1.0 ? rawScale : pow(rawScale, perspectivePower)
-                    let projR = r * scale
-                    if projR > maxProjectedR { maxProjectedR = projR }
-                    t += 0.5
-                }
-                let targetR = geo.maxRadius * 0.85
-                self.autoFitScale = maxProjectedR > targetR ? targetR / maxProjectedR : 1.0
+                // No dynamic auto-fit: the spiral keeps its natural size and the
+                // 3D perspective handles depth. This prevents zoom jumps when the
+                // cursor moves between past and present data.
+                self.autoFitScale = 1.0
                 return
             }
         }
@@ -308,12 +318,13 @@ struct SpiralView: View {
                                   geo: geo, depthScale: depthScale,
                                   perspectivePower: perspectivePower)
 
-        // HARD render bounds = window. Nothing draws outside this.
-        let renderFrom = windowFrom
-        let renderUpTo = windowUpTo
+        // Render bounds: always include ALL data, not just the camera window.
+        // Data is always visible regardless of cursor position.
+        let renderFrom = 0.0
+        let renderUpTo = max(windowUpTo, extentTurns + 0.5)
 
-        // Backbone extends to cursor (vigilia path grows with cursor)
-        let backboneCap = min(floor(cursorT) + 1.0, windowUpTo)
+        // Backbone extends to cursor or data end, whichever is further
+        let backboneCap = max(floor(cursorT) + 1.0, extentTurns)
 
         // ── Growth animation clamp ──
         let gp = min(max(growthProgress, 0), 1)
@@ -347,12 +358,12 @@ struct SpiralView: View {
         if showTwoProcess {
             drawTwoProcess(context: context, geo: geo, camera: camera, state: state, growthCutTurns: growthCutTurns)
         }
-        // 4.5. Liquid Glass base glow (translucent refraction halo under data)
-        drawDataGlow(context: context, geo: geo, camera: camera, state: state)
+        // 4b. Glow under sleep data (intensity-gated)
+        if glowIntensity > 0.01 {
+            drawDataGlow(context: context, geo: geo, camera: camera, state: state)
+        }
         // 5. Data points (phase strokes)
         drawDataPoints(context: context, geo: geo, camera: camera, state: state, growthCutTurns: growthCutTurns)
-        // 5.5. Liquid Glass specular highlight (thin white stroke on top of data)
-        drawGlassHighlight(context: context, geo: geo, camera: camera, state: state, growthCutTurns: growthCutTurns)
         // 6. Context blocks
         if !contextBlocks.isEmpty && state.markerState.shouldRenderContextMarkers {
             drawContextBlocks(context: context, geo: geo, camera: camera, state: state, growthCutTurns: growthCutTurns)
@@ -651,8 +662,11 @@ struct SpiralView: View {
                     runPoints.removeAll(); return
                 }
                 let color = phaseGlowColor(runPhase)
-                // Draw two glow layers: wide soft outer + tighter inner, faded by visibility
-                for (glowLW, glowOpac) in [(38.0, 0.12), (22.0, 0.18)] as [(Double, Double)] {
+                // Draw two glow layers: wide soft outer + tighter inner, faded by visibility.
+                // glowIntensity (0-1) scales both opacity and width for smooth control.
+                let gi = glowIntensity
+                for (glowLW, glowOpac) in [(38.0 * gi, 0.12 * gi), (22.0 * gi, 0.18 * gi)] as [(Double, Double)] {
+                    guard glowLW > 1.0 else { continue }
                     for i in 0..<(runPoints.count - 1) {
                         let p0   = runPoints[i]
                         let p1   = runPoints[i + 1]
@@ -661,7 +675,10 @@ struct SpiralView: View {
                               !camera.isBehindCamera(turns: p1.t) else { continue }
                         let tSeg = (p0.t + p1.t) * 0.5
                         let sc   = camera.perspectiveScale(turns: tSeg)
-                        let lw   = max(glowLW * 0.5, min(sc * glowLW, glowLW * 1.4))
+                        // Cap glow to 50% of projected arm spacing so it never bleeds
+                        // into adjacent spiral arms (prevents blurriness at close zoom).
+                        let maxGlowForArm = geo.spacing * sc * 0.5
+                        let lw   = max(glowLW * 0.3, min(sc * glowLW, glowLW * 1.4, maxGlowForArm))
                         var seg = Path()
                         seg.move(to: p0.pt)
                         seg.addLine(to: p1.pt)
@@ -735,7 +752,9 @@ struct SpiralView: View {
                 let sc = camera.perspectiveScale(turns: tMid)
                 // LOD: only draw glass highlight on close segments
                 guard sc > 0.15 else { continue }
-                let baseLW = max(2.0, min(sc * 20.0, geo.spacing * sc * 0.82))
+                // Ensure minimum 2px gap between arms to prevent blurriness at close zoom
+                let hlProjSpacing = geo.spacing * sc
+                let baseLW = max(2.0, min(sc * 20.0, max(2.0, hlProjSpacing - 2.0)))
                 // Highlight is a thin stroke offset slightly "upward" from center
                 let hlLW = max(1.0, baseLW * 0.15)
                 let offset = baseLW * 0.2
@@ -774,15 +793,8 @@ struct SpiralView: View {
         // matching the backbone's natural perspective fade (point-by-point, not per-day).
         // When zoomed in close to origin (small span), data is solid — no inner edge fade.
         // When zoomed out (large span), edge fade applies everywhere to prevent
-        // orphan data fragments appearing as a chunk at the origin.
-        // Progressive desdibujar at the old edge: each segment fades
-        // based on its fractional turn position, not per-day.
-        // This creates a smooth, continuous "unraveling" of the path.
-        func segmentEdgeFade(t: Double) -> Double {
-            if t < fromTurns - 0.5 { return 0.0 }
-            if t < fromTurns + 1.0 { return max(0, (t - (fromTurns - 0.5)) / 1.5) }
-            return 1.0
-        }
+        // No edge fade — all data always fully visible.
+        func segmentEdgeFade(t: Double) -> Double { 1.0 }
 
         func drawRun(_ run: Run, opacity: Double, applyEdgeFade: Bool = true) {
             guard run.points.count >= 2 else { return }
@@ -798,9 +810,10 @@ struct SpiralView: View {
                 let tSeg = (p0.t + p1.t) * 0.5
                 let sc   = camera.perspectiveScale(turns: tSeg)
                 guard sc > 0.04 else { continue } // too compressed by perspective — skip
-                // Cap stroke to 82% of projected arm spacing so adjacent arms
-                // always have a visible dark gap, both in 2D and 3D.
-                let lw   = max(2.0, min(sc * 20.0, geo.spacing * sc * 0.82))
+                // Cap stroke so adjacent arms always have a visible dark gap (min 2px),
+                // both in 2D and 3D. Prevents blurriness when arms are packed close.
+                let projSpacing = geo.spacing * sc
+                let lw   = max(2.0, min(sc * 20.0, max(2.0, projSpacing - 2.0)))
                 let segOpacity = applyEdgeFade ? opacity * segmentEdgeFade(t: tSeg) : opacity
                 guard segOpacity > 0.01 else { continue }
                 // Blend toward nextColor in the final 20% of sleep runs
@@ -828,7 +841,8 @@ struct SpiralView: View {
                 let sc = camera.perspectiveScale(turns: tFirst)
                 guard sc > 0.04 else { return }
                 let capFade = applyEdgeFade ? segmentEdgeFade(t: tFirst) : 1.0
-                let lw = max(2.0, min(sc * 20.0, geo.spacing * sc * 0.82))
+                let capProjSpacing = geo.spacing * sc
+                let lw = max(2.0, min(sc * 20.0, max(2.0, capProjSpacing - 2.0)))
                 let r  = lw * 0.5; let pt = run.points[0].pt
                 context.fill(Circle().path(in: CGRect(x: pt.x - r, y: pt.y - r, width: lw, height: lw)),
                              with: .color(baseColor.opacity(opacity * capFade)))
@@ -838,7 +852,8 @@ struct SpiralView: View {
                 let sc = camera.perspectiveScale(turns: tLast)
                 guard sc > 0.04 else { return }
                 let capFade = applyEdgeFade ? segmentEdgeFade(t: tLast) : 1.0
-                let lw = max(2.0, min(sc * 20.0, geo.spacing * sc * 0.82))
+                let capProjSpacing = geo.spacing * sc
+                let lw = max(2.0, min(sc * 20.0, max(2.0, capProjSpacing - 2.0)))
                 let r  = lw * 0.5; let pt = run.points[run.points.count - 1].pt
                 context.fill(Circle().path(in: CGRect(x: pt.x - r, y: pt.y - r, width: lw, height: lw)),
                              with: .color(nextColor.opacity(opacity * capFade)))
@@ -1191,13 +1206,12 @@ struct SpiralView: View {
             let ctxVis = state.contextVisibility(for: day)
             guard ctxVis.isVisible else { continue }
 
-            // Determine weekday for this day ring
-            let weekday: Int
+            // Determine actual date for this day ring (needed for specificDate filtering).
+            let dayDate: Date
             if day < records.count {
-                weekday = calendar.component(.weekday, from: records[day].date)
+                dayDate = records[day].date
             } else if let first = records.first {
-                let estimated = calendar.date(byAdding: .day, value: day, to: first.date) ?? first.date
-                weekday = calendar.component(.weekday, from: estimated)
+                dayDate = calendar.date(byAdding: .day, value: day, to: first.date) ?? first.date
             } else {
                 continue
             }
@@ -1207,7 +1221,7 @@ struct SpiralView: View {
             let sleepWake: Double? = day < records.count ? records[day].wakeupHour   : nil
 
             for block in enabledBlocks {
-                guard block.isActive(weekday: weekday) else { continue }
+                guard block.isActive(on: dayDate) else { continue }
 
                 let color = Color(hex: block.type.hexColor)
 
@@ -1251,7 +1265,9 @@ struct SpiralView: View {
                     let pt0 = camera.project(turns: t0, geo: geo)
                     let pt1 = camera.project(turns: t1, geo: geo)
                     let sc  = camera.perspectiveScale(turns: (t0 + t1) * 0.5)
-                    let lw  = max(3.0, min(sc * 20.0, 28.0))
+                    // Cap to arm spacing minus 2px gap (same as data strokes)
+                    let ctxProjSpacing = geo.spacing * sc
+                    let lw  = max(3.0, min(sc * 20.0, 28.0, max(3.0, ctxProjSpacing - 2.0)))
                     var seg = Path()
                     seg.move(to: pt0)
                     seg.addLine(to: pt1)
