@@ -155,6 +155,10 @@ final class SpiralStore {
     var showGrid: Bool = true {
         didSet { settingsNeedCloudPush = true; save() }
     }
+    /// Glow intensity for sleep data strokes (0 = off, 1 = full). Default 0.3 — subtle halo.
+    var glowIntensity: Double = 0.3 {
+        didSet { save() }
+    }
     var language: AppLanguage = .systemMatch {
         didSet {
             settingsNeedCloudPush = true
@@ -454,6 +458,20 @@ final class SpiralStore {
         // If HealthKit episodes are present, ensure startDate and numDays are
         // consistent with the actual data.
         reconcileEpochWithEpisodes()
+
+        // One-time migration: remove calendar blocks imported before the
+        // per-occurrence fix (they have specificDate=nil and activeDays=0,
+        // making them permanently inactive). They'll be reimported correctly
+        // on the next calendar import.
+        let brokenCalendarBlocks = contextBlocks.filter {
+            $0.source == .calendar && $0.specificDate == nil && $0.activeDays == 0
+        }
+        if !brokenCalendarBlocks.isEmpty {
+            let brokenIDs = Set(brokenCalendarBlocks.map(\.id))
+            contextBlocks.removeAll { brokenIDs.contains($0.id) }
+            print("[Store] Removed \(brokenCalendarBlocks.count) broken calendar blocks for reimport")
+        }
+
         // Only recompute if there are actual episodes — avoids generating
         // phantom records from empty data.
         if !sleepEpisodes.isEmpty {
@@ -912,6 +930,7 @@ final class SpiralStore {
         var linkGrowthToTau: Bool
         var depthScale: Double?
         var showGrid: Bool?
+        var glowIntensity: Double?
         var language: AppLanguage?
         var appearance: AppAppearance?
         var rephasePlan: RephasePlan?
@@ -977,6 +996,7 @@ final class SpiralStore {
             linkGrowthToTau: linkGrowthToTau,
             depthScale: depthScale,
             showGrid: showGrid,
+            glowIntensity: glowIntensity,
             language: language,
             appearance: appearance,
             rephasePlan: rephasePlan,
@@ -1050,6 +1070,7 @@ final class SpiralStore {
             depthScale = (ds >= 1.4 && ds <= 1.6) ? 0.15 : ds
         }
         if let grid = stored.showGrid    { showGrid = grid }
+        if let gi  = stored.glowIntensity { glowIntensity = gi }
         if let lang = stored.language {
             // Migrate: if the stored language was set before the "System" option existed,
             // reset to .system so the app follows the device language going forward.
@@ -1111,6 +1132,7 @@ final class SpiralStore {
             linkGrowthToTau: linkGrowthToTau,
             depthScale: depthScale,
             showGrid: showGrid,
+            glowIntensity: glowIntensity,
             language: language,
             appearance: appearance,
             rephasePlan: rephasePlan,
