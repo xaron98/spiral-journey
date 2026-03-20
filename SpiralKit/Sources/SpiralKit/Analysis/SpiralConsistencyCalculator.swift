@@ -274,24 +274,43 @@ public enum SpiralConsistencyCalculator {
                 }
             }
 
-            #if DEBUG
-            print("[DISRUPT] day=\(dayIdx) bed=\(String(format:"%.1f",night.bedtimeHour)) wake=\(String(format:"%.1f",night.wakeupHour)) totalPhases=\(night.phases.count) sleepPhases=\(sleepPhases.count) awakeInSleep=\(awakeInSleep.count)")
-            #endif
+            // Also count phase transitions (sleep→awake→sleep) as micro-awakenings.
+            // Apple Watch may not always mark brief awakenings as .awake phases,
+            // but the transitions between sleep stages indicate fragmentation.
+            var transitionCount = 0
+            let sortedPhases = night.phases.sorted { $0.hour < $1.hour }
+            for i in 1..<max(1, sortedPhases.count) {
+                guard i < sortedPhases.count else { break }
+                let prev = sortedPhases[i-1].phase
+                let curr = sortedPhases[i].phase
+                // Count sleep→awake and awake→sleep transitions within sleep window
+                if (prev != .awake && curr == .awake) || (prev == .awake && curr != .awake) {
+                    let h = sortedPhases[i].hour
+                    let inWindow: Bool
+                    if night.bedtimeHour > night.wakeupHour {
+                        inWindow = h >= night.bedtimeHour || h < night.wakeupHour
+                    } else {
+                        inWindow = h >= night.bedtimeHour && h < night.wakeupHour
+                    }
+                    if inWindow { transitionCount += 1 }
+                }
+            }
 
-            // Threshold: >2 awake phases during sleep = local disruption
-            if awakeInSleep.count >= 2 && !sleepPhases.isEmpty {
-                // Find the cluster of awakenings
-                let awakeHours = awakeInSleep.map(\.hour).sorted()
-                let startH = awakeHours.first ?? 0
-                let endH = (awakeHours.last ?? 0) + 0.25
+            // Disruption if: awake phases in sleep >= 2, OR transitions >= 3
+            let fragmentationDetected = (awakeInSleep.count >= 2 && !sleepPhases.isEmpty) || transitionCount >= 3
+
+            if fragmentationDetected {
+                let disruptions = max(awakeInSleep.count, transitionCount / 2)
+                let startH = night.bedtimeHour
+                let endH = night.wakeupHour
 
                 localDays.append(dayIdx)
                 insights.append(PatternInsight(
                     type: .local,
                     title: "Disrupción localizada",
-                    summary: String(format: "Se detectaron %d despertares durante el sueño (%02.0f:00–%02.0f:00)",
-                                    awakeInSleep.count, startH, endH),
-                    severity: awakeInSleep.count >= 4 ? 2 : 1,
+                    summary: String(format: "Se detectaron %d interrupciones durante el sueño (%02.0f:00–%02.0f:00)",
+                                    disruptions, startH, endH),
+                    severity: disruptions >= 4 ? 2 : 1,
                     affectedStart: startH,
                     affectedEnd: endH,
                     recommendedAction: "Revisa temperatura, ruido o luz en esa franja. Considera reducir líquidos por la tarde."
