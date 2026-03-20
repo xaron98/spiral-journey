@@ -56,6 +56,9 @@ struct SpiralTab: View {
     @State private var spiralGrowthProgress: Double = 0
     // Staggered entry for floating UI overlays (date pill, action bar)
     @State private var floatingElementsVisible = false
+    // Liquid Glass floating panels
+    @State private var showStatsSheet = false
+    @State private var showCoachTip = false
     #if os(macOS)
     // Frame of the spiral area in global coordinates — used to position the drag overlay.
     @State private var spiralFrameGlobal: CGRect = .zero
@@ -76,232 +79,217 @@ struct SpiralTab: View {
                 ZStack(alignment: .bottom) {
                     SpiralColors.bg.ignoresSafeArea()
 
-                    ScrollView(showsIndicators: false) {
-                        VStack(spacing: 0) {
-                            // ── Greeting header ─────────────────────────────────────
-                            greetingHeader
-                                .padding(.top, screen.safeAreaInsets.top + 8)
-                                .padding(.horizontal, 20)
-                                .padding(.bottom, 6)
-
-                            // ── Spiral — dominant visual element (~70% viewport) ─────
-                            ZStack(alignment: .top) {
-                                SpiralView(
-                                    records: store.records,
-                                    events: store.events,
-                                    spiralType: effectiveSpiralType,
+                    // ── Layer 1: Spiral — fills most of the screen ──────────
+                    SpiralView(
+                        records: store.records,
+                        events: store.events,
+                        spiralType: effectiveSpiralType,
+                        period: store.period,
+                        linkGrowthToTau: effectiveLinkGrowthToTau,
+                        showCosinor: showCosinor,
+                        showBiomarkers: showBiomarkers,
+                        showTwoProcess: showTwoProcess,
+                        selectedDay: selectedDay,
+                        onSelectDay: { selectedDay = $0 },
+                        contextBlocks: store.contextBlocksEnabled ? store.contextBlocks : [],
+                        cursorAbsHour: cursorAbsHour,
+                        sleepStartHour: sleepStartHour,
+                        numDaysHint: effectiveNumDaysHint,
+                        spiralExtentTurns: effectiveSpiralExtent,
+                        viewportCenterTurns: smoothCameraCenterTurns - (0.5 - cameraFrontPadding),
+                        visibleSpanTurns: liveVisibleDays,
+                        depthScale: store.flatMode ? 0 : effectiveDepthScale,
+                        perspectivePower: effectivePerspectivePower,
+                        showGrid: store.showGrid,
+                        startRadius: effectiveStartRadius,
+                        predictedBedHour: store.predictionOverlayEnabled ? store.latestPrediction?.predictedBedtimeHour : nil,
+                        predictedWakeHour: store.predictionOverlayEnabled ? store.latestPrediction?.predictedWakeHour : nil,
+                        growthProgress: spiralGrowthProgress
+                    )
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(spiralAccessibilityLabel)
+                    .accessibilityHint(loc("spiral.a11y.hint"))
+                    #if !os(macOS)
+                    .simultaneousGesture(
+                        DragGesture(minimumDistance: 0)
+                            .onChanged { value in
+                                isUserInteracting = true
+                                interactionMode = .scrub
+                                lastInteractionTime = Date()
+                                let searchMax = Double(maxDays) * store.period
+                                let scaleDays = max(1, Int(ceil(maxReachedTurns)))
+                                let newHour = nearestHour(
+                                    at: value.location,
+                                    size: CGSize(
+                                        width: screen.size.width - 32,
+                                        height: screen.size.width - 32
+                                    ),
+                                    numDays: maxDays,
+                                    scaleDays: scaleDays,
                                     period: store.period,
+                                    spiralType: effectiveSpiralType,
                                     linkGrowthToTau: effectiveLinkGrowthToTau,
-                                    showCosinor: showCosinor,
-                                    showBiomarkers: showBiomarkers,
-                                    showTwoProcess: showTwoProcess,
-                                    selectedDay: selectedDay,
-                                    onSelectDay: { selectedDay = $0 },
-                                    contextBlocks: store.contextBlocksEnabled ? store.contextBlocks : [],
-                                    cursorAbsHour: cursorAbsHour,
-                                    sleepStartHour: sleepStartHour,
-                                    numDaysHint: effectiveNumDaysHint,
-                                    spiralExtentTurns: effectiveSpiralExtent,
-                                    viewportCenterTurns: smoothCameraCenterTurns - (0.5 - cameraFrontPadding),
-                                    visibleSpanTurns: liveVisibleDays,
-                                    depthScale: store.flatMode ? 0 : effectiveDepthScale,
-                                    perspectivePower: effectivePerspectivePower,
-                                    showGrid: store.showGrid,
-                                    startRadius: effectiveStartRadius,
-                                    predictedBedHour: store.predictionOverlayEnabled ? store.latestPrediction?.predictedBedtimeHour : nil,
-                                    predictedWakeHour: store.predictionOverlayEnabled ? store.latestPrediction?.predictedWakeHour : nil,
-                                    growthProgress: spiralGrowthProgress
+                                    totalHours: searchMax
                                 )
-                                .accessibilityElement(children: .ignore)
-                                .accessibilityLabel(spiralAccessibilityLabel)
-                                .accessibilityHint(loc("spiral.a11y.hint"))
-                                #if !os(macOS)
-                                // On macOS the overlay outside the ScrollView handles all cursor
-                                // drag interactions. This gesture is iOS/iPadOS only.
-                                .simultaneousGesture(
-                                    DragGesture(minimumDistance: 0)
-                                        .onChanged { value in
-                                            isUserInteracting = true
-                                            interactionMode = .scrub
-                                            lastInteractionTime = Date()
-                                            // Cursor moves freely — no padding limit.
-                                            // The visibility system controls what's shown.
-                                            let searchMax = Double(maxDays) * store.period
-                                            let scaleDays = max(1, Int(ceil(maxReachedTurns)))
-                                            let newHour = nearestHour(
-                                                at: value.location,
-                                                size: CGSize(
-                                                    width: screen.size.width - 32,
-                                                    height: screen.size.width - 32
-                                                ),
-                                                numDays: maxDays,
-                                                scaleDays: scaleDays,
-                                                period: store.period,
-                                                spiralType: effectiveSpiralType,
-                                                linkGrowthToTau: effectiveLinkGrowthToTau,
-                                                totalHours: searchMax
-                                            )
-                                            // Guard against erroneous nearestHour jumps near spiral origin.
-                                            let maxDelta = store.period * 1.0
-                                            guard abs(newHour - cursorAbsHour) <= maxDelta else { return }
-                                            cursorAbsHour = newHour
-                                            // During scrub, camera tracks cursor immediately.
-                                            smoothCameraCenterTurns = newHour / store.period
-                                            let nowH = Date().timeIntervalSince(store.startDate) / 3600
-                                            isCursorLive = abs(newHour - nowH) < 0.25
-                                            let newTurns = newHour / store.period
-                                            if newTurns > maxReachedTurns {
-                                                maxReachedTurns = newTurns
-                                            }
-                                        }
-                                        .onEnded { _ in
-                                            isUserInteracting = false
-                                            interactionMode = .none
-                                            lastInteractionTime = Date()
-                                        }
-                                )
-                                #endif
-                                .simultaneousGesture(
-                                    MagnifyGesture(minimumScaleDelta: 0.01)
-                                        .onChanged { value in
-                                            isUserInteracting = true
-                                            interactionMode = .pinch
-                                            lastInteractionTime = Date()
-                                            // Capture base zoom once at gesture start.
-                                            if !pinchStarted {
-                                                pinchStarted = true
-                                                pinchBaseVisibleDays = visibleDays
-                                            }
-                                            let maxZoomOut = min(maxReachedTurns, 7.0)
-                                            let clamped = max(minVisibleDays, min(maxZoomOut, pinchBaseVisibleDays / Double(value.magnification)))
-                                            liveVisibleDays = clamped
-                                            visibleDays     = clamped
-                                            zoomNorm        = visibleDaysToNorm(clamped)
-                                            // Camera keeps following cursor during pinch —
-                                            // no freezing at a snapshot point.
-                                        }
-                                        .onEnded { _ in
-                                            isUserInteracting = false
-                                            interactionMode = .none
-                                            pinchStarted = false
-                                            pinchBaseVisibleDays = visibleDays
-                                            zoomNorm = visibleDaysToNorm(visibleDays)
-                                            lastInteractionTime = Date()
-                                        }
-                                )
-                                .padding(.horizontal, 16)
-                                .frame(width: screen.size.width,
-                                       height: screen.size.height * 0.68)
-                                // Flat (2D) mode zoom is handled via radial projection in CameraState.
-                                .opacity(spiralGrowthProgress > 0 ? 1.0 : 0)
-                                .reportFrame(\.spiralArea)
-
-                                // Overlay buttons — DNA (top-leading) + Sleep log (top-trailing)
-                                HStack {
-                                    // DNA insights button — top left over spiral
-                                    Button { showDNAInsights = true } label: {
-                                        ZStack {
-                                            Circle()
-                                                .fill(.ultraThinMaterial)
-                                                .frame(width: 48, height: 48)
-                                            // Custom double helix icon (works on all iOS versions)
-                                            Canvas { ctx, size in
-                                                let w = size.width, h = size.height
-                                                let midY = h / 2, amp = h * 0.3
-                                                var p1 = Path(), p2 = Path()
-                                                for x in stride(from: CGFloat(0), through: w, by: 1) {
-                                                    let t = (x / w) * 2 * .pi
-                                                    let y1 = midY + sin(t) * amp
-                                                    let y2 = midY + sin(t + .pi) * amp
-                                                    if x == 0 {
-                                                        p1.move(to: CGPoint(x: x, y: y1))
-                                                        p2.move(to: CGPoint(x: x, y: y2))
-                                                    } else {
-                                                        p1.addLine(to: CGPoint(x: x, y: y1))
-                                                        p2.addLine(to: CGPoint(x: x, y: y2))
-                                                    }
-                                                }
-                                                ctx.stroke(p1, with: .color(SpiralColors.accent.opacity(0.9)), lineWidth: 2)
-                                                ctx.stroke(p2, with: .color(.orange.opacity(0.7)), lineWidth: 2)
-                                            }
-                                            .frame(width: 24, height: 18)
-                                        }
-                                    }
-                                    .buttonStyle(.plain)
-
-                                    Spacer()
-
-                                    // Sleep log button — top right over spiral
-                                    Button { handleLogButton() } label: {
-                                        ZStack {
-                                            Circle()
-                                                .fill(sleepStartHour != nil ? SpiralColors.awakeSleep : Color(hex: "7c3aed"))
-                                                .frame(width: 48, height: 48)
-                                                .shadow(color: (sleepStartHour != nil ? SpiralColors.awakeSleep : Color(hex: "7c3aed")).opacity(0.5), radius: 10)
-                                            Image(systemName: sleepStartHour != nil ? "sun.max.fill" : "moon.fill")
-                                                .font(.title2.weight(.semibold))
-                                                .foregroundStyle(.white)
-                                        }
-                                    }
-                                    .buttonStyle(.plain)
-                                    .reportFrame(\.moonButton)
+                                let maxDelta = store.period * 1.0
+                                guard abs(newHour - cursorAbsHour) <= maxDelta else { return }
+                                cursorAbsHour = newHour
+                                smoothCameraCenterTurns = newHour / store.period
+                                let nowH = Date().timeIntervalSince(store.startDate) / 3600
+                                isCursorLive = abs(newHour - nowH) < 0.25
+                                let newTurns = newHour / store.period
+                                if newTurns > maxReachedTurns {
+                                    maxReachedTurns = newTurns
                                 }
-                                .padding(.top, 8)
-                                .padding(.horizontal, 24)
                             }
-
-                            // ── Cursor time bar ──────────────────────────────────────
-                            cursorBar
-                                .padding(.horizontal, 20)
-                                .padding(.top, 6)
-                                .reportFrame(\.cursorBar)
-
-                            if !store.records.isEmpty {
-                                VStack(spacing: 0) {
-                                    // ── Rhythm state card ─────────────────────────────
-                                    rhythmStateCard
-                                        .padding(.horizontal, 16)
-                                        .padding(.top, 10)
-
-                                    // ── Prediction card ──────────────────────────────
-                                    if store.predictionEnabled, let pred = store.latestPrediction {
-                                        predictionCard(pred)
-                                            .padding(.horizontal, 16)
-                                            .padding(.top, 8)
-                                    }
-
-                                    // ── Human stats row ───────────────────────────────
-                                    humanStatsRow
-                                        .padding(.horizontal, 16)
-                                        .padding(.top, 8)
-
-                                    // ── Rephase pill ──────────────────────────────────
-                                    rephasePill
-                                        .padding(.horizontal, 16)
-                                        .padding(.top, 8)
-                                        .padding(.bottom, screen.safeAreaInsets.bottom + 80)
-                                }
-                                .frame(maxWidth: 540)
-                                .frame(maxWidth: .infinity)
-                            } else {
-                                // Empty state hint
-                                VStack(spacing: 8) {
-                                    Image(systemName: "moon.zzz")
-                                        .font(.largeTitle)
-                                        .foregroundStyle(SpiralColors.muted)
-                                    Text(String(localized: "spiral.empty.hint", bundle: bundle))
-                                        .font(.footnote)
-                                        .foregroundStyle(SpiralColors.muted)
-                                        .multilineTextAlignment(.center)
-                                }
-                                .padding(.top, 40)
-                                .padding(.bottom, screen.safeAreaInsets.bottom + 80)
+                            .onEnded { _ in
+                                isUserInteracting = false
+                                interactionMode = .none
+                                lastInteractionTime = Date()
                             }
+                    )
+                    #endif
+                    .simultaneousGesture(
+                        MagnifyGesture(minimumScaleDelta: 0.01)
+                            .onChanged { value in
+                                isUserInteracting = true
+                                interactionMode = .pinch
+                                lastInteractionTime = Date()
+                                if !pinchStarted {
+                                    pinchStarted = true
+                                    pinchBaseVisibleDays = visibleDays
+                                }
+                                let maxZoomOut = min(maxReachedTurns, 7.0)
+                                let clamped = max(minVisibleDays, min(maxZoomOut, pinchBaseVisibleDays / Double(value.magnification)))
+                                liveVisibleDays = clamped
+                                visibleDays     = clamped
+                                zoomNorm        = visibleDaysToNorm(clamped)
+                            }
+                            .onEnded { _ in
+                                isUserInteracting = false
+                                interactionMode = .none
+                                pinchStarted = false
+                                pinchBaseVisibleDays = visibleDays
+                                zoomNorm = visibleDaysToNorm(visibleDays)
+                                lastInteractionTime = Date()
+                            }
+                    )
+                    .padding(.horizontal, 16)
+                    .frame(width: screen.size.width,
+                           height: screen.size.height * 0.82)
+                    .offset(y: -screen.safeAreaInsets.bottom * 0.2)
+                    .opacity(spiralGrowthProgress > 0 ? 1.0 : 0)
+                    .reportFrame(\.spiralArea)
+
+                    // ── Layer 2: Top floating date pill ──────────────────────
+                    VStack {
+                        datePill
+                            .padding(.top, screen.safeAreaInsets.top + 8)
+                            .opacity(floatingElementsVisible ? 1 : 0)
+                            .offset(y: floatingElementsVisible ? 0 : 20)
+                        Spacer()
+                    }
+
+                    // ── Layer 3: DNA + Sleep log buttons ─────────────────────
+                    VStack {
+                        HStack {
+                            Button { showDNAInsights = true } label: {
+                                ZStack {
+                                    Canvas { ctx, size in
+                                        let w = size.width, h = size.height
+                                        let midY = h / 2, amp = h * 0.3
+                                        var p1 = Path(), p2 = Path()
+                                        for x in stride(from: CGFloat(0), through: w, by: 1) {
+                                            let t = (x / w) * 2 * .pi
+                                            let y1 = midY + sin(t) * amp
+                                            let y2 = midY + sin(t + .pi) * amp
+                                            if x == 0 {
+                                                p1.move(to: CGPoint(x: x, y: y1))
+                                                p2.move(to: CGPoint(x: x, y: y2))
+                                            } else {
+                                                p1.addLine(to: CGPoint(x: x, y: y1))
+                                                p2.addLine(to: CGPoint(x: x, y: y2))
+                                            }
+                                        }
+                                        ctx.stroke(p1, with: .color(SpiralColors.accent.opacity(0.9)), lineWidth: 2)
+                                        ctx.stroke(p2, with: .color(.orange.opacity(0.7)), lineWidth: 2)
+                                    }
+                                    .frame(width: 24, height: 18)
+                                }
+                                .frame(width: 44, height: 44)
+                                .liquidGlass(circular: true)
+                            }
+                            .buttonStyle(.plain)
+
+                            Spacer()
+
+                            Button { handleLogButton() } label: {
+                                ZStack {
+                                    Image(systemName: sleepStartHour != nil ? "sun.max.fill" : "moon.fill")
+                                        .font(.title3.weight(.semibold))
+                                        .foregroundStyle(sleepStartHour != nil ? SpiralColors.awakeSleep : .white)
+                                }
+                                .frame(width: 44, height: 44)
+                                .liquidGlass(circular: true)
+                            }
+                            .buttonStyle(.plain)
+                            .reportFrame(\.moonButton)
+                        }
+                        .padding(.top, screen.safeAreaInsets.top + 48)
+                        .padding(.horizontal, 20)
+                        .opacity(floatingElementsVisible ? 1 : 0)
+                        .offset(y: floatingElementsVisible ? 0 : 20)
+                        Spacer()
+                    }
+
+                    // ── Layer 4: Cursor time pill ────────────────────────────
+                    VStack {
+                        Spacer()
+                        cursorBar
+                            .padding(.horizontal, 20)
+                            .liquidGlass(cornerRadius: 16)
+                            .padding(.horizontal, 16)
+                            .reportFrame(\.cursorBar)
+                            .opacity(floatingElementsVisible ? 1 : 0)
+                            .padding(.bottom, 130)
+                    }
+
+                    // ── Layer 5: Coach tip overlay ───────────────────────────
+                    VStack {
+                        Spacer()
+                        if showCoachTip, let insight = store.analysis.coachInsight {
+                            CoachTipOverlay(insight: insight) {
+                                withAnimation(.spring(response: 0.35)) {
+                                    showCoachTip = false
+                                }
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.bottom, 130)
                         }
                     }
-                    #if !os(macOS)
-                    .scrollDisabled(isUserInteracting)
-                    #endif
+                    .animation(.spring(response: 0.35), value: showCoachTip)
+
+                    // ── Layer 6: Empty state ─────────────────────────────────
+                    if store.records.isEmpty {
+                        VStack(spacing: 8) {
+                            Image(systemName: "moon.zzz")
+                                .font(.largeTitle)
+                                .foregroundStyle(SpiralColors.muted)
+                            Text(String(localized: "spiral.empty.hint", bundle: bundle))
+                                .font(.footnote)
+                                .foregroundStyle(SpiralColors.muted)
+                                .multilineTextAlignment(.center)
+                        }
+                    }
+
+                    // ── Layer 7: Bottom action bar ───────────────────────────
+                    VStack {
+                        Spacer()
+                        actionBar
+                            .padding(.bottom, screen.safeAreaInsets.bottom + 16)
+                            .opacity(floatingElementsVisible ? 1 : 0)
+                            .offset(y: floatingElementsVisible ? 0 : 30)
+                    }
                     #if os(macOS)
                     // Transparent drag overlay positioned over the spiral area.
                     // Placed outside the ScrollView so the scroll view never intercepts
@@ -427,6 +415,14 @@ struct SpiralTab: View {
                 RephaseEditorView(plan: store.rephasePlan)
                     .presentationDetents([.large])
                     .presentationDragIndicator(.visible)
+            }
+            .sheet(isPresented: $showStatsSheet) {
+                SpiralHomeStatsSheet(
+                    showConsistencyDetail: $showConsistencyDetail,
+                    showRephaseEditor: $showRephaseEditor
+                )
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
             }
             #if !os(macOS)
             .fullScreenCover(isPresented: $showDNAInsights) {
@@ -941,6 +937,76 @@ struct SpiralTab: View {
             )
         }
         .buttonStyle(.plain)
+    }
+
+    // MARK: - Date Pill (Liquid Glass floating header)
+
+    private var datePill: some View {
+        HStack(spacing: 8) {
+            Text(greetingText)
+                .font(.caption.weight(.medium))
+            Text("·")
+                .foregroundStyle(SpiralColors.subtle)
+            Text(currentDateString)
+                .font(.caption.monospaced())
+        }
+        .foregroundStyle(SpiralColors.text)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+        .liquidGlass(cornerRadius: 20)
+    }
+
+    // MARK: - Action Bar (Liquid Glass bottom controls)
+
+    private var actionBar: some View {
+        HStack(spacing: 24) {
+            // Stats button (left, small)
+            Button { showStatsSheet = true } label: {
+                Image(systemName: "gauge.with.dots.needle.33percent")
+                    .font(.title3)
+                    .foregroundStyle(SpiralColors.text)
+                    .frame(width: 48, height: 48)
+                    .liquidGlass(circular: true)
+            }
+            .buttonStyle(.plain)
+
+            // Central sleep/wake button (large, accent)
+            Button { handleLogButton() } label: {
+                ZStack {
+                    Circle()
+                        .fill(
+                            sleepStartHour != nil
+                                ? SpiralColors.awakeSleep.opacity(0.3)
+                                : Color(hex: "7c3aed").opacity(0.3)
+                        )
+                        .frame(width: 64, height: 64)
+                    Image(systemName: sleepStartHour != nil ? "sun.max.fill" : "moon.fill")
+                        .font(.title.weight(.semibold))
+                        .foregroundStyle(sleepStartHour != nil ? SpiralColors.awakeSleep : .white)
+                }
+                .liquidGlass(circular: true)
+            }
+            .buttonStyle(.plain)
+
+            // Coach tip button (right, small)
+            Button {
+                withAnimation(.spring(response: 0.35)) {
+                    showCoachTip.toggle()
+                }
+            } label: {
+                Image(systemName: "sparkles")
+                    .font(.title3)
+                    .foregroundStyle(
+                        store.analysis.coachInsight != nil
+                            ? SpiralColors.accent
+                            : SpiralColors.muted
+                    )
+                    .frame(width: 48, height: 48)
+                    .liquidGlass(circular: true)
+            }
+            .buttonStyle(.plain)
+            .disabled(store.analysis.coachInsight == nil)
+        }
     }
 
     // MARK: - Log button
