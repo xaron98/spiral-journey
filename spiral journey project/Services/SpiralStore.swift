@@ -318,6 +318,9 @@ final class SpiralStore {
     private var isSyncingFromCloud = false
     /// True during init load — prevents didSet from triggering save() on every property.
     private var isLoading = false
+    /// Coalesces rapid `save()` calls into a single write after a short delay.
+    /// Prevents 26+ JSON encode/write cycles when multiple properties change in quick succession.
+    private var saveTask: Task<Void, Never>?
 
     // MARK: - Computed State
 
@@ -858,6 +861,18 @@ final class SpiralStore {
 
     private func save() {
         guard !isSyncingFromCloud, !isLoading else { return }
+        // Coalesce rapid saves: cancel any pending write and schedule a new one.
+        // This prevents 26+ JSON encode/write cycles when multiple properties
+        // change in quick succession (e.g. during data import or settings batch).
+        saveTask?.cancel()
+        saveTask = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(200))
+            guard !Task.isCancelled else { return }
+            self?.performSave()
+        }
+    }
+
+    private func performSave() {
         let stored = Stored(
             sleepEpisodes: sleepEpisodes,
             events: events,

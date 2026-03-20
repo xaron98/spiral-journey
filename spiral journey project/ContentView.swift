@@ -20,24 +20,28 @@ struct ContentView: View {
                         Label(AppTab.spiral.label(bundle), systemImage: AppTab.spiral.icon)
                     }
                     .tag(AppTab.spiral)
+                    .accessibilityLabel(AppTab.spiral.label(bundle))
 
                 AnalysisTab()
                     .tabItem {
                         Label(AppTab.trends.label(bundle), systemImage: AppTab.trends.icon)
                     }
                     .tag(AppTab.trends)
+                    .accessibilityLabel(AppTab.trends.label(bundle))
 
                 CoachTab()
                     .tabItem {
                         Label(AppTab.coach.label(bundle), systemImage: AppTab.coach.icon)
                     }
                     .tag(AppTab.coach)
+                    .accessibilityLabel(AppTab.coach.label(bundle))
 
                 SettingsTab()
                     .tabItem {
                         Label(AppTab.settings.label(bundle), systemImage: AppTab.settings.icon)
                     }
                     .tag(AppTab.settings)
+                    .accessibilityLabel(AppTab.settings.label(bundle))
             }
             .tint(SpiralColors.accent)
             .preferredColorScheme(store.appearance.colorScheme)

@@ -2,10 +2,13 @@ import SwiftUI
 
 /// Animated double-helix decoration using Canvas + TimelineView.
 /// Purple strand (sleep) and orange strand (context) with base-pair connectors.
+/// Pauses animation when the app is backgrounded to save battery.
 struct MiniHelixView: View {
 
     var width: CGFloat = 120
     var height: CGFloat = 60
+
+    @Environment(\.scenePhase) private var scenePhase
 
     // MARK: - Colors
     private let strandPurple = Color(hex: "7c3aed")
@@ -13,7 +16,7 @@ struct MiniHelixView: View {
     private let pairColor    = Color.white.opacity(0.15)
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1.0 / 30.0)) { context in
+        TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: scenePhase != .active)) { context in
             let phase = context.date.timeIntervalSinceReferenceDate * 0.6
             Canvas { ctx, size in
                 drawHelix(ctx: &ctx, size: size, phase: phase)

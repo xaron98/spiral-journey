@@ -255,6 +255,9 @@ struct CoachChatView: View {
                         proxy.scrollTo("streaming", anchor: .bottom)
                     }
                 }
+                .onTapGesture {
+                    isInputFocused = false
+                }
             }
 
             Divider()
@@ -333,6 +336,8 @@ struct CoachChatView: View {
                 .padding(.vertical, 10)
                 .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 20))
                 .focused($isInputFocused)
+                .submitLabel(.send)
+                .onSubmit { sendMessage() }
 
             Button {
                 sendMessage()
@@ -346,6 +351,7 @@ struct CoachChatView: View {
                     )
             }
             .disabled(inputText.trimmingCharacters(in: .whitespaces).isEmpty && !isGenerating)
+            .accessibilityLabel(isGenerating ? "Stop generating" : "Send message")
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)

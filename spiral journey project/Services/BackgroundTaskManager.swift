@@ -123,19 +123,21 @@ enum BackgroundTaskManager {
         modelContainer: ModelContainer,
         dnaService: SleepDNAService
     ) {
-        task.expirationHandler = {
-            task.setTaskCompleted(success: false)
-        }
-
         let context = ModelContext(modelContainer)
 
-        Task {
+        let refreshTask = Task {
             await dnaService.refreshIfNeeded(store: store, context: context)
 
             // Schedule next run
             scheduleDNARefresh()
 
             task.setTaskCompleted(success: true)
+        }
+
+        // Cancel the in-flight refresh when the system reclaims our time budget.
+        task.expirationHandler = {
+            refreshTask.cancel()
+            task.setTaskCompleted(success: false)
         }
     }
 

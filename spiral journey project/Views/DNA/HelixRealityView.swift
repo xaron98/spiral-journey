@@ -13,6 +13,7 @@ struct HelixRealityView: View {
     @Binding var isInteractingWith3D: Bool
 
     @Environment(\.languageBundle) private var bundle
+    @Environment(\.scenePhase) private var scenePhase
     @State private var manager = HelixInteractionManager()
     @State private var helixRoot: Entity?
 
@@ -50,6 +51,9 @@ struct HelixRealityView: View {
             }
             .frame(height: 400)
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel(loc("dna.3d.a11y.label"))
+            .accessibilityHint(loc("dna.3d.a11y.hint"))
         }
     }
 
@@ -106,6 +110,17 @@ struct HelixRealityView: View {
         .onDisappear {
             autoRotationTimer?.invalidate()
             autoRotationTimer = nil
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            switch newPhase {
+            case .active:
+                if autoRotationTimer == nil { startAutoRotation() }
+            case .inactive, .background:
+                autoRotationTimer?.invalidate()
+                autoRotationTimer = nil
+            @unknown default:
+                break
+            }
         }
     }
 

@@ -21,7 +21,9 @@ final class CloudSyncManager: NSObject, CKSyncEngineDelegate, @unchecked Sendabl
     private let stateURL: URL
 
     /// Cache of CKRecord objects pending upload, keyed by CKRecord.ID.
+    /// Capped at `maxPendingRecords` to prevent unbounded memory growth under poor connectivity.
     private var pendingRecords: [CKRecord.ID: CKRecord] = [:]
+    private static let maxPendingRecords = 200
 
     // MARK: - Init
 
@@ -111,6 +113,13 @@ final class CloudSyncManager: NSObject, CKSyncEngineDelegate, @unchecked Sendabl
     // MARK: - Private
 
     private func enqueueRecord(_ record: CKRecord) {
+        // Evict oldest pending record if at capacity to prevent unbounded memory growth.
+        if pendingRecords.count >= Self.maxPendingRecords {
+            if let oldest = pendingRecords.keys.first {
+                pendingRecords.removeValue(forKey: oldest)
+                logger.warning("Pending records at capacity (\(Self.maxPendingRecords)), evicted oldest")
+            }
+        }
         pendingRecords[record.recordID] = record
         engine.state.add(pendingRecordZoneChanges: [.saveRecord(record.recordID)])
     }
