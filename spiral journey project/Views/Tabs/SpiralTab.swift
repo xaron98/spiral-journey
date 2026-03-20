@@ -1356,8 +1356,15 @@ struct SpiralTab: View {
             ?? store.startDate
 
         // 1. Check context blocks at this hour
-        let activeBlocks = (store.contextBlocksEnabled ? store.contextBlocks : [])
-            .filter { $0.isEnabled && $0.isActive(on: tappedDate) }
+        let allBlocks = store.contextBlocksEnabled ? store.contextBlocks : []
+        #if DEBUG
+        print("[TAP] tappedDate=\(tappedDate) totalBlocks=\(allBlocks.count) enabled=\(allBlocks.filter(\.isEnabled).count)")
+        for b in allBlocks.filter(\.isEnabled) {
+            let active = b.isActive(on: tappedDate)
+            print("[TAP]   block '\(b.label)' specific=\(String(describing: b.specificDate)) active=\(active) hours=\(String(format:"%.1f",b.startHour))-\(String(format:"%.1f",b.endHour))")
+        }
+        #endif
+        let activeBlocks = allBlocks.filter { $0.isEnabled && $0.isActive(on: tappedDate) }
         for block in activeBlocks {
             let s = block.startHour, e = block.endHour
             let inRange: Bool
@@ -1379,41 +1386,47 @@ struct SpiralTab: View {
             }
         }
 
-        // 2. Check sleep records at this hour — use phases for accuracy
-        if let record = store.records.first(where: { $0.day == dayIndex }) {
-            // Check phases first (more accurate than bedtime/wakeup range)
+        // 2. Check sleep records — search current day AND adjacent days
+        // Sleep paths can visually cross day boundaries (overnight sleep),
+        // so the path you see at clockHour on dayIndex may belong to day-1 or day+1.
+        let candidateDays = [dayIndex, dayIndex - 1, dayIndex + 1]
+        for candidateDay in candidateDays {
+            guard let record = store.records.first(where: { $0.day == candidateDay }) else { continue }
+
+            // Check phases first (most accurate)
             let phaseAtHour = record.phases.last(where: { $0.hour <= clockHour })
             let isSleepPhase = phaseAtHour != nil && phaseAtHour!.phase != .awake
 
-            if isSleepPhase || record.sleepDuration > 0 {
-                let bedH = record.bedtimeHour
-                let wakeH = record.wakeupHour
+            let bedH = record.bedtimeHour
+            let wakeH = record.wakeupHour
 
-                // If phase says sleep, or we're in the bed-wake range → sleep
-                let inSleepRange: Bool
-                if bedH > wakeH {
-                    inSleepRange = clockHour >= bedH || clockHour <= wakeH
-                } else if bedH < wakeH {
-                    inSleepRange = clockHour >= bedH && clockHour <= wakeH
-                } else {
-                    inSleepRange = false
-                }
-
-                if isSleepPhase || inSleepRange {
-                    let bedStr = formatClockHour(bedH)
-                    let wakeStr = formatClockHour(wakeH)
-                    let info = SpiralElementInfo(
-                        label: loc("spiral.info.sleep"),
-                        timeRange: "\(bedStr) – \(wakeStr)",
-                        duration: formatDurationCompact(record.sleepDuration),
-                        color: Color(hex: "a855f7")
-                    )
-                    showElementInfo(info)
-                    return
-                }
+            // Check if clockHour falls in this record's sleep range
+            let inSleepRange: Bool
+            if bedH > wakeH {
+                // Overnight: e.g. 23:00–07:00
+                inSleepRange = clockHour >= bedH || clockHour <= wakeH
+            } else if bedH < wakeH {
+                inSleepRange = clockHour >= bedH && clockHour <= wakeH
+            } else {
+                inSleepRange = false
             }
 
-            // 3. If not sleeping, it's awake time
+            if isSleepPhase || inSleepRange {
+                let bedStr = formatClockHour(bedH)
+                let wakeStr = formatClockHour(wakeH)
+                let info = SpiralElementInfo(
+                    label: loc("spiral.info.sleep"),
+                    timeRange: "\(bedStr) – \(wakeStr)",
+                    duration: formatDurationCompact(record.sleepDuration),
+                    color: Color(hex: "a855f7")
+                )
+                showElementInfo(info)
+                return
+            }
+        }
+
+        // 3. If no sleep match found, check if there's a record for this day → awake
+        if let record = store.records.first(where: { $0.day == dayIndex }) {
             let awakeDuration = period - record.sleepDuration
             let info = SpiralElementInfo(
                 label: loc("spiral.info.awake"),
