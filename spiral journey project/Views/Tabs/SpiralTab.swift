@@ -1342,10 +1342,13 @@ struct SpiralTab: View {
 
         #if DEBUG
         print("[TAP] tappedHour=\(String(format:"%.1f", tappedHour)) dayIndex=\(dayIndex) clockHour=\(String(format:"%.1f", clockHour))")
+        print("[TAP] records days: \(store.records.map(\.day).sorted())")
         if let record = store.records.first(where: { $0.day == dayIndex }) {
-            print("[TAP] record day=\(record.day) bed=\(String(format:"%.1f", record.bedtimeHour)) wake=\(String(format:"%.1f", record.wakeupHour)) dur=\(String(format:"%.1f", record.sleepDuration)) phases=\(record.phases.count)")
+            print("[TAP] MATCH record day=\(record.day) bed=\(String(format:"%.1f", record.bedtimeHour)) wake=\(String(format:"%.1f", record.wakeupHour))")
         } else {
-            print("[TAP] no record for dayIndex=\(dayIndex)")
+            // Try finding closest record
+            let closest = store.records.min(by: { abs($0.day - dayIndex) < abs($1.day - dayIndex) })
+            print("[TAP] NO MATCH for dayIndex=\(dayIndex). Closest record day=\(closest?.day ?? -1)")
         }
         #endif
         let cal = Calendar.current
