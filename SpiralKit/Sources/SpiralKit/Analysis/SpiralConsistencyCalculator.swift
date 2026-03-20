@@ -274,8 +274,11 @@ public enum SpiralConsistencyCalculator {
                 }
             }
 
+            #if DEBUG
+            print("[DISRUPT] day=\(dayIdx) bed=\(String(format:"%.1f",night.bedtimeHour)) wake=\(String(format:"%.1f",night.wakeupHour)) totalPhases=\(night.phases.count) sleepPhases=\(sleepPhases.count) awakeInSleep=\(awakeInSleep.count)")
+            #endif
+
             // Threshold: >2 awake phases during sleep = local disruption
-            // (Apple Watch records awake phases at 15-min resolution, so 2 phases = 30+ min awake)
             if awakeInSleep.count >= 2 && !sleepPhases.isEmpty {
                 // Find the cluster of awakenings
                 let awakeHours = awakeInSleep.map(\.hour).sorted()
