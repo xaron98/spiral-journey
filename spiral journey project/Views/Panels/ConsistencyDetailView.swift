@@ -340,8 +340,8 @@ private struct WeeklyNightGrid: View {
 
                         NightCell(
                             record: record,
-                            isLocalDisruption: localDisruptionDays.contains(nights.count - 1 - idx),
-                            isGlobalShift: globalShiftDays.contains(nights.count - 1 - idx)
+                            isLocalDisruption: localDisruptionDays.contains(record.day),
+                            isGlobalShift: globalShiftDays.contains(record.day)
                         )
                     }
                 }
