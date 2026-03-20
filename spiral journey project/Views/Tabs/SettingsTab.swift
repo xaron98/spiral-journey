@@ -730,6 +730,29 @@ struct SettingsTab: View {
                     }
                 }
 
+                // ── Background Processing ─────────────────────────────────
+                SettingsSection(title: String(localized: "settings.background.title", bundle: bundle), icon: "gearshape.2") {
+                    Toggle(isOn: Binding(
+                        get: { store.bgRetrainEnabled },
+                        set: { store.bgRetrainEnabled = $0 }
+                    )) {
+                        Text(String(localized: "settings.background.retrain", bundle: bundle))
+                            .font(.system(size: 12, design: .monospaced))
+                            .foregroundStyle(SpiralColors.text)
+                    }
+                    .toggleStyle(SwitchToggleStyle(tint: SpiralColors.accent))
+
+                    Toggle(isOn: Binding(
+                        get: { store.bgDNARefreshEnabled },
+                        set: { store.bgDNARefreshEnabled = $0 }
+                    )) {
+                        Text(String(localized: "settings.background.dna", bundle: bundle))
+                            .font(.system(size: 12, design: .monospaced))
+                            .foregroundStyle(SpiralColors.text)
+                    }
+                    .toggleStyle(SwitchToggleStyle(tint: SpiralColors.accent))
+                }
+
                 // ── About ───────────────────────────────────────────────────
 
                 SettingsSection(title: String(localized: "settings.about.title", bundle: bundle), icon: "info.circle") {

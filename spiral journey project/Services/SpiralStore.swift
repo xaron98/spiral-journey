@@ -210,6 +210,17 @@ final class SpiralStore {
         }
     }
 
+    // MARK: - Background Processing
+
+    var bgRetrainEnabled: Bool {
+        get { UserDefaults.standard.object(forKey: "bgRetrainEnabled") as? Bool ?? true }
+        set { UserDefaults.standard.set(newValue, forKey: "bgRetrainEnabled") }
+    }
+    var bgDNARefreshEnabled: Bool {
+        get { UserDefaults.standard.object(forKey: "bgDNARefreshEnabled") as? Bool ?? true }
+        set { UserDefaults.standard.set(newValue, forKey: "bgDNARefreshEnabled") }
+    }
+
     // MARK: - Prediction
 
     var predictionEnabled: Bool = false {

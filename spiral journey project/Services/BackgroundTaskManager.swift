@@ -95,6 +95,11 @@ enum BackgroundTaskManager {
         _ task: BGProcessingTask,
         store: SpiralStore
     ) {
+        guard store.bgRetrainEnabled else {
+            task.setTaskCompleted(success: true)
+            return
+        }
+
         // Set up expiration handler — if the system kills us, mark as not completed
         task.expirationHandler = {
             task.setTaskCompleted(success: false)
@@ -123,6 +128,11 @@ enum BackgroundTaskManager {
         modelContainer: ModelContainer,
         dnaService: SleepDNAService
     ) {
+        guard store.bgDNARefreshEnabled else {
+            task.setTaskCompleted(success: true)
+            return
+        }
+
         let context = ModelContext(modelContainer)
 
         let refreshTask = Task {

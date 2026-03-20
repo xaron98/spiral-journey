@@ -13,12 +13,12 @@
 		<string>com.spiral-journey.dna-refresh</string>
 	</array>
 	<key>NSHealthShareUsageDescription</key>
-	<string>Spiral Journey reads your sleep data and heart rate variability from Apple Health to analyze your circadian rhythm, calculate sleep statistics, and provide personalized recommendations. Your data is never shared with third parties and is only used within the app.</string>
+	<string>Spiral Journey reads your sleep analysis and heart rate variability from Apple Health to analyze your circadian rhythm and provide personalized insights. Data may be synced across your devices via your private iCloud account if you enable cloud sync. Your health data is never shared with third parties.</string>
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>Spiral Journey does not write health data. This permission is required by the system but the app only reads your sleep and HRV information.</string>
 	<key>NSCalendarsFullAccessUsageDescription</key>
-	<string>Spiral Journey can import your calendar events as context blocks (work, study, commute) to detect conflicts between your sleep schedule and daily obligations. Your calendar data stays on your device and is never shared.</string>
+	<string>Spiral Journey can import your calendar events as context blocks to detect conflicts between your sleep schedule and daily obligations. Calendar data may sync across your devices via iCloud if cloud sync is enabled.</string>
 	<key>NSCalendarsUsageDescription</key>
-	<string>Spiral Journey can import your calendar events as context blocks (work, study, commute) to detect conflicts between your sleep schedule and daily obligations. Your calendar data stays on your device and is never shared.</string>
+	<string>Spiral Journey can import your calendar events as context blocks to detect conflicts between your sleep schedule and daily obligations. Calendar data may sync across your devices via iCloud if cloud sync is enabled.</string>
 </dict>
 </plist>

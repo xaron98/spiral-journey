@@ -108,7 +108,15 @@ struct WelcomeScreenView: View {
                 .buttonStyle(.plain)
                 .padding(.horizontal, 24)
 
-                Spacer().frame(height: 48)
+                Spacer().frame(height: 16)
+
+                Text(String(localized: "onboarding.disclaimer", bundle: bundle))
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 32)
+
+                Spacer().frame(height: 32)
             }
         }
         .transition(.opacity)

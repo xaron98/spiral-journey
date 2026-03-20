@@ -217,29 +217,6 @@ struct spiral_journey_projectApp: App {
                         await store.cloudSync?.fetchNow()
                     }
                 }
-                // ⑥ Periodic incremental HealthKit poll — safety net only.
-                // The anchored object query handles fast live updates; this poll
-                // catches anything it might miss (e.g. after background delivery gaps).
-                // Backoff: 30s → 60s → 120s → 300s when no new data; resets on new data.
-                .task {
-                    #if !targetEnvironment(simulator)
-                    let backoffSteps: [Int] = [30, 60, 120, 300]
-                    var backoffIndex = 0
-                    while !Task.isCancelled {
-                        try? await Task.sleep(for: .seconds(backoffSteps[backoffIndex]))
-                        guard healthKit.isAuthorized else { continue }
-                        let knownIDs = Set(store.sleepEpisodes.compactMap(\.healthKitSampleID))
-                        let newEpisodes = await healthKit.fetchRecentNewEpisodes(
-                            epoch: store.startDate, knownIDs: knownIDs)
-                        if !newEpisodes.isEmpty {
-                            store.mergeHealthKitEpisodes(newEpisodes)
-                            backoffIndex = 0 // Reset to fast polling on new data
-                        } else {
-                            backoffIndex = min(backoffIndex + 1, backoffSteps.count - 1)
-                        }
-                    }
-                    #endif
-                }
         }
     }
 
