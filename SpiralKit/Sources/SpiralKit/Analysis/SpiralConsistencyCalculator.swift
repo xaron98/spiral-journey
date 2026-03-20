@@ -232,7 +232,7 @@ public enum SpiralConsistencyCalculator {
             // For regular schedules, use adaptive threshold.
             let globalThresholdH: Double
             if isIrregularSchedule {
-                globalThresholdH = 1.5  // fixed: don't let high SD mask real shifts
+                globalThresholdH = 3.0  // higher for irregular schedules (day/night variable)
             } else {
                 globalThresholdH = max(1.5, sdOnset * 2.0)
             }
@@ -246,7 +246,7 @@ public enum SpiralConsistencyCalculator {
                     severity: onsetDiff > 2 ? 2 : 1,
                     recommendedAction: "Intenta mantener una hora de inicio y despertar estable, incluso en fines de semana."
                 ))
-                continue
+                // Don't continue — also check for local disruptions on this day
             }
 
             // ── Local disruption: detect mid-sleep awakenings ─────────────
@@ -296,8 +296,8 @@ public enum SpiralConsistencyCalculator {
                 }
             }
 
-            // Disruption if: awake phases in sleep >= 2, OR transitions >= 3
-            let fragmentationDetected = (awakeInSleep.count >= 2 && !sleepPhases.isEmpty) || transitionCount >= 3
+            // Disruption if: awake phases in sleep >= 1, OR transitions >= 2
+            let fragmentationDetected = (awakeInSleep.count >= 1 && !sleepPhases.isEmpty) || transitionCount >= 2
 
             if fragmentationDetected {
                 let disruptions = max(awakeInSleep.count, transitionCount / 2)
