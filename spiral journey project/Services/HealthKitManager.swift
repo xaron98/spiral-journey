@@ -31,6 +31,8 @@ final class HealthKitManager {
         if status != .notDetermined {
             isAuthorized = true
         }
+        // Restore persisted anchor so anchored queries resume from last position.
+        restoreAnchor()
     }
 
     /// Called whenever new sleep data arrives in HealthKit (e.g. after a Watch sleep session).
@@ -48,8 +50,47 @@ final class HealthKitManager {
     private let debounceInterval: Duration = .milliseconds(500)
 
     // MARK: - Anchored Object Query (primary live update mechanism)
-    private var sleepAnchor: HKQueryAnchor?
+    private var sleepAnchor: HKQueryAnchor? {
+        didSet {
+            guard !isRestoringAnchor else { return }
+            persistAnchor()
+        }
+    }
     private var anchoredQuery: HKAnchoredObjectQuery?
+    /// Prevents persistAnchor() from firing during restoreAnchor() (avoid writing back the same data).
+    private var isRestoringAnchor = false
+
+    /// UserDefaults key for persisting the HKQueryAnchor between launches.
+    private static let anchorKey = "spiral-journey-hk-sleep-anchor"
+
+    /// Save the current anchor to UserDefaults so it survives app restarts.
+    /// On next launch the anchored query starts from where it left off
+    /// instead of re-fetching the entire history.
+    private func persistAnchor() {
+        guard let anchor = sleepAnchor else { return }
+        do {
+            let data = try NSKeyedArchiver.archivedData(
+                withRootObject: anchor, requiringSecureCoding: true)
+            UserDefaults.standard.set(data, forKey: Self.anchorKey)
+        } catch {
+            print("[HK] Failed to persist anchor: \(error)")
+        }
+    }
+
+    /// Restore a previously saved anchor from UserDefaults.
+    private func restoreAnchor() {
+        guard let data = UserDefaults.standard.data(forKey: Self.anchorKey) else { return }
+        do {
+            isRestoringAnchor = true
+            sleepAnchor = try NSKeyedUnarchiver.unarchivedObject(
+                ofClass: HKQueryAnchor.self, from: data)
+            isRestoringAnchor = false
+            print("[HK] Restored persisted anchor")
+        } catch {
+            isRestoringAnchor = false
+            print("[HK] Failed to restore anchor: \(error)")
+        }
+    }
 
     // MARK: - Authorization
 
@@ -306,7 +347,10 @@ final class HealthKitManager {
             return nil
         }
         isImporting = true
+        let importStart = CFAbsoluteTimeGetCurrent()
         defer {
+            let elapsed = CFAbsoluteTimeGetCurrent() - importStart
+            print("[HK] importAndAdjustEpoch took \(String(format: "%.2f", elapsed))s")
             isImporting = false
             // If another request came in while we were importing, fire a retry
             // so freshly synced Watch data isn't missed.
@@ -344,6 +388,7 @@ final class HealthKitManager {
     /// full 365-day import — used by the periodic poll and observer callback.
     func fetchRecentNewEpisodes(epoch: Date, knownIDs: Set<String>) async -> [SleepEpisode] {
         guard isAvailable, isAuthorized else { return [] }
+        let fetchStart = CFAbsoluteTimeGetCurrent()
         let calendar = Calendar.current
         let end = Date()
         guard let start = calendar.date(byAdding: .day, value: -3, to: end) else { return [] }
@@ -353,9 +398,8 @@ final class HealthKitManager {
             guard let hkID = ep.healthKitSampleID else { return true }
             return !knownIDs.contains(hkID)
         }
-        if !newOnly.isEmpty {
-            print("[HK] incremental: \(newOnly.count) new episodes from last 3 days")
-        }
+        let elapsed = CFAbsoluteTimeGetCurrent() - fetchStart
+        print("[HK] incremental fetch took \(String(format: "%.2f", elapsed))s — \(newOnly.count) new of \(recent.count) recent")
         return newOnly
     }
 

@@ -73,19 +73,20 @@ final class SpiralStore {
     // MARK: - Persisted State (UserDefaults)
 
     var sleepEpisodes: [SleepEpisode] = [] {
-        didSet { save() }
+        didSet { widgetNeedsReload = true; save() }
     }
     var events: [CircadianEvent] = [] {
-        didSet { save() }
+        didSet { widgetNeedsReload = true; save() }
     }
     var startDate: Date = Calendar.current.startOfDay(for: Date()) {
-        didSet { save() }
+        didSet { settingsNeedCloudPush = true; save() }
     }
     var numDays: Int = 30 {
-        didSet { save() }
+        didSet { settingsNeedCloudPush = true; save() }
     }
     var spiralType: SpiralType = .archimedean {
         didSet {
+            settingsNeedCloudPush = true
             save()
             #if os(iOS)
             WatchConnectivityManager.shared.sendSettings(
@@ -99,6 +100,7 @@ final class SpiralStore {
     }
     var period: Double = 24.0 {
         didSet {
+            settingsNeedCloudPush = true
             save()
             #if os(iOS)
             WatchConnectivityManager.shared.sendSettings(
@@ -111,20 +113,51 @@ final class SpiralStore {
         }
     }
     var linkGrowthToTau: Bool = false {
-        didSet { save() }
+        didSet {
+            settingsNeedCloudPush = true
+            save()
+            #if os(iOS)
+            WatchConnectivityManager.shared.sendSettings(
+                language: language.localeIdentifier,
+                appearance: appearance.rawValue,
+                linkGrowthToTau: linkGrowthToTau
+            )
+            #endif
+        }
     }
     var depthScale: Double = 0.15 {
-        didSet { save() }
+        didSet {
+            settingsNeedCloudPush = true
+            save()
+            #if os(iOS)
+            WatchConnectivityManager.shared.sendSettings(
+                language: language.localeIdentifier,
+                appearance: appearance.rawValue,
+                depthScale: depthScale
+            )
+            #endif
+        }
     }
     /// 2D flat mode — disables perspective, uses auto-zoom to fit spiral on screen.
     var flatMode: Bool = false {
-        didSet { save() }
+        didSet {
+            settingsNeedCloudPush = true
+            save()
+            #if os(iOS)
+            WatchConnectivityManager.shared.sendSettings(
+                language: language.localeIdentifier,
+                appearance: appearance.rawValue,
+                flatMode: flatMode
+            )
+            #endif
+        }
     }
     var showGrid: Bool = true {
-        didSet { save() }
+        didSet { settingsNeedCloudPush = true; save() }
     }
     var language: AppLanguage = .systemMatch {
         didSet {
+            settingsNeedCloudPush = true
             save()
             #if os(iOS)
             WatchConnectivityManager.shared.sendSettings(
@@ -136,6 +169,7 @@ final class SpiralStore {
     }
     var appearance: AppAppearance = .dark {
         didSet {
+            settingsNeedCloudPush = true
             save()
             #if os(iOS)
             WatchConnectivityManager.shared.sendSettings(
@@ -321,6 +355,12 @@ final class SpiralStore {
     /// Coalesces rapid `save()` calls into a single write after a short delay.
     /// Prevents 26+ JSON encode/write cycles when multiple properties change in quick succession.
     private var saveTask: Task<Void, Never>?
+    /// Set when episode/record data changes — consumed by batched save to reload widgets.
+    /// Avoids reloading widget timelines for settings-only changes (language, appearance, etc.).
+    private var widgetNeedsReload = false
+    /// Set when user-facing settings change — consumed by batched save to push to CloudKit.
+    /// Avoids pushing settings to CloudKit on every data-only save (episodes, events).
+    private var settingsNeedCloudPush = false
 
     // MARK: - Computed State
 
@@ -873,6 +913,12 @@ final class SpiralStore {
     }
 
     private func performSave() {
+        // Consume dirty flags before writing — they accumulate across coalesced saves.
+        let shouldReloadWidget = widgetNeedsReload
+        let shouldPushSettings = settingsNeedCloudPush
+        widgetNeedsReload = false
+        settingsNeedCloudPush = false
+
         let stored = Stored(
             sleepEpisodes: sleepEpisodes,
             events: events,
@@ -917,12 +963,19 @@ final class SpiralStore {
         )
         if let data = try? JSONEncoder().encode(stored) {
             sharedDefaults.set(data, forKey: storageKey)
-            WidgetCenter.shared.reloadAllTimelines()
+            // Only reload widget timelines when data the widget displays has changed
+            // (sleep episodes, events) — not on every settings tweak.
+            if shouldReloadWidget {
+                WidgetCenter.shared.reloadAllTimelines()
+            }
         }
-        // Push settings snapshot to CloudKit (episodes/events are pushed at the call site).
-        let now = Date()
-        UserDefaults.standard.set(now, forKey: "spiral-journey-settings-modified-at")
-        cloudSync?.enqueueSettingsSave(currentCloudSettings(modifiedAt: now))
+        // Only push settings to CloudKit when user-facing settings actually changed
+        // (language, appearance, spiralType, period, etc.) — not on data-only saves.
+        if shouldPushSettings {
+            let now = Date()
+            UserDefaults.standard.set(now, forKey: "spiral-journey-settings-modified-at")
+            cloudSync?.enqueueSettingsSave(currentCloudSettings(modifiedAt: now))
+        }
     }
 
     private func load() {
@@ -997,7 +1050,8 @@ final class SpiralStore {
 
     /// Write to local storage without pushing to CloudKit.
     /// Used when applying remote changes to prevent sync loops.
-    private func saveLocalOnly() {
+    /// - Parameter reloadWidget: Whether to reload widget timelines (only for data changes, not chat/settings).
+    private func saveLocalOnly(reloadWidget: Bool = false) {
         isSyncingFromCloud = true
         let stored = Stored(
             sleepEpisodes: sleepEpisodes,
@@ -1043,7 +1097,9 @@ final class SpiralStore {
         )
         if let data = try? JSONEncoder().encode(stored) {
             sharedDefaults.set(data, forKey: storageKey)
-            WidgetCenter.shared.reloadAllTimelines()
+            if reloadWidget {
+                WidgetCenter.shared.reloadAllTimelines()
+            }
         }
         isSyncingFromCloud = false
     }
@@ -1064,7 +1120,7 @@ final class SpiralStore {
         }
         if changed {
             sleepEpisodes.sort { $0.start < $1.start }
-            saveLocalOnly()
+            saveLocalOnly(reloadWidget: true)
             recompute()
         }
     }
@@ -1083,7 +1139,7 @@ final class SpiralStore {
         }
         if changed {
             events.sort { $0.absoluteHour < $1.absoluteHour }
-            saveLocalOnly()
+            saveLocalOnly(reloadWidget: true)
         }
     }
 
@@ -1094,7 +1150,7 @@ final class SpiralStore {
         sleepEpisodes.removeAll { episodeIDs.contains($0.id) }
         events.removeAll { eventIDs.contains($0.id) }
         if sleepEpisodes.count != epsBefore || events.count != evtsBefore {
-            saveLocalOnly()
+            saveLocalOnly(reloadWidget: true)
             if sleepEpisodes.count != epsBefore { recompute() }
         }
     }
