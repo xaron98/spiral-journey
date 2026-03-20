@@ -177,8 +177,9 @@ enum SpiralVisibilityEngine {
 
     // MARK: - Tunable curves
 
-    /// Days 0-5 fully visible, day 6 slight fade, day 7 hard cut.
-    static let opacityCurve: [Double] = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.4, 0.05]
+    /// All days within range at full opacity — the real fade happens
+    /// per-segment in drawDataPoints via segmentEdgeFade, not per-day.
+    static let opacityCurve: [Double] = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
     static let blurCurve: [Double] = [0, 0, 0.3, 0.6, 1.0, 1.5, 2.0]
     static let strokeScaleCurve: [Double] = [1.0, 0.95, 0.88, 0.80, 0.72, 0.65, 0.58]
 
@@ -360,25 +361,15 @@ enum SpiralVisibilityEngine {
     /// Returns styling state for a day based on distance from the CURSOR.
     ///
     /// Uses ONE distance source only (requestedActiveIndex = actual cursor position).
-    /// This guarantees MONOTONIC fade: day closest to cursor = brightest,
-    /// day furthest = dimmest. No exceptions. No clamping to data bounds.
-    ///
-    /// - Distance 0-5: full opacity (1.0) from opacityCurve
-    /// - Distance 6: slight fade (0.4)
-    /// - Distance 7: near invisible (0.05)
-    /// - Distance 8+: exponential decay toward 0
+    /// Days within the window: full opacity tapering at the edge.
+    /// Beyond the curve: rapid decay to 0.
     static func visibilityState(for dayIndex: Int, window: VisibleDayWindow) -> DayVisibilityState {
-        // Single distance: from the actual cursor position. Period.
         let dist = abs(window.requestedActiveIndex - dayIndex)
 
-        let rawOpacity: Double
-        if dist < opacityCurve.count {
-            rawOpacity = opacityCurve[dist]
-        } else {
-            let base = opacityCurve.last ?? 0.05
-            let extra = dist - opacityCurve.count + 1
-            rawOpacity = base * pow(0.15, Double(extra))
-        }
+        // Day visibility is always 1.0 within a generous range.
+        // The actual progressive fade is handled per-segment in drawDataPoints
+        // via segmentEdgeFade, which clips based on fractional turn position.
+        let rawOpacity: Double = dist <= 9 ? 1.0 : 0.0
 
         let blur: Double = dist < blurCurve.count ? blurCurve[dist] : (blurCurve.last ?? 2.0)
         let strokeScale: Double = dist < strokeScaleCurve.count ? strokeScaleCurve[dist] : (strokeScaleCurve.last ?? 0.58)

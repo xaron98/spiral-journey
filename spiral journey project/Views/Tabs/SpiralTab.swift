@@ -965,11 +965,15 @@ struct SpiralTab: View {
 
     /// Start radius varies by mode:
     /// - Archimedean (any): 75 (CLAUDE.md standard)
-    /// - Log 3D: 60 (wider radial range for cone effect)
+    /// - Archimedean 2D: 75 (CLAUDE.md standard)
+    /// - Archimedean 3D: 40 (tighter origin)
+    /// - Log 3D: 35 (tighter origin)
     /// - Log 2D flat: 15 (small inner turns, exponential spread visible)
     private var effectiveStartRadius: Double {
-        guard store.spiralType == .logarithmic else { return 75.0 }
-        return store.flatMode ? 15.0 : 60.0
+        if store.spiralType == .logarithmic {
+            return store.flatMode ? 15.0 : 35.0
+        }
+        return store.flatMode ? 75.0 : 40.0
     }
 
     private var isLog3D: Bool {

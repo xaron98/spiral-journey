@@ -109,6 +109,8 @@ struct SpiralView: View {
         let focalLen: Double
         let camZ: Double
         let perspPow: Double
+        /// Auto-fit scale: shrinks projection so the widest point fits in canvas.
+        let autoFitScale: Double
         // Flat mode (zStep==0): radial zoom projection bounds, precomputed at init.
         let flatRInner: Double
         let flatROuter: Double
@@ -126,14 +128,14 @@ struct SpiralView: View {
         init(fromTurns: Double, upToTurns: Double, focusTurns: Double,
              geo: SpiralGeometry, depthScale: Double, perspectivePower: Double = 1.0) {
             let zStep    = geo.maxRadius * depthScale
-            let focalLen = geo.maxRadius * 1.2
+            // 3D: 1.6 for closer initial zoom. Flat mode uses this too but
+            // it doesn't affect flat projection (only used for perspective math).
+            let focalLen = geo.maxRadius * (zStep > 0 ? 1.6 : 1.2)
 
             let margin = 0.5
+
             let tRef = upToTurns + margin
 
-            // Anchor: outermost visible turn (upToTurns) → scale = 1.0
-            // dz_front = margin * zStep - camZ  →  focalLen / dz_front = 1
-            // ⇒ camZ = margin * zStep - focalLen
             let camZ = margin * zStep - focalLen
 
             self.tRef     = tRef
@@ -153,9 +155,28 @@ struct SpiralView: View {
                 flatROuter       = rOut
                 flatGeoMaxRadius = geo.maxRadius
                 flatCamFromTurns = tIn
+                self.autoFitScale = 1.0
             } else {
                 flatRInner = 0; flatROuter = 1; flatGeoMaxRadius = 0
                 flatCamFromTurns = 0
+
+                // Auto-fit: find the max projected radius across all visible turns
+                // and scale so it fits within 90% of maxRadius.
+                var maxProjectedR = 0.0
+                var t = fromTurns
+                while t <= upToTurns {
+                    let r = geo.radius(turns: t)
+                    let wz = (tRef - t) * zStep
+                    let dz = max(wz - camZ, focalLen * 0.05)
+                    let rawScale = focalLen / dz
+                    let scale = perspectivePower == 1.0 ? rawScale : pow(rawScale, perspectivePower)
+                    let projR = r * scale
+                    if projR > maxProjectedR { maxProjectedR = projR }
+                    t += 0.5
+                }
+                let targetR = geo.maxRadius * 0.85
+                self.autoFitScale = maxProjectedR > targetR ? targetR / maxProjectedR : 1.0
+                return
             }
         }
 
@@ -184,8 +205,8 @@ struct SpiralView: View {
             let rawScale = focalLen / dz
             let scale = perspPow == 1.0 ? rawScale : pow(rawScale, perspPow)
 
-            return CGPoint(x: geo.cx + wx * scale,
-                           y: geo.cy + wy * scale)
+            return CGPoint(x: geo.cx + wx * scale * autoFitScale,
+                           y: geo.cy + wy * scale * autoFitScale)
         }
 
         /// Perspective scale factor at a given turn value (focalLen / dz).
@@ -201,7 +222,8 @@ struct SpiralView: View {
             let wz = (tRef - t) * zStep
             let dz = max(wz - camZ, focalLen * 0.05)
             let raw = focalLen / dz
-            return perspPow == 1.0 ? raw : pow(raw, perspPow)
+            let s = perspPow == 1.0 ? raw : pow(raw, perspPow)
+            return s * autoFitScale
         }
 
         /// True when the given turn value is behind or too close to the camera.
@@ -256,9 +278,9 @@ struct SpiralView: View {
         let span = visibleSpanTurns ?? 7.0
         let cameraFrontPadding = 0.5
 
-        // Window: [cursor - span, cursor + padding]
-        let windowFrom = max(focusTurns - span, 0)
+        // Camera follows cursor freely. Window = [cursor-span, cursor+pad].
         let windowUpTo = focusTurns + cameraFrontPadding
+        let windowFrom = max(focusTurns - span, 0)
 
         let camera = CameraState(fromTurns: windowFrom, upToTurns: windowUpTo,
                                   focusTurns: focusTurns,
@@ -409,11 +431,10 @@ struct SpiralView: View {
                     }
                     continue
                 }
-                // Per-point edge fade — skip only when zoomed in close to origin
+                // Day rings: same progressive fade as data segments
                 let edgeFade: Double
-                if fromTurns <= 0.5 && ringCameraSpan <= 3.5 { edgeFade = 1.0 }
-                else if t < fromTurns { edgeFade = 0.0 }
-                else if t < fromTurns + edgeMargin { edgeFade = (t - fromTurns) / edgeMargin }
+                if t < fromTurns - 0.5 { edgeFade = 0.0 }
+                else if t < fromTurns + 1.0 { edgeFade = max(0, (t - (fromTurns - 0.5)) / 1.5) }
                 else { edgeFade = 1.0 }
                 let ptOpacity = vis.opacity * edgeFade
 
@@ -666,13 +687,12 @@ struct SpiralView: View {
         // When zoomed in close to origin (small span), data is solid — no inner edge fade.
         // When zoomed out (large span), edge fade applies everywhere to prevent
         // orphan data fragments appearing as a chunk at the origin.
-        let cameraSpan = upToTurns - fromTurns
+        // Progressive desdibujar at the old edge: each segment fades
+        // based on its fractional turn position, not per-day.
+        // This creates a smooth, continuous "unraveling" of the path.
         func segmentEdgeFade(t: Double) -> Double {
-            // Only skip edge fade when zoomed in close to origin
-            guard fromTurns > 0.5 || cameraSpan > 3.5 else { return 1.0 }
-            let margin = 1.5
-            if t < fromTurns { return 0.0 }
-            if t < fromTurns + margin { return (t - fromTurns) / margin }
+            if t < fromTurns - 0.5 { return 0.0 }
+            if t < fromTurns + 1.0 { return max(0, (t - (fromTurns - 0.5)) / 1.5) }
             return 1.0
         }
 
