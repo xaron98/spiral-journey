@@ -5,7 +5,7 @@ import SpiralKit
 /// Handles WatchConnectivity on the watchOS side.
 /// Receives analysis data from iPhone, sends logged events back.
 @MainActor
-final class WatchConnectivityManager: NSObject, WCSessionDelegate, @unchecked Sendable {
+final class WatchConnectivityManager: NSObject, WCSessionDelegate {
 
     static let shared = WatchConnectivityManager()
     var onContextReceived: (([String: Any]) -> Void)?

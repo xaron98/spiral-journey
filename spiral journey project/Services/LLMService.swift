@@ -39,9 +39,12 @@ enum LLMState: Equatable {
 /// - Streams tokens for the chat UI.
 ///
 /// Only used on the iOS target — never imported by watchOS or SpiralKit.
-/// Wrapper to pass non-Sendable values across isolation boundaries.
-/// Safe here because only one inference runs at a time.
-private struct UnsafeSend<T>: @unchecked Sendable { let value: T }
+
+/// Targeted Sendable escape hatch for the LLM library type which
+/// doesn't conform to Sendable. Safe because the value is created
+/// on MainActor, sent to a detached task for inference, and never
+/// accessed concurrently — ownership transfers linearly.
+private struct SendableBox<T>: @unchecked Sendable { let value: T }
 
 @Observable
 @MainActor
@@ -297,8 +300,8 @@ final class LLMService {
         }
 
         // Run inference OFF the main actor so UI stays fully responsive.
-        // UnsafeSend is safe: only one generation runs at a time.
-        let model = UnsafeSend(value: llm)
+        // SendableBox is safe: only one generation runs at a time.
+        let model = SendableBox(value: llm)
         let userPrompt = prompt
         await Task.detached(priority: .userInitiated) {
             await model.value.respond(to: userPrompt)
