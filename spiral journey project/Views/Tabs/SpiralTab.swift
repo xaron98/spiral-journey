@@ -1304,6 +1304,7 @@ struct SpiralTab: View {
     private func handleSpiralTap(at location: CGPoint, spiralSize: CGSize, maxDays: Int) {
         let scaleDays = max(1, Int(ceil(maxReachedTurns)))
         let maxHours = Double(maxDays) * store.period
+        // Search ALL visible turns (not just near cursor) for tap detection
         let tappedHour = nearestHour(
             at: location,
             size: spiralSize,
@@ -1312,7 +1313,8 @@ struct SpiralTab: View {
             period: store.period,
             spiralType: effectiveSpiralType,
             linkGrowthToTau: effectiveLinkGrowthToTau,
-            totalHours: maxHours
+            totalHours: maxHours,
+            searchAll: true
         )
 
         // Show glow at the projected position of the tapped hour
