@@ -265,6 +265,14 @@ struct CoachChatView: View {
 
             // Input bar
             inputBar
+
+            // Medical disclaimer
+            Text(loc("coach.disclaimer"))
+                .font(.system(size: 9))
+                .foregroundStyle(SpiralColors.faint)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 4)
         }
     }
 

@@ -75,6 +75,12 @@ struct DNAInsightsView: View {
                 DNAHealthSection(profile: profile)
                 DNABasePairsSection(profile: profile)
                 DNATierSection(profile: profile)
+
+                Text(loc("dna.disclaimer"))
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 32)
             }
             .padding(.horizontal, 16)
             .padding(.top, 8)

@@ -733,7 +733,7 @@ struct SettingsTab: View {
                 // ── About ───────────────────────────────────────────────────
 
                 SettingsSection(title: String(localized: "settings.about.title", bundle: bundle), icon: "info.circle") {
-                    Text("Spiral Journey")
+                    Text("Spiral Journey v1.0")
                         .font(.system(size: 12, weight: .semibold, design: .monospaced))
                         .foregroundStyle(SpiralColors.text)
                     Text(String(localized: "settings.about.description", bundle: bundle))
@@ -745,6 +745,56 @@ struct SettingsTab: View {
                         .foregroundStyle(SpiralColors.muted)
                         .lineSpacing(3)
                         .padding(.top, 4)
+
+                    // Legal links
+                    VStack(alignment: .leading, spacing: 6) {
+                        if let privacyURL = URL(string: "https://xaron98.github.io/spiral-journey/privacy-policy.html") {
+                            Link(destination: privacyURL) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "lock.shield")
+                                        .font(.system(size: 10))
+                                    Text(String(localized: "about.privacy", bundle: bundle))
+                                        .font(.system(size: 10))
+                                }
+                                .foregroundStyle(SpiralColors.accent)
+                            }
+                        }
+                        if let supportURL = URL(string: "https://github.com/xaron98/spiral-journey/issues") {
+                            Link(destination: supportURL) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "envelope")
+                                        .font(.system(size: 10))
+                                    Text(String(localized: "about.support", bundle: bundle))
+                                        .font(.system(size: 10))
+                                }
+                                .foregroundStyle(SpiralColors.accent)
+                            }
+                        }
+                        if let websiteURL = URL(string: "https://xaron98.github.io/spiral-journey/") {
+                            Link(destination: websiteURL) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "globe")
+                                        .font(.system(size: 10))
+                                    Text(String(localized: "about.website", bundle: bundle))
+                                        .font(.system(size: 10))
+                                }
+                                .foregroundStyle(SpiralColors.accent)
+                            }
+                        }
+                    }
+                    .padding(.top, 6)
+
+                    // Medical disclaimer
+                    HStack(alignment: .top, spacing: 6) {
+                        Image(systemName: "exclamationmark.triangle")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.orange)
+                        Text(String(localized: "about.disclaimer", bundle: bundle))
+                            .font(.system(size: 10))
+                            .foregroundStyle(SpiralColors.muted)
+                            .lineSpacing(3)
+                    }
+                    .padding(.top, 6)
                 }
             }
             .padding(.horizontal, 16)
