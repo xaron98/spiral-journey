@@ -366,10 +366,9 @@ enum SpiralVisibilityEngine {
     static func visibilityState(for dayIndex: Int, window: VisibleDayWindow) -> DayVisibilityState {
         let dist = abs(window.requestedActiveIndex - dayIndex)
 
-        // Day visibility is always 1.0 within a generous range.
-        // The actual progressive fade is handled per-segment in drawDataPoints
-        // via segmentEdgeFade, which clips based on fractional turn position.
-        let rawOpacity: Double = dist <= 9 ? 1.0 : 0.0
+        // All days with data are always visible at full opacity.
+        // The cursor indicates position, not a visibility window.
+        let rawOpacity: Double = 1.0
 
         let blur: Double = dist < blurCurve.count ? blurCurve[dist] : (blurCurve.last ?? 2.0)
         let strokeScale: Double = dist < strokeScaleCurve.count ? strokeScaleCurve[dist] : (strokeScaleCurve.last ?? 0.58)

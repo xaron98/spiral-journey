@@ -130,8 +130,7 @@ struct SpiralTab: View {
                                 let maxHours = Double(maxDays) * store.period
 
                                 if dragIsNew {
-                                    // First touch: snap cursor to tapped position.
-                                    // Camera only follows if this becomes a drag (not a tap).
+                                    // First touch: snap cursor to nearest position.
                                     dragIsNew = false
                                     dragPrevLocation = value.location
                                     let newHour = nearestHour(
@@ -145,10 +144,7 @@ struct SpiralTab: View {
                                         totalHours: maxHours
                                     )
                                     cursorAbsHour = newHour
-                                    // DON'T update smoothCameraCenterTurns here —
-                                    // wait to see if it's a tap or drag.
-                                    // If drag: onChanged will update camera.
-                                    // If tap: camera stays, path doesn't redraw.
+                                    smoothCameraCenterTurns = newHour / store.period
                                     return
                                 }
 
@@ -182,15 +178,11 @@ struct SpiralTab: View {
                                 dragIsNew = true
                                 lastInteractionTime = Date()
 
-                                // Detect tap: if barely moved, show info for cursor position.
-                                // The cursor already jumped to the tapped location in onChanged,
-                                // so we use cursorAbsHour (which is precise).
                                 let dist = hypot(value.translation.width, value.translation.height)
                                 if dist < 8 {
+                                    // Tap: cursor already jumped, show info
                                     showInfoForCursorPosition()
                                 } else {
-                                    // Drag ended — update camera to follow cursor
-                                    smoothCameraCenterTurns = cursorAbsHour / store.period
                                     selectedElementInfo = nil
                                 }
                             }
