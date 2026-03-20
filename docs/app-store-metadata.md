@@ -44,9 +44,9 @@ KEY FEATURES
 • Apple Health integration — automatically imports your sleep data
 • Apple Watch app — log sleep and events directly from your wrist, with watch face complications
 • Rephase Mode — gradually shift your circadian schedule toward a target bedtime
-• Coach tab — personalized daily insights and habit recommendations
+• Coach tab — AI-powered chat for personalized daily insights (100% on-device)
 • Analysis tab — trends in rhythm strength, sleep duration, and regularity
-• Learn tab — science-based education on circadian biology
+• Settings tab — appearance, data management, and sync preferences
 • 8 languages: English, Español, Català, Deutsch, Français, 中文, 日本語, العربية
 • Dark, Light, and System appearance modes
 
@@ -81,9 +81,9 @@ CARACTERÍSTICAS PRINCIPALES
 • Integración con Apple Health — importa tus datos de sueño automáticamente
 • App para Apple Watch — registra el sueño y eventos desde tu muñeca, con complicaciones para la esfera del reloj
 • Modo Refase — desplaza gradualmente tu horario circadiano hacia una hora de dormir objetivo
-• Pestaña Coach — insights diarios personalizados y recomendaciones de hábitos
+• Pestaña Coach — chat con IA para insights diarios personalizados (100% en el dispositivo)
 • Pestaña Análisis — tendencias en fuerza del ritmo, duración del sueño y regularidad
-• Pestaña Aprende — educación científica sobre biología circadiana
+• Pestaña Ajustes — apariencia, gestión de datos y preferencias de sincronización
 • 8 idiomas: English, Español, Català, Deutsch, Français, 中文, 日本語, العربية
 • Modos de apariencia oscuro, claro y del sistema
 
@@ -128,15 +128,17 @@ First release of Spiral Journey.
 ```
 This app reads sleep data from Apple Health (HealthKit) to analyze circadian rhythm patterns.
 
-To test without a real device:
-1. Open the app
-2. Go to the Input tab
-3. Enter manual sleep episodes using the sliders (no HealthKit needed)
-4. Navigate to the Spiral, Analysis, and Coach tabs to see the visualizations
+The app has four tabs:
+1. Spiral tab — the main view. Displays your sleep/wake cycle as a circadian spiral. Swipe left/right to move the cursor through days, pinch to zoom. Tap the 🧬 DNA button to open Sleep DNA Insights (pattern analysis, motif discovery, health markers).
+2. Analysis tab — shows trend cards for rhythm strength, sleep duration, consistency, and social jet lag over time.
+3. Coach tab — AI-powered chat for personalized sleep insights. Uses on-device models only (Foundation Models on iOS 26+, or Phi-3.5 GGUF fallback).
+4. Settings tab — configure appearance, manage data, enable/disable iCloud sync, and reset data.
 
-The HealthKit integration is optional — the app is fully functional with manually entered data.
+To test:
+- Grant HealthKit sleep access when prompted, or deny it and enter manual sleep episodes from the Spiral tab's "+" button.
+- Navigate through days using the cursor on the Spiral tab, then check Analysis and Coach tabs for computed insights.
 
-No login required. Sleep/event data has no custom backend and is stored locally, with optional private iCloud sync via CloudKit. Optional on-device AI model download requires internet connection on first setup.
+No login required. No custom backend. Sleep/event data is stored locally via SwiftData, with optional private iCloud sync via CloudKit. The on-device AI model download (Phi-3.5) requires an internet connection on first setup only. The app does NOT write to HealthKit.
 ```
 
 ---
@@ -152,13 +154,18 @@ No login required. Sleep/event data has no custom backend and is stored locally,
 
 **Suggested screenshot sequence:**
 1. Spiral view (main screen, full spiral visible)
-2. Analysis tab (trend cards)
-3. Coach tab (daily insight)
-4. Learn tab (PRC chart)
+2. DNA Insights (🧬 button — motifs, health markers)
+3. Analysis tab (trend cards)
+4. Coach tab (AI chat)
 5. Apple Watch (spiral or stats view)
 
 ---
 
 ## HealthKit Review Justification
 
-> Spiral Journey uses HealthKit exclusively to read sleep analysis data (HKCategoryTypeIdentifierSleepAnalysis). This data is used solely to compute circadian rhythm metrics on-device. No health data is transmitted externally. The app does not write to HealthKit.
+> Spiral Journey uses HealthKit exclusively to **read** the following data types:
+>
+> - **Sleep Analysis** (HKCategoryTypeIdentifierSleepAnalysis) — sleep stages (deep, REM, core, awake) used to compute circadian rhythm metrics (acrophase, MESOR, amplitude), detect patterns, and power the Sleep DNA engine.
+> - **Heart Rate Variability** (HKQuantityTypeIdentifierHeartRateVariabilitySDNN) — nightly SDNN measurements used to compute HRV trends as part of the sleep health profile.
+>
+> All HealthKit data is processed entirely on-device. No health data is transmitted to external servers. The app does **not** write any data to HealthKit.
