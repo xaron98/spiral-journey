@@ -110,6 +110,9 @@ struct SpiralTab: View {
                                     predictedWakeHour: store.predictionOverlayEnabled ? store.latestPrediction?.predictedWakeHour : nil,
                                     growthProgress: spiralGrowthProgress
                                 )
+                                .accessibilityElement(children: .ignore)
+                                .accessibilityLabel(spiralAccessibilityLabel)
+                                .accessibilityHint(loc("spiral.a11y.hint"))
                                 #if !os(macOS)
                                 // On macOS the overlay outside the ScrollView handles all cursor
                                 // drag interactions. This gesture is iOS/iPadOS only.
@@ -1158,6 +1161,22 @@ struct SpiralTab: View {
         return CGPoint(x: geo.cx + wx * scale, y: geo.cy + wy * scale)
     }
     #endif
+
+    // MARK: - Accessibility
+
+    /// Describes the current spiral state for VoiceOver.
+    private var spiralAccessibilityLabel: String {
+        let dayCount = store.records.count
+        let cursorDay = Int(cursorAbsHour / 24.0) + 1
+        return String(
+            format: NSLocalizedString("spiral.a11y.label", bundle: bundle, comment: ""),
+            dayCount, cursorDay
+        )
+    }
+
+    private func loc(_ key: String) -> String {
+        NSLocalizedString(key, bundle: bundle, comment: "")
+    }
 
     // MARK: - Nearest hour (with perspective projection matching SpiralView)
 

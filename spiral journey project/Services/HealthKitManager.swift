@@ -42,6 +42,11 @@ final class HealthKitManager {
     /// Ensures observer callbacks aren't silently dropped.
     private var needsRetryAfterImport = false
 
+    /// Debounce task for coalescing rapid HealthKit callbacks (observer + anchored).
+    private var debounceTask: Task<Void, Never>?
+    /// Debounce interval for HealthKit callbacks — coalesces multiple rapid notifications.
+    private let debounceInterval: Duration = .milliseconds(500)
+
     // MARK: - Anchored Object Query (primary live update mechanism)
     private var sleepAnchor: HKQueryAnchor?
     private var anchoredQuery: HKAnchoredObjectQuery?
@@ -75,8 +80,8 @@ final class HealthKitManager {
         guard isAvailable, observerQuery == nil else { return }
         let query = HKObserverQuery(sampleType: sleepType, predicate: nil) { [weak self] _, completionHandler, error in
             guard error == nil else { completionHandler(); return }
-            DispatchQueue.main.async {
-                self?.onNewSleepData?()
+            Task { @MainActor [weak self] in
+                self?.debouncedNotify()
             }
             completionHandler()
         }
@@ -108,7 +113,7 @@ final class HealthKitManager {
         ) { [weak self] _, newSamples, _, newAnchor, error in
             if let error { print("[HK-Anchor] initial error: \(error)"); return }
             print("[HK-Anchor] initial fetch: \(newSamples?.count ?? 0) samples")
-            DispatchQueue.main.async {
+            Task { @MainActor [weak self] in
                 self?.sleepAnchor = newAnchor
                 self?.processAnchoredSamples(newSamples, epoch: epoch, callback: onNewEpisodes)
             }
@@ -118,7 +123,7 @@ final class HealthKitManager {
         query.updateHandler = { [weak self] _, newSamples, _, newAnchor, error in
             if let error { print("[HK-Anchor] update error: \(error)"); return }
             print("[HK-Anchor] UPDATE: \(newSamples?.count ?? 0) new samples received!")
-            DispatchQueue.main.async {
+            Task { @MainActor [weak self] in
                 self?.sleepAnchor = newAnchor
                 self?.processAnchoredSamples(newSamples, epoch: epoch, callback: onNewEpisodes)
             }
@@ -169,6 +174,20 @@ final class HealthKitManager {
 
         if !episodes.isEmpty {
             callback(episodes)
+        }
+    }
+
+    // MARK: - Debounce
+
+    /// Coalesce rapid HealthKit callbacks into a single notification.
+    /// Observer and anchored queries can fire simultaneously — this ensures
+    /// only one `onNewSleepData` call happens per 500ms window.
+    private func debouncedNotify() {
+        debounceTask?.cancel()
+        debounceTask = Task { [weak self] in
+            try? await Task.sleep(for: self?.debounceInterval ?? .milliseconds(500))
+            guard !Task.isCancelled else { return }
+            self?.onNewSleepData?()
         }
     }
 
