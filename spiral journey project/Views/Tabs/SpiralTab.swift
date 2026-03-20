@@ -130,7 +130,9 @@ struct SpiralTab: View {
                                 let maxHours = Double(maxDays) * store.period
 
                                 if dragIsNew {
-                                    // First touch: snap cursor to nearest spiral position.
+                                    // First touch: check if it's near the cursor.
+                                    // If near cursor → start dragging.
+                                    // If far from cursor → show info panel (handled in onEnded).
                                     dragIsNew = false
                                     dragPrevLocation = value.location
                                     let newHour = nearestHour(
@@ -143,10 +145,20 @@ struct SpiralTab: View {
                                         linkGrowthToTau: effectiveLinkGrowthToTau,
                                         totalHours: maxHours
                                     )
-                                    let maxDelta = store.period * 0.5
-                                    guard abs(newHour - cursorAbsHour) <= maxDelta else { return }
+                                    // Only move cursor if touch is within ~2 hours of cursor
+                                    let maxSnapDelta = 2.0
+                                    guard abs(newHour - cursorAbsHour) <= maxSnapDelta else {
+                                        interactionMode = .none  // not a cursor drag
+                                        return
+                                    }
                                     cursorAbsHour = newHour
                                     smoothCameraCenterTurns = newHour / store.period
+                                    return
+                                }
+
+                                // If touch wasn't near cursor, don't drag — just track for tap
+                                guard interactionMode == .scrub else {
+                                    dragPrevLocation = value.location
                                     return
                                 }
 
@@ -180,11 +192,9 @@ struct SpiralTab: View {
                                 dragIsNew = true
                                 lastInteractionTime = Date()
 
-                                // Detect tap: if the total drag distance is tiny, treat as a tap.
-                                // Use startLocation (where finger first touched), not location
-                                // (where finger ended — which is where the cursor moved to).
+                                // Detect tap on path: if barely moved and wasn't a cursor drag
                                 let dist = hypot(value.translation.width, value.translation.height)
-                                if dist < 5 {
+                                if dist < 8 {
                                     let spiralSize = CGSize(
                                         width: screen.size.width - 32,
                                         height: screen.size.height
