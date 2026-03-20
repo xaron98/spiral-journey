@@ -54,6 +54,8 @@ struct SpiralTab: View {
     @State private var showRephaseEditor = false
     // Spiral growth animation — 0→1 drives the spiral's organic grow-from-center reveal
     @State private var spiralGrowthProgress: Double = 0
+    // Staggered entry for floating UI overlays (date pill, action bar)
+    @State private var floatingElementsVisible = false
     #if os(macOS)
     // Frame of the spiral area in global coordinates — used to position the drag overlay.
     @State private var spiralFrameGlobal: CGRect = .zero
@@ -438,9 +440,15 @@ struct SpiralTab: View {
         }
         .onAppear {
             initCursor()
-            // Animate the spiral growing from center to the last record
-            withAnimation(.easeInOut(duration: 1.8).delay(0.2)) {
+            // Animate the spiral growing from center — 2.5s for dramatic Liquid Glass reveal
+            withAnimation(.easeInOut(duration: 2.5).delay(0.2)) {
                 spiralGrowthProgress = 1.0
+            }
+            // Stagger floating UI elements: appear 1s after spiral starts
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                withAnimation(.easeOut(duration: 0.6)) {
+                    floatingElementsVisible = true
+                }
             }
         }
         .onChange(of: store.period) { _, _ in initCursor() }
