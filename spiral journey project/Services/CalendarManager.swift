@@ -94,17 +94,22 @@ final class CalendarManager {
         )
         let events = eventStore.events(matching: predicate)
 
-        // Group by calendarItemExternalIdentifier to find unique repeating series
-        let existingExternalIDs = Set(existingBlocks.compactMap(\.calendarEventID))
-        var seenExternalIDs = Set<String>()
+        // Create one block per event occurrence — recurring events get one block
+        // per actual occurrence instead of a single bitmask-based block. This prevents
+        // recurring events from appearing on days they don't actually occur.
+        let existingOccurrenceIDs = Set(existingBlocks.compactMap(\.calendarEventID))
+        var seenOccurrenceIDs = Set<String>()
         var blocks: [ContextBlock] = []
 
         for event in events {
             guard let externalID = event.calendarItemExternalIdentifier else { continue }
-            // Skip duplicates and already-imported events
-            guard !seenExternalIDs.contains(externalID),
-                  !existingExternalIDs.contains(externalID) else { continue }
-            seenExternalIDs.insert(externalID)
+
+            // Build a unique ID per occurrence (not per series) using start time
+            let occurrenceID = "\(externalID)_\(event.startDate.timeIntervalSince1970)"
+            // Skip duplicates and already-imported occurrences
+            guard !seenOccurrenceIDs.contains(occurrenceID),
+                  !existingOccurrenceIDs.contains(occurrenceID) else { continue }
+            seenOccurrenceIDs.insert(occurrenceID)
 
             // Extract time components
             let cal = Calendar.current
@@ -119,16 +124,10 @@ final class CalendarManager {
             let duration = endHour >= startHour ? endHour - startHour : endHour - startHour + 24
             guard duration > 0.25 && duration <= 16 else { continue }
 
-            // Extract active days from recurrence rules
-            let activeDays: UInt8
-            if let rules = event.recurrenceRules, let rule = rules.first,
-               rule.frequency == .weekly {
-                activeDays = daysFromRecurrenceRule(rule)
-            } else {
-                // Single event: just use the weekday of the event
-                let weekday = cal.component(.weekday, from: event.startDate)
-                activeDays = 1 << (weekday - 1)
-            }
+            // ALL events (recurring and single) get specificDate set to the actual
+            // occurrence date. No weekday bitmask — each occurrence is its own block.
+            let specificDate = event.startDate
+            let activeDays: UInt8 = 0  // unused when specificDate is set
 
             // Infer block type from event title and calendar
             let blockType = inferBlockType(title: event.title ?? "", calendarTitle: event.calendar.title)
@@ -139,7 +138,8 @@ final class CalendarManager {
                 startHour: startHour,
                 endHour: endHour,
                 activeDays: activeDays,
-                calendarEventID: externalID,
+                calendarEventID: occurrenceID,
+                specificDate: specificDate,
                 isEnabled: true,
                 source: .calendar,
                 confidence: 0.85

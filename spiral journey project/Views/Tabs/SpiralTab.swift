@@ -59,15 +59,17 @@ struct SpiralTab: View {
     // Liquid Glass floating panels
     @State private var showStatsSheet = false
     @State private var showCoachTip = false
+    // Tap info panel — shows details when user taps a spiral element
+    @State private var selectedElementInfo: SpiralElementInfo? = nil
+    @State private var elementInfoDismissTask: Task<Void, Never>? = nil
+
+    // Drag tracking — tangent-based cursor advancement (smooth, no jitter).
+    // On first touch: snap via nearestHour. Subsequent moves: tangent delta.
+    @State private var dragPrevLocation: CGPoint = .zero
+    @State private var dragIsNew: Bool = true
     #if os(macOS)
     // Frame of the spiral area in global coordinates — used to position the drag overlay.
     @State private var spiralFrameGlobal: CGRect = .zero
-    // True until the first onChanged of a new gesture has been processed.
-    @State private var macDragIsNew: Bool = true
-    // Global location of the previous onChanged event — used for incremental delta.
-    @State private var macDragPrevLocation: CGPoint = .zero
-    // Projected spiral-local point of the cursor at the previous event.
-    @State private var macDragPrevProjected: CGPoint = .zero
     #endif
 
     var body: some View {
@@ -104,35 +106,65 @@ struct SpiralTab: View {
                         startRadius: effectiveStartRadius,
                         predictedBedHour: store.predictionOverlayEnabled ? store.latestPrediction?.predictedBedtimeHour : nil,
                         predictedWakeHour: store.predictionOverlayEnabled ? store.latestPrediction?.predictedWakeHour : nil,
-                        growthProgress: spiralGrowthProgress
+                        growthProgress: spiralGrowthProgress,
+                        glowIntensity: store.glowIntensity
                     )
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(spiralAccessibilityLabel)
                     .accessibilityHint(loc("spiral.a11y.hint"))
                     #if !os(macOS)
+                    // Tangent-based cursor advancement: first touch snaps via nearestHour,
+                    // subsequent movement advances smoothly along the spiral tangent.
                     .simultaneousGesture(
                         DragGesture(minimumDistance: 0)
                             .onChanged { value in
                                 isUserInteracting = true
                                 interactionMode = .scrub
                                 lastInteractionTime = Date()
-                                let searchMax = Double(maxDays) * store.period
+
+                                let spiralSize = CGSize(
+                                    width: screen.size.width - 32,
+                                    height: screen.size.height
+                                )
                                 let scaleDays = max(1, Int(ceil(maxReachedTurns)))
-                                let newHour = nearestHour(
-                                    at: value.location,
-                                    size: CGSize(
-                                        width: screen.size.width - 32,
-                                        height: screen.size.width - 32
-                                    ),
-                                    numDays: maxDays,
+                                let maxHours = Double(maxDays) * store.period
+
+                                if dragIsNew {
+                                    // First touch: snap cursor to nearest spiral position.
+                                    dragIsNew = false
+                                    dragPrevLocation = value.location
+                                    let newHour = nearestHour(
+                                        at: value.location,
+                                        size: spiralSize,
+                                        numDays: maxDays,
+                                        scaleDays: scaleDays,
+                                        period: store.period,
+                                        spiralType: effectiveSpiralType,
+                                        linkGrowthToTau: effectiveLinkGrowthToTau,
+                                        totalHours: maxHours
+                                    )
+                                    let maxDelta = store.period * 0.5
+                                    guard abs(newHour - cursorAbsHour) <= maxDelta else { return }
+                                    cursorAbsHour = newHour
+                                    smoothCameraCenterTurns = newHour / store.period
+                                    return
+                                }
+
+                                // Subsequent moves: advance along spiral tangent — no jitter.
+                                let dx = value.location.x - dragPrevLocation.x
+                                let dy = value.location.y - dragPrevLocation.y
+                                dragPrevLocation = value.location
+
+                                let hoursStep = tangentHoursPerPixel(
+                                    atHour: cursorAbsHour,
+                                    spiralSize: spiralSize,
                                     scaleDays: scaleDays,
                                     period: store.period,
                                     spiralType: effectiveSpiralType,
                                     linkGrowthToTau: effectiveLinkGrowthToTau,
-                                    totalHours: searchMax
+                                    mouseDx: dx, mouseDy: dy
                                 )
-                                let maxDelta = store.period * 1.0
-                                guard abs(newHour - cursorAbsHour) <= maxDelta else { return }
+                                let newHour = max(0, min(maxHours, cursorAbsHour + hoursStep))
                                 cursorAbsHour = newHour
                                 smoothCameraCenterTurns = newHour / store.period
                                 let nowH = Date().timeIntervalSince(store.startDate) / 3600
@@ -142,10 +174,24 @@ struct SpiralTab: View {
                                     maxReachedTurns = newTurns
                                 }
                             }
-                            .onEnded { _ in
+                            .onEnded { value in
                                 isUserInteracting = false
                                 interactionMode = .none
+                                dragIsNew = true
                                 lastInteractionTime = Date()
+
+                                // Detect tap: if the total drag distance is tiny, treat as a tap
+                                let dist = hypot(value.translation.width, value.translation.height)
+                                if dist < 5 {
+                                    let spiralSize = CGSize(
+                                        width: screen.size.width - 32,
+                                        height: screen.size.height
+                                    )
+                                    handleSpiralTap(at: value.location, spiralSize: spiralSize, maxDays: maxDays)
+                                } else {
+                                    // Drag ended — dismiss any open info card
+                                    selectedElementInfo = nil
+                                }
                             }
                     )
                     #endif
@@ -175,9 +221,7 @@ struct SpiralTab: View {
                             }
                     )
                     .padding(.horizontal, 16)
-                    .frame(width: screen.size.width,
-                           height: screen.size.height * 0.82)
-                    .offset(y: -screen.safeAreaInsets.bottom * 0.2)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .opacity(spiralGrowthProgress > 0 ? 1.0 : 0)
                     .reportFrame(\.spiralArea)
 
@@ -223,17 +267,15 @@ struct SpiralTab: View {
 
                             Spacer()
 
-                            Button { handleLogButton() } label: {
-                                ZStack {
-                                    Image(systemName: sleepStartHour != nil ? "sun.max.fill" : "moon.fill")
-                                        .font(.title3.weight(.semibold))
-                                        .foregroundStyle(sleepStartHour != nil ? SpiralColors.awakeSleep : .white)
-                                }
-                                .frame(width: 44, height: 44)
-                                .liquidGlass(circular: true)
+                            Button { showEventSheet2 = true } label: {
+                                Image(systemName: "plus")
+                                    .font(.title3.weight(.semibold))
+                                    .foregroundStyle(SpiralColors.accent)
+                                    .frame(width: 44, height: 44)
+                                    .liquidGlass(circular: true)
                             }
                             .buttonStyle(.plain)
-                            .reportFrame(\.moonButton)
+                            .reportFrame(\.eventsBtn)
                         }
                         .padding(.top, screen.safeAreaInsets.top + 48)
                         .padding(.horizontal, 20)
@@ -251,8 +293,20 @@ struct SpiralTab: View {
                             .padding(.horizontal, 16)
                             .reportFrame(\.cursorBar)
                             .opacity(floatingElementsVisible ? 1 : 0)
-                            .padding(.bottom, 130)
+                            .padding(.bottom, 180)
                     }
+
+                    // ── Layer 4b: Tap info card ────────────────────────────
+                    VStack {
+                        if let info = selectedElementInfo {
+                            spiralInfoCard(info)
+                                .padding(.horizontal, 20)
+                                .padding(.top, screen.safeAreaInsets.top + 90)
+                                .transition(.move(edge: .top).combined(with: .opacity))
+                        }
+                        Spacer()
+                    }
+                    .animation(.spring(response: 0.35), value: selectedElementInfo != nil)
 
                     // ── Layer 5: Coach tip overlay ───────────────────────────
                     VStack {
@@ -264,7 +318,7 @@ struct SpiralTab: View {
                                 }
                             }
                             .padding(.horizontal, 20)
-                            .padding(.bottom, 130)
+                            .padding(.bottom, 180)
                         }
                     }
                     .animation(.spring(response: 0.35), value: showCoachTip)
@@ -308,23 +362,23 @@ struct SpiralTab: View {
                                         isUserInteracting = true
                                         interactionMode = .scrub
                                         lastInteractionTime = Date()
-                                        if macDragIsNew {
-                                            macDragIsNew = false
-                                            macDragPrevLocation = value.location
+                                        if dragIsNew {
+                                            dragIsNew = false
+                                            dragPrevLocation = value.location
                                             return
                                         }
 
                                         // Compute incremental mouse delta (screen points).
-                                        let dx = value.location.x - macDragPrevLocation.x
-                                        let dy = value.location.y - macDragPrevLocation.y
-                                        macDragPrevLocation = value.location
+                                        let dx = value.location.x - dragPrevLocation.x
+                                        let dy = value.location.y - dragPrevLocation.y
+                                        dragPrevLocation = value.location
 
                                         // Advance cursorAbsHour using the tangent of the spiral
                                         // at the current position. This maps each pixel of mouse
                                         // movement to the correct number of hours along the curve,
                                         // responding to every tiny movement without any search.
                                         let spiralSize = CGSize(width: screen.size.width - 32,
-                                                                height: screen.size.width - 32)
+                                                                height: screen.size.height)
                                         let scaleDays = max(1, Int(ceil(maxReachedTurns)))
                                         let maxHours  = Double(maxDays) * store.period
                                         let hoursStep = tangentHoursPerPixel(
@@ -348,7 +402,7 @@ struct SpiralTab: View {
                                         }
                                     }
                                     .onEnded { _ in
-                                        macDragIsNew = true
+                                        dragIsNew = true
                                         isUserInteracting = false
                                         interactionMode = .none
                                         lastInteractionTime = Date()
@@ -578,7 +632,7 @@ struct SpiralTab: View {
             statusColor = SpiralColors.awakeSleep
         } else {
             statusText  = String(localized: "spiral.cursor.sleepStart", bundle: bundle)
-            statusColor = Color(hex: "7c3aed")
+            statusColor = Color(hex: "a855f7")
         }
 
         return HStack(spacing: 8) {
@@ -592,20 +646,6 @@ struct SpiralTab: View {
             Text(statusText)
                 .font(.caption.monospaced())
                 .foregroundStyle(statusColor)
-            // Event log shortcut
-            Button { showEventSheet2 = true } label: {
-                HStack(spacing: 3) {
-                    Image(systemName: "plus.circle")
-                        .font(.footnote)
-                    if !store.events.isEmpty {
-                        Text("\(store.events.count)")
-                            .font(.caption.monospaced())
-                    }
-                }
-                .foregroundStyle(SpiralColors.accent)
-            }
-            .buttonStyle(.plain)
-            .reportFrame(\.eventsBtn)
         }
     }
 
@@ -970,19 +1010,16 @@ struct SpiralTab: View {
             }
             .buttonStyle(.plain)
 
-            // Central sleep/wake button (large, accent)
+            // Central sleep/wake button — original style with liquid glass
             Button { handleLogButton() } label: {
                 ZStack {
                     Circle()
-                        .fill(
-                            sleepStartHour != nil
-                                ? SpiralColors.awakeSleep.opacity(0.3)
-                                : Color(hex: "7c3aed").opacity(0.3)
-                        )
+                        .fill(sleepStartHour != nil ? SpiralColors.awakeSleep : Color(hex: "7c3aed"))
                         .frame(width: 64, height: 64)
+                        .shadow(color: (sleepStartHour != nil ? SpiralColors.awakeSleep : Color(hex: "7c3aed")).opacity(0.5), radius: 10)
                     Image(systemName: sleepStartHour != nil ? "sun.max.fill" : "moon.fill")
                         .font(.title.weight(.semibold))
-                        .foregroundStyle(sleepStartHour != nil ? SpiralColors.awakeSleep : .white)
+                        .foregroundStyle(.white)
                 }
                 .liquidGlass(circular: true)
             }
@@ -1146,9 +1183,8 @@ struct SpiralTab: View {
         smoothCameraCenterTurns = cursorAbsHour / store.period
     }
 
-    // MARK: - Projection helpers (macOS drag tracking)
+    // MARK: - Projection helpers (tangent-based drag tracking)
 
-    #if os(macOS)
     /// Returns how many hours to advance the cursor given a mouse delta (dx, dy).
     /// Projects two nearby points on the spiral (current and current+epsilon) to screen
     /// space, computes the tangent direction, then takes the dot product with the mouse
@@ -1230,7 +1266,172 @@ struct SpiralTab: View {
         let scale  = pp == 1.0 ? rawScale : pow(rawScale, pp)
         return CGPoint(x: geo.cx + wx * scale, y: geo.cy + wy * scale)
     }
-    #endif
+
+    // MARK: - Tap info panel
+
+    /// Detects what spiral element is at the tap location and shows an info card.
+    private func handleSpiralTap(at location: CGPoint, spiralSize: CGSize, maxDays: Int) {
+        let scaleDays = max(1, Int(ceil(maxReachedTurns)))
+        let maxHours = Double(maxDays) * store.period
+        let tappedHour = nearestHour(
+            at: location,
+            size: spiralSize,
+            numDays: maxDays,
+            scaleDays: scaleDays,
+            period: store.period,
+            spiralType: effectiveSpiralType,
+            linkGrowthToTau: effectiveLinkGrowthToTau,
+            totalHours: maxHours
+        )
+
+        let period = store.period
+        let dayIndex = Int(tappedHour / period)
+        let clockHour = ((tappedHour.truncatingRemainder(dividingBy: period))
+            .truncatingRemainder(dividingBy: 24) + 24)
+            .truncatingRemainder(dividingBy: 24)
+        let cal = Calendar.current
+        let tappedDate = cal.date(byAdding: .day, value: dayIndex, to: store.startDate)
+            ?? store.startDate
+
+        // 1. Check context blocks at this hour
+        let activeBlocks = (store.contextBlocksEnabled ? store.contextBlocks : [])
+            .filter { $0.isEnabled && $0.isActive(on: tappedDate) }
+        for block in activeBlocks {
+            let s = block.startHour, e = block.endHour
+            let inRange: Bool
+            if s <= e {
+                inRange = clockHour >= s && clockHour <= e
+            } else {
+                inRange = clockHour >= s || clockHour <= e
+            }
+            if inRange {
+                let dur = block.durationHours
+                let info = SpiralElementInfo(
+                    label: block.label,
+                    timeRange: block.timeRangeString,
+                    duration: formatDurationCompact(dur),
+                    color: Color(hex: block.type.hexColor)
+                )
+                showElementInfo(info)
+                return
+            }
+        }
+
+        // 2. Check sleep records at this hour
+        if let record = store.records.first(where: { $0.day == dayIndex }) {
+            let bedH = record.bedtimeHour
+            let wakeH = record.wakeupHour
+
+            // Check if tapped hour falls in sleep range
+            let inSleep: Bool
+            if bedH > wakeH {
+                // Overnight: e.g. 23:00–07:00
+                inSleep = clockHour >= bedH || clockHour <= wakeH
+            } else {
+                inSleep = clockHour >= bedH && clockHour <= wakeH
+            }
+
+            if inSleep {
+                let bedStr = formatClockHour(bedH)
+                let wakeStr = formatClockHour(wakeH)
+                let info = SpiralElementInfo(
+                    label: loc("spiral.info.sleep"),
+                    timeRange: "\(bedStr) – \(wakeStr)",
+                    duration: formatDurationCompact(record.sleepDuration),
+                    color: Color(hex: "a855f7")
+                )
+                showElementInfo(info)
+                return
+            }
+
+            // 3. If not sleeping, it's awake time
+            let awakeDuration = period - record.sleepDuration
+            let info = SpiralElementInfo(
+                label: loc("spiral.info.awake"),
+                timeRange: "\(formatClockHour(wakeH)) – \(formatClockHour(bedH))",
+                duration: formatDurationCompact(max(0, awakeDuration)),
+                color: SpiralColors.awakeSleep
+            )
+            showElementInfo(info)
+            return
+        }
+
+        // 4. No data — check if cursor is live (vigilia)
+        let nowAbsHour = Date().timeIntervalSince(store.startDate) / 3600
+        let nowDayIndex = Int(nowAbsHour / period)
+        if dayIndex == nowDayIndex {
+            // On today with no sleep record — show vigilia if we have a previous wake
+            if let lastRecord = store.records.last {
+                let wakeStr = formatClockHour(lastRecord.wakeupHour)
+                let nowStr = formatClockHour(clockHour)
+                let info = SpiralElementInfo(
+                    label: loc("spiral.info.vigilia"),
+                    timeRange: "\(wakeStr) → \(nowStr)",
+                    duration: "",
+                    color: SpiralColors.awakeSleep
+                )
+                showElementInfo(info)
+                return
+            }
+        }
+
+        // Nothing found — dismiss
+        selectedElementInfo = nil
+    }
+
+    /// Shows the info card and schedules auto-dismiss after 3 seconds.
+    private func showElementInfo(_ info: SpiralElementInfo) {
+        elementInfoDismissTask?.cancel()
+        withAnimation(.spring(response: 0.3)) {
+            selectedElementInfo = info
+        }
+        elementInfoDismissTask = Task {
+            try? await Task.sleep(for: .seconds(3))
+            guard !Task.isCancelled else { return }
+            withAnimation(.spring(response: 0.3)) {
+                selectedElementInfo = nil
+            }
+        }
+    }
+
+    /// Formats hours as "Xh Ym".
+    private func formatDurationCompact(_ hours: Double) -> String {
+        let totalMinutes = Int((hours * 60).rounded())
+        let h = totalMinutes / 60
+        let m = totalMinutes % 60
+        if h == 0 { return "\(m) min" }
+        if m == 0 { return "\(h)h" }
+        return "\(h)h \(m) min"
+    }
+
+    /// The info card shown when the user taps a spiral element.
+    private func spiralInfoCard(_ info: SpiralElementInfo) -> some View {
+        HStack(spacing: 8) {
+            Circle()
+                .fill(info.color)
+                .frame(width: 8, height: 8)
+            Text(info.label)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(SpiralColors.text)
+            if !info.timeRange.isEmpty {
+                Text("·")
+                    .foregroundStyle(SpiralColors.subtle)
+                Text(info.timeRange)
+                    .font(.caption.monospaced())
+                    .foregroundStyle(SpiralColors.subtle)
+            }
+            if !info.duration.isEmpty {
+                Text("·")
+                    .foregroundStyle(SpiralColors.subtle)
+                Text(info.duration)
+                    .font(.caption.monospaced())
+                    .foregroundStyle(SpiralColors.subtle)
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
+        .liquidGlass(cornerRadius: 16)
+    }
 
     // MARK: - Accessibility
 
@@ -1388,6 +1589,16 @@ struct HumanStatCard: View {
             }
         )
     }
+}
+
+// MARK: - Spiral Element Info
+
+/// Describes a tapped element in the spiral for the info card overlay.
+struct SpiralElementInfo {
+    let label: String       // "Sleep", "Awake", "Work Meeting"
+    let timeRange: String   // "23:15 – 07:30"
+    let duration: String    // "8h 15 min"
+    let color: Color        // phase color or event color
 }
 
 // MARK: - Event Sheet View
