@@ -180,14 +180,16 @@ struct SpiralTab: View {
                                 dragIsNew = true
                                 lastInteractionTime = Date()
 
-                                // Detect tap: if the total drag distance is tiny, treat as a tap
+                                // Detect tap: if the total drag distance is tiny, treat as a tap.
+                                // Use startLocation (where finger first touched), not location
+                                // (where finger ended — which is where the cursor moved to).
                                 let dist = hypot(value.translation.width, value.translation.height)
                                 if dist < 5 {
                                     let spiralSize = CGSize(
                                         width: screen.size.width - 32,
                                         height: screen.size.height
                                     )
-                                    handleSpiralTap(at: value.location, spiralSize: spiralSize, maxDays: maxDays)
+                                    handleSpiralTap(at: value.startLocation, spiralSize: spiralSize, maxDays: maxDays)
                                 } else {
                                     // Drag ended — dismiss any open info card
                                     selectedElementInfo = nil
@@ -1317,38 +1319,45 @@ struct SpiralTab: View {
             }
         }
 
-        // 2. Check sleep records at this hour
+        // 2. Check sleep records at this hour — use phases for accuracy
         if let record = store.records.first(where: { $0.day == dayIndex }) {
-            let bedH = record.bedtimeHour
-            let wakeH = record.wakeupHour
+            // Check phases first (more accurate than bedtime/wakeup range)
+            let phaseAtHour = record.phases.last(where: { $0.hour <= clockHour })
+            let isSleepPhase = phaseAtHour != nil && phaseAtHour!.phase != .awake
 
-            // Check if tapped hour falls in sleep range
-            let inSleep: Bool
-            if bedH > wakeH {
-                // Overnight: e.g. 23:00–07:00
-                inSleep = clockHour >= bedH || clockHour <= wakeH
-            } else {
-                inSleep = clockHour >= bedH && clockHour <= wakeH
-            }
+            if isSleepPhase || record.sleepDuration > 0 {
+                let bedH = record.bedtimeHour
+                let wakeH = record.wakeupHour
 
-            if inSleep {
-                let bedStr = formatClockHour(bedH)
-                let wakeStr = formatClockHour(wakeH)
-                let info = SpiralElementInfo(
-                    label: loc("spiral.info.sleep"),
-                    timeRange: "\(bedStr) – \(wakeStr)",
-                    duration: formatDurationCompact(record.sleepDuration),
-                    color: Color(hex: "a855f7")
-                )
-                showElementInfo(info)
-                return
+                // If phase says sleep, or we're in the bed-wake range → sleep
+                let inSleepRange: Bool
+                if bedH > wakeH {
+                    inSleepRange = clockHour >= bedH || clockHour <= wakeH
+                } else if bedH < wakeH {
+                    inSleepRange = clockHour >= bedH && clockHour <= wakeH
+                } else {
+                    inSleepRange = false
+                }
+
+                if isSleepPhase || inSleepRange {
+                    let bedStr = formatClockHour(bedH)
+                    let wakeStr = formatClockHour(wakeH)
+                    let info = SpiralElementInfo(
+                        label: loc("spiral.info.sleep"),
+                        timeRange: "\(bedStr) – \(wakeStr)",
+                        duration: formatDurationCompact(record.sleepDuration),
+                        color: Color(hex: "a855f7")
+                    )
+                    showElementInfo(info)
+                    return
+                }
             }
 
             // 3. If not sleeping, it's awake time
             let awakeDuration = period - record.sleepDuration
             let info = SpiralElementInfo(
                 label: loc("spiral.info.awake"),
-                timeRange: "\(formatClockHour(wakeH)) – \(formatClockHour(bedH))",
+                timeRange: "\(formatClockHour(record.wakeupHour)) – \(formatClockHour(record.bedtimeHour))",
                 duration: formatDurationCompact(max(0, awakeDuration)),
                 color: SpiralColors.awakeSleep
             )
