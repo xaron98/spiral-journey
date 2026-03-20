@@ -751,24 +751,6 @@ struct SpiralView: View {
             guard !phases.isEmpty else { continue }
             let vis = state.dayVisibility(for: record.day)
             guard vis.isVisible && vis.opacity > 0.01 else { continue }
-            // 3D: skip entire record if its midpoint perspective is too compressed.
-            // Prevents disconnected data fragments at the spiral center when the
-            // camera window has moved far ahead of this record.
-            if camera.zStep > 0 {
-                let midT = (dayStartTurns + dayEndTurns) / 2
-                let midScale = camera.perspectiveScale(turns: midT)
-                guard midScale > 0.12 else { continue }
-            }
-
-            #if DEBUG
-            // Temporary: log which records actually render, their opacity, and projected center distance
-            let dbgMidT = (dayStartTurns + dayEndTurns) / 2
-            let dbgPt = camera.project(turns: dbgMidT, geo: geo)
-            let dbgCenterDist = hypot(dbgPt.x - geo.cx, dbgPt.y - geo.cy)
-            let dbgScale = camera.perspectiveScale(turns: dbgMidT)
-            let dbgEdgeFade = dbgMidT < fromTurns ? 0.0 : min(1.0, (dbgMidT - fromTurns) / 1.5)
-            print("[DATA-DBG] day=\(record.day) vis=\(String(format:"%.3f",vis.opacity)) scale=\(String(format:"%.3f",dbgScale)) edgeFade=\(String(format:"%.3f",dbgEdgeFade)) centerDist=\(String(format:"%.1f",dbgCenterDist))pt fromT=\(String(format:"%.2f",fromTurns))")
-            #endif
 
             let dataOpacity = vis.opacity
             let cutTurns = min(globalCutTurns, dayEndTurns)
@@ -843,8 +825,8 @@ struct SpiralView: View {
 
             // Draw order: awake data → live awake extension → sleep data
             // Sleep phases render ON TOP so they're never hidden by yellow awake lines.
-            let skipEdge = isLastRecord && vis.isVisible
-            for run in runs where !isSleep(run.phase) { drawRun(run, opacity: dataOpacity, applyEdgeFade: !skipEdge) }
+            // All records apply edge fade equally — no exceptions
+            for run in runs where !isSleep(run.phase) { drawRun(run, opacity: dataOpacity) }
 
             // Live awake extension (yellow, full opacity) draws between awake data and sleep data.
             if let liveRun = liveAwakeRun {
@@ -852,7 +834,7 @@ struct SpiralView: View {
             }
 
             // Sleep data always on top — never covered by awake extension
-            for run in runs where  isSleep(run.phase) { drawRun(run, opacity: dataOpacity, applyEdgeFade: !skipEdge) }
+            for run in runs where  isSleep(run.phase) { drawRun(run, opacity: dataOpacity) }
 
         }
     }

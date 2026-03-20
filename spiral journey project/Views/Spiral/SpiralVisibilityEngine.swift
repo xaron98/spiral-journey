@@ -355,26 +355,27 @@ enum SpiralVisibilityEngine {
         )
     }
 
-    // MARK: - Per-day visibility (distance-based fade, no hard gate)
+    // MARK: - Per-day visibility (single distance from cursor)
 
-    /// Returns styling state for a day based on distance from cursor.
-    /// - Distance 0: full opacity (1.0)
-    /// - Distance 1-6: decreasing opacity via opacityCurve
-    /// - Distance 7+: exponential decay toward 0
-    /// - No hard cutoff — days fade naturally to invisible
+    /// Returns styling state for a day based on distance from the CURSOR.
+    ///
+    /// Uses ONE distance source only (requestedActiveIndex = actual cursor position).
+    /// This guarantees MONOTONIC fade: day closest to cursor = brightest,
+    /// day furthest = dimmest. No exceptions. No clamping to data bounds.
+    ///
+    /// - Distance 0-5: full opacity (1.0) from opacityCurve
+    /// - Distance 6: slight fade (0.4)
+    /// - Distance 7: near invisible (0.05)
+    /// - Distance 8+: exponential decay toward 0
     static func visibilityState(for dayIndex: Int, window: VisibleDayWindow) -> DayVisibilityState {
-        let dist = abs(window.effectiveActiveIndex - dayIndex)
-        // Also check distance from cursor (requestedActiveIndex).
-        // When cursor advances past data, effectiveActive is clamped to lastDayIndex,
-        // but we still need to hide data that's too far from the cursor to prevent
-        // orphaned spiral fragments at the center.
-        let cursorDist = abs(window.requestedActiveIndex - dayIndex)
+        // Single distance: from the actual cursor position. Period.
+        let dist = abs(window.requestedActiveIndex - dayIndex)
 
         let rawOpacity: Double
         if dist < opacityCurve.count {
             rawOpacity = opacityCurve[dist]
         } else {
-            let base = opacityCurve.last ?? 0.06
+            let base = opacityCurve.last ?? 0.05
             let extra = dist - opacityCurve.count + 1
             rawOpacity = base * pow(0.15, Double(extra))
         }
@@ -382,22 +383,7 @@ enum SpiralVisibilityEngine {
         let blur: Double = dist < blurCurve.count ? blurCurve[dist] : (blurCurve.last ?? 2.0)
         let strokeScale: Double = dist < strokeScaleCurve.count ? strokeScaleCurve[dist] : (strokeScaleCurve.last ?? 0.58)
 
-        // Smooth fade based on cursor distance — no hard cutoff.
-        // Within the curve range (0-6): full multiplier (1.0)
-        // At boundary (7): fade to 0.3
-        // Beyond (8+): rapid exponential decay toward 0
-        let cursorFade: Double
-        let maxCurveDist = opacityCurve.count  // 8
-        if cursorDist <= maxCurveDist {
-            cursorFade = 1.0
-        } else {
-            let beyond = cursorDist - maxCurveDist  // 1 at dist 9, 2 at dist 10, etc.
-            cursorFade = pow(0.3, Double(beyond))
-        }
-
-        let finalOpacity = rawOpacity * cursorFade
-
-        guard finalOpacity > 0.01 else {
+        guard rawOpacity > 0.01 else {
             return DayVisibilityState(
                 isVisible: false, opacity: 0, emphasis: 0,
                 blur: 0, strokeScale: 0, distanceFromActive: dist
@@ -405,7 +391,7 @@ enum SpiralVisibilityEngine {
         }
 
         return DayVisibilityState(
-            isVisible: true, opacity: finalOpacity, emphasis: finalOpacity,
+            isVisible: true, opacity: rawOpacity, emphasis: rawOpacity,
             blur: blur, strokeScale: strokeScale, distanceFromActive: dist
         )
     }

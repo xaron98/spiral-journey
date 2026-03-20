@@ -119,11 +119,9 @@ struct SpiralTab: View {
                                             isUserInteracting = true
                                             interactionMode = .scrub
                                             lastInteractionTime = Date()
-                                            let cursorPadding = 1.5
-                                            let searchMax = min(
-                                                (maxReachedTurns + cursorPadding) * store.period,
-                                                Double(maxDays) * store.period
-                                            )
+                                            // Cursor moves freely — no padding limit.
+                                            // The visibility system controls what's shown.
+                                            let searchMax = Double(maxDays) * store.period
                                             let scaleDays = max(1, Int(ceil(maxReachedTurns)))
                                             let newHour = nearestHour(
                                                 at: value.location,
