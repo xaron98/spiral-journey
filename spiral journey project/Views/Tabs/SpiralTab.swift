@@ -61,6 +61,7 @@ struct SpiralTab: View {
     @State private var showCoachTip = false
     // Tap info panel — shows details when user taps a spiral element
     @State private var selectedElementInfo: SpiralElementInfo? = nil
+    @State private var tapGlowPosition: CGPoint? = nil
     @State private var elementInfoDismissTask: Task<Void, Never>? = nil
 
     // Drag tracking — tangent-based cursor advancement (smooth, no jitter).
@@ -306,6 +307,21 @@ struct SpiralTab: View {
                             .reportFrame(\.cursorBar)
                             .opacity(floatingElementsVisible ? 1 : 0)
                             .padding(.bottom, 180)
+                    }
+
+                    // ── Layer 4a: Tap glow indicator ──────────────────────
+                    if let glow = tapGlowPosition {
+                        Circle()
+                            .fill(Color.white.opacity(0.3))
+                            .frame(width: 20, height: 20)
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.white.opacity(0.6), lineWidth: 1.5)
+                            )
+                            .position(glow)
+                            .allowsHitTesting(false)
+                            .transition(.opacity)
+                            .animation(.easeOut(duration: 0.2), value: tapGlowPosition != nil)
                     }
 
                     // ── Layer 4b: Tap info card ────────────────────────────
@@ -1242,13 +1258,16 @@ struct SpiralTab: View {
         let effectiveDepth = store.flatMode ? 0.0 : effectiveDepthScale
         let span     = liveVisibleDays
         let focus    = smoothCameraCenterTurns - (0.5 - cameraFrontPadding)
-        let camUpTo  = focus + 0.5       // matches SpiralView: focusTurns + cameraZPadding
+        let camUpTo  = focus + 0.5       // matches SpiralView: focusTurns + cameraFrontPadding
         let camFrom  = max(focus - span, 0)
         let zStep    = geo.maxRadius * effectiveDepth
-        let focalLen = geo.maxRadius * 1.2
+        let focalLen = geo.maxRadius * (zStep > 0 ? 1.6 : 1.2)
         let margin   = 0.5
         let tRef     = camUpTo + margin
-        let camZ     = margin * zStep - focalLen   // matches CameraState.init
+        // Span-based camera zoom: match CameraState exactly
+        let eSpan = max(camUpTo - camFrom, 0.5)
+        let zFwd: Double = (zStep > 0 && eSpan < 7.0) ? focalLen * 0.5 * (1.0 - eSpan / 7.0) : 0
+        let camZ     = margin * zStep - focalLen + zFwd
 
         let t   = absHour / period
         if zStep == 0 {
@@ -1295,6 +1314,23 @@ struct SpiralTab: View {
             linkGrowthToTau: effectiveLinkGrowthToTau,
             totalHours: maxHours
         )
+
+        // Show glow at the projected position of the tapped hour
+        let glowPt = projectedPoint(
+            forHour: tappedHour,
+            spiralSize: spiralSize,
+            scaleDays: scaleDays,
+            period: store.period,
+            spiralType: effectiveSpiralType,
+            linkGrowthToTau: effectiveLinkGrowthToTau
+        )
+        tapGlowPosition = glowPt
+
+        // Auto-dismiss glow after 3 seconds
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(3))
+            tapGlowPosition = nil
+        }
 
         let period = store.period
         let dayIndex = Int(tappedHour / period)
@@ -1492,13 +1528,16 @@ struct SpiralTab: View {
         let effectiveDepth = store.flatMode ? 0.0 : effectiveDepthScale
         let span     = liveVisibleDays
         let focus    = smoothCameraCenterTurns - (0.5 - cameraFrontPadding)
-        let camUpTo  = focus + 0.5       // matches SpiralView: focusTurns + cameraZPadding
+        let camUpTo  = focus + 0.5       // matches SpiralView: focusTurns + cameraFrontPadding
         let camFrom  = max(focus - span, 0)
         let zStep    = geo.maxRadius * effectiveDepth
-        let focalLen = geo.maxRadius * 1.2
+        let focalLen = geo.maxRadius * (zStep > 0 ? 1.6 : 1.2)
         let margin   = 0.5
         let tRef     = camUpTo + margin
-        let camZ     = margin * zStep - focalLen   // matches CameraState.init
+        // Span-based camera zoom: match CameraState exactly
+        let eSpan2 = max(camUpTo - camFrom, 0.5)
+        let zFwd2: Double = (zStep > 0 && eSpan2 < 7.0) ? focalLen * 0.5 * (1.0 - eSpan2 / 7.0) : 0
+        let camZ     = margin * zStep - focalLen + zFwd2
         let pp       = effectivePerspectivePower
 
         // Flat mode: precompute radial projection bounds (matches CameraState.init).
