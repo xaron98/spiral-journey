@@ -41,9 +41,6 @@ struct CoachChatView: View {
                 if let provider, !provider.requiresDownload {
                     // Foundation Models path — no download/load needed
                     chatView
-                } else if !store.aiCoachConsent {
-                    // Consent required before downloading model
-                    consentPrompt
                 } else {
                     // Phi path — show download/load flow based on LLMService state
                     switch llm.state {
@@ -66,7 +63,7 @@ struct CoachChatView: View {
                     VStack(spacing: 1) {
                         HStack(spacing: 6) {
                             Image(systemName: "brain.head.profile")
-                                .font(.system(size: 13))
+                                .font(.footnote)
                                 .foregroundStyle(SpiralColors.accent)
                             Text(loc("coach.chat.title"))
                                 .font(.subheadline.weight(.medium))
@@ -74,7 +71,7 @@ struct CoachChatView: View {
                         }
                         if let provider {
                             Text(provider.displayName)
-                                .font(.caption.monospaced())
+                                .font(.caption2.monospaced())
                                 .foregroundStyle(SpiralColors.faint)
                         }
                     }
@@ -84,7 +81,7 @@ struct CoachChatView: View {
                         dismiss()
                     } label: {
                         Image(systemName: "xmark")
-                            .font(.system(size: 13, weight: .medium))
+                            .font(.footnote.weight(.medium))
                             .foregroundStyle(SpiralColors.muted)
                     }
                 }
@@ -114,64 +111,16 @@ struct CoachChatView: View {
         }
     }
 
-    // MARK: - Consent Prompt
-
-    private var consentPrompt: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "hand.raised.fill")
-                .font(.system(size: 44))
-                .foregroundStyle(SpiralColors.accent)
-
-            Text(loc("coach.consent.title"))
-                .font(.title3.weight(.semibold))
-                .foregroundStyle(SpiralColors.text)
-
-            Text(loc("coach.consent.description"))
-                .font(.footnote)
-                .foregroundStyle(SpiralColors.muted)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 32)
-
-            // Privacy details card
-            VStack(alignment: .leading, spacing: 6) {
-                modelInfoRow(icon: "arrow.down.doc", text: loc("coach.consent.download"))
-                modelInfoRow(icon: "iphone", text: loc("coach.consent.onDevice"))
-                modelInfoRow(icon: "lock.shield", text: loc("coach.consent.noCloud"))
-            }
-            .padding(12)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
-            .padding(.horizontal, 32)
-
-            Button {
-                store.aiCoachConsent = true
-            } label: {
-                Label(loc("coach.consent.button"), systemImage: "checkmark.shield")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 12)
-                    .background(SpiralColors.accent.opacity(0.9), in: Capsule())
-            }
-        }
-    }
-
     // MARK: - Download Prompt
 
-    /// Available disk space in bytes, or nil if unavailable.
-    private var freeDiskSpace: Int64? {
-        try? URL(fileURLWithPath: NSHomeDirectory())
-            .resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey])
-            .volumeAvailableCapacityForImportantUsage
-    }
-
     private var downloadPrompt: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 20) {
             Image(systemName: "arrow.down.circle")
-                .font(.system(size: 44))
+                .font(.largeTitle)
                 .foregroundStyle(SpiralColors.accent)
 
             Text(loc("coach.chat.download.title"))
-                .font(.title3.weight(.semibold))
+                .font(.headline.weight(.semibold))
                 .foregroundStyle(SpiralColors.text)
 
             Text(loc("coach.chat.download.subtitle"))
@@ -180,34 +129,16 @@ struct CoachChatView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
 
-            // Model details card
-            VStack(alignment: .leading, spacing: 6) {
-                modelInfoRow(icon: "cpu", text: loc("coach.chat.download.modelName"))
-                modelInfoRow(icon: "externaldrive", text: loc("coach.chat.download.modelSize"))
-                modelInfoRow(icon: "arrow.down.doc", text: loc("coach.chat.download.source"))
-                modelInfoRow(icon: "wifi", text: loc("coach.chat.download.wifi"))
-            }
-            .padding(12)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
-            .padding(.horizontal, 32)
-
-            // Low storage warning
-            if let free = freeDiskSpace, free < 3_000_000_000 {
-                HStack(spacing: 6) {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .font(.system(size: 11))
-                    Text(loc("coach.chat.download.lowStorage"))
-                        .font(.caption)
-                }
-                .foregroundStyle(.orange)
-                .padding(.horizontal, 32)
-            }
+            // Size info
+            Text(loc("coach.chat.download.size"))
+                .font(.caption.monospaced())
+                .foregroundStyle(SpiralColors.subtle)
 
             Button {
                 Task { await llm.downloadModel() }
             } label: {
                 Label(loc("coach.chat.download.button"), systemImage: "arrow.down.to.line")
-                    .font(.subheadline.weight(.semibold))
+                    .font(.body.weight(.semibold))
                     .foregroundStyle(.white)
                     .padding(.horizontal, 24)
                     .padding(.vertical, 12)
@@ -217,8 +148,8 @@ struct CoachChatView: View {
             // Privacy note
             HStack(spacing: 4) {
                 Image(systemName: "lock.shield")
-                    .font(.system(size: 10))
-                Text(loc("coach.chat.download.onDevice"))
+                    .font(.caption)
+                Text(loc("coach.chat.privacy"))
                     .font(.caption)
             }
             .foregroundStyle(SpiralColors.subtle)
@@ -232,18 +163,6 @@ struct CoachChatView: View {
         }
     }
 
-    private func modelInfoRow(icon: String, text: String) -> some View {
-        HStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.system(size: 10))
-                .foregroundStyle(SpiralColors.muted)
-                .frame(width: 14)
-            Text(text)
-                .font(.caption)
-                .foregroundStyle(SpiralColors.text)
-        }
-    }
-
     // MARK: - Downloading
 
     private func downloadingView(_ progress: Double) -> some View {
@@ -253,11 +172,11 @@ struct CoachChatView: View {
                 .frame(width: 200)
 
             Text(loc("coach.chat.downloading"))
-                .font(.subheadline)
+                .font(.body)
                 .foregroundStyle(SpiralColors.muted)
 
             Text("\(Int(progress * 100))%")
-                .font(.title3.weight(.semibold).monospaced())
+                .font(.title2.weight(.semibold).monospaced())
                 .foregroundStyle(SpiralColors.text)
         }
     }
@@ -267,32 +186,23 @@ struct CoachChatView: View {
     private var loadingPrompt: some View {
         VStack(spacing: 16) {
             Image(systemName: "brain")
-                .font(.system(size: 36))
+                .font(.largeTitle)
                 .foregroundStyle(SpiralColors.accent)
 
             Text(loc("coach.chat.load.title"))
-                .font(.callout.weight(.semibold))
+                .font(.subheadline.weight(.semibold))
                 .foregroundStyle(SpiralColors.text)
 
             Button {
                 Task { await llm.loadModel() }
             } label: {
                 Label(loc("coach.chat.load.button"), systemImage: "play.fill")
-                    .font(.subheadline.weight(.semibold))
+                    .font(.body.weight(.semibold))
                     .foregroundStyle(.white)
                     .padding(.horizontal, 24)
                     .padding(.vertical, 12)
                     .background(SpiralColors.accent.opacity(0.9), in: Capsule())
             }
-
-            // Delete model hint
-            HStack(spacing: 4) {
-                Image(systemName: "trash")
-                    .font(.system(size: 9))
-                Text(loc("coach.chat.deleteHint"))
-                    .font(.caption)
-            }
-            .foregroundStyle(SpiralColors.faint)
         }
     }
 
@@ -305,7 +215,7 @@ struct CoachChatView: View {
                 .tint(SpiralColors.accent)
 
             Text(loc("coach.chat.loading"))
-                .font(.subheadline)
+                .font(.body)
                 .foregroundStyle(SpiralColors.muted)
         }
     }
@@ -355,14 +265,6 @@ struct CoachChatView: View {
 
             // Input bar
             inputBar
-
-            // Medical disclaimer
-            Text(loc("coach.disclaimer"))
-                .font(.caption)
-                .foregroundStyle(SpiralColors.faint)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 16)
-                .padding(.bottom, 4)
         }
     }
 
@@ -374,7 +276,7 @@ struct CoachChatView: View {
 
             VStack(alignment: message.role == .user ? .trailing : .leading, spacing: 4) {
                 Text(message.content)
-                    .font(.subheadline)
+                    .font(.body)
                     .foregroundStyle(message.role == .user ? .white : SpiralColors.text)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 10)
@@ -386,7 +288,7 @@ struct CoachChatView: View {
                     )
 
                 Text(message.timestamp, format: .dateTime.hour().minute())
-                    .font(.caption.monospaced())
+                    .font(.caption2.monospaced())
                     .foregroundStyle(SpiralColors.faint)
             }
 
@@ -412,7 +314,7 @@ struct CoachChatView: View {
                     .padding(.vertical, 12)
                 } else {
                     Text(streamingText)
-                        .font(.subheadline)
+                        .font(.body)
                         .foregroundStyle(SpiralColors.text)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 10)
@@ -428,7 +330,7 @@ struct CoachChatView: View {
     private var inputBar: some View {
         HStack(spacing: 10) {
             TextField(loc("coach.chat.placeholder"), text: $inputText, axis: .vertical)
-                .font(.subheadline)
+                .font(.body)
                 .lineLimit(1...4)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
@@ -441,7 +343,7 @@ struct CoachChatView: View {
                 sendMessage()
             } label: {
                 Image(systemName: isGenerating ? "stop.fill" : "arrow.up.circle.fill")
-                    .font(.system(size: 28))
+                    .font(.title)
                     .foregroundStyle(
                         inputText.trimmingCharacters(in: .whitespaces).isEmpty && !isGenerating
                             ? SpiralColors.muted

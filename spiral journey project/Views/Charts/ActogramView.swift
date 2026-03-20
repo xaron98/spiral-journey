@@ -61,7 +61,7 @@ struct ActogramView: View {
             HStack {
                 ForEach([0, 6, 12, 18, 24], id: \.self) { h in
                     Text(String(format: "%02d", h))
-                        .font(.system(size: 7, design: .monospaced))
+                        .font(.caption2.monospaced())
                         .foregroundStyle(SpiralColors.muted)
                     if h < 24 { Spacer() }
                 }

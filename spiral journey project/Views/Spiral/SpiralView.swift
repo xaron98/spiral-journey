@@ -246,6 +246,27 @@ struct SpiralView: View {
         var cullThreshold: Double {
             perspPow == 1.0 ? 0.10 : pow(0.10, perspPow)
         }
+
+        /// Pre-filter: returns true when the *entire* turn range [tStart, tEnd]
+        /// is either behind the camera or below cullThreshold.
+        /// Checking both endpoints is sufficient because perspectiveScale is
+        /// monotonic with respect to turn distance from tRef.
+        /// This lets callers skip the expensive per-segment inner loop for
+        /// rings/records that are entirely invisible (O(1) instead of O(60)).
+        func isRangeCulled(from tStart: Double, to tEnd: Double) -> Bool {
+            guard zStep > 0 else {
+                // Flat mode: culled when both ends are before visible window
+                return tEnd < flatCamFromTurns
+            }
+            // 3D: both endpoints must be behind camera or below cull threshold
+            let startBehind = isBehindCamera(turns: tStart)
+            let endBehind   = isBehindCamera(turns: tEnd)
+            if startBehind && endBehind { return true }
+            // Both below cull threshold
+            let startScale = perspectiveScale(turns: tStart)
+            let endScale   = perspectiveScale(turns: tEnd)
+            return startScale < cullThreshold && endScale < cullThreshold
+        }
     }
 
     /// Build camera that frames [fromTurns, upToTurns] with depth around focusTurns.
@@ -412,6 +433,10 @@ struct SpiralView: View {
         for ring in geo.dayRings() where ring.day > 0 && Double(ring.day) >= fromTurns - 2 && Double(ring.day) <= upToTurns && Double(ring.day) <= growthCutTurns {
             let vis = state.dayVisibility(for: ring.day)
             guard vis.isVisible, vis.opacity > 0.01 else { continue }
+            // Viewport culling: skip entire ring if all segments would be culled
+            let ringStart = Double(ring.day)
+            let ringEnd = ringStart + 1.0
+            guard !camera.isRangeCulled(from: ringStart, to: ringEnd) else { continue }
             let gridScale = colorScheme == .dark ? 1.0 : 1.3
             let baseOpacity = ring.isWeekBoundary ? 0.22 * gridScale : 0.11 * gridScale
             let lw: CGFloat = ring.isWeekBoundary ? 0.8 : 0.4
@@ -606,6 +631,8 @@ struct SpiralView: View {
             let dayStartTurns = geo.turns(day: record.day, hour: 0)
             let dayEndTurns = geo.turns(day: record.day + 1, hour: 0)
             guard dayEndTurns >= fromTurns, dayStartTurns <= upToTurns else { continue }
+            // Viewport culling: skip entire record if fully behind camera / below threshold
+            guard !camera.isRangeCulled(from: dayStartTurns, to: dayEndTurns) else { continue }
             let vis = state.dayVisibility(for: record.day)
             guard vis.isVisible else { continue }
             let phases = record.phases
@@ -767,6 +794,8 @@ struct SpiralView: View {
             // Draw records that overlap the visible window (original ±1 margin).
             // Per-segment segmentEdgeFade handles the smooth transition at the camera edge.
             guard dayEndTurns >= fromTurns - 1 && dayStartTurns <= upToTurns + 1 else { continue }
+            // Viewport culling: skip entire record if fully behind camera / below threshold
+            guard !camera.isRangeCulled(from: dayStartTurns, to: dayEndTurns) else { continue }
             let phases = record.phases
             guard !phases.isEmpty else { continue }
             let vis = state.dayVisibility(for: record.day)
@@ -851,7 +880,10 @@ struct SpiralView: View {
         let upToTurns = state.renderUpToTurns
         for record in records {
             let dayStartTurns = geo.turns(day: record.day, hour: 0)
-            guard geo.turns(day: record.day + 1, hour: 0) >= fromTurns, dayStartTurns <= upToTurns, dayStartTurns <= growthCutTurns else { continue }
+            let dayEndTurns = geo.turns(day: record.day + 1, hour: 0)
+            guard dayEndTurns >= fromTurns, dayStartTurns <= upToTurns, dayStartTurns <= growthCutTurns else { continue }
+            // Viewport culling: skip entire record if fully behind camera / below threshold
+            guard !camera.isRangeCulled(from: dayStartTurns, to: dayEndTurns) else { continue }
             let vis = state.dayVisibility(for: record.day)
             guard vis.isVisible else { continue }
             let cosinor = record.cosinor
@@ -891,9 +923,17 @@ struct SpiralView: View {
         var prevDay = -1
         var path = Path()
         var prevVis: DayVisibilityState? = nil
+        // Viewport culling cache: track last culled day to avoid recomputing isRangeCulled per-point
+        var lastCulledDay = -1
         for tp in tpPoints {
+            // Fast path: skip all points in an already-known culled day
+            if tp.day == lastCulledDay { continue }
             let tpTurns = geo.turns(day: tp.day, hour: Double(tp.hour))
             guard geo.turns(day: tp.day + 1, hour: 0) >= fromTurns, tpTurns <= upToTurns, tpTurns <= growthCutTurns else { continue }
+            // Viewport culling: skip entire day of two-process points
+            if camera.isRangeCulled(from: Double(tp.day), to: Double(tp.day + 1)) {
+                lastCulledDay = tp.day; continue
+            }
             let vis = state.dayVisibility(for: tp.day)
             guard vis.isVisible else { continue }
             let t = geo.turns(day: tp.day, hour: Double(tp.hour))
@@ -941,7 +981,10 @@ struct SpiralView: View {
         let upToTurns = state.renderUpToTurns
         for record in records {
             let dayStartTurns = geo.turns(day: record.day, hour: 0)
-            guard geo.turns(day: record.day + 1, hour: 0) >= fromTurns, dayStartTurns <= upToTurns, dayStartTurns <= growthCutTurns else { continue }
+            let dayEndTurns = geo.turns(day: record.day + 1, hour: 0)
+            guard dayEndTurns >= fromTurns, dayStartTurns <= upToTurns, dayStartTurns <= growthCutTurns else { continue }
+            // Viewport culling: skip entire record if fully behind camera / below threshold
+            guard !camera.isRangeCulled(from: dayStartTurns, to: dayEndTurns) else { continue }
             let vis = state.dayVisibility(for: record.day)
             guard vis.isVisible else { continue }
             for marker in BiomarkerEstimation.estimatePersonalized(from: record) {
@@ -1082,6 +1125,8 @@ struct SpiralView: View {
         for day in window.startIndex...window.endIndex {
             let dayTurns = Double(day)
             guard dayTurns <= growthCutTurns else { continue }
+            // Viewport culling: skip entire day if fully behind camera / below threshold
+            guard !camera.isRangeCulled(from: dayTurns, to: dayTurns + 1.0) else { continue }
             let ctxVis = state.contextVisibility(for: day)
             guard ctxVis.isVisible else { continue }
 

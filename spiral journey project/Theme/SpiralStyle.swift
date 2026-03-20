@@ -83,16 +83,16 @@ struct StatCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(label.uppercased())
-                .font(.system(size: 9, weight: .semibold, design: .monospaced))
+                .font(.caption2.weight(.semibold).monospaced())
                 .foregroundStyle(SpiralColors.subtle)
                 .lineLimit(1)
             Text(value)
-                .font(.system(size: 16, weight: .semibold, design: .monospaced))
+                .font(.subheadline.weight(.semibold).monospaced())
                 .foregroundStyle(SpiralColors.text)
                 .lineLimit(1)
             if let sub {
                 Text(sub)
-                    .font(.system(size: 9, design: .monospaced))
+                    .font(.caption2.monospaced())
                     .foregroundStyle(SpiralColors.accent)
             }
         }
@@ -106,7 +106,7 @@ struct PanelTitle: View {
     let title: String
     var body: some View {
         Text(title.uppercased())
-            .font(.system(size: 10, weight: .semibold, design: .monospaced))
+            .font(.caption.weight(.semibold).monospaced())
             .foregroundStyle(SpiralColors.subtle)
             .tracking(2)
     }
@@ -121,7 +121,7 @@ struct PillButton: View {
     var body: some View {
         Button(action: action) {
             Text(label.uppercased())
-                .font(.system(size: 10, weight: .medium, design: .monospaced))
+                .font(.caption.weight(.medium).monospaced())
                 .tracking(1)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)

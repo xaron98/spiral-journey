@@ -86,10 +86,10 @@ struct ConclusionsPanelView: View {
 
     private func trendRow(_ t: TrendItem, color: Color, arrow: String) -> some View {
         HStack(spacing: 8) {
-            Image(systemName: arrow).font(.system(size: 10, weight: .bold)).foregroundStyle(color).frame(width: 14)
+            Image(systemName: arrow).font(.caption.weight(.bold)).foregroundStyle(color).frame(width: 14)
             VStack(alignment: .leading, spacing: 1) {
-                Text(localizedTrendLabel(t)).font(.system(size: 11, weight: .medium)).foregroundStyle(SpiralColors.text)
-                Text(localizedTrendDetail(t)).font(.system(size: 9)).foregroundStyle(SpiralColors.muted)
+                Text(localizedTrendLabel(t)).font(.caption.weight(.medium)).foregroundStyle(SpiralColors.text)
+                Text(localizedTrendDetail(t)).font(.caption2).foregroundStyle(SpiralColors.muted)
             }
         }
     }

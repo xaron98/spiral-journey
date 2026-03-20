@@ -30,7 +30,7 @@ struct DNABasePairsSection: View {
                     Image(systemName: "link")
                         .foregroundStyle(SpiralColors.accent)
                     Text(loc("dna.basepair.header"))
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(.footnote.weight(.semibold))
                         .foregroundStyle(SpiralColors.subtle)
                         .textCase(.uppercase)
                     Spacer()
@@ -38,7 +38,7 @@ struct DNABasePairsSection: View {
 
                 if profile.basePairs.isEmpty {
                     Text(loc("dna.basepair.noData"))
-                        .font(.system(size: 14))
+                        .font(.body)
                         .foregroundStyle(SpiralColors.muted)
                 } else {
                     VStack(spacing: 10) {
@@ -74,10 +74,10 @@ struct DNABasePairsSection: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text("\(context.capitalized) \u{2194} \(sleep)")
-                    .font(.system(size: 14, weight: .medium))
+                    .font(.body.weight(.medium))
                     .foregroundStyle(SpiralColors.text)
                 Text("\(loc("dna.basepair.bond")) \(strength) (PLV \(String(format: "%.2f", pair.plv)))")
-                    .font(.system(size: 12))
+                    .font(.footnote)
                     .foregroundStyle(SpiralColors.muted)
             }
 

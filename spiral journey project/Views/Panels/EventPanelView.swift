@@ -15,7 +15,7 @@ struct EventPanelView: View {
             PanelTitle(title: String(localized: "events.title", bundle: bundle))
 
             Text(String(format: String(localized: "events.logAt", bundle: bundle), SleepStatistics.formatHour(cursorAbsoluteHour.truncatingRemainder(dividingBy: 24))))
-                .font(.system(size: 9, design: .monospaced))
+                .font(.caption.monospaced())
                 .foregroundStyle(SpiralColors.muted)
 
             // Event type buttons
@@ -38,22 +38,22 @@ struct EventPanelView: View {
                 ForEach(events) { event in
                     HStack(spacing: 6) {
                         Image(systemName: event.type.sfSymbol)
-                            .font(.system(size: 10))
+                            .font(.caption)
                             .foregroundStyle(Color(hex: event.type.hexColor))
                             .frame(width: 14)
                         Text(event.type.label)
-                            .font(.system(size: 10, design: .monospaced))
+                            .font(.caption.monospaced())
                             .foregroundStyle(SpiralColors.text)
                         Spacer()
                         Text(SleepStatistics.formatHour(event.absoluteHour.truncatingRemainder(dividingBy: 24)))
-                            .font(.system(size: 9, design: .monospaced))
+                            .font(.caption.monospaced())
                             .foregroundStyle(SpiralColors.muted)
 
                         // PRC shift
                         let shift = PhaseResponse.models[event.type]?.fn(event.absoluteHour.truncatingRemainder(dividingBy: 24)) ?? 0
                         if abs(shift) > 0.01 {
                             Text(String(format: "%+.1fh", shift))
-                                .font(.system(size: 9, design: .monospaced))
+                                .font(.caption.monospaced())
                                 .foregroundStyle(shift > 0 ? SpiralColors.good : SpiralColors.poor)
                         }
 
@@ -61,7 +61,7 @@ struct EventPanelView: View {
                             onRemove(event.id)
                         } label: {
                             Image(systemName: "xmark")
-                                .font(.system(size: 8))
+                                .font(.caption2)
                                 .foregroundStyle(SpiralColors.muted)
                         }
                         .buttonStyle(.plain)
@@ -81,10 +81,10 @@ private struct EventTypeButton: View {
         Button(action: action) {
             VStack(spacing: 4) {
                 Image(systemName: type.sfSymbol)
-                    .font(.system(size: 14))
+                    .font(.body)
                     .foregroundStyle(Color(hex: type.hexColor))
                 Text(type.label)
-                    .font(.system(size: 8, design: .monospaced))
+                    .font(.caption2.monospaced())
                     .foregroundStyle(SpiralColors.muted)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)

@@ -28,13 +28,13 @@ struct JetLagSetupView: View {
                     // Header
                     VStack(spacing: 8) {
                         Image(systemName: "airplane.departure")
-                            .font(.system(size: 36))
+                            .font(.largeTitle)
                             .foregroundStyle(SpiralColors.accent)
                         Text(String(localized: "jetlag.setup.title", bundle: bundle))
-                            .font(.system(size: 20, weight: .light))
+                            .font(.title2.weight(.light))
                             .foregroundStyle(SpiralColors.text)
                         Text(String(localized: "jetlag.setup.subtitle", bundle: bundle))
-                            .font(.system(size: 12))
+                            .font(.footnote)
                             .foregroundStyle(SpiralColors.muted)
                             .multilineTextAlignment(.center)
                     }
@@ -43,22 +43,22 @@ struct JetLagSetupView: View {
                     // Timezone offset picker
                     VStack(alignment: .leading, spacing: 8) {
                         Text(String(localized: "jetlag.setup.offset", bundle: bundle))
-                            .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                            .font(.caption.weight(.semibold).monospaced())
                             .tracking(1.5)
                             .foregroundStyle(SpiralColors.muted)
                             .textCase(.uppercase)
 
                         HStack(alignment: .firstTextBaseline) {
                             Text(offsetLabel)
-                                .font(.system(size: 22, weight: .semibold, design: .monospaced))
+                                .font(.title2.weight(.semibold).monospaced())
                                 .foregroundStyle(SpiralColors.accent)
                             Spacer()
                             VStack(alignment: .trailing, spacing: 2) {
                                 Text(directionLabel)
-                                    .font(.system(size: 12, design: .monospaced))
+                                    .font(.footnote.monospaced())
                                     .foregroundStyle(SpiralColors.muted)
                                 Text(destinationUTCLabel)
-                                    .font(.system(size: 9, design: .monospaced))
+                                    .font(.caption2.monospaced())
                                     .foregroundStyle(SpiralColors.muted.opacity(0.7))
                             }
                         }
@@ -82,7 +82,7 @@ struct JetLagSetupView: View {
                     // Travel date
                     VStack(alignment: .leading, spacing: 8) {
                         Text(String(localized: "jetlag.setup.date", bundle: bundle))
-                            .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                            .font(.caption.weight(.semibold).monospaced())
                             .tracking(1.5)
                             .foregroundStyle(SpiralColors.muted)
                             .textCase(.uppercase)
@@ -106,7 +106,7 @@ struct JetLagSetupView: View {
                         generatePlan()
                     } label: {
                         Text(String(localized: "jetlag.setup.generate", bundle: bundle))
-                            .font(.system(size: 14, weight: .semibold, design: .monospaced))
+                            .font(.body.weight(.semibold).monospaced())
                             .foregroundStyle(.black)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)

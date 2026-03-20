@@ -237,7 +237,7 @@ struct SpiralTab: View {
                                                 .frame(width: 48, height: 48)
                                                 .shadow(color: (sleepStartHour != nil ? SpiralColors.awakeSleep : Color(hex: "7c3aed")).opacity(0.5), radius: 10)
                                             Image(systemName: sleepStartHour != nil ? "sun.max.fill" : "moon.fill")
-                                                .font(.system(size: 20, weight: .semibold))
+                                                .font(.title2.weight(.semibold))
                                                 .foregroundStyle(.white)
                                         }
                                     }
@@ -285,10 +285,10 @@ struct SpiralTab: View {
                                 // Empty state hint
                                 VStack(spacing: 8) {
                                     Image(systemName: "moon.zzz")
-                                        .font(.system(size: 32))
+                                        .font(.largeTitle)
                                         .foregroundStyle(SpiralColors.muted)
                                     Text(String(localized: "spiral.empty.hint", bundle: bundle))
-                                        .font(.system(size: 13))
+                                        .font(.footnote)
                                         .foregroundStyle(SpiralColors.muted)
                                         .multilineTextAlignment(.center)
                                 }
@@ -518,7 +518,7 @@ struct SpiralTab: View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(greetingText)
-                    .font(.system(size: 22, weight: .light, design: .default))
+                    .font(.title2.weight(.light))
                     .foregroundStyle(
                         LinearGradient(
                             colors: [SpiralColors.text, SpiralColors.accent.opacity(0.8)],
@@ -527,7 +527,7 @@ struct SpiralTab: View {
                         )
                     )
                 Text(currentDateString)
-                    .font(.system(size: 11, design: .monospaced))
+                    .font(.caption.monospaced())
                     .foregroundStyle(SpiralColors.subtle)
             }
             Spacer()
@@ -579,23 +579,23 @@ struct SpiralTab: View {
 
         return HStack(spacing: 8) {
             Text(df.string(from: date))
-                .font(.system(size: 11, design: .monospaced))
+                .font(.caption.monospaced())
                 .foregroundStyle(SpiralColors.subtle)
             Text(timeStr)
-                .font(.system(size: 16, weight: .semibold, design: .monospaced))
+                .font(.subheadline.weight(.semibold).monospaced())
                 .foregroundStyle(SpiralColors.text)
             Spacer()
             Text(statusText)
-                .font(.system(size: 11, design: .monospaced))
+                .font(.caption.monospaced())
                 .foregroundStyle(statusColor)
             // Event log shortcut
             Button { showEventSheet2 = true } label: {
                 HStack(spacing: 3) {
                     Image(systemName: "plus.circle")
-                        .font(.system(size: 13))
+                        .font(.footnote)
                     if !store.events.isEmpty {
                         Text("\(store.events.count)")
-                            .font(.system(size: 10, design: .monospaced))
+                            .font(.caption.monospaced())
                     }
                 }
                 .foregroundStyle(SpiralColors.accent)
@@ -624,27 +624,27 @@ struct SpiralTab: View {
                             .frame(width: 52, height: 52)
                             .rotationEffect(.degrees(-90))
                         Text("\(c.score)")
-                            .font(.system(size: 15, weight: .bold, design: .monospaced))
+                            .font(.subheadline.weight(.bold).monospaced())
                             .foregroundStyle(Color(hex: c.label.hexColor))
                     } else {
                         Text("--")
-                            .font(.system(size: 15, weight: .bold, design: .monospaced))
+                            .font(.subheadline.weight(.bold).monospaced())
                             .foregroundStyle(SpiralColors.muted)
                     }
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(rhythmStateHeadline)
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(.subheadline.weight(.semibold))
                         .foregroundStyle(SpiralColors.text)
                     Text(rhythmStateSubtitle)
-                        .font(.system(size: 11))
+                        .font(.caption)
                         .foregroundStyle(SpiralColors.muted)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer()
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 10))
+                    .font(.caption)
                     .foregroundStyle(SpiralColors.subtle)
             }
             .padding(14)
@@ -712,13 +712,13 @@ struct SpiralTab: View {
                     .fill(Color(hex: "a78bfa").opacity(0.15))
                     .frame(width: 52, height: 52)
                 Image(systemName: "moon.stars.fill")
-                    .font(.system(size: 22))
+                    .font(.title2)
                     .foregroundStyle(Color(hex: "a78bfa"))
             }
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(String(localized: "prediction.card.title", bundle: bundle))
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(.subheadline.weight(.semibold))
                     .foregroundStyle(SpiralColors.text)
 
                 HStack(spacing: 16) {
@@ -726,7 +726,7 @@ struct SpiralTab: View {
                     Label(formatClockHour(pred.predictedWakeHour), systemImage: "alarm.fill")
                     Label(String(format: "%.1fh", pred.predictedDuration), systemImage: "hourglass")
                 }
-                .font(.system(size: 12, design: .monospaced))
+                .font(.footnote.monospaced())
                 .foregroundStyle(SpiralColors.muted)
 
                 HStack(spacing: 6) {
@@ -754,7 +754,7 @@ struct SpiralTab: View {
             }
         }()
         return Text(text)
-            .font(.system(size: 10, design: .monospaced))
+            .font(.caption.monospaced())
             .foregroundStyle(color)
     }
 
@@ -807,10 +807,10 @@ struct SpiralTab: View {
     private func compactStat(icon: String, value: String, color: Color) -> some View {
         HStack(spacing: 5) {
             Image(systemName: icon)
-                .font(.system(size: 10))
+                .font(.caption)
                 .foregroundStyle(color.opacity(0.7))
             Text(value)
-                .font(.system(size: 13, weight: .semibold, design: .monospaced))
+                .font(.footnote.weight(.semibold).monospaced())
                 .foregroundStyle(color)
         }
     }
@@ -886,7 +886,7 @@ struct SpiralTab: View {
             HStack(spacing: 10) {
                 // Icon
                 Image(systemName: plan.isEnabled ? "target" : "scope")
-                    .font(.system(size: 14))
+                    .font(.body)
                     .foregroundStyle(plan.isEnabled ? SpiralColors.awakeSleep : SpiralColors.muted)
 
                 if plan.isEnabled {
@@ -894,29 +894,29 @@ struct SpiralTab: View {
                         HStack(spacing: 6) {
                             Text(String(format: String(localized: "rephase.spiral.wake", bundle: bundle),
                                         RephaseCalculator.formattedTargetWake(plan)))
-                                .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                                .font(.footnote.weight(.semibold).monospaced())
                                 .foregroundStyle(SpiralColors.awakeSleep)
                             Text("·")
                                 .foregroundStyle(SpiralColors.muted)
                             Text(RephaseCalculator.delayString(plan: plan, meanAcrophase: meanAcrophase, bundle: bundle))
-                                .font(.system(size: 11, design: .monospaced))
+                                .font(.caption.monospaced())
                                 .foregroundStyle(SpiralColors.muted)
                         }
                         if meanAcrophase > 0 {
                             Text(RephaseCalculator.todayActionText(plan: plan, meanAcrophase: meanAcrophase, bundle: bundle))
-                                .font(.system(size: 11))
+                                .font(.caption)
                                 .foregroundStyle(SpiralColors.muted)
                         }
                     }
                 } else {
                     Text(String(localized: "spiral.rephase.define", bundle: bundle))
-                        .font(.system(size: 12))
+                        .font(.footnote)
                         .foregroundStyle(SpiralColors.muted)
                 }
 
                 Spacer()
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 10))
+                    .font(.caption)
                     .foregroundStyle(SpiralColors.subtle)
             }
             .padding(.horizontal, 14)
@@ -968,15 +968,11 @@ struct SpiralTab: View {
 
     /// Start radius varies by mode:
     /// - Archimedean (any): 75 (CLAUDE.md standard)
-    /// - Archimedean 2D: 75 (CLAUDE.md standard)
-    /// - Archimedean 3D: 40 (tighter origin)
-    /// - Log 3D: 35 (tighter origin)
+    /// - Log 3D: 60 (wider radial range for cone effect)
     /// - Log 2D flat: 15 (small inner turns, exponential spread visible)
     private var effectiveStartRadius: Double {
-        if store.spiralType == .logarithmic {
-            return store.flatMode ? 15.0 : 35.0
-        }
-        return store.flatMode ? 75.0 : 40.0
+        guard store.spiralType == .logarithmic else { return 75.0 }
+        return store.flatMode ? 15.0 : 60.0
     }
 
     private var isLog3D: Bool {
@@ -1293,17 +1289,17 @@ struct HumanStatCard: View {
     var body: some View {
         VStack(spacing: 3) {
             Text(label)
-                .font(.system(size: 8, weight: .semibold))
+                .font(.caption2.weight(.semibold))
                 .foregroundStyle(SpiralColors.subtle)
                 .textCase(.uppercase)
                 .lineLimit(1)
             Text(value)
-                .font(.system(size: 16, weight: .bold, design: .monospaced))
+                .font(.subheadline.weight(.bold).monospaced())
                 .foregroundStyle(color)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
             Text(sub)
-                .font(.system(size: 9, weight: .medium))
+                .font(.caption2.weight(.medium))
                 .foregroundStyle(SpiralColors.muted)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
@@ -1336,11 +1332,11 @@ struct EventSheetView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(String(localized: "events.log.title", bundle: bundle))
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.subheadline.weight(.semibold))
                         .foregroundStyle(SpiralColors.text)
                     Text(String(format: String(localized: "events.logAt", bundle: bundle),
                                 SleepStatistics.formatHour(cursorAbsHour.truncatingRemainder(dividingBy: 24))))
-                        .font(.system(size: 11, design: .monospaced))
+                        .font(.caption.monospaced())
                         .foregroundStyle(SpiralColors.muted)
                 }
                 Spacer()
@@ -1385,16 +1381,16 @@ struct InsightCard: View {
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: typeIcon)
-                .font(.system(size: 16))
+                .font(.subheadline)
                 .foregroundStyle(typeColor)
                 .frame(width: 24)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(insight.title)
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(.caption.weight(.semibold))
                     .foregroundStyle(SpiralColors.text)
                 Text(insight.summary)
-                    .font(.system(size: 10))
+                    .font(.caption)
                     .foregroundStyle(SpiralColors.muted)
                     .lineLimit(2)
             }
@@ -1446,10 +1442,10 @@ struct EventGridView: View {
                 } label: {
                     HStack(spacing: 4) {
                         Text(String(format: String(localized: "events.loggedCount", bundle: bundle), events.count))
-                            .font(.system(size: 9, design: .monospaced))
+                            .font(.caption2.monospaced())
                             .foregroundStyle(SpiralColors.muted)
                         Image(systemName: showLog ? "chevron.up" : "chevron.down")
-                            .font(.system(size: 8))
+                            .font(.caption2)
                             .foregroundStyle(SpiralColors.muted)
                         Spacer()
                     }
@@ -1460,21 +1456,21 @@ struct EventGridView: View {
                     ForEach(events) { event in
                         HStack(spacing: 6) {
                             Image(systemName: event.type.sfSymbol)
-                                .font(.system(size: 9))
+                                .font(.caption2)
                                 .foregroundStyle(Color(hex: event.type.hexColor))
                                 .frame(width: 12)
                             Text(event.type.label)
-                                .font(.system(size: 9, design: .monospaced))
+                                .font(.caption2.monospaced())
                                 .foregroundStyle(SpiralColors.text)
                             Spacer()
                             Text(SleepStatistics.formatHour(event.absoluteHour.truncatingRemainder(dividingBy: 24)))
-                                .font(.system(size: 9, design: .monospaced))
+                                .font(.caption2.monospaced())
                                 .foregroundStyle(SpiralColors.muted)
                             Button {
                                 onRemove(event.id)
                             } label: {
                                 Image(systemName: "xmark")
-                                    .font(.system(size: 7))
+                                    .font(.caption2)
                                     .foregroundStyle(SpiralColors.muted)
                             }
                             .buttonStyle(.plain)
@@ -1503,10 +1499,10 @@ private struct GlassEventButton: View {
         }) {
             VStack(spacing: 5) {
                 Image(systemName: type.sfSymbol)
-                    .font(.system(size: 16, weight: .medium))
+                    .font(.subheadline.weight(.medium))
                     .foregroundStyle(Color(hex: type.hexColor))
                 Text(type.label)
-                    .font(.system(size: 8, weight: .medium, design: .monospaced))
+                    .font(.caption2.weight(.medium).monospaced())
                     .foregroundStyle(SpiralColors.subtle)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)

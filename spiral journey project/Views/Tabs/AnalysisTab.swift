@@ -98,10 +98,10 @@ struct AnalysisTab: View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
                 Text(String(localized: "analysis.header.title", bundle: bundle))
-                    .font(.system(size: 22, weight: .light))
+                    .font(.title2.weight(.light))
                     .foregroundStyle(SpiralColors.text)
                 Text(String(format: String(localized: "analysis.header.subtitle", bundle: bundle), store.numDays))
-                    .font(.system(size: 11, design: .monospaced))
+                    .font(.caption.monospaced())
                     .foregroundStyle(SpiralColors.subtle)
             }
             Spacer()
@@ -114,7 +114,7 @@ struct AnalysisTab: View {
                         .tint(SpiralColors.accent)
                 } else {
                     Image(systemName: "square.and.arrow.up")
-                        .font(.system(size: 16))
+                        .font(.subheadline)
                         .foregroundStyle(SpiralColors.accent)
                 }
             }
@@ -323,12 +323,12 @@ struct AnalysisTab: View {
         } label: {
             HStack(spacing: 6) {
                 Image(systemName: showFullAnalysis ? "chevron.up" : "chevron.down")
-                    .font(.system(size: 10, weight: .medium))
+                    .font(.caption.weight(.medium))
                 Text(showFullAnalysis
                     ? String(localized: "analysis.fullAnalysis.hide", bundle: bundle)
                     : String(localized: "analysis.fullAnalysis.show", bundle: bundle)
                 )
-                    .font(.system(size: 12, weight: .medium, design: .monospaced))
+                    .font(.footnote.weight(.medium).monospaced())
             }
             .foregroundStyle(SpiralColors.accent)
             .padding(.vertical, 10)
@@ -384,13 +384,13 @@ struct AnalysisTab: View {
 
             VStack(alignment: .leading, spacing: 6) {
                 Text("Spiral Journey")
-                    .font(.system(size: 11, design: .monospaced))
+                    .font(.caption.monospaced())
                     .foregroundStyle(SpiralColors.subtle)
                 Text(localizedScoreLabel)
-                    .font(.system(size: 20, weight: .semibold))
+                    .font(.title2.weight(.semibold))
                     .foregroundStyle(Color(hex: store.analysis.hexColor))
                 Text(String(localized: "conclusions.score.composite", bundle: bundle))
-                    .font(.system(size: 10))
+                    .font(.caption)
                     .foregroundStyle(SpiralColors.subtle)
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
@@ -437,13 +437,13 @@ struct AnalysisTab: View {
     private var emptyState: some View {
         VStack(spacing: 16) {
             Image(systemName: "chart.line.uptrend.xyaxis")
-                .font(.system(size: 44))
+                .font(.largeTitle)
                 .foregroundStyle(SpiralColors.muted)
             Text(String(localized: "analysis.empty.title", bundle: bundle))
-                .font(.system(size: 15, design: .monospaced))
+                .font(.subheadline.monospaced())
                 .foregroundStyle(SpiralColors.text)
             Text(String(localized: "analysis.empty.subtitle", bundle: bundle))
-                .font(.system(size: 12))
+                .font(.footnote)
                 .foregroundStyle(SpiralColors.subtle)
                 .multilineTextAlignment(.center)
         }
@@ -471,12 +471,12 @@ struct AnalysisTab: View {
     private func trendRow(_ t: TrendItem, color: Color, arrow: String) -> some View {
         HStack(spacing: 8) {
             Image(systemName: arrow)
-                .font(.system(size: 10, weight: .bold))
+                .font(.caption.weight(.bold))
                 .foregroundStyle(color)
                 .frame(width: 14)
             VStack(alignment: .leading, spacing: 1) {
-                Text(localizedTrendLabel(t)).font(.system(size: 11, weight: .medium)).foregroundStyle(SpiralColors.text)
-                Text(localizedTrendDetail(t)).font(.system(size: 9)).foregroundStyle(SpiralColors.subtle)
+                Text(localizedTrendLabel(t)).font(.caption.weight(.medium)).foregroundStyle(SpiralColors.text)
+                Text(localizedTrendDetail(t)).font(.caption2).foregroundStyle(SpiralColors.subtle)
             }
         }
     }
@@ -516,29 +516,29 @@ struct TrendDimensionCard: View {
         HStack(spacing: 14) {
             // Trend arrow
             Image(systemName: trend.icon)
-                .font(.system(size: 16, weight: .semibold))
+                .font(.subheadline.weight(.semibold))
                 .foregroundStyle(trend.color)
                 .frame(width: 20)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
-                    .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                    .font(.caption.weight(.semibold).monospaced())
                     .foregroundStyle(SpiralColors.subtle)
                     .textCase(.uppercase)
 
                 HStack(alignment: .firstTextBaseline, spacing: 3) {
                     Text(value)
-                        .font(.system(size: 22, weight: .bold, design: .monospaced))
+                        .font(.title2.weight(.bold).monospaced())
                         .foregroundStyle(accentColor)
                     if !valueUnit.isEmpty {
                         Text(valueUnit)
-                            .font(.system(size: 11))
+                            .font(.caption)
                             .foregroundStyle(SpiralColors.subtle)
                     }
                 }
 
                 Text(description)
-                    .font(.system(size: 11))
+                    .font(.caption)
                     .foregroundStyle(SpiralColors.muted)
                     .fixedSize(horizontal: false, vertical: true)
                     .lineSpacing(2)
@@ -595,18 +595,18 @@ struct CategoryRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 HStack {
                     Text(localizedLabel)
-                        .font(.system(size: 11, weight: .medium, design: .monospaced))
+                        .font(.caption.weight(.medium).monospaced())
                         .foregroundStyle(SpiralColors.text)
                     Spacer()
                     Text(category.value)
-                        .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                        .font(.caption.weight(.semibold).monospaced())
                         .foregroundStyle(statusColor)
                     Text("\(category.score)")
-                        .font(.system(size: 9, design: .monospaced))
+                        .font(.caption2.monospaced())
                         .foregroundStyle(SpiralColors.subtle)
                 }
                 Text(localizedDetail)
-                    .font(.system(size: 9))
+                    .font(.caption2)
                     .foregroundStyle(SpiralColors.subtle)
                     .lineLimit(2)
             }
@@ -666,10 +666,10 @@ struct RecommendationRow: View {
                 .padding(.top, 2)
             VStack(alignment: .leading, spacing: 3) {
                 Text(localizedTitle)
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(.footnote.weight(.semibold))
                     .foregroundStyle(SpiralColors.text)
                 Text(localizedText)
-                    .font(.system(size: 11))
+                    .font(.caption)
                     .foregroundStyle(SpiralColors.muted)
                     .lineLimit(4)
                     .fixedSize(horizontal: false, vertical: true)

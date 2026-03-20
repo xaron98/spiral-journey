@@ -26,10 +26,10 @@ struct ScoreGaugeView: View {
             // Score text
             VStack(spacing: 0) {
                 Text("\(score)")
-                    .font(.system(size: 32, weight: .bold, design: .monospaced))
+                    .font(.largeTitle.weight(.bold).monospaced())
                     .foregroundStyle(Color(hex: hexColor))
                 Text(label)
-                    .font(.system(size: 8, weight: .medium))
+                    .font(.caption2.weight(.medium))
                     .foregroundStyle(SpiralColors.muted)
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)

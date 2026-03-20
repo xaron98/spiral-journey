@@ -35,7 +35,7 @@ struct DNAInsightsView: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button { dismiss() } label: {
                         Image(systemName: "xmark")
-                            .font(.system(size: 15, weight: .semibold))
+                            .font(.subheadline.weight(.semibold))
                             .foregroundStyle(SpiralColors.muted)
                     }
                 }
@@ -97,19 +97,19 @@ struct DNAInsightsView: View {
         } label: {
             HStack(spacing: 10) {
                 Image(systemName: "list.clipboard")
-                    .font(.system(size: 14))
+                    .font(.body)
                     .foregroundStyle(SpiralColors.accent)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(loc("questionnaire.banner.title"))
-                        .font(.system(size: 12, weight: .medium, design: .monospaced))
+                        .font(.caption.weight(.medium).monospaced())
                         .foregroundStyle(SpiralColors.text)
                     Text(loc("questionnaire.banner.subtitle"))
-                        .font(.system(size: 10))
+                        .font(.caption)
                         .foregroundStyle(SpiralColors.muted)
                 }
                 Spacer()
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(.caption.weight(.semibold))
                     .foregroundStyle(SpiralColors.accent)
             }
             .padding(12)
@@ -131,7 +131,7 @@ struct DNAInsightsView: View {
                 .controlSize(.large)
                 .tint(SpiralColors.accent)
             Text(loc("dna.loading"))
-                .font(.system(size: 15))
+                .font(.subheadline)
                 .foregroundStyle(SpiralColors.muted)
         }
     }
@@ -141,10 +141,10 @@ struct DNAInsightsView: View {
     private var emptyState: some View {
         VStack(spacing: 16) {
             Image(systemName: "dna")
-                .font(.system(size: 40))
+                .font(.largeTitle)
                 .foregroundStyle(SpiralColors.subtle)
             Text(loc("dna.empty"))
-                .font(.system(size: 15))
+                .font(.subheadline)
                 .foregroundStyle(SpiralColors.muted)
                 .multilineTextAlignment(.center)
         }

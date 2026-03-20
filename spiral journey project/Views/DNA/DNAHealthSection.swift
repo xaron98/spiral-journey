@@ -19,7 +19,7 @@ struct DNAHealthSection: View {
                 Image(systemName: "heart.text.clipboard")
                     .foregroundStyle(SpiralColors.accent)
                 Text(loc("dna.health.header"))
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.footnote.weight(.semibold))
                     .foregroundStyle(SpiralColors.subtle)
                     .textCase(.uppercase)
                 Spacer()
@@ -28,10 +28,10 @@ struct DNAHealthSection: View {
             if allGood {
                 HStack(spacing: 8) {
                     Image(systemName: "checkmark.seal.fill")
-                        .font(.system(size: 20))
+                        .font(.title2)
                         .foregroundStyle(SpiralColors.good)
                     Text(loc("dna.health.stable"))
-                        .font(.system(size: 16, weight: .medium))
+                        .font(.callout.weight(.medium))
                         .foregroundStyle(SpiralColors.good)
                     Spacer()
                 }
@@ -57,12 +57,12 @@ struct DNAHealthSection: View {
     private func alertRow(_ alert: HealthAlert) -> some View {
         HStack(alignment: .top, spacing: 10) {
             Image(systemName: alertIcon(alert.severity))
-                .font(.system(size: 14))
+                .font(.body)
                 .foregroundStyle(alertColor(alert.severity))
                 .frame(width: 20)
 
             Text(localizedMessage(for: alert))
-                .font(.system(size: 13))
+                .font(.footnote)
                 .foregroundStyle(SpiralColors.muted)
                 .fixedSize(horizontal: false, vertical: true)
         }

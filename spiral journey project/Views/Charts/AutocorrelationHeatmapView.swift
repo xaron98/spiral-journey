@@ -19,13 +19,13 @@ struct AutocorrelationHeatmapView: View {
             PanelTitle(title: String(localized: "analysis.charts.autocorrelation", bundle: bundle))
 
             Text(String(localized: "analysis.charts.autocorrelation.desc", bundle: bundle))
-                .font(.system(size: 10))
+                .font(.caption)
                 .foregroundStyle(SpiralColors.muted)
                 .fixedSize(horizontal: false, vertical: true)
 
             if records.count < 8 {
                 Text(String(localized: "analysis.charts.needMoreData", bundle: bundle))
-                    .font(.system(size: 11))
+                    .font(.caption)
                     .foregroundStyle(SpiralColors.muted)
                     .padding(.vertical, 20)
                     .frame(maxWidth: .infinity)
@@ -54,7 +54,7 @@ struct AutocorrelationHeatmapView: View {
             for h in stride(from: 0, to: 24, by: 3) {
                 let x = labelW + CGFloat(h) * cellW
                 ctx.draw(
-                    Text("\(h)").font(.system(size: 7, design: .monospaced)).foregroundStyle(SpiralColors.muted),
+                    Text("\(h)").font(.caption2.monospaced()).foregroundStyle(SpiralColors.muted),
                     at: CGPoint(x: x + cellW / 2, y: headerH / 2)
                 )
             }
@@ -64,7 +64,7 @@ struct AutocorrelationHeatmapView: View {
                 let y = headerH + CGFloat(li) * cellH
 
                 ctx.draw(
-                    Text("\(lag)d").font(.system(size: 7, design: .monospaced)).foregroundStyle(SpiralColors.muted),
+                    Text("\(lag)d").font(.caption2.monospaced()).foregroundStyle(SpiralColors.muted),
                     at: CGPoint(x: labelW / 2, y: y + cellH / 2)
                 )
 
@@ -91,17 +91,17 @@ struct AutocorrelationHeatmapView: View {
 
     private var legendBar: some View {
         HStack(spacing: 4) {
-            Text("-1").font(.system(size: 7, design: .monospaced)).foregroundStyle(SpiralColors.muted)
+            Text("-1").font(.caption2.monospaced()).foregroundStyle(SpiralColors.muted)
             LinearGradient(
                 colors: (0...10).map { SpiralColors.rdBu(Double($0) / 5.0 - 1.0) },
                 startPoint: .leading, endPoint: .trailing
             )
             .frame(height: 6)
             .clipShape(RoundedRectangle(cornerRadius: 2))
-            Text("+1").font(.system(size: 7, design: .monospaced)).foregroundStyle(SpiralColors.muted)
+            Text("+1").font(.caption2.monospaced()).foregroundStyle(SpiralColors.muted)
             Spacer()
             Circle().fill(.white).frame(width: 5, height: 5)
-            Text("p<0.05").font(.system(size: 7, design: .monospaced)).foregroundStyle(SpiralColors.muted)
+            Text("p<0.05").font(.caption2.monospaced()).foregroundStyle(SpiralColors.muted)
         }
     }
 }

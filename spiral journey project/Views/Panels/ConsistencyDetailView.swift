@@ -70,10 +70,10 @@ struct ConsistencyDetailView: View {
 
                 VStack(spacing: 2) {
                     Text("\(consistency.score)")
-                        .font(.system(size: 34, weight: .bold, design: .monospaced))
+                        .font(.largeTitle.weight(.bold).monospaced())
                         .foregroundStyle(Color(hex: consistency.label.hexColor))
                     Text(String(localized: String.LocalizationValue(consistency.label.localizationKey)))
-                        .font(.system(size: 10, weight: .medium))
+                        .font(.caption.weight(.medium))
                         .foregroundStyle(SpiralColors.muted)
                 }
             }
@@ -82,7 +82,7 @@ struct ConsistencyDetailView: View {
             HStack(spacing: 8) {
                 confidenceBadge
                 Text(String(format: String(localized: "consistency.nights", bundle: bundle), consistency.nightsUsed))
-                    .font(.system(size: 11, design: .monospaced))
+                    .font(.caption.monospaced())
                     .foregroundStyle(SpiralColors.muted)
             }
         }
@@ -98,7 +98,7 @@ struct ConsistencyDetailView: View {
         case .low:    (String(localized: "consistency.confidence.low",    bundle: bundle), Color(hex: "f05050"))
         }
         return Text(label)
-            .font(.system(size: 10, weight: .medium))
+            .font(.caption.weight(.medium))
             .foregroundStyle(color)
             .padding(.horizontal, 8)
             .padding(.vertical, 3)
@@ -158,7 +158,7 @@ struct ConsistencyDetailView: View {
                 Spacer()
                 Button { showLegendHelp = true } label: {
                     Image(systemName: "questionmark.circle")
-                        .font(.system(size: 14))
+                        .font(.body)
                         .foregroundStyle(SpiralColors.muted)
                 }
             }
@@ -170,7 +170,7 @@ struct ConsistencyDetailView: View {
 
             if nights.isEmpty {
                 Text(String(localized: "consistency.heatmap.noData", bundle: bundle))
-                    .font(.system(size: 12))
+                    .font(.footnote)
                     .foregroundStyle(SpiralColors.muted)
             } else {
                 WeeklyNightGrid(
@@ -211,10 +211,10 @@ struct ConsistencyDetailView: View {
                 // Arrow + delta
                 VStack(spacing: 4) {
                     Image(systemName: delta >= 0 ? "arrow.up.right" : "arrow.down.right")
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.subheadline.weight(.semibold))
                         .foregroundStyle(delta >= 0 ? Color(hex: "5bffa8") : Color(hex: "f05050"))
                     Text(String(format: "%+.0f", delta))
-                        .font(.system(size: 12, weight: .bold, design: .monospaced))
+                        .font(.footnote.weight(.bold).monospaced())
                         .foregroundStyle(delta >= 0 ? Color(hex: "5bffa8") : Color(hex: "f05050"))
                 }
                 .frame(maxWidth: .infinity)
@@ -232,13 +232,13 @@ struct ConsistencyDetailView: View {
         let scoreLabel = ConsistencyLabel.from(score: score)
         return VStack(spacing: 6) {
             Text("\(score)")
-                .font(.system(size: 28, weight: .bold, design: .monospaced))
+                .font(.title.weight(.bold).monospaced())
                 .foregroundStyle(isCurrent ? Color(hex: consistency.label.hexColor) : SpiralColors.muted)
             Text(String(localized: String.LocalizationValue(scoreLabel.localizationKey)))
-                .font(.system(size: 10))
+                .font(.caption)
                 .foregroundStyle(SpiralColors.muted)
             Text(label)
-                .font(.system(size: 9, design: .monospaced))
+                .font(.caption2.monospaced())
                 .foregroundStyle(SpiralColors.muted)
         }
         .frame(maxWidth: .infinity)
@@ -257,7 +257,7 @@ struct ConsistencyDetailView: View {
 
     private func sectionHeader(_ text: String) -> some View {
         Text(text)
-            .font(.system(size: 11, weight: .semibold, design: .monospaced))
+            .font(.caption.weight(.semibold).monospaced())
             .foregroundStyle(SpiralColors.muted)
             .textCase(.uppercase)
     }
@@ -283,14 +283,14 @@ private struct BreakdownRow: View {
         VStack(spacing: 4) {
             HStack {
                 Text(label)
-                    .font(.system(size: 12))
+                    .font(.footnote)
                     .foregroundStyle(SpiralColors.text)
                 Spacer()
                 Text(weight)
-                    .font(.system(size: 10, design: .monospaced))
+                    .font(.caption.monospaced())
                     .foregroundStyle(SpiralColors.muted)
                 Text(String(format: "%.0f", value))
-                    .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                    .font(.footnote.weight(.semibold).monospaced())
                     .foregroundStyle(barColor(value))
                     .frame(width: 28, alignment: .trailing)
             }
@@ -334,7 +334,7 @@ private struct WeeklyNightGrid: View {
                 ForEach(Array(nights.enumerated()), id: \.offset) { idx, record in
                     VStack(spacing: 3) {
                         Text(dayLabel(record.date))
-                            .font(.system(size: 9, design: .monospaced))
+                            .font(.caption2.monospaced())
                             .foregroundStyle(SpiralColors.muted)
                             .frame(maxWidth: .infinity)
 
@@ -391,7 +391,7 @@ private struct NightCell: View {
                 .frame(maxWidth: .infinity)
                 .frame(height: durationHeight)
             Text(String(format: "%.1fh", record.sleepDuration))
-                .font(.system(size: 7, design: .monospaced))
+                .font(.caption2.monospaced())
                 .foregroundStyle(SpiralColors.muted)
         }
         .frame(height: 50)
@@ -405,7 +405,7 @@ private struct LegendDot: View {
         HStack(spacing: 4) {
             Circle().fill(color).frame(width: 6, height: 6)
             Text(label)
-                .font(.system(size: 9))
+                .font(.caption2)
                 .foregroundStyle(SpiralColors.muted)
         }
     }
@@ -437,22 +437,22 @@ private struct InsightDetailCard: View {
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
             Image(systemName: iconName)
-                .font(.system(size: 18))
+                .font(.headline)
                 .foregroundStyle(accentColor)
                 .frame(width: 24)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(insight.title)
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.footnote.weight(.semibold))
                     .foregroundStyle(SpiralColors.text)
                 Text(insight.summary)
-                    .font(.system(size: 11))
+                    .font(.caption)
                     .foregroundStyle(SpiralColors.muted)
                     .fixedSize(horizontal: false, vertical: true)
 
                 if !insight.recommendedAction.isEmpty {
                     Text(insight.recommendedAction)
-                        .font(.system(size: 11, design: .monospaced))
+                        .font(.caption.monospaced())
                         .foregroundStyle(accentColor)
                         .padding(.top, 2)
                 }
@@ -519,10 +519,10 @@ private struct ConsistencyLegendSheet: View {
                 .frame(width: 28, height: 28)
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(.subheadline.weight(.semibold))
                     .foregroundStyle(SpiralColors.text)
                 Text(description)
-                    .font(.system(size: 13))
+                    .font(.footnote)
                     .foregroundStyle(SpiralColors.muted)
                     .fixedSize(horizontal: false, vertical: true)
             }

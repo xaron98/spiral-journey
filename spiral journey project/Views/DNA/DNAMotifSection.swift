@@ -19,7 +19,7 @@ struct DNAMotifSection: View {
                 Image(systemName: "line.3.horizontal.decrease.circle")
                     .foregroundStyle(SpiralColors.accent)
                 Text(loc("dna.motif.header"))
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.footnote.weight(.semibold))
                     .foregroundStyle(SpiralColors.subtle)
                     .textCase(.uppercase)
                 Spacer()
@@ -47,17 +47,17 @@ struct DNAMotifSection: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(localizedMotifName(topMotif.name))
-                    .font(.system(size: 17, weight: .semibold))
+                    .font(.body.weight(.semibold))
                     .foregroundStyle(SpiralColors.text)
                 Spacer()
                 Text("\(topMotif.instanceCount) \(loc("dna.motif.weeks"))")
-                    .font(.system(size: 13))
+                    .font(.footnote)
                     .foregroundStyle(SpiralColors.muted)
             }
 
             if profile.motifs.count > 1 {
                 Text("+\(profile.motifs.count - 1) \(loc("dna.motif.morePatterns"))")
-                    .font(.system(size: 13))
+                    .font(.footnote)
                     .foregroundStyle(SpiralColors.subtle)
             }
 
@@ -66,11 +66,11 @@ struct DNAMotifSection: View {
                 HStack(spacing: 6) {
                     mutationBadge(lastMut.classification)
                     Text(mutationLabel(lastMut.classification))
-                        .font(.system(size: 12))
+                        .font(.caption)
                         .foregroundStyle(SpiralColors.muted)
                     Spacer()
                     Text(String(format: "%+.0f%%", lastMut.qualityDelta * 100))
-                        .font(.system(size: 12, weight: .medium, design: .monospaced))
+                        .font(.caption.weight(.medium).monospaced())
                         .foregroundStyle(lastMut.qualityDelta >= 0 ? SpiralColors.good : SpiralColors.poor)
                 }
                 .padding(.top, 4)
@@ -84,14 +84,14 @@ struct DNAMotifSection: View {
     private var learningContent: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(loc("dna.motif.learning"))
-                .font(.system(size: 15, weight: .medium))
+                .font(.subheadline.weight(.medium))
                 .foregroundStyle(SpiralColors.text)
 
             ProgressView(value: Double(learningWeeks), total: Double(requiredWeeks))
                 .tint(SpiralColors.accent)
 
             Text("\(learningWeeks) / \(requiredWeeks) \(loc("dna.motif.weeks"))")
-                .font(.system(size: 12))
+                .font(.caption)
                 .foregroundStyle(SpiralColors.subtle)
         }
     }

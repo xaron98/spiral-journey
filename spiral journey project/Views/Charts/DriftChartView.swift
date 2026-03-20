@@ -89,7 +89,7 @@ struct DriftChartView: View {
                     AxisGridLine().foregroundStyle(SpiralColors.border.opacity(0.5))
                     AxisValueLabel()
                         .foregroundStyle(SpiralColors.muted)
-                        .font(.system(size: 8, design: .monospaced))
+                        .font(.caption2.monospaced())
                 }
             }
             .chartBackground { _ in
@@ -109,7 +109,7 @@ struct DriftChartView: View {
         HStack(spacing: 4) {
             Rectangle().fill(color).frame(width: 12, height: 2)
             Text(label)
-                .font(.system(size: 8, design: .monospaced))
+                .font(.caption2.monospaced())
                 .foregroundStyle(SpiralColors.muted)
         }
     }

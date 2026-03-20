@@ -17,7 +17,7 @@ struct DNAAlignmentSection: View {
                 Image(systemName: "arrow.triangle.branch")
                     .foregroundStyle(SpiralColors.accent)
                 Text(loc("dna.alignment.header"))
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.footnote.weight(.semibold))
                     .foregroundStyle(SpiralColors.subtle)
                     .textCase(.uppercase)
                 Spacer()
@@ -27,7 +27,7 @@ struct DNAAlignmentSection: View {
                 alignmentContent
             } else {
                 Text(loc("dna.alignment.needMoreData"))
-                    .font(.system(size: 14))
+                    .font(.body)
                     .foregroundStyle(SpiralColors.muted)
             }
         }
@@ -47,11 +47,11 @@ struct DNAAlignmentSection: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(loc("dna.alignment.similarity"))
-                    .font(.system(size: 14))
+                    .font(.body)
                     .foregroundStyle(SpiralColors.muted)
                 Spacer()
                 Text("\(Int(best.similarity * 100))%")
-                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .font(.title2.weight(.bold))
                     .foregroundStyle(similarityColor(best.similarity))
             }
 
@@ -60,15 +60,15 @@ struct DNAAlignmentSection: View {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(loc("dna.alignment.prediction"))
-                            .font(.system(size: 12))
+                            .font(.footnote)
                             .foregroundStyle(SpiralColors.subtle)
                         Text("\(loc("dna.alignment.sleep")) \(formatHour(pred.predictedBedtime))  \u{2192}  \(loc("dna.alignment.wake")) \(formatHour(pred.predictedWake))")
-                            .font(.system(size: 14, weight: .medium))
+                            .font(.body.weight(.medium))
                             .foregroundStyle(SpiralColors.text)
                     }
                     Spacer()
                     Text("\(Int(pred.confidence * 100))%")
-                        .font(.system(size: 13, weight: .semibold, design: .monospaced))
+                        .font(.footnote.weight(.semibold).monospaced())
                         .foregroundStyle(SpiralColors.accent)
                 }
             }

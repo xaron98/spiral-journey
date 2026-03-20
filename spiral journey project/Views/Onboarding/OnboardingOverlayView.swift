@@ -201,22 +201,22 @@ struct OnboardingOverlayView: View {
                 // Step indicator
                 Text(String(format: String(localized: "onboarding.stepIndicator", bundle: bundle),
                             stepNumber, totalSteps))
-                    .font(.system(size: 9, weight: .medium, design: .monospaced))
+                    .font(.caption.weight(.medium).monospaced())
                     .foregroundStyle(SpiralColors.muted)
 
                 // Icon + title
                 HStack(spacing: 8) {
                     Image(systemName: content.icon)
-                        .font(.system(size: 15))
+                        .font(.subheadline)
                         .foregroundStyle(SpiralColors.accent)
                     Text(String(localized: String.LocalizationValue(content.titleKey), bundle: bundle))
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(.subheadline.weight(.semibold))
                         .foregroundStyle(SpiralColors.text)
                 }
 
                 // Message
                 Text(String(localized: String.LocalizationValue(content.messageKey), bundle: bundle))
-                    .font(.system(size: 13))
+                    .font(.footnote)
                     .foregroundStyle(SpiralColors.text.opacity(0.75))
                     .fixedSize(horizontal: false, vertical: true)
                     .lineSpacing(3)
@@ -225,7 +225,7 @@ struct OnboardingOverlayView: View {
                 HStack {
                     Button { dismiss() } label: {
                         Text(String(localized: "onboarding.skip", bundle: bundle))
-                            .font(.system(size: 11, weight: .medium, design: .monospaced))
+                            .font(.caption.weight(.medium).monospaced())
                             .foregroundStyle(SpiralColors.muted)
                     }
                     .buttonStyle(.plain)
@@ -236,7 +236,7 @@ struct OnboardingOverlayView: View {
                         Text(isLast
                              ? String(localized: "onboarding.done", bundle: bundle)
                              : String(localized: "onboarding.next", bundle: bundle))
-                            .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                            .font(.caption.weight(.semibold).monospaced())
                             .foregroundStyle(.black)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 8)

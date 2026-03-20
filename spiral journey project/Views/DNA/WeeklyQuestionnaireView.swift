@@ -29,13 +29,13 @@ struct WeeklyQuestionnaireView: View {
                     // Header
                     VStack(spacing: 6) {
                         Image(systemName: "list.clipboard")
-                            .font(.system(size: 28))
+                            .font(.title)
                             .foregroundStyle(SpiralColors.accent)
                         Text(loc("questionnaire.title"))
-                            .font(.system(size: 16, weight: .semibold, design: .monospaced))
+                            .font(.subheadline.weight(.semibold).monospaced())
                             .foregroundStyle(SpiralColors.text)
                         Text(loc("questionnaire.subtitle"))
-                            .font(.system(size: 12))
+                            .font(.footnote)
                             .foregroundStyle(SpiralColors.muted)
                             .multilineTextAlignment(.center)
                     }
@@ -44,7 +44,7 @@ struct WeeklyQuestionnaireView: View {
                     // Q1: Sleep quality (PSQI abbreviated)
                     questionCard {
                         Text(loc("questionnaire.q1"))
-                            .font(.system(size: 13, design: .monospaced))
+                            .font(.footnote.monospaced())
                             .foregroundStyle(SpiralColors.text)
                         sliderRow(value: $sleepQuality, range: 1...5, step: 1,
                                   lowLabel: loc("questionnaire.q1.low"),
@@ -54,7 +54,7 @@ struct WeeklyQuestionnaireView: View {
                     // Q2: Daytime sleepiness (ESS abbreviated)
                     questionCard {
                         Text(loc("questionnaire.q2"))
-                            .font(.system(size: 13, design: .monospaced))
+                            .font(.footnote.monospaced())
                             .foregroundStyle(SpiralColors.text)
                         sliderRow(value: $daytimeSleepiness, range: 1...5, step: 1,
                                   lowLabel: loc("questionnaire.q2.low"),
@@ -64,7 +64,7 @@ struct WeeklyQuestionnaireView: View {
                     // Q3: Pattern accuracy
                     questionCard {
                         Text(loc("questionnaire.q3"))
-                            .font(.system(size: 13, design: .monospaced))
+                            .font(.footnote.monospaced())
                             .foregroundStyle(SpiralColors.text)
                         HStack(spacing: 8) {
                             ForEach(["yes", "partially", "no"], id: \.self) { option in
@@ -72,7 +72,7 @@ struct WeeklyQuestionnaireView: View {
                                     patternAccuracy = option
                                 } label: {
                                     Text(loc("questionnaire.q3.\(option)"))
-                                        .font(.system(size: 11, weight: .medium, design: .monospaced))
+                                        .font(.caption.weight(.medium).monospaced())
                                         .padding(.horizontal, 14)
                                         .padding(.vertical, 7)
                                         .background(patternAccuracy == option
@@ -92,7 +92,7 @@ struct WeeklyQuestionnaireView: View {
                     questionCard {
                         Toggle(isOn: $weekendDifference) {
                             Text(loc("questionnaire.q4"))
-                                .font(.system(size: 13, design: .monospaced))
+                                .font(.footnote.monospaced())
                                 .foregroundStyle(SpiralColors.text)
                         }
                         .toggleStyle(SwitchToggleStyle(tint: SpiralColors.accent))
@@ -101,10 +101,10 @@ struct WeeklyQuestionnaireView: View {
                     // Q5: Notes (optional)
                     questionCard {
                         Text(loc("questionnaire.q5"))
-                            .font(.system(size: 13, design: .monospaced))
+                            .font(.footnote.monospaced())
                             .foregroundStyle(SpiralColors.text)
                         TextField(loc("questionnaire.q5.placeholder"), text: $notes, axis: .vertical)
-                            .font(.system(size: 12, design: .monospaced))
+                            .font(.footnote.monospaced())
                             .lineLimit(3...6)
                             .textFieldStyle(.plain)
                             .padding(10)
@@ -117,7 +117,7 @@ struct WeeklyQuestionnaireView: View {
                         submit()
                     } label: {
                         Text(loc("questionnaire.submit"))
-                            .font(.system(size: 14, weight: .semibold, design: .monospaced))
+                            .font(.body.weight(.semibold).monospaced())
                             .foregroundStyle(.white)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 14)
@@ -139,7 +139,7 @@ struct WeeklyQuestionnaireView: View {
                         onComplete()
                     } label: {
                         Text(loc("questionnaire.skip"))
-                            .font(.system(size: 13, design: .monospaced))
+                            .font(.footnote.monospaced())
                             .foregroundStyle(SpiralColors.muted)
                     }
                 }
@@ -164,15 +164,15 @@ struct WeeklyQuestionnaireView: View {
                 .tint(SpiralColors.accent)
             HStack {
                 Text(lowLabel)
-                    .font(.system(size: 9, design: .monospaced))
+                    .font(.caption2.monospaced())
                     .foregroundStyle(SpiralColors.muted)
                 Spacer()
                 Text(String(format: "%.0f", value.wrappedValue))
-                    .font(.system(size: 13, weight: .bold, design: .monospaced))
+                    .font(.footnote.weight(.bold).monospaced())
                     .foregroundStyle(SpiralColors.accent)
                 Spacer()
                 Text(highLabel)
-                    .font(.system(size: 9, design: .monospaced))
+                    .font(.caption2.monospaced())
                     .foregroundStyle(SpiralColors.muted)
             }
         }

@@ -16,13 +16,13 @@ struct HRVTrendView: View {
             PanelTitle(title: String(localized: "hrv.title", bundle: bundle))
 
             Text(String(localized: "hrv.description", bundle: bundle))
-                .font(.system(size: 10))
+                .font(.caption)
                 .foregroundStyle(SpiralColors.muted)
                 .fixedSize(horizontal: false, vertical: true)
 
             if hrvData.count < 3 {
                 Text(String(localized: "hrv.needMoreData", bundle: bundle))
-                    .font(.system(size: 11))
+                    .font(.caption)
                     .foregroundStyle(SpiralColors.muted)
                     .padding(.vertical, 20)
                     .frame(maxWidth: .infinity)
@@ -83,24 +83,24 @@ struct HRVTrendView: View {
             // Mean SDNN
             VStack(alignment: .leading, spacing: 2) {
                 Text(String(localized: "hrv.meanSDNN", bundle: bundle))
-                    .font(.system(size: 8, design: .monospaced))
+                    .font(.caption2.monospaced())
                     .foregroundStyle(SpiralColors.muted)
                 Text(String(format: "%.0f ms", mean))
-                    .font(.system(size: 14, weight: .semibold, design: .monospaced))
+                    .font(.body.weight(.semibold).monospaced())
                     .foregroundStyle(SpiralColors.text)
             }
 
             // Trend arrow
             VStack(alignment: .leading, spacing: 2) {
                 Text(String(localized: "hrv.trend", bundle: bundle))
-                    .font(.system(size: 8, design: .monospaced))
+                    .font(.caption2.monospaced())
                     .foregroundStyle(SpiralColors.muted)
                 HStack(spacing: 4) {
                     Image(systemName: trendIcon(trend))
-                        .font(.system(size: 11))
+                        .font(.caption)
                         .foregroundStyle(trendColor(trend))
                     Text(trendLabel(trend))
-                        .font(.system(size: 11, design: .monospaced))
+                        .font(.caption.monospaced())
                         .foregroundStyle(trendColor(trend))
                 }
             }
@@ -108,10 +108,10 @@ struct HRVTrendView: View {
             // Interpretation
             VStack(alignment: .leading, spacing: 2) {
                 Text(String(localized: "hrv.level", bundle: bundle))
-                    .font(.system(size: 8, design: .monospaced))
+                    .font(.caption2.monospaced())
                     .foregroundStyle(SpiralColors.muted)
                 Text(interpretLabel(interp))
-                    .font(.system(size: 11, design: .monospaced))
+                    .font(.caption.monospaced())
                     .foregroundStyle(interpretColor(interp))
             }
 

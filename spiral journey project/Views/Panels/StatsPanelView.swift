@@ -34,7 +34,7 @@ struct StatsPanelView: View {
                     showGlossary = true
                 } label: {
                     Image(systemName: "questionmark.circle")
-                        .font(.system(size: 15))
+                        .font(.subheadline)
                         .foregroundStyle(SpiralColors.subtle)
                 }
                 .buttonStyle(.plain)
@@ -156,15 +156,15 @@ private struct StatsGlossarySheet: View {
                         VStack(alignment: .leading, spacing: 6) {
                             HStack(spacing: 8) {
                                 Image(systemName: item.icon)
-                                    .font(.system(size: 13))
+                                    .font(.footnote)
                                     .foregroundStyle(SpiralColors.accent)
                                     .frame(width: 20)
                                 Text(item.term)
-                                    .font(.system(size: 13, weight: .semibold))
+                                    .font(.footnote.weight(.semibold))
                                     .foregroundStyle(SpiralColors.text)
                             }
                             Text(item.definition)
-                                .font(.system(size: 12))
+                                .font(.caption)
                                 .foregroundStyle(SpiralColors.muted)
                                 .fixedSize(horizontal: false, vertical: true)
                                 .lineSpacing(2)
@@ -206,15 +206,15 @@ private struct SignatureBadge: View {
             VStack(alignment: .leading, spacing: 2) {
                 HStack {
                     Text(signature.fullLabel)
-                        .font(.system(size: 11, weight: .medium, design: .monospaced))
+                        .font(.caption.weight(.medium).monospaced())
                         .foregroundStyle(SpiralColors.text)
                     Spacer()
                     Text(String(format: "%.0f%%", signature.confidence * 100))
-                        .font(.system(size: 9, design: .monospaced))
+                        .font(.caption.monospaced())
                         .foregroundStyle(SpiralColors.subtle)
                 }
                 Text(signature.description)
-                    .font(.system(size: 9))
+                    .font(.caption)
                     .foregroundStyle(SpiralColors.muted)
                     .lineLimit(2)
             }

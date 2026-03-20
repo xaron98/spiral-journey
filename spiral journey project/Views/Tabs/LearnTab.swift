@@ -118,7 +118,7 @@ private struct CosinorExplainerCard: View {
                 let last = records.last!
                 Divider().background(SpiralColors.border)
                 Text(String(format: NSLocalizedString("Your latest: MESOR %@ · Amp %@ · Acrophase %@", bundle: bundle, comment: ""), String(format: "%.2f", last.cosinor.mesor), String(format: "%.2f", last.cosinor.amplitude), SleepStatistics.formatHour(last.cosinor.acrophase)))
-                    .font(.system(size: 9, design: .monospaced))
+                    .font(.caption2.monospaced())
                     .foregroundStyle(SpiralColors.muted)
             }
         }
@@ -127,12 +127,12 @@ private struct CosinorExplainerCard: View {
     private func paramSlider(_ label: String, value: Binding<Double>, range: ClosedRange<Double>, format: String) -> some View {
         HStack {
             Text(label.uppercased())
-                .font(.system(size: 8, design: .monospaced))
+                .font(.caption2.monospaced())
                 .foregroundStyle(SpiralColors.muted)
                 .frame(width: 68, alignment: .leading)
             Slider(value: value, in: range).tint(SpiralColors.accent)
             Text(String(format: format, value.wrappedValue))
-                .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                .font(.caption.weight(.semibold).monospaced())
                 .foregroundStyle(SpiralColors.accent)
                 .frame(width: 36, alignment: .trailing)
         }
@@ -174,7 +174,7 @@ private struct SleepHygieneCard: View {
         ) {
             if analysis.recommendations.isEmpty {
                 Text(String(localized: "learn.tips.noData", bundle: bundle))
-                    .font(.system(size: 10))
+                    .font(.caption)
                     .foregroundStyle(SpiralColors.muted)
             } else {
                 ForEach(analysis.recommendations) { rec in
@@ -184,8 +184,8 @@ private struct SleepHygieneCard: View {
                             .frame(width: 6, height: 6)
                             .padding(.top, 4)
                         VStack(alignment: .leading, spacing: 3) {
-                            Text(rec.title).font(.system(size: 11, weight: .semibold)).foregroundStyle(SpiralColors.text)
-                            Text(rec.text).font(.system(size: 10)).foregroundStyle(SpiralColors.muted)
+                            Text(rec.title).font(.caption.weight(.semibold)).foregroundStyle(SpiralColors.text)
+                            Text(rec.text).font(.caption).foregroundStyle(SpiralColors.muted)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                     }
@@ -223,16 +223,16 @@ private struct StudySourcesCard: View {
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(alignment: .firstTextBaseline, spacing: 6) {
                             Text(source.0)
-                                .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                                .font(.caption.weight(.semibold).monospaced())
                                 .foregroundStyle(SpiralColors.accent)
                             Text("·")
                                 .foregroundStyle(SpiralColors.muted)
                             Text(source.1)
-                                .font(.system(size: 9, design: .monospaced))
+                                .font(.caption2.monospaced())
                                 .foregroundStyle(SpiralColors.muted)
                         }
                         Text(source.2)
-                            .font(.system(size: 10))
+                            .font(.caption)
                             .foregroundStyle(SpiralColors.muted)
                             .lineSpacing(2)
                             .fixedSize(horizontal: false, vertical: true)
@@ -262,15 +262,15 @@ private struct LearnCard<Content: View>: View {
             } label: {
                 HStack(spacing: 10) {
                     Image(systemName: icon)
-                        .font(.system(size: 14))
+                        .font(.body)
                         .foregroundStyle(iconColor)
                         .frame(width: 20)
                     Text(title)
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(.footnote.weight(.semibold))
                         .foregroundStyle(SpiralColors.text)
                     Spacer()
                     Image(systemName: expanded ? "chevron.up" : "chevron.down")
-                        .font(.system(size: 11))
+                        .font(.caption)
                         .foregroundStyle(SpiralColors.muted)
                 }
             }
@@ -288,7 +288,7 @@ private struct LearnCard<Content: View>: View {
 
 private func learnText(_ text: String) -> some View {
     Text(text)
-        .font(.system(size: 11))
+        .font(.caption)
         .foregroundStyle(SpiralColors.muted)
         .lineSpacing(4)
         .fixedSize(horizontal: false, vertical: true)

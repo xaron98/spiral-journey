@@ -12,11 +12,11 @@ struct Spiral3DTab: View {
         VStack(spacing: 0) {
             VStack(spacing: 2) {
                 Text(String(localized: "helix3d.title", bundle: bundle))
-                    .font(.system(size: 18, weight: .light, design: .monospaced))
+                    .font(.headline.weight(.light).monospaced())
                     .tracking(6)
                     .foregroundStyle(SpiralColors.accent)
                 Text(String(localized: "helix3d.hint", bundle: bundle))
-                    .font(.system(size: 9, design: .monospaced))
+                    .font(.caption2.monospaced())
                     .tracking(2)
                     .foregroundStyle(SpiralColors.muted)
             }
@@ -37,9 +37,9 @@ struct Spiral3DTab: View {
             // Elevation hint
             HStack {
                 Image(systemName: "arrow.down.left.and.arrow.up.right")
-                    .font(.system(size: 10))
+                    .font(.caption)
                 Text(String(localized: "helix3d.hint", bundle: bundle))
-                    .font(.system(size: 10, design: .monospaced))
+                    .font(.caption.monospaced())
             }
             .foregroundStyle(SpiralColors.muted)
             .padding(.top, 8)

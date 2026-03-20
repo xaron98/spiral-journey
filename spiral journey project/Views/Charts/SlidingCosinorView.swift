@@ -18,7 +18,7 @@ struct SlidingCosinorView: View {
 
             if sliding.isEmpty {
                 Text(String(localized: "learn.cosinor.needDays", bundle: bundle))
-                    .font(.system(size: 10))
+                    .font(.caption)
                     .foregroundStyle(SpiralColors.muted)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, 8)
@@ -39,11 +39,11 @@ struct SlidingCosinorView: View {
     private func sparkline(title: String, values: [(Int, Double)], color: Color, format: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title.uppercased())
-                .font(.system(size: 8, design: .monospaced))
+                .font(.caption2.monospaced())
                 .foregroundStyle(SpiralColors.muted)
             if let last = values.last {
                 Text(String(format: format, last.1))
-                    .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                    .font(.footnote.weight(.semibold).monospaced())
                     .foregroundStyle(color)
             }
             Chart {

@@ -48,7 +48,7 @@ struct PRCChartView: View {
                     showHelp = true
                 } label: {
                     Image(systemName: "questionmark.circle")
-                        .font(.system(size: 15))
+                        .font(.subheadline)
                         .foregroundStyle(SpiralColors.subtle)
                 }
                 .buttonStyle(.plain)
@@ -71,10 +71,10 @@ struct PRCChartView: View {
             // Reference label
             HStack(spacing: 4) {
                 Image(systemName: "info.circle")
-                    .font(.system(size: 8))
+                    .font(.caption2)
                     .foregroundStyle(SpiralColors.subtle)
                 Text(String(localized: "prc.reference.label", bundle: bundle))
-                    .font(.system(size: 9, design: .monospaced))
+                    .font(.caption2.monospaced())
                     .foregroundStyle(SpiralColors.subtle)
             }
 
@@ -132,7 +132,7 @@ struct PRCChartView: View {
                     AxisGridLine().foregroundStyle(SpiralColors.border)
                     AxisValueLabel {
                         Text(String(format: "%02d:00", value.as(Int.self) ?? 0))
-                            .font(.system(size: 8, design: .monospaced))
+                            .font(.caption2.monospaced())
                             .foregroundStyle(SpiralColors.muted)
                     }
                 }
@@ -142,7 +142,7 @@ struct PRCChartView: View {
                     AxisGridLine().foregroundStyle(SpiralColors.border.opacity(0.5))
                     AxisValueLabel()
                         .foregroundStyle(SpiralColors.muted)
-                        .font(.system(size: 8, design: .monospaced))
+                        .font(.caption2.monospaced())
                 }
             }
             .chartBackground { _ in SpiralColors.bg }
@@ -177,7 +177,7 @@ struct PRCChartView: View {
         HStack(spacing: 4) {
             RoundedRectangle(cornerRadius: 2).fill(color.opacity(0.4)).frame(width: 10, height: 8)
             Text(label)
-                .font(.system(size: 8, design: .monospaced))
+                .font(.caption2.monospaced())
                 .foregroundStyle(SpiralColors.muted)
         }
     }
@@ -186,7 +186,7 @@ struct PRCChartView: View {
         HStack(spacing: 4) {
             Circle().fill(color).frame(width: 7, height: 7)
             Text(label)
-                .font(.system(size: 8, design: .monospaced))
+                .font(.caption2.monospaced())
                 .foregroundStyle(SpiralColors.muted)
         }
     }
@@ -248,16 +248,16 @@ private struct PRCHelpSheet: View {
                     ForEach(sections) { section in
                         HStack(alignment: .top, spacing: 14) {
                             Image(systemName: section.icon)
-                                .font(.system(size: 18))
+                                .font(.headline)
                                 .foregroundStyle(section.iconColor)
                                 .frame(width: 26)
                                 .padding(.top, 1)
                             VStack(alignment: .leading, spacing: 5) {
                                 Text(section.title)
-                                    .font(.system(size: 13, weight: .semibold))
+                                    .font(.footnote.weight(.semibold))
                                     .foregroundStyle(SpiralColors.text)
                                 Text(section.body)
-                                    .font(.system(size: 12))
+                                    .font(.footnote)
                                     .foregroundStyle(SpiralColors.muted)
                                     .fixedSize(horizontal: false, vertical: true)
                                     .lineSpacing(3)

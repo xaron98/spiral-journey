@@ -25,7 +25,7 @@ struct JetLagPlanView: View {
 
                 // Disclaimer
                 Text(String(localized: "jetlag.disclaimer", bundle: bundle))
-                    .font(.system(size: 9))
+                    .font(.caption)
                     .foregroundStyle(SpiralColors.muted)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 20)
@@ -48,7 +48,7 @@ struct JetLagPlanView: View {
         VStack(spacing: 8) {
             HStack(spacing: 12) {
                 Image(systemName: plan.direction == .east ? "airplane.departure" : "airplane.arrival")
-                    .font(.system(size: 24))
+                    .font(.title)
                     .foregroundStyle(SpiralColors.accent)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(String(
@@ -58,14 +58,14 @@ struct JetLagPlanView: View {
                             ? String(localized: "jetlag.direction.east", bundle: bundle)
                             : String(localized: "jetlag.direction.west", bundle: bundle)
                     ))
-                    .font(.system(size: 14, weight: .medium))
+                    .font(.subheadline.weight(.medium))
                     .foregroundStyle(SpiralColors.text)
 
                     Text(String(
                         format: String(localized: "jetlag.plan.adaptDays", bundle: bundle),
                         plan.estimatedAdaptationDays
                     ))
-                    .font(.system(size: 11, design: .monospaced))
+                    .font(.caption.monospaced())
                     .foregroundStyle(SpiralColors.muted)
                 }
                 Spacer()
@@ -89,7 +89,7 @@ struct JetLagPlanView: View {
             // Day label + timezone badge
             HStack(spacing: 6) {
                 Text(dayLabel(day.dayOffset))
-                    .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                    .font(.caption.weight(.semibold).monospaced())
                     .foregroundStyle(day.dayOffset == 0 ? SpiralColors.accent : SpiralColors.text)
 
                 timezoneBadge(for: day.dayOffset)
@@ -98,7 +98,7 @@ struct JetLagPlanView: View {
 
                 if day.dayOffset == 0 {
                     Text(String(localized: "jetlag.day.travel", bundle: bundle))
-                        .font(.system(size: 9, weight: .semibold, design: .monospaced))
+                        .font(.caption.weight(.semibold).monospaced())
                         .foregroundStyle(SpiralColors.accent)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 3)
@@ -157,11 +157,11 @@ struct JetLagPlanView: View {
     private func scheduleRow(icon: String, color: Color, text: String) -> some View {
         HStack(spacing: 8) {
             Image(systemName: icon)
-                .font(.system(size: 10))
+                .font(.caption)
                 .foregroundStyle(color)
                 .frame(width: 16)
             Text(text)
-                .font(.system(size: 11))
+                .font(.caption)
                 .foregroundStyle(SpiralColors.text.opacity(0.85))
         }
     }
@@ -176,9 +176,9 @@ struct JetLagPlanView: View {
 
         return HStack(spacing: 3) {
             Image(systemName: icon)
-                .font(.system(size: 7))
+                .font(.caption2)
             Text(label)
-                .font(.system(size: 8, weight: .medium))
+                .font(.caption2.weight(.medium))
         }
         .foregroundStyle(SpiralColors.muted)
         .padding(.horizontal, 6)

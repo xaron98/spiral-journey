@@ -23,21 +23,21 @@ struct DayDetailView: View {
             // Sleep timing row
             HStack(spacing: 16) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(String(localized: "day.bedtime", bundle: bundle)).font(.system(size: 9, design: .monospaced)).foregroundStyle(SpiralColors.muted)
+                    Text(String(localized: "day.bedtime", bundle: bundle)).font(.caption.monospaced()).foregroundStyle(SpiralColors.muted)
                     Text(SleepStatistics.formatHour(record.bedtimeHour))
-                        .font(.system(size: 16, weight: .semibold, design: .monospaced))
+                        .font(.callout.weight(.semibold).monospaced())
                         .foregroundStyle(SpiralColors.text)
                 }
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(String(localized: "day.wakeup", bundle: bundle)).font(.system(size: 9, design: .monospaced)).foregroundStyle(SpiralColors.muted)
+                    Text(String(localized: "day.wakeup", bundle: bundle)).font(.caption.monospaced()).foregroundStyle(SpiralColors.muted)
                     Text(SleepStatistics.formatHour(record.wakeupHour))
-                        .font(.system(size: 16, weight: .semibold, design: .monospaced))
+                        .font(.callout.weight(.semibold).monospaced())
                         .foregroundStyle(SpiralColors.text)
                 }
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(String(localized: "day.duration", bundle: bundle)).font(.system(size: 9, design: .monospaced)).foregroundStyle(SpiralColors.muted)
+                    Text(String(localized: "day.duration", bundle: bundle)).font(.caption.monospaced()).foregroundStyle(SpiralColors.muted)
                     Text(String(format: "%.1fh", record.sleepDuration))
-                        .font(.system(size: 16, weight: .semibold, design: .monospaced))
+                        .font(.callout.weight(.semibold).monospaced())
                         .foregroundStyle(SpiralColors.text)
                 }
             }
@@ -57,7 +57,7 @@ struct DayDetailView: View {
                         HStack(spacing: 4) {
                             Circle().fill(phaseColor(phase)).frame(width: 6, height: 6)
                             Text(String(format: "%.0f%%", pct))
-                                .font(.system(size: 9, design: .monospaced))
+                                .font(.caption.monospaced())
                                 .foregroundStyle(SpiralColors.muted)
                         }
                     }
@@ -80,10 +80,10 @@ struct DayDetailView: View {
     private func cosinorStat(_ label: String, value: String) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(label.uppercased())
-                .font(.system(size: 8, design: .monospaced))
+                .font(.caption2.monospaced())
                 .foregroundStyle(SpiralColors.muted)
             Text(value)
-                .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                .font(.caption.weight(.semibold).monospaced())
                 .foregroundStyle(SpiralColors.accent)
         }
     }

@@ -27,10 +27,10 @@ struct HelixRealityView: View {
             // Not enough data for a full helix turn
             VStack(spacing: 8) {
                 Image(systemName: "dna")
-                    .font(.system(size: 28))
+                    .font(.title)
                     .foregroundStyle(SpiralColors.subtle)
                 Text(loc("dna.3d.needsdata"))
-                    .font(.system(size: 13))
+                    .font(.footnote)
                     .foregroundStyle(SpiralColors.muted)
                     .multilineTextAlignment(.center)
             }
@@ -139,9 +139,9 @@ struct HelixRealityView: View {
                         HStack(spacing: 4) {
                             Image(systemName: manager.showPatterns
                                   ? "eye.slash.fill" : "eye.fill")
-                                .font(.system(size: 11))
+                                .font(.caption)
                             Text(loc("dna.3d.patterns"))
-                                .font(.system(size: 11, weight: .medium))
+                                .font(.caption.weight(.medium))
                         }
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
@@ -184,12 +184,12 @@ struct HelixRealityView: View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
                 Text("\(loc("dna.3d.week")) \(week + 1)")
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(.subheadline.weight(.semibold))
                     .foregroundStyle(SpiralColors.text)
 
                 if let sim = similarity {
                     Text("\(Int(sim * 100))% \(loc("dna.3d.similar"))")
-                        .font(.system(size: 12))
+                        .font(.footnote)
                         .foregroundStyle(SpiralColors.muted)
                 }
             }
@@ -202,10 +202,10 @@ struct HelixRealityView: View {
             }) {
                 VStack(alignment: .trailing, spacing: 2) {
                     Text(loc("dna.3d.pattern"))
-                        .font(.system(size: 10))
+                        .font(.caption)
                         .foregroundStyle(SpiralColors.subtle)
                     Text(motif.name)
-                        .font(.system(size: 12, weight: .medium))
+                        .font(.footnote.weight(.medium))
                         .foregroundStyle(SpiralColors.accent)
                 }
             }

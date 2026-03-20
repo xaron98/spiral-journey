@@ -78,13 +78,13 @@ struct ChronotypeQuestionnaireView: View {
     private func questionView(index: Int) -> some View {
         VStack(spacing: 24) {
             Text(questionTitle(index))
-                .font(.system(size: 9, weight: .semibold, design: .monospaced))
+                .font(.caption2.weight(.semibold).monospaced())
                 .tracking(1.5)
                 .foregroundStyle(SpiralColors.muted)
                 .textCase(.uppercase)
 
             Text(questionText(index))
-                .font(.system(size: 18, weight: .light))
+                .font(.headline.weight(.light))
                 .foregroundStyle(SpiralColors.text)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
@@ -107,7 +107,7 @@ struct ChronotypeQuestionnaireView: View {
             }
         } label: {
             Text(optionText(question: question, option: option))
-                .font(.system(size: 14, weight: isSelected ? .semibold : .regular))
+                .font(.body.weight(isSelected ? .semibold : .regular))
                 .foregroundStyle(isSelected ? .black : SpiralColors.text)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 16)
@@ -134,7 +134,7 @@ struct ChronotypeQuestionnaireView: View {
                     withAnimation { currentQuestion -= 1 }
                 } label: {
                     Text(String(localized: "chronotype.back", bundle: bundle))
-                        .font(.system(size: 14, weight: .medium, design: .monospaced))
+                        .font(.body.weight(.medium).monospaced())
                         .foregroundStyle(SpiralColors.muted)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
@@ -159,7 +159,7 @@ struct ChronotypeQuestionnaireView: View {
                 Text(currentQuestion < 4
                      ? String(localized: "chronotype.next", bundle: bundle)
                      : String(localized: "chronotype.seeResult", bundle: bundle))
-                    .font(.system(size: 14, weight: .semibold, design: .monospaced))
+                    .font(.body.weight(.semibold).monospaced())
                     .foregroundStyle(answers[currentQuestion] > 0 ? .black : SpiralColors.muted)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
@@ -176,21 +176,21 @@ struct ChronotypeQuestionnaireView: View {
     private func resultView(_ result: ChronotypeResult) -> some View {
         VStack(spacing: 20) {
             Text(result.chronotype.emoji)
-                .font(.system(size: 64))
+                .font(.largeTitle)
 
             Text(chronotypeLocalizedName(result.chronotype))
-                .font(.system(size: 24, weight: .light))
+                .font(.title.weight(.light))
                 .foregroundStyle(SpiralColors.accent)
 
             Text(String(
                 format: String(localized: "chronotype.result.score", bundle: bundle),
                 result.totalScore
             ))
-            .font(.system(size: 12, design: .monospaced))
+            .font(.footnote.monospaced())
             .foregroundStyle(SpiralColors.muted)
 
             Text(chronotypeDescription(result.chronotype))
-                .font(.system(size: 14))
+                .font(.body)
                 .foregroundStyle(SpiralColors.text.opacity(0.8))
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
@@ -225,7 +225,7 @@ struct ChronotypeQuestionnaireView: View {
             // Continue button
             Button(action: onComplete) {
                 Text(String(localized: "chronotype.continue", bundle: bundle))
-                    .font(.system(size: 14, weight: .semibold, design: .monospaced))
+                    .font(.body.weight(.semibold).monospaced())
                     .foregroundStyle(.black)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
@@ -241,15 +241,15 @@ struct ChronotypeQuestionnaireView: View {
     private func scheduleRow(icon: String, label: String, value: String) -> some View {
         HStack(spacing: 8) {
             Image(systemName: icon)
-                .font(.system(size: 12))
+                .font(.footnote)
                 .foregroundStyle(SpiralColors.accent)
                 .frame(width: 20)
             Text(label)
-                .font(.system(size: 12))
+                .font(.footnote)
                 .foregroundStyle(SpiralColors.muted)
             Spacer()
             Text(value)
-                .font(.system(size: 12, weight: .medium, design: .monospaced))
+                .font(.footnote.weight(.medium).monospaced())
                 .foregroundStyle(SpiralColors.text)
         }
     }

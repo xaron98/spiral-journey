@@ -17,13 +17,13 @@ struct SectorQualityHeatmapView: View {
             PanelTitle(title: String(localized: "analysis.charts.sectorQuality", bundle: bundle))
 
             Text(String(localized: "analysis.charts.sectorQuality.desc", bundle: bundle))
-                .font(.system(size: 10))
+                .font(.caption)
                 .foregroundStyle(SpiralColors.muted)
                 .fixedSize(horizontal: false, vertical: true)
 
             if records.count < 3 {
                 Text(String(localized: "analysis.charts.needMoreData", bundle: bundle))
-                    .font(.system(size: 11))
+                    .font(.caption)
                     .foregroundStyle(SpiralColors.muted)
                     .padding(.vertical, 20)
                     .frame(maxWidth: .infinity)
@@ -69,7 +69,7 @@ struct SectorQualityHeatmapView: View {
                 let y = cy + CGFloat(sin(angle)) * labelR
                 ctx.draw(
                     Text(String(format: "%02d", h))
-                        .font(.system(size: 7, design: .monospaced))
+                        .font(.caption2.monospaced())
                         .foregroundStyle(SpiralColors.muted),
                     at: CGPoint(x: x, y: y)
                 )
@@ -89,18 +89,18 @@ struct SectorQualityHeatmapView: View {
         return VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 4) {
                 Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 9))
+                    .font(.caption2)
                     .foregroundStyle(SpiralColors.good)
                 Text(String(format: String(localized: "analysis.charts.sectorQuality.top3", bundle: bundle), top3.joined(separator: ", ")))
-                    .font(.system(size: 10))
+                    .font(.caption)
                     .foregroundStyle(SpiralColors.muted)
             }
             HStack(spacing: 4) {
                 Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.system(size: 9))
+                    .font(.caption2)
                     .foregroundStyle(SpiralColors.moderate)
                 Text(String(format: String(localized: "analysis.charts.sectorQuality.bottom3", bundle: bundle), bottom3.joined(separator: ", ")))
-                    .font(.system(size: 10))
+                    .font(.caption)
                     .foregroundStyle(SpiralColors.muted)
             }
         }
@@ -110,17 +110,17 @@ struct SectorQualityHeatmapView: View {
 
     private var viridisLegend: some View {
         HStack(spacing: 4) {
-            Text("0").font(.system(size: 7, design: .monospaced)).foregroundStyle(SpiralColors.muted)
+            Text("0").font(.caption2.monospaced()).foregroundStyle(SpiralColors.muted)
             LinearGradient(
                 colors: (0...10).map { SpiralColors.viridis(Double($0) / 10.0) },
                 startPoint: .leading, endPoint: .trailing
             )
             .frame(height: 6)
             .clipShape(RoundedRectangle(cornerRadius: 2))
-            Text("1").font(.system(size: 7, design: .monospaced)).foregroundStyle(SpiralColors.muted)
+            Text("1").font(.caption2.monospaced()).foregroundStyle(SpiralColors.muted)
             Spacer()
             Text(String(localized: "analysis.charts.sectorQuality.legendLabel", bundle: bundle))
-                .font(.system(size: 7, design: .monospaced))
+                .font(.caption2.monospaced())
                 .foregroundStyle(SpiralColors.muted)
         }
     }

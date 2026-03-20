@@ -35,17 +35,17 @@ struct DNATierSection: View {
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: tierIcon)
-                .font(.system(size: 16))
+                .font(.subheadline)
                 .foregroundStyle(tierColor)
 
             Text("\(loc("dna.tier.analysisLevel")) \(tierLabel)")
-                .font(.system(size: 13))
+                .font(.footnote)
                 .foregroundStyle(SpiralColors.muted)
 
             Spacer()
 
             Text("\(profile.dataWeeks) \(loc("dna.tier.weeksOfData"))")
-                .font(.system(size: 12))
+                .font(.footnote)
                 .foregroundStyle(SpiralColors.subtle)
         }
         .padding(.horizontal, 16)

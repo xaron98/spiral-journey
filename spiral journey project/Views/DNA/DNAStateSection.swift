@@ -30,7 +30,7 @@ struct DNAStateSection: View {
                 Image(systemName: "waveform.path.ecg")
                     .foregroundStyle(SpiralColors.accent)
                 Text(loc("dna.state.header"))
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.footnote.weight(.semibold))
                     .foregroundStyle(SpiralColors.subtle)
                     .textCase(.uppercase)
                 Spacer()
@@ -39,11 +39,12 @@ struct DNAStateSection: View {
             HStack(alignment: .center, spacing: 16) {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(stateLabel)
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .font(.title.bold())
+                        .fontDesign(.rounded)
                         .foregroundStyle(stateColor)
 
                     Text("\(loc("dna.state.coherence")) \(Int(coherence * 100))%  \u{00B7}  HB \(String(format: "%.2f", hb))")
-                        .font(.system(size: 13))
+                        .font(.footnote)
                         .foregroundStyle(SpiralColors.muted)
                 }
 

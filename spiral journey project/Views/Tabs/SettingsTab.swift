@@ -83,18 +83,18 @@ struct SettingsTab: View {
                                     Text(lang == .system
                                          ? String(localized: "settings.language.system", bundle: bundle)
                                          : lang.nativeName)
-                                        .font(.system(size: 12, design: .monospaced))
+                                        .font(.footnote.monospaced())
                                         .foregroundStyle(store.language == lang ? SpiralColors.accent : SpiralColors.text)
                                     if lang == .system {
                                         Text(Locale.current.localizedString(forLanguageCode: AppLanguage.resolvedSystemLocale) ?? AppLanguage.resolvedSystemLocale)
-                                            .font(.system(size: 10, design: .monospaced))
+                                            .font(.caption.monospaced())
                                             .foregroundStyle(SpiralColors.muted)
                                     }
                                 }
                                 Spacer()
                                 if store.language == lang {
                                     Image(systemName: "checkmark")
-                                        .font(.system(size: 10, weight: .semibold))
+                                        .font(.caption.weight(.semibold))
                                         .foregroundStyle(SpiralColors.accent)
                                 }
                             }
@@ -131,11 +131,11 @@ struct SettingsTab: View {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack {
                             Text(String(localized: "spiral.controls.period", bundle: bundle))
-                                .font(.system(size: 9, design: .monospaced))
+                                .font(.caption2.monospaced())
                                 .foregroundStyle(SpiralColors.muted)
                             Spacer()
                             Text(String(format: "%.1fh", store.period))
-                                .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                                .font(.caption.weight(.semibold).monospaced())
                                 .foregroundStyle(SpiralColors.accent)
                         }
                         Slider(value: $store.period, in: 23.0...168.0, step: 0.1).tint(SpiralColors.accent)
@@ -146,11 +146,11 @@ struct SettingsTab: View {
                         VStack(alignment: .leading, spacing: 4) {
                             HStack {
                                 Text(String(localized: "spiral.controls.zoom", bundle: bundle))
-                                    .font(.system(size: 9, design: .monospaced))
+                                    .font(.caption2.monospaced())
                                     .foregroundStyle(SpiralColors.muted)
                                 Spacer()
                                 Text(store.depthScale < 0.2 ? String(format: "%.2f×", store.depthScale) : String(format: "%.1f×", store.depthScale))
-                                    .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                                    .font(.caption.weight(.semibold).monospaced())
                                     .foregroundStyle(SpiralColors.accent)
                             }
                             Slider(value: $store.depthScale, in: 0.05...3.0, step: 0.05).tint(SpiralColors.accent)
@@ -160,7 +160,7 @@ struct SettingsTab: View {
                     // Grid guides toggle
                     Toggle(isOn: $store.showGrid) {
                         Text(String(localized: "spiral.controls.grid", bundle: bundle))
-                            .font(.system(size: 10, design: .monospaced))
+                            .font(.caption.monospaced())
                             .foregroundStyle(SpiralColors.text)
                     }
                     .toggleStyle(.button)
@@ -169,7 +169,7 @@ struct SettingsTab: View {
                     // Link τ growth toggle
                     Toggle(isOn: $store.linkGrowthToTau) {
                         Text(String(localized: "spiral.controls.linkTau", bundle: bundle))
-                            .font(.system(size: 10, design: .monospaced))
+                            .font(.caption.monospaced())
                             .foregroundStyle(SpiralColors.text)
                     }
                     .toggleStyle(.button)
@@ -197,10 +197,10 @@ struct SettingsTab: View {
                         // Rephase mode is managed in the Rephase Editor
                         HStack(spacing: 6) {
                             Image(systemName: "info.circle")
-                                .font(.system(size: 10))
+                                .font(.caption)
                                 .foregroundStyle(SpiralColors.accent)
                             Text(String(localized: "settings.coachMode.rephaseNote", bundle: bundle))
-                                .font(.system(size: 10))
+                                .font(.caption)
                                 .foregroundStyle(SpiralColors.muted)
                         }
                     } else if store.sleepGoal.mode == .shiftWork || store.sleepGoal.mode == .customSchedule {
@@ -208,11 +208,11 @@ struct SettingsTab: View {
                         VStack(alignment: .leading, spacing: 8) {
                             HStack {
                                 Text(String(localized: "settings.coachMode.targetBed", bundle: bundle))
-                                    .font(.system(size: 10, design: .monospaced))
+                                    .font(.caption.monospaced())
                                     .foregroundStyle(SpiralColors.muted)
                                 Spacer()
                                 Text(formatHour(store.sleepGoal.targetBedHour))
-                                    .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                                    .font(.caption.weight(.semibold).monospaced())
                                     .foregroundStyle(SpiralColors.accent)
                             }
                             Slider(
@@ -225,11 +225,11 @@ struct SettingsTab: View {
 
                             HStack {
                                 Text(String(localized: "settings.coachMode.targetWake", bundle: bundle))
-                                    .font(.system(size: 10, design: .monospaced))
+                                    .font(.caption.monospaced())
                                     .foregroundStyle(SpiralColors.muted)
                                 Spacer()
                                 Text(formatHour(store.sleepGoal.targetWakeHour))
-                                    .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                                    .font(.caption.weight(.semibold).monospaced())
                                     .foregroundStyle(SpiralColors.accent)
                             }
                             Slider(
@@ -244,10 +244,10 @@ struct SettingsTab: View {
                         // General health note
                         HStack(spacing: 6) {
                             Image(systemName: "info.circle")
-                                .font(.system(size: 10))
+                                .font(.caption)
                                 .foregroundStyle(SpiralColors.accent)
                             Text(String(localized: "settings.coachMode.generalHealthNote", bundle: bundle))
-                                .font(.system(size: 10))
+                                .font(.caption)
                                 .foregroundStyle(SpiralColors.muted)
                         }
                     }
@@ -258,10 +258,10 @@ struct SettingsTab: View {
                     Toggle(isOn: $store.contextBlocksEnabled) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(String(localized: "settings.context.enable", bundle: bundle))
-                                .font(.system(size: 12, design: .monospaced))
+                                .font(.footnote.monospaced())
                                 .foregroundStyle(SpiralColors.text)
                             Text(String(localized: "settings.context.enable.desc", bundle: bundle))
-                                .font(.system(size: 10))
+                                .font(.caption)
                                 .foregroundStyle(SpiralColors.muted)
                         }
                     }
@@ -273,13 +273,13 @@ struct SettingsTab: View {
                             ForEach(store.contextBlocks) { block in
                                 HStack(spacing: 8) {
                                     Image(systemName: block.type.sfSymbol)
-                                        .font(.system(size: 12))
+                                        .font(.footnote)
                                         .foregroundStyle(SpiralColors.contextPrimary.opacity(block.isEnabled ? 1 : 0.4))
                                         .frame(width: 20)
 
                                     VStack(alignment: .leading, spacing: 2) {
                                         Text(block.label)
-                                            .font(.system(size: 11, weight: .medium, design: .monospaced))
+                                            .font(.caption.weight(.medium).monospaced())
                                             .foregroundStyle(block.isEnabled ? SpiralColors.text : SpiralColors.muted)
                                         HStack(spacing: 4) {
                                             Text(block.timeRangeString)
@@ -288,7 +288,7 @@ struct SettingsTab: View {
                                                 Text(days)
                                             }
                                         }
-                                        .font(.system(size: 9, design: .monospaced))
+                                        .font(.caption2.monospaced())
                                         .foregroundStyle(SpiralColors.muted)
                                     }
 
@@ -301,7 +301,7 @@ struct SettingsTab: View {
                                         store.updateContextBlock(updated)
                                     } label: {
                                         Image(systemName: block.isEnabled ? "eye.fill" : "eye.slash")
-                                            .font(.system(size: 10))
+                                            .font(.caption)
                                             .foregroundStyle(block.isEnabled ? SpiralColors.contextPrimary : SpiralColors.muted)
                                     }
                                     .buttonStyle(.plain)
@@ -311,7 +311,7 @@ struct SettingsTab: View {
                                         editingBlock = block
                                     } label: {
                                         Image(systemName: "pencil")
-                                            .font(.system(size: 10))
+                                            .font(.caption)
                                             .foregroundStyle(SpiralColors.accent)
                                     }
                                     .buttonStyle(.plain)
@@ -321,7 +321,7 @@ struct SettingsTab: View {
                                         store.removeContextBlock(id: block.id)
                                     } label: {
                                         Image(systemName: "trash")
-                                            .font(.system(size: 10))
+                                            .font(.caption)
                                             .foregroundStyle(SpiralColors.poor)
                                     }
                                     .buttonStyle(.plain)
@@ -336,7 +336,7 @@ struct SettingsTab: View {
                             showContextBlockEditor = true
                         } label: {
                             Label(String(localized: "settings.context.addBlock", bundle: bundle), systemImage: "plus.circle")
-                                .font(.system(size: 11, design: .monospaced))
+                                .font(.caption.monospaced())
                                 .foregroundStyle(SpiralColors.contextPrimary)
                         }
                         .buttonStyle(.plain)
@@ -345,11 +345,11 @@ struct SettingsTab: View {
                         VStack(alignment: .leading, spacing: 4) {
                             HStack {
                                 Text(String(localized: "settings.context.buffer", bundle: bundle))
-                                    .font(.system(size: 9, design: .monospaced))
+                                    .font(.caption2.monospaced())
                                     .foregroundStyle(SpiralColors.muted)
                                 Spacer()
                                 Text(String(format: "%.0f min", store.contextBufferMinutes))
-                                    .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                                    .font(.caption.weight(.semibold).monospaced())
                                     .foregroundStyle(SpiralColors.contextPrimary)
                             }
                             Slider(value: $store.contextBufferMinutes, in: 15...120, step: 15)
@@ -374,7 +374,7 @@ struct SettingsTab: View {
                                         String(localized: "settings.context.importCalendar", bundle: bundle),
                                         systemImage: "calendar.badge.plus"
                                     )
-                                    .font(.system(size: 11, design: .monospaced))
+                                    .font(.caption.monospaced())
                                     .foregroundStyle(SpiralColors.contextPrimary)
                                 }
                             }
@@ -388,7 +388,7 @@ struct SettingsTab: View {
                                     String(localized: "settings.context.connectCalendar", bundle: bundle),
                                     systemImage: "calendar"
                                 )
-                                .font(.system(size: 11, design: .monospaced))
+                                .font(.caption.monospaced())
                                 .foregroundStyle(SpiralColors.muted)
                             }
                             .buttonStyle(.plain)
@@ -396,7 +396,7 @@ struct SettingsTab: View {
 
                         if let err = calendarManager.errorMessage {
                             Text(err)
-                                .font(.system(size: 9))
+                                .font(.caption2)
                                 .foregroundStyle(SpiralColors.poor)
                         }
                     }
@@ -416,14 +416,14 @@ struct SettingsTab: View {
                 SettingsSection(title: String(localized: "settings.prediction.title", bundle: bundle), icon: "moon.stars") {
                     Toggle(isOn: $store.predictionEnabled) {
                         Text(String(localized: "settings.prediction.enable", bundle: bundle))
-                            .font(.system(size: 13))
+                            .font(.footnote)
                             .foregroundStyle(SpiralColors.text)
                     }
                     .tint(Color(hex: "a78bfa"))
                     if store.predictionEnabled {
                         Toggle(isOn: $store.predictionOverlayEnabled) {
                             Text(String(localized: "settings.prediction.overlay", bundle: bundle))
-                                .font(.system(size: 13))
+                                .font(.footnote)
                                 .foregroundStyle(SpiralColors.text)
                         }
                         .tint(Color(hex: "a78bfa"))
@@ -431,7 +431,7 @@ struct SettingsTab: View {
                         // ML model toggle
                         Toggle(isOn: $store.mlPredictionEnabled) {
                             Text(String(localized: "settings.prediction.ml", bundle: bundle))
-                                .font(.system(size: 13))
+                                .font(.footnote)
                                 .foregroundStyle(SpiralColors.text)
                         }
                         .tint(Color(hex: "a78bfa"))
@@ -450,7 +450,7 @@ struct SettingsTab: View {
                 SettingsSection(title: String(localized: "settings.healthData.title", bundle: bundle), icon: "heart.fill") {
                     if !healthKit.isAvailable {
                         Text(String(localized: "settings.healthData.notAvailable", bundle: bundle))
-                            .font(.system(size: 11))
+                            .font(.caption)
                             .foregroundStyle(SpiralColors.muted)
                     } else if !healthKit.isAuthorized {
                         Button {
@@ -463,7 +463,7 @@ struct SettingsTab: View {
                             }
                         } label: {
                             Label(String(localized: "settings.healthData.connect", bundle: bundle), systemImage: "heart.fill")
-                                .font(.system(size: 12, weight: .medium, design: .monospaced))
+                                .font(.footnote.weight(.medium).monospaced())
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 10)
                                 .background(SpiralColors.poor.opacity(0.15))
@@ -475,7 +475,7 @@ struct SettingsTab: View {
                         HStack {
                             Image(systemName: "checkmark.circle.fill").foregroundStyle(SpiralColors.good)
                             Text(String(localized: "settings.healthData.connected", bundle: bundle))
-                                .font(.system(size: 11, design: .monospaced))
+                                .font(.caption.monospaced())
                                 .foregroundStyle(SpiralColors.text)
                             Spacer()
                             Button {
@@ -493,7 +493,7 @@ struct SettingsTab: View {
                                         : String(localized: "settings.healthData.syncNow", bundle: bundle),
                                     systemImage: "arrow.clockwise"
                                 )
-                                .font(.system(size: 10, design: .monospaced))
+                                .font(.caption.monospaced())
                                 .foregroundStyle(SpiralColors.accent)
                             }
                             .buttonStyle(.plain)
@@ -501,7 +501,7 @@ struct SettingsTab: View {
                         }
                     }
                     if let err = healthKit.errorMessage {
-                        Text(err).font(.system(size: 9)).foregroundStyle(SpiralColors.poor)
+                        Text(err).font(.caption2).foregroundStyle(SpiralColors.poor)
                     }
                 }
 
@@ -512,24 +512,24 @@ struct SettingsTab: View {
                         // startDate and numDays are managed automatically from HealthKit data
                         HStack {
                             Text(String(localized: "settings.dataRange.startDate", bundle: bundle))
-                                .font(.system(size: 10, design: .monospaced))
+                                .font(.caption.monospaced())
                                 .foregroundStyle(SpiralColors.muted)
                             Spacer()
                             Text(store.startDate, style: .date)
-                                .font(.system(size: 11, design: .monospaced))
+                                .font(.caption.monospaced())
                                 .foregroundStyle(SpiralColors.text)
                         }
                         HStack {
                             Text(String(localized: "settings.dataRange.days", bundle: bundle))
-                                .font(.system(size: 10, design: .monospaced))
+                                .font(.caption.monospaced())
                                 .foregroundStyle(SpiralColors.muted)
                             Spacer()
                             Text(String(format: String(localized: "settings.dataRange.daysValue", bundle: bundle), store.numDays))
-                                .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                                .font(.caption.weight(.semibold).monospaced())
                                 .foregroundStyle(SpiralColors.text)
                         }
                         Text(String(localized: "settings.dataRange.autoNote", bundle: bundle))
-                            .font(.system(size: 9, design: .monospaced))
+                            .font(.caption2.monospaced())
                             .foregroundStyle(SpiralColors.muted)
                             .frame(maxWidth: .infinity, alignment: .trailing)
                     } else {
@@ -538,19 +538,19 @@ struct SettingsTab: View {
                             selection: $store.startDate,
                             displayedComponents: .date
                         )
-                        .font(.system(size: 11, design: .monospaced))
+                        .font(.caption.monospaced())
                         .foregroundStyle(SpiralColors.text)
                         .datePickerStyle(.compact)
                         .tint(SpiralColors.accent)
 
                         HStack {
                             Text(String(localized: "settings.dataRange.days", bundle: bundle))
-                                .font(.system(size: 10, design: .monospaced))
+                                .font(.caption.monospaced())
                                 .foregroundStyle(SpiralColors.muted)
                             Spacer()
                             Stepper("\(store.numDays)", value: $store.numDays, in: 3...90).labelsHidden()
                             Text(String(format: String(localized: "settings.dataRange.daysValue", bundle: bundle), store.numDays))
-                                .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                                .font(.caption.weight(.semibold).monospaced())
                                 .foregroundStyle(SpiralColors.text)
                         }
                     }
@@ -560,10 +560,10 @@ struct SettingsTab: View {
                 SettingsSection(title: String(localized: "settings.data.title", bundle: bundle), icon: "tray.full") {
                     HStack(spacing: 12) {
                         Text(String(format: String(localized: "settings.data.episodeCount", bundle: bundle), store.sleepEpisodes.count))
-                            .font(.system(size: 10, design: .monospaced))
+                            .font(.caption.monospaced())
                             .foregroundStyle(SpiralColors.muted)
                         Text(String(format: String(localized: "settings.data.eventCount", bundle: bundle), store.events.count))
-                            .font(.system(size: 10, design: .monospaced))
+                            .font(.caption.monospaced())
                             .foregroundStyle(SpiralColors.muted)
                         Spacer()
                     }
@@ -589,7 +589,7 @@ struct SettingsTab: View {
                                 String(localized: "settings.data.exportCSV", bundle: bundle),
                                 systemImage: "square.and.arrow.up"
                             )
-                            .font(.system(size: 11, design: .monospaced))
+                            .font(.caption.monospaced())
                             .foregroundStyle(SpiralColors.accent)
                         }
                     }
@@ -605,7 +605,7 @@ struct SettingsTab: View {
                         showClearManualConfirm = true
                     } label: {
                         Label(String(localized: "settings.data.clearManual", bundle: bundle), systemImage: "trash")
-                            .font(.system(size: 11, design: .monospaced))
+                            .font(.caption.monospaced())
                             .foregroundStyle(SpiralColors.poor)
                     }
                     .buttonStyle(.plain)
@@ -641,7 +641,7 @@ struct SettingsTab: View {
                                         : String(localized: "settings.data.importHealthKit", bundle: bundle),
                                     systemImage: "arrow.clockwise.heart.fill"
                                 )
-                                .font(.system(size: 11, design: .monospaced))
+                                .font(.caption.monospaced())
                                 .foregroundStyle(SpiralColors.poor)
                             }
                         }
@@ -653,7 +653,7 @@ struct SettingsTab: View {
                         showResetAllConfirm = true
                     } label: {
                         Label(String(localized: "settings.data.resetAll", bundle: bundle), systemImage: "arrow.counterclockwise")
-                            .font(.system(size: 11, design: .monospaced))
+                            .font(.caption.monospaced())
                             .foregroundStyle(SpiralColors.poor)
                     }
                     .buttonStyle(.plain)
@@ -674,16 +674,16 @@ struct SettingsTab: View {
                     if let ct = store.chronotypeResult {
                         HStack(spacing: 8) {
                             Text(ct.chronotype.emoji)
-                                .font(.system(size: 20))
+                                .font(.title2)
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(chronotypeLabel(ct.chronotype))
-                                    .font(.system(size: 12, weight: .medium, design: .monospaced))
+                                    .font(.footnote.weight(.medium).monospaced())
                                     .foregroundStyle(SpiralColors.text)
                                 Text(String(
                                     format: String(localized: "settings.chronotype.score", bundle: bundle),
                                     ct.totalScore
                                 ))
-                                .font(.system(size: 10, design: .monospaced))
+                                .font(.caption.monospaced())
                                 .foregroundStyle(SpiralColors.muted)
                             }
                             Spacer()
@@ -699,7 +699,7 @@ struct SettingsTab: View {
                                 : String(localized: "settings.chronotype.take", bundle: bundle),
                             systemImage: "arrow.counterclockwise"
                         )
-                        .font(.system(size: 11, design: .monospaced))
+                        .font(.caption.monospaced())
                         .foregroundStyle(SpiralColors.accent)
                     }
                     .buttonStyle(.plain)
@@ -710,10 +710,10 @@ struct SettingsTab: View {
                     Toggle(isOn: $store.notificationsEnabled) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(String(localized: "settings.notifications.weekly", bundle: bundle))
-                                .font(.system(size: 12, design: .monospaced))
+                                .font(.footnote.monospaced())
                                 .foregroundStyle(SpiralColors.text)
                             Text(String(localized: "settings.notifications.weekly.desc", bundle: bundle))
-                                .font(.system(size: 10))
+                                .font(.caption)
                                 .foregroundStyle(SpiralColors.muted)
                         }
                     }
@@ -730,136 +730,21 @@ struct SettingsTab: View {
                     }
                 }
 
-                // ── Background Processing ─────────────────────────────────
-                SettingsSection(title: String(localized: "settings.background.title", bundle: bundle), icon: "gearshape.2") {
-                    Toggle(isOn: Binding(
-                        get: { store.bgRetrainEnabled },
-                        set: { store.bgRetrainEnabled = $0 }
-                    )) {
-                        Text(String(localized: "settings.background.retrain", bundle: bundle))
-                            .font(.system(size: 12, design: .monospaced))
-                            .foregroundStyle(SpiralColors.text)
-                    }
-                    .toggleStyle(SwitchToggleStyle(tint: SpiralColors.accent))
-
-                    Toggle(isOn: Binding(
-                        get: { store.bgDNARefreshEnabled },
-                        set: { store.bgDNARefreshEnabled = $0 }
-                    )) {
-                        Text(String(localized: "settings.background.dna", bundle: bundle))
-                            .font(.system(size: 12, design: .monospaced))
-                            .foregroundStyle(SpiralColors.text)
-                    }
-                    .toggleStyle(SwitchToggleStyle(tint: SpiralColors.accent))
-                }
-
-                // ── Privacy & Consent ─────────────────────────────────────
-                SettingsSection(title: String(localized: "settings.consent.title", bundle: bundle), icon: "hand.raised.fill") {
-                    Toggle(isOn: Binding(
-                        get: { store.cloudSyncConsent },
-                        set: { newValue in
-                            store.cloudSyncConsent = newValue
-                        }
-                    )) {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(String(localized: "settings.consent.cloudSync", bundle: bundle))
-                                .font(.system(size: 12, design: .monospaced))
-                                .foregroundStyle(SpiralColors.text)
-                            Text(String(localized: "settings.consent.cloudSync.desc", bundle: bundle))
-                                .font(.system(size: 10))
-                                .foregroundStyle(SpiralColors.muted)
-                        }
-                    }
-                    .toggleStyle(SwitchToggleStyle(tint: SpiralColors.accent))
-
-                    Toggle(isOn: Binding(
-                        get: { store.aiCoachConsent },
-                        set: { newValue in
-                            store.aiCoachConsent = newValue
-                            if !newValue {
-                                // Revoke consent: delete model and clear chat
-                                llm.deleteModel()
-                                store.chatHistory = []
-                            }
-                        }
-                    )) {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(String(localized: "settings.consent.aiCoach", bundle: bundle))
-                                .font(.system(size: 12, design: .monospaced))
-                                .foregroundStyle(SpiralColors.text)
-                            Text(String(localized: "settings.consent.aiCoach.desc", bundle: bundle))
-                                .font(.system(size: 10))
-                                .foregroundStyle(SpiralColors.muted)
-                        }
-                    }
-                    .toggleStyle(SwitchToggleStyle(tint: SpiralColors.accent))
-                }
-
                 // ── About ───────────────────────────────────────────────────
 
                 SettingsSection(title: String(localized: "settings.about.title", bundle: bundle), icon: "info.circle") {
-                    Text("Spiral Journey v1.0")
-                        .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                    Text("Spiral Journey")
+                        .font(.footnote.weight(.semibold).monospaced())
                         .foregroundStyle(SpiralColors.text)
                     Text(String(localized: "settings.about.description", bundle: bundle))
-                        .font(.system(size: 10))
+                        .font(.caption)
                         .foregroundStyle(SpiralColors.muted)
                         .lineSpacing(3)
                     Text(String(localized: "settings.about.philosophy", bundle: bundle))
-                        .font(.system(size: 10))
+                        .font(.caption)
                         .foregroundStyle(SpiralColors.muted)
                         .lineSpacing(3)
                         .padding(.top, 4)
-
-                    // Legal links
-                    VStack(alignment: .leading, spacing: 6) {
-                        if let privacyURL = URL(string: "https://xaron98.github.io/spiral-journey/privacy-policy.html") {
-                            Link(destination: privacyURL) {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "lock.shield")
-                                        .font(.system(size: 10))
-                                    Text(String(localized: "about.privacy", bundle: bundle))
-                                        .font(.system(size: 10))
-                                }
-                                .foregroundStyle(SpiralColors.accent)
-                            }
-                        }
-                        if let supportURL = URL(string: "https://github.com/xaron98/spiral-journey/issues") {
-                            Link(destination: supportURL) {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "envelope")
-                                        .font(.system(size: 10))
-                                    Text(String(localized: "about.support", bundle: bundle))
-                                        .font(.system(size: 10))
-                                }
-                                .foregroundStyle(SpiralColors.accent)
-                            }
-                        }
-                        if let websiteURL = URL(string: "https://xaron98.github.io/spiral-journey/") {
-                            Link(destination: websiteURL) {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "globe")
-                                        .font(.system(size: 10))
-                                    Text(String(localized: "about.website", bundle: bundle))
-                                        .font(.system(size: 10))
-                                }
-                                .foregroundStyle(SpiralColors.accent)
-                            }
-                        }
-                    }
-                    .padding(.top, 6)
-
-                    // Medical disclaimer
-                    HStack(alignment: .top, spacing: 6) {
-                        Image(systemName: "exclamationmark.triangle")
-                            .font(.system(size: 10))
-                            .foregroundStyle(.orange)
-                        Text(String(localized: "about.disclaimer", bundle: bundle))
-                            .font(.system(size: 10))
-                            .foregroundStyle(SpiralColors.muted)
-                            .lineSpacing(3)
-                    }
-                    .padding(.top, 6)
                 }
             }
             .padding(.horizontal, 16)
@@ -879,7 +764,7 @@ struct SettingsTab: View {
             // Engine status
             HStack {
                 Text(String(localized: "settings.prediction.engine", bundle: bundle))
-                    .font(.system(size: 11, design: .monospaced))
+                    .font(.caption.monospaced())
                     .foregroundStyle(SpiralColors.muted)
                 Spacer()
                 Text(MLPredictionEngine.isAvailable
@@ -887,7 +772,7 @@ struct SettingsTab: View {
                         ? String(localized: "settings.prediction.personalised", bundle: bundle)
                         : String(localized: "settings.prediction.generic", bundle: bundle))
                      : String(localized: "settings.prediction.heuristic", bundle: bundle))
-                    .font(.system(size: 11, weight: .medium, design: .monospaced))
+                    .font(.caption.weight(.medium).monospaced())
                     .foregroundStyle(MLPredictionEngine.isPersonalised
                                     ? Color(hex: "34d399")
                                     : SpiralColors.text)
@@ -897,11 +782,11 @@ struct SettingsTab: View {
             let evaluatedCount = store.predictionHistory.filter { $0.actual != nil }.count
             HStack {
                 Text(String(localized: "settings.prediction.groundTruth", bundle: bundle))
-                    .font(.system(size: 11, design: .monospaced))
+                    .font(.caption.monospaced())
                     .foregroundStyle(SpiralColors.muted)
                 Spacer()
                 Text("\(evaluatedCount) / \(ModelTrainingService.minimumSamples)")
-                    .font(.system(size: 11, weight: .medium, design: .monospaced))
+                    .font(.caption.weight(.medium).monospaced())
                     .foregroundStyle(evaluatedCount >= ModelTrainingService.minimumSamples
                                     ? Color(hex: "34d399")
                                     : SpiralColors.text)
@@ -929,21 +814,21 @@ struct SettingsTab: View {
             if let lastTrained = store.lastModelTrainedDate {
                 HStack {
                     Text(String(localized: "settings.prediction.lastTrained", bundle: bundle))
-                        .font(.system(size: 11, design: .monospaced))
+                        .font(.caption.monospaced())
                         .foregroundStyle(SpiralColors.muted)
                     Spacer()
                     Text(lastTrained, style: .relative)
-                        .font(.system(size: 11, design: .monospaced))
+                        .font(.caption.monospaced())
                         .foregroundStyle(SpiralColors.text)
                 }
                 if store.modelTrainingSampleCount > 0 {
                     HStack {
                         Text(String(localized: "settings.prediction.samplesUsed", bundle: bundle))
-                            .font(.system(size: 11, design: .monospaced))
+                            .font(.caption.monospaced())
                             .foregroundStyle(SpiralColors.muted)
                         Spacer()
                         Text("\(store.modelTrainingSampleCount)")
-                            .font(.system(size: 11, design: .monospaced))
+                            .font(.caption.monospaced())
                             .foregroundStyle(SpiralColors.text)
                     }
                 }
@@ -951,7 +836,7 @@ struct SettingsTab: View {
 
             // Privacy note
             Text(String(localized: "settings.prediction.privacyNote", bundle: bundle))
-                .font(.system(size: 10))
+                .font(.caption)
                 .foregroundStyle(SpiralColors.muted)
                 .lineSpacing(2)
                 .padding(.top, 2)
@@ -967,7 +852,7 @@ struct SettingsTab: View {
         SettingsSection(title: String(localized: "settings.aiCoach.title", bundle: bundle), icon: "brain.head.profile") {
             Toggle(isOn: $store.llmEnabled) {
                 Text(String(localized: "settings.aiCoach.enable", bundle: bundle))
-                    .font(.system(size: 13))
+                    .font(.footnote)
                     .foregroundStyle(SpiralColors.text)
             }
             .tint(SpiralColors.accent)
@@ -976,11 +861,11 @@ struct SettingsTab: View {
                 // Model status
                 HStack {
                     Text(String(localized: "settings.aiCoach.status", bundle: bundle))
-                        .font(.system(size: 11))
+                        .font(.caption)
                         .foregroundStyle(SpiralColors.muted)
                     Spacer()
                     Text(llm.state.statusText)
-                        .font(.system(size: 11, design: .monospaced))
+                        .font(.caption.monospaced())
                         .foregroundStyle(SpiralColors.subtle)
                 }
 
@@ -988,11 +873,11 @@ struct SettingsTab: View {
                 if let _ = llm.modelFileSize {
                     HStack {
                         Text(String(localized: "settings.aiCoach.space", bundle: bundle))
-                            .font(.system(size: 11))
+                            .font(.caption)
                             .foregroundStyle(SpiralColors.muted)
                         Spacer()
                         Text(llm.modelFileSizeString)
-                            .font(.system(size: 11, design: .monospaced))
+                            .font(.caption.monospaced())
                             .foregroundStyle(SpiralColors.subtle)
                     }
                 }
@@ -1004,7 +889,7 @@ struct SettingsTab: View {
                         Task { await llm.downloadModel() }
                     } label: {
                         Label(String(localized: "settings.aiCoach.download", bundle: bundle), systemImage: "arrow.down.to.line")
-                            .font(.system(size: 12))
+                            .font(.footnote)
                             .foregroundStyle(SpiralColors.accent)
                     }
                 case .downloading(let progress):
@@ -1016,7 +901,7 @@ struct SettingsTab: View {
                         store.chatHistory = []
                     } label: {
                         Label(String(localized: "settings.aiCoach.delete", bundle: bundle), systemImage: "trash")
-                            .font(.system(size: 12))
+                            .font(.footnote)
                             .foregroundStyle(SpiralColors.poor)
                     }
                 case .loading:
@@ -1027,9 +912,9 @@ struct SettingsTab: View {
                 // Privacy note
                 HStack(spacing: 4) {
                     Image(systemName: "lock.shield")
-                        .font(.system(size: 9))
+                        .font(.caption2)
                     Text(String(localized: "settings.aiCoach.privacy", bundle: bundle))
-                        .font(.system(size: 10))
+                        .font(.caption)
                 }
                 .foregroundStyle(SpiralColors.faint)
             }
@@ -1048,10 +933,10 @@ private struct SettingsSection<Content: View>: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 6) {
                 Image(systemName: icon)
-                    .font(.system(size: 11))
+                    .font(.caption)
                     .foregroundStyle(SpiralColors.accent)
                 Text(title.uppercased())
-                    .font(.system(size: 9, weight: .semibold, design: .monospaced))
+                    .font(.caption2.weight(.semibold).monospaced())
                     .tracking(1.5)
                     .foregroundStyle(SpiralColors.muted)
             }

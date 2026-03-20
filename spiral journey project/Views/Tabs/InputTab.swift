@@ -94,15 +94,15 @@ struct InputTab: View {
                                 ProgressView().scaleEffect(0.7)
                             } else {
                                 Image(systemName: "arrow.clockwise.heart.fill")
-                                    .font(.system(size: 12))
+                                    .font(.footnote)
                                     .foregroundStyle(SpiralColors.poor)
                             }
                             Text(String(localized: "input.syncHealthKit", bundle: bundle))
-                                .font(.system(size: 12, weight: .medium, design: .monospaced))
+                                .font(.footnote.weight(.medium).monospaced())
                                 .foregroundStyle(SpiralColors.text)
                             Spacer()
                             Image(systemName: "chevron.right")
-                                .font(.system(size: 9))
+                                .font(.caption2)
                                 .foregroundStyle(SpiralColors.muted)
                         }
                         .padding(12)
@@ -120,12 +120,12 @@ struct InputTab: View {
 
                     // Day selector
                     HStack {
-                        Text(String(localized: "input.day.label", bundle: bundle)).font(.system(size: 10, design: .monospaced)).foregroundStyle(SpiralColors.muted)
+                        Text(String(localized: "input.day.label", bundle: bundle)).font(.caption.monospaced()).foregroundStyle(SpiralColors.muted)
                         Spacer()
                         Stepper("\(selectedDay + 1)", value: $selectedDay, in: 0...(store.numDays - 1))
                             .labelsHidden()
                         Text(String(format: String(localized: "input.day.value", bundle: bundle), selectedDay + 1))
-                            .font(.system(size: 11, design: .monospaced))
+                            .font(.caption.monospaced())
                             .foregroundStyle(SpiralColors.text)
                     }
 
@@ -138,7 +138,7 @@ struct InputTab: View {
                     // Duration preview
                     let dur = currentAbsEnd - currentAbsStart
                     Text(String(format: String(localized: "input.duration.value", bundle: bundle), max(0, dur)))
-                        .font(.system(size: 10, design: .monospaced))
+                        .font(.caption.monospaced())
                         .foregroundStyle(SpiralColors.muted)
 
                     // Add button
@@ -154,7 +154,7 @@ struct InputTab: View {
                         store.recompute()
                     } label: {
                         Label(String(localized: "input.addEpisode", bundle: bundle), systemImage: "plus.circle.fill")
-                            .font(.system(size: 13, weight: .semibold, design: .monospaced))
+                            .font(.footnote.weight(.semibold).monospaced())
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 12)
                             .background(SpiralColors.accent)
@@ -191,14 +191,14 @@ struct InputTab: View {
     private func timeRow(label: String, value: Binding<Double>, range: ClosedRange<Double>) -> some View {
         HStack {
             Text(label.uppercased())
-                .font(.system(size: 9, design: .monospaced))
+                .font(.caption2.monospaced())
                 .foregroundStyle(SpiralColors.muted)
                 .frame(width: 80, alignment: .leading)
             Slider(value: value, in: range, step: 0.25)
                 .tint(SpiralColors.accent)
             let displayHour = value.wrappedValue.truncatingRemainder(dividingBy: 24)
             Text(SleepStatistics.formatHour(displayHour < 0 ? displayHour + 24 : displayHour))
-                .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                .font(.caption.weight(.semibold).monospaced())
                 .foregroundStyle(SpiralColors.accent)
                 .frame(width: 44, alignment: .trailing)
         }
@@ -210,21 +210,21 @@ struct InputTab: View {
             ForEach(store.sleepEpisodes) { ep in
                 HStack {
                     Image(systemName: ep.source == .healthKit ? "heart.fill" : "pencil")
-                        .font(.system(size: 9))
+                        .font(.caption2)
                         .foregroundStyle(ep.source == .healthKit ? SpiralColors.poor : SpiralColors.accentDim)
                     Text(String(format: "Day %d  %@→%@  %.1fh",
                                 Int(ep.start / 24),
                                 SleepStatistics.formatHour(ep.start.truncatingRemainder(dividingBy: 24)),
                                 SleepStatistics.formatHour(ep.end.truncatingRemainder(dividingBy: 24)),
                                 ep.duration))
-                        .font(.system(size: 10, design: .monospaced))
+                        .font(.caption.monospaced())
                         .foregroundStyle(SpiralColors.text)
                     Spacer()
                     Button {
                         store.removeEpisode(id: ep.id)
                     } label: {
                         Image(systemName: "xmark")
-                            .font(.system(size: 9))
+                            .font(.caption2)
                             .foregroundStyle(SpiralColors.muted)
                     }
                     .buttonStyle(.plain)

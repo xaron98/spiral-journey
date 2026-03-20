@@ -75,10 +75,10 @@ struct CoachTab: View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
                 Text(String(localized: "tab.coach", bundle: bundle))
-                    .font(.system(size: 22, weight: .light))
+                    .font(.title2.weight(.light))
                     .foregroundStyle(SpiralColors.text)
                 Text(String(localized: "coach.header.subtitle", bundle: bundle))
-                    .font(.system(size: 11, design: .monospaced))
+                    .font(.caption.monospaced())
                     .foregroundStyle(SpiralColors.subtle)
             }
             Spacer()
@@ -87,7 +87,7 @@ struct CoachTab: View {
                     showCoachChat = true
                 } label: {
                     Image(systemName: "brain.head.profile")
-                        .font(.system(size: 18))
+                        .font(.headline)
                         .foregroundStyle(SpiralColors.accent)
                         .frame(width: 36, height: 36)
                         .overlay(
@@ -98,7 +98,7 @@ struct CoachTab: View {
                 .buttonStyle(.plain)
             } else {
                 Image(systemName: "lightbulb.min.fill")
-                    .font(.system(size: 20))
+                    .font(.title2)
                     .foregroundStyle(SpiralColors.accent)
             }
         }
@@ -142,23 +142,23 @@ struct CoachTab: View {
         return VStack(alignment: .leading, spacing: 10) {
             Label {
                 Text(String(localized: "coach.action.eyebrow", bundle: bundle))
-                    .font(.system(size: 10, weight: .semibold))
+                    .font(.caption.weight(.semibold))
                     .foregroundStyle(SpiralColors.subtle)
                     .textCase(.uppercase)
             } icon: {
                 Image(systemName: "calendar.badge.checkmark")
-                    .font(.system(size: 11))
+                    .font(.caption)
                     .foregroundStyle(SpiralColors.accent)
             }
 
             Text(action)
-                .font(.system(size: 17, weight: .semibold))
+                .font(.headline.weight(.semibold))
                 .foregroundStyle(SpiralColors.text)
                 .fixedSize(horizontal: false, vertical: true)
 
             if let outcome, !outcome.isEmpty {
                 Text(outcome)
-                    .font(.system(size: 11))
+                    .font(.caption)
                     .foregroundStyle(SpiralColors.subtle)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -186,11 +186,11 @@ struct CoachTab: View {
         if !text.isEmpty {
             HStack(spacing: 10) {
                 Image(systemName: "chart.line.downtrend.xyaxis")
-                    .font(.system(size: 14))
+                    .font(.body)
                     .foregroundStyle(SpiralColors.poor)
                     .frame(width: 20)
                 Text(text)
-                    .font(.system(size: 12))
+                    .font(.footnote)
                     .foregroundStyle(SpiralColors.muted)
                     .fixedSize(horizontal: false, vertical: true)
                     .lineSpacing(2)
@@ -240,11 +240,11 @@ struct CoachTab: View {
 
         return HStack(spacing: 10) {
             Image(systemName: icon)
-                .font(.system(size: 14))
+                .font(.body)
                 .foregroundStyle(tint)
                 .frame(width: 20)
             Text(text)
-                .font(.system(size: 12))
+                .font(.footnote)
                 .foregroundStyle(SpiralColors.muted)
                 .fixedSize(horizontal: false, vertical: true)
                 .lineSpacing(2)
@@ -265,13 +265,13 @@ struct CoachTab: View {
     private var emptyState: some View {
         VStack(spacing: 16) {
             Image(systemName: "moon.zzz")
-                .font(.system(size: 44))
+                .font(.largeTitle)
                 .foregroundStyle(SpiralColors.muted)
             Text(String(localized: "coach.empty.title", bundle: bundle))
-                .font(.system(size: 15))
+                .font(.subheadline)
                 .foregroundStyle(SpiralColors.text)
             Text(String(localized: "coach.empty.subtitle", bundle: bundle))
-                .font(.system(size: 12))
+                .font(.footnote)
                 .foregroundStyle(SpiralColors.subtle)
                 .multilineTextAlignment(.center)
         }
@@ -303,7 +303,7 @@ struct CoachTab: View {
 
         return HStack(spacing: 12) {
             Image(systemName: "moon.zzz")
-                .font(.system(size: 22))
+                .font(.title2)
                 .foregroundStyle(SpiralColors.accent)
                 .frame(width: 36)
             VStack(alignment: .leading, spacing: 4) {
@@ -311,10 +311,10 @@ struct CoachTab: View {
                     format: loc("coach.nap.title"),
                     timeStr, nap.duration
                 ))
-                .font(.system(size: 13, weight: .semibold))
+                .font(.footnote.weight(.semibold))
                 .foregroundStyle(SpiralColors.text)
                 Text(reasonStr)
-                    .font(.system(size: 11))
+                    .font(.caption)
                     .foregroundStyle(SpiralColors.muted)
             }
             Spacer()
@@ -338,20 +338,20 @@ struct CoachTab: View {
         } label: {
             HStack(spacing: 12) {
                 Image(systemName: "airplane.departure")
-                    .font(.system(size: 18))
+                    .font(.headline)
                     .foregroundStyle(SpiralColors.accent)
                     .frame(width: 36)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(String(localized: "coach.jetlag.button.title", bundle: bundle))
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(.footnote.weight(.semibold))
                         .foregroundStyle(SpiralColors.text)
                     Text(String(localized: "coach.jetlag.button.subtitle", bundle: bundle))
-                        .font(.system(size: 10))
+                        .font(.caption)
                         .foregroundStyle(SpiralColors.muted)
                 }
                 Spacer()
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(.caption.weight(.semibold))
                     .foregroundStyle(SpiralColors.muted)
             }
             .padding(14)
@@ -372,16 +372,16 @@ struct CoachTab: View {
     private func celebrationCard(_ celebration: ProgressCelebration) -> some View {
         HStack(spacing: 12) {
             Image(systemName: "star.fill")
-                .font(.system(size: 22))
+                .font(.title2)
                 .foregroundStyle(.yellow)
                 .frame(width: 36)
             VStack(alignment: .leading, spacing: 4) {
                 Text(loc("coach.celebration.eyebrow"))
-                    .font(.system(size: 10, weight: .semibold))
+                    .font(.caption.weight(.semibold))
                     .foregroundStyle(SpiralColors.subtle)
                     .textCase(.uppercase)
                 Text(localizedCoachString(celebration.messageKey, fallback: celebration.message, args: celebration.args))
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.body.weight(.semibold))
                     .foregroundStyle(SpiralColors.text)
             }
             Spacer()
@@ -401,27 +401,27 @@ struct CoachTab: View {
     private func streakCard(_ streak: StreakData) -> some View {
         HStack(spacing: 12) {
             Image(systemName: "flame.fill")
-                .font(.system(size: 22))
+                .font(.title2)
                 .foregroundStyle(.orange)
                 .frame(width: 36)
             VStack(alignment: .leading, spacing: 4) {
                 Text(loc("coach.streak.eyebrow"))
-                    .font(.system(size: 10, weight: .semibold))
+                    .font(.caption.weight(.semibold))
                     .foregroundStyle(SpiralColors.subtle)
                     .textCase(.uppercase)
                 HStack(spacing: 6) {
                     Text(String(format: loc("coach.streak.current"), streak.currentStreak))
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(.body.weight(.semibold))
                         .foregroundStyle(SpiralColors.text)
                     if streak.bestStreak > streak.currentStreak {
                         Text("·")
                             .foregroundStyle(SpiralColors.muted)
                         Text(String(format: loc("coach.streak.best"), streak.bestStreak))
-                            .font(.system(size: 11))
+                            .font(.caption)
                             .foregroundStyle(SpiralColors.muted)
                     } else if streak.isNewRecord {
                         Text("🏆")
-                            .font(.system(size: 12))
+                            .font(.footnote)
                     }
                 }
             }
@@ -446,7 +446,7 @@ struct CoachTab: View {
                 store.toggleMicroHabit(habit)
             } label: {
                 Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 22))
+                    .font(.title2)
                     .foregroundStyle(isCompleted ? SpiralColors.good : SpiralColors.muted)
                     .frame(width: 36)
             }
@@ -454,11 +454,11 @@ struct CoachTab: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(String(format: loc("coach.microhabit.eyebrow"), habit.cycleDay + 1))
-                    .font(.system(size: 10, weight: .semibold))
+                    .font(.caption.weight(.semibold))
                     .foregroundStyle(SpiralColors.subtle)
                     .textCase(.uppercase)
                 Text(localizedCoachString(habit.actionKey, fallback: habit.action, args: []))
-                    .font(.system(size: 13, weight: isCompleted ? .regular : .semibold))
+                    .font(.footnote.weight(isCompleted ? .regular : .semibold))
                     .foregroundStyle(isCompleted ? SpiralColors.muted : SpiralColors.text)
                     .strikethrough(isCompleted)
             }
@@ -480,12 +480,12 @@ struct CoachTab: View {
         VStack(alignment: .leading, spacing: 10) {
             Label {
                 Text(loc("coach.digest.eyebrow"))
-                    .font(.system(size: 10, weight: .semibold))
+                    .font(.caption.weight(.semibold))
                     .foregroundStyle(SpiralColors.subtle)
                     .textCase(.uppercase)
             } icon: {
                 Image(systemName: "chart.bar.fill")
-                    .font(.system(size: 11))
+                    .font(.caption)
                     .foregroundStyle(SpiralColors.accent)
             }
 
@@ -535,11 +535,11 @@ struct CoachTab: View {
     private func digestRow(label: String, value: String, delta: Double, unit: String, invertColor: Bool) -> some View {
         HStack {
             Text(label)
-                .font(.system(size: 11))
+                .font(.caption)
                 .foregroundStyle(SpiralColors.muted)
                 .frame(width: 65, alignment: .leading)
             Text(value)
-                .font(.system(size: 13, weight: .semibold, design: .monospaced))
+                .font(.footnote.weight(.semibold).monospaced())
                 .foregroundStyle(SpiralColors.text)
             Spacer()
             if abs(delta) >= 1 {
@@ -547,11 +547,11 @@ struct CoachTab: View {
                 let arrow = delta > 0 ? "↑" : "↓"
                 let color = positive ? SpiralColors.good : SpiralColors.poor
                 Text("\(arrow)\(Int(abs(delta)))\(unit)")
-                    .font(.system(size: 11, design: .monospaced))
+                    .font(.caption.monospaced())
                     .foregroundStyle(color)
             } else {
                 Text("—")
-                    .font(.system(size: 11))
+                    .font(.caption)
                     .foregroundStyle(SpiralColors.muted)
             }
         }
@@ -573,11 +573,11 @@ struct CoachTab: View {
 
         return HStack(spacing: 10) {
             Image(systemName: "calendar.badge.clock")
-                .font(.system(size: 14))
+                .font(.body)
                 .foregroundStyle(SpiralColors.accent)
                 .frame(width: 20)
             Text(message)
-                .font(.system(size: 12))
+                .font(.footnote)
                 .foregroundStyle(SpiralColors.muted)
                 .fixedSize(horizontal: false, vertical: true)
                 .lineSpacing(2)
@@ -606,11 +606,11 @@ struct CoachTab: View {
 
         return HStack(spacing: 10) {
             Image(systemName: icon)
-                .font(.system(size: 14))
+                .font(.body)
                 .foregroundStyle(tint)
                 .frame(width: 20)
             Text(localizedCoachString(ack.messageKey, fallback: ack.message, args: ack.args))
-                .font(.system(size: 12))
+                .font(.footnote)
                 .foregroundStyle(SpiralColors.muted)
                 .fixedSize(horizontal: false, vertical: true)
                 .lineSpacing(2)
@@ -633,7 +633,7 @@ struct CoachTab: View {
             showCoachChat = true
         } label: {
             Image(systemName: "brain.head.profile")
-                .font(.system(size: 20, weight: .medium))
+                .font(.title2.weight(.medium))
                 .foregroundStyle(.white)
                 .frame(width: 52, height: 52)
                 .background(SpiralColors.accent.opacity(0.9), in: Circle())
@@ -890,21 +890,21 @@ private struct CoachSectionCard: View {
         VStack(alignment: .leading, spacing: 10) {
             Label {
                 Text(eyebrow)
-                    .font(.system(size: 10, weight: .semibold))
+                    .font(.caption.weight(.semibold))
                     .foregroundStyle(SpiralColors.subtle)
                     .textCase(.uppercase)
             } icon: {
                 Image(systemName: icon)
-                    .font(.system(size: 11))
+                    .font(.caption)
                     .foregroundStyle(accentColor)
             }
 
             Text(title)
-                .font(.system(size: 15, weight: .semibold))
+                .font(.subheadline.weight(.semibold))
                 .foregroundStyle(SpiralColors.text)
 
             Text(message)
-                .font(.system(size: 12))
+                .font(.footnote)
                 .foregroundStyle(SpiralColors.muted)
                 .fixedSize(horizontal: false, vertical: true)
                 .lineSpacing(3)

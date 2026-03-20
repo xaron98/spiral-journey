@@ -51,9 +51,9 @@ struct ContextBlockEditorView: View {
                                     } label: {
                                         HStack(spacing: 4) {
                                             Image(systemName: type.sfSymbol)
-                                                .font(.system(size: 10))
+                                                .font(.caption)
                                             Text(typeDisplayName(type))
-                                                .font(.system(size: 10, weight: .medium, design: .monospaced))
+                                                .font(.caption.weight(.medium).monospaced())
                                         }
                                         .padding(.horizontal, 10)
                                         .padding(.vertical, 6)
@@ -74,7 +74,7 @@ struct ContextBlockEditorView: View {
                             String(localized: "context.editor.labelPlaceholder", bundle: bundle),
                             text: $label
                         )
-                        .font(.system(size: 12, design: .monospaced))
+                        .font(.footnote.monospaced())
                         .foregroundStyle(SpiralColors.text)
                         .padding(8)
                         .background(SpiralColors.border)
@@ -87,7 +87,7 @@ struct ContextBlockEditorView: View {
                             sectionLabel("context.editor.start")
                             Spacer()
                             Text(formatHour(startHour))
-                                .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                                .font(.caption.weight(.semibold).monospaced())
                                 .foregroundStyle(SpiralColors.contextPrimary)
                         }
                         Slider(value: $startHour, in: 0...23.75, step: 0.25)
@@ -100,7 +100,7 @@ struct ContextBlockEditorView: View {
                             sectionLabel("context.editor.end")
                             Spacer()
                             Text(formatHour(endHour))
-                                .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                                .font(.caption.weight(.semibold).monospaced())
                                 .foregroundStyle(SpiralColors.contextPrimary)
                         }
                         Slider(value: $endHour, in: 0...23.75, step: 0.25)
@@ -117,7 +117,7 @@ struct ContextBlockEditorView: View {
                                     activeDays ^= (1 << bit)
                                 } label: {
                                     Text(dayLabels[bit])
-                                        .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                                        .font(.caption.weight(.semibold).monospaced())
                                         .frame(width: 32, height: 32)
                                         .background(isOn ? SpiralColors.contextPrimary.opacity(0.2) : SpiralColors.border)
                                         .foregroundStyle(isOn ? SpiralColors.contextPrimary : SpiralColors.muted)
@@ -139,10 +139,10 @@ struct ContextBlockEditorView: View {
                     let dur = durationText()
                     HStack {
                         Image(systemName: "clock")
-                            .font(.system(size: 10))
+                            .font(.caption)
                             .foregroundStyle(SpiralColors.muted)
                         Text(dur)
-                            .font(.system(size: 10, design: .monospaced))
+                            .font(.caption.monospaced())
                             .foregroundStyle(SpiralColors.muted)
                     }
                 }
@@ -192,7 +192,7 @@ struct ContextBlockEditorView: View {
     @ViewBuilder
     private func sectionLabel(_ key: String) -> some View {
         Text(String(localized: String.LocalizationValue(key), bundle: bundle))
-            .font(.system(size: 9, weight: .semibold, design: .monospaced))
+            .font(.caption2.weight(.semibold).monospaced())
             .tracking(1)
             .foregroundStyle(SpiralColors.muted)
             .textCase(.uppercase)
@@ -203,7 +203,7 @@ struct ContextBlockEditorView: View {
             activeDays = mask
         } label: {
             Text(text)
-                .font(.system(size: 9, weight: .medium, design: .monospaced))
+                .font(.caption2.weight(.medium).monospaced())
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
                 .background(activeDays == mask ? SpiralColors.contextPrimary.opacity(0.15) : SpiralColors.border)

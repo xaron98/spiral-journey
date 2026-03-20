@@ -30,11 +30,11 @@ struct WelcomeScreenView: View {
                         .shadow(color: SpiralColors.accent.opacity(0.35), radius: 20)
 
                     Text("Spiral Journey")
-                        .font(.system(size: 28, weight: .light, design: .default))
+                        .font(.title.weight(.light))
                         .foregroundStyle(SpiralColors.accent)
 
                     Text(String(localized: "welcome.subtitle", bundle: bundle))
-                        .font(.system(size: 12, weight: .medium, design: .monospaced))
+                        .font(.caption.weight(.medium).monospaced())
                         .tracking(1.5)
                         .foregroundStyle(SpiralColors.muted)
                         .textCase(.uppercase)
@@ -45,7 +45,7 @@ struct WelcomeScreenView: View {
                 // ── Language selector ────────────────────────────────────────
                 VStack(alignment: .leading, spacing: 12) {
                     Text(String(localized: "welcome.chooseLanguage", bundle: bundle))
-                        .font(.system(size: 9, weight: .semibold, design: .monospaced))
+                        .font(.caption.weight(.semibold).monospaced())
                         .tracking(1.5)
                         .foregroundStyle(SpiralColors.muted)
                         .textCase(.uppercase)
@@ -67,7 +67,7 @@ struct WelcomeScreenView: View {
                                 }
                             } label: {
                                 Text(lang.nativeName)
-                                    .font(.system(size: 13, weight: store.language == lang ? .semibold : .regular))
+                                    .font(.footnote.weight(store.language == lang ? .semibold : .regular))
                                     .foregroundStyle(store.language == lang ? .black : SpiralColors.text)
                                     .lineLimit(1)
                                     .minimumScaleFactor(0.7)
@@ -98,7 +98,7 @@ struct WelcomeScreenView: View {
                 // ── Continue button ──────────────────────────────────────────
                 Button(action: onContinue) {
                     Text(String(localized: "welcome.continue", bundle: bundle))
-                        .font(.system(size: 14, weight: .semibold, design: .monospaced))
+                        .font(.subheadline.weight(.semibold).monospaced())
                         .foregroundStyle(.black)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
@@ -108,15 +108,7 @@ struct WelcomeScreenView: View {
                 .buttonStyle(.plain)
                 .padding(.horizontal, 24)
 
-                Spacer().frame(height: 16)
-
-                Text(String(localized: "onboarding.disclaimer", bundle: bundle))
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
-
-                Spacer().frame(height: 32)
+                Spacer().frame(height: 48)
             }
         }
         .transition(.opacity)

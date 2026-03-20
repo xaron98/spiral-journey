@@ -213,7 +213,7 @@ struct RephaseEditorView: View {
             // Drag hint
             if !isDraggingWake {
                 Text(String(localized: "rephase.spiral.dragHint", bundle: bundle))
-                    .font(.system(size: 9))
+                    .font(.caption2)
                     .foregroundStyle(SpiralColors.muted.opacity(0.6))
                     .padding(.bottom, 36)
             }
@@ -227,7 +227,7 @@ struct RephaseEditorView: View {
                 .fill(color)
                 .frame(width: 18, height: 2)
             Text(label)
-                .font(.system(size: 10, design: .monospaced))
+                .font(.caption.monospaced())
                 .foregroundStyle(SpiralColors.muted)
         }
     }
@@ -237,7 +237,7 @@ struct RephaseEditorView: View {
     private var wakeTimePicker: some View {
         VStack(spacing: 8) {
             Text(RephaseCalculator.formatHour(plan.targetWakeHour))
-                .font(.system(size: 36, weight: .ultraLight, design: .monospaced))
+                .font(.largeTitle.weight(.ultraLight).monospaced())
                 .foregroundStyle(SpiralColors.awakeSleep)
 
             ScrollView(.horizontal, showsIndicators: false) {
@@ -250,7 +250,7 @@ struct RephaseEditorView: View {
                             }
                         } label: {
                             Text(RephaseCalculator.formatHour(h))
-                                .font(.system(size: 12, design: .monospaced))
+                                .font(.footnote.monospaced())
                                 .foregroundStyle(isSelected ? SpiralColors.bg : SpiralColors.text)
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 6)
@@ -272,7 +272,7 @@ struct RephaseEditorView: View {
     private var durationStepper: some View {
         HStack {
             Text(String(format: String(localized: "rephase.duration.hours", bundle: bundle), plan.targetSleepDuration))
-                .font(.system(size: 17, weight: .medium, design: .monospaced))
+                .font(.headline.weight(.medium).monospaced())
                 .foregroundStyle(SpiralColors.text)
             Spacer()
             Stepper("", value: Binding(
@@ -291,12 +291,12 @@ struct RephaseEditorView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(RephaseCalculator.formattedTargetBed(plan))
-                        .font(.system(size: 24, weight: .ultraLight, design: .monospaced))
+                        .font(.title.weight(.ultraLight).monospaced())
                         .foregroundStyle(Color(hex: "a78bfa"))
                     Text(plan.manualBedtimeEnabled
                          ? String(localized: "rephase.bedtime.manual", bundle: bundle)
                          : String(localized: "rephase.bedtime.auto",   bundle: bundle))
-                        .font(.system(size: 10))
+                        .font(.caption)
                         .foregroundStyle(SpiralColors.muted)
                 }
                 Spacer()
@@ -319,7 +319,7 @@ struct RephaseEditorView: View {
                                 }
                             } label: {
                                 Text(RephaseCalculator.formatHour(h))
-                                    .font(.system(size: 12, design: .monospaced))
+                                    .font(.footnote.monospaced())
                                     .foregroundStyle(isSelected ? SpiralColors.bg : SpiralColors.text)
                                     .padding(.horizontal, 10)
                                     .padding(.vertical, 6)
@@ -349,10 +349,10 @@ struct RephaseEditorView: View {
                 } label: {
                     VStack(spacing: 3) {
                         Text(i.displayName(bundle: bundle))
-                            .font(.system(size: 13, weight: .semibold))
+                            .font(.footnote.weight(.semibold))
                             .foregroundStyle(isSelected ? SpiralColors.bg : SpiralColors.text)
                         Text(i.intensityDescription(bundle: bundle))
-                            .font(.system(size: 10))
+                            .font(.caption)
                             .foregroundStyle(isSelected ? SpiralColors.bg.opacity(0.7) : SpiralColors.muted)
                     }
                     .frame(maxWidth: .infinity)
@@ -376,12 +376,12 @@ struct RephaseEditorView: View {
             let nights = RephaseCalculator.estimatedNightsToGoal(plan: plan, meanAcrophase: meanAcrophase)
             HStack(spacing: 10) {
                 Image(systemName: nights == nil ? "checkmark.circle" : "calendar.badge.clock")
-                    .font(.system(size: 15))
+                    .font(.subheadline)
                     .foregroundStyle(nights == nil ? SpiralColors.good : SpiralColors.accentDim)
                 Text(nights.map { n in
                     String(format: String(localized: "rephase.eta.goal", bundle: bundle), n, n == 1 ? "" : "s")
                 } ?? String(localized: "rephase.eta.achieved", bundle: bundle))
-                    .font(.system(size: 13))
+                    .font(.footnote)
                     .foregroundStyle(SpiralColors.muted)
                 Spacer()
             }
@@ -400,7 +400,7 @@ struct RephaseEditorView: View {
     private func sectionCard<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(title)
-                .font(.system(size: 10, weight: .medium))
+                .font(.caption.weight(.medium))
                 .foregroundStyle(SpiralColors.muted)
                 .textCase(.uppercase)
             content()

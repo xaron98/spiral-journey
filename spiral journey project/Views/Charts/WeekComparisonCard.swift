@@ -73,12 +73,12 @@ struct WeekComparisonCard: View {
             // Title row
             HStack {
                 Text(String(localized: "analysis.weekComparison.title", bundle: bundle))
-                    .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                    .font(.caption.weight(.semibold).monospaced())
                     .foregroundStyle(SpiralColors.muted)
                     .textCase(.uppercase)
                 Spacer()
                 Image(systemName: "hand.draw")
-                    .font(.system(size: 11))
+                    .font(.caption)
                     .foregroundStyle(SpiralColors.muted)
             }
 
@@ -114,12 +114,12 @@ struct WeekComparisonCard: View {
                 dualCanvas(prev: prevRecs, this: thisRecs, elevation: elev, azimuth: az)
                 HStack(spacing: 0) {
                     Text(String(localized: "analysis.weekComparison.prevWeek", bundle: bundle))
-                        .font(.system(size: 10, weight: .medium, design: .monospaced))
+                        .font(.caption.weight(.medium).monospaced())
                         .foregroundStyle(weekLabelColor(isThisWeek: false))
                         .frame(width: 110, alignment: .center)
                     Spacer()
                     Text(String(localized: "analysis.weekComparison.thisWeek", bundle: bundle))
-                        .font(.system(size: 10, weight: .medium, design: .monospaced))
+                        .font(.caption.weight(.medium).monospaced())
                         .foregroundStyle(weekLabelColor(isThisWeek: true))
                         .frame(width: 110, alignment: .center)
                 }
@@ -308,24 +308,24 @@ struct WeekComparisonCard: View {
             : durationDelta > 0 ? SpiralColors.good : SpiralColors.poor
         let durText = abs(durationDelta) < 0.15 ? "—" : String(format: "%+.1fh", durationDelta)
         drawCenteredLabel(in: &ctx, text: "DUR", x: midX, y: height * 0.38,
-                          size: 7, color: SpiralColors.muted)
+                          style: .caption2, color: SpiralColors.muted)
         drawCenteredLabel(in: &ctx, text: durText, x: midX, y: height * 0.46,
-                          size: 10, color: durColor, bold: true)
+                          style: .caption, color: durColor, bold: true)
 
         // Consistency
         let conColor: Color = abs(consistencyDelta) < 5 ? SpiralColors.muted
             : consistencyDelta > 0 ? SpiralColors.good : SpiralColors.poor
         let conText = abs(consistencyDelta) < 5 ? "—" : String(format: "%+.0fm", consistencyDelta)
         drawCenteredLabel(in: &ctx, text: "CON", x: midX, y: height * 0.56,
-                          size: 7, color: SpiralColors.muted)
+                          style: .caption2, color: SpiralColors.muted)
         drawCenteredLabel(in: &ctx, text: conText, x: midX, y: height * 0.64,
-                          size: 10, color: conColor, bold: true)
+                          style: .caption, color: conColor, bold: true)
     }
 
     private func drawCenteredLabel(in ctx: inout GraphicsContext, text: String,
-                                   x: CGFloat, y: CGFloat, size: CGFloat,
+                                   x: CGFloat, y: CGFloat, style: Font,
                                    color: Color, bold: Bool = false) {
-        let font = Font.system(size: size, weight: bold ? .semibold : .regular, design: .monospaced)
+        let font = bold ? style.weight(.semibold).monospaced() : style.monospaced()
         let resolved = ctx.resolve(Text(text).font(font).foregroundStyle(color))
         ctx.draw(resolved, at: CGPoint(x: x, y: y))
     }
@@ -385,10 +385,10 @@ struct WeekComparisonCard: View {
     private var placeholderRow: some View {
         HStack(spacing: 10) {
             Image(systemName: "calendar.badge.clock")
-                .font(.system(size: 18))
+                .font(.headline)
                 .foregroundStyle(SpiralColors.muted)
             Text(String(localized: "analysis.weekComparison.needMoreData", bundle: bundle))
-                .font(.system(size: 12))
+                .font(.footnote)
                 .foregroundStyle(SpiralColors.muted)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -402,18 +402,18 @@ struct WeekComparisonCard: View {
         VStack(alignment: alignment, spacing: 3) {
             HStack(spacing: 4) {
                 Text(String(localized: "analysis.weekComparison.avgSleep", bundle: bundle))
-                    .font(.system(size: 9, design: .monospaced))
+                    .font(.caption2.monospaced())
                     .foregroundStyle(SpiralColors.muted)
                 Text(sleep > 0 ? String(format: "%.1fh", sleep) : "—")
-                    .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                    .font(.caption.weight(.semibold).monospaced())
                     .foregroundStyle(SpiralColors.text)
             }
             HStack(spacing: 4) {
                 Text(String(localized: "analysis.weekComparison.bedtimeStd", bundle: bundle))
-                    .font(.system(size: 9, design: .monospaced))
+                    .font(.caption2.monospaced())
                     .foregroundStyle(SpiralColors.muted)
                 Text(bedtimeStdMin > 0 ? String(format: "%.0fmin", bedtimeStdMin) : "—")
-                    .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                    .font(.caption.weight(.semibold).monospaced())
                     .foregroundStyle(SpiralColors.text)
             }
         }
