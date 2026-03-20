@@ -1339,6 +1339,15 @@ struct SpiralTab: View {
         let clockHour = ((tappedHour.truncatingRemainder(dividingBy: period))
             .truncatingRemainder(dividingBy: 24) + 24)
             .truncatingRemainder(dividingBy: 24)
+
+        #if DEBUG
+        print("[TAP] tappedHour=\(String(format:"%.1f", tappedHour)) dayIndex=\(dayIndex) clockHour=\(String(format:"%.1f", clockHour))")
+        if let record = store.records.first(where: { $0.day == dayIndex }) {
+            print("[TAP] record day=\(record.day) bed=\(String(format:"%.1f", record.bedtimeHour)) wake=\(String(format:"%.1f", record.wakeupHour)) dur=\(String(format:"%.1f", record.sleepDuration)) phases=\(record.phases.count)")
+        } else {
+            print("[TAP] no record for dayIndex=\(dayIndex)")
+        }
+        #endif
         let cal = Calendar.current
         let tappedDate = cal.date(byAdding: .day, value: dayIndex, to: store.startDate)
             ?? store.startDate
