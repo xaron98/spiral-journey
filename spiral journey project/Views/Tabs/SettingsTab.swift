@@ -753,6 +753,48 @@ struct SettingsTab: View {
                     .toggleStyle(SwitchToggleStyle(tint: SpiralColors.accent))
                 }
 
+                // ── Privacy & Consent ─────────────────────────────────────
+                SettingsSection(title: String(localized: "settings.consent.title", bundle: bundle), icon: "hand.raised.fill") {
+                    Toggle(isOn: Binding(
+                        get: { store.cloudSyncConsent },
+                        set: { newValue in
+                            store.cloudSyncConsent = newValue
+                        }
+                    )) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(String(localized: "settings.consent.cloudSync", bundle: bundle))
+                                .font(.system(size: 12, design: .monospaced))
+                                .foregroundStyle(SpiralColors.text)
+                            Text(String(localized: "settings.consent.cloudSync.desc", bundle: bundle))
+                                .font(.system(size: 10))
+                                .foregroundStyle(SpiralColors.muted)
+                        }
+                    }
+                    .toggleStyle(SwitchToggleStyle(tint: SpiralColors.accent))
+
+                    Toggle(isOn: Binding(
+                        get: { store.aiCoachConsent },
+                        set: { newValue in
+                            store.aiCoachConsent = newValue
+                            if !newValue {
+                                // Revoke consent: delete model and clear chat
+                                llm.deleteModel()
+                                store.chatHistory = []
+                            }
+                        }
+                    )) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(String(localized: "settings.consent.aiCoach", bundle: bundle))
+                                .font(.system(size: 12, design: .monospaced))
+                                .foregroundStyle(SpiralColors.text)
+                            Text(String(localized: "settings.consent.aiCoach.desc", bundle: bundle))
+                                .font(.system(size: 10))
+                                .foregroundStyle(SpiralColors.muted)
+                        }
+                    }
+                    .toggleStyle(SwitchToggleStyle(tint: SpiralColors.accent))
+                }
+
                 // ── About ───────────────────────────────────────────────────
 
                 SettingsSection(title: String(localized: "settings.about.title", bundle: bundle), icon: "info.circle") {

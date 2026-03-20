@@ -224,6 +224,7 @@ struct spiral_journey_projectApp: App {
 
     @MainActor
     private func setupCloudSync() {
+        guard store.cloudSyncConsent else { return }
         // If the local store has no episodes, start fresh so the engine does a full
         // re-fetch from CloudKit instead of returning immediately based on a stale token.
         let freshStart = store.sleepEpisodes.isEmpty

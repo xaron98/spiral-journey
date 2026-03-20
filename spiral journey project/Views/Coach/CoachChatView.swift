@@ -41,6 +41,9 @@ struct CoachChatView: View {
                 if let provider, !provider.requiresDownload {
                     // Foundation Models path — no download/load needed
                     chatView
+                } else if !store.aiCoachConsent {
+                    // Consent required before downloading model
+                    consentPrompt
                 } else {
                     // Phi path — show download/load flow based on LLMService state
                     switch llm.state {
@@ -66,12 +69,12 @@ struct CoachChatView: View {
                                 .font(.system(size: 13))
                                 .foregroundStyle(SpiralColors.accent)
                             Text(loc("coach.chat.title"))
-                                .font(.system(size: 15, weight: .medium))
+                                .font(.subheadline.weight(.medium))
                                 .foregroundStyle(SpiralColors.text)
                         }
                         if let provider {
                             Text(provider.displayName)
-                                .font(.system(size: 9, design: .monospaced))
+                                .font(.caption.monospaced())
                                 .foregroundStyle(SpiralColors.faint)
                         }
                     }
@@ -111,6 +114,47 @@ struct CoachChatView: View {
         }
     }
 
+    // MARK: - Consent Prompt
+
+    private var consentPrompt: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "hand.raised.fill")
+                .font(.system(size: 44))
+                .foregroundStyle(SpiralColors.accent)
+
+            Text(loc("coach.consent.title"))
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(SpiralColors.text)
+
+            Text(loc("coach.consent.description"))
+                .font(.footnote)
+                .foregroundStyle(SpiralColors.muted)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
+
+            // Privacy details card
+            VStack(alignment: .leading, spacing: 6) {
+                modelInfoRow(icon: "arrow.down.doc", text: loc("coach.consent.download"))
+                modelInfoRow(icon: "iphone", text: loc("coach.consent.onDevice"))
+                modelInfoRow(icon: "lock.shield", text: loc("coach.consent.noCloud"))
+            }
+            .padding(12)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
+            .padding(.horizontal, 32)
+
+            Button {
+                store.aiCoachConsent = true
+            } label: {
+                Label(loc("coach.consent.button"), systemImage: "checkmark.shield")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 12)
+                    .background(SpiralColors.accent.opacity(0.9), in: Capsule())
+            }
+        }
+    }
+
     // MARK: - Download Prompt
 
     /// Available disk space in bytes, or nil if unavailable.
@@ -127,11 +171,11 @@ struct CoachChatView: View {
                 .foregroundStyle(SpiralColors.accent)
 
             Text(loc("coach.chat.download.title"))
-                .font(.system(size: 18, weight: .semibold))
+                .font(.title3.weight(.semibold))
                 .foregroundStyle(SpiralColors.text)
 
             Text(loc("coach.chat.download.subtitle"))
-                .font(.system(size: 13))
+                .font(.footnote)
                 .foregroundStyle(SpiralColors.muted)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
@@ -153,7 +197,7 @@ struct CoachChatView: View {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .font(.system(size: 11))
                     Text(loc("coach.chat.download.lowStorage"))
-                        .font(.system(size: 11))
+                        .font(.caption)
                 }
                 .foregroundStyle(.orange)
                 .padding(.horizontal, 32)
@@ -163,7 +207,7 @@ struct CoachChatView: View {
                 Task { await llm.downloadModel() }
             } label: {
                 Label(loc("coach.chat.download.button"), systemImage: "arrow.down.to.line")
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.white)
                     .padding(.horizontal, 24)
                     .padding(.vertical, 12)
@@ -175,13 +219,13 @@ struct CoachChatView: View {
                 Image(systemName: "lock.shield")
                     .font(.system(size: 10))
                 Text(loc("coach.chat.download.onDevice"))
-                    .font(.system(size: 10))
+                    .font(.caption)
             }
             .foregroundStyle(SpiralColors.subtle)
 
             if case .error(let msg) = llm.state {
                 Text(msg)
-                    .font(.system(size: 11))
+                    .font(.caption)
                     .foregroundStyle(SpiralColors.poor)
                     .padding(.top, 8)
             }
@@ -195,7 +239,7 @@ struct CoachChatView: View {
                 .foregroundStyle(SpiralColors.muted)
                 .frame(width: 14)
             Text(text)
-                .font(.system(size: 11))
+                .font(.caption)
                 .foregroundStyle(SpiralColors.text)
         }
     }
@@ -209,11 +253,11 @@ struct CoachChatView: View {
                 .frame(width: 200)
 
             Text(loc("coach.chat.downloading"))
-                .font(.system(size: 14))
+                .font(.subheadline)
                 .foregroundStyle(SpiralColors.muted)
 
             Text("\(Int(progress * 100))%")
-                .font(.system(size: 22, weight: .semibold, design: .monospaced))
+                .font(.title3.weight(.semibold).monospaced())
                 .foregroundStyle(SpiralColors.text)
         }
     }
@@ -227,14 +271,14 @@ struct CoachChatView: View {
                 .foregroundStyle(SpiralColors.accent)
 
             Text(loc("coach.chat.load.title"))
-                .font(.system(size: 16, weight: .semibold))
+                .font(.callout.weight(.semibold))
                 .foregroundStyle(SpiralColors.text)
 
             Button {
                 Task { await llm.loadModel() }
             } label: {
                 Label(loc("coach.chat.load.button"), systemImage: "play.fill")
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.white)
                     .padding(.horizontal, 24)
                     .padding(.vertical, 12)
@@ -246,7 +290,7 @@ struct CoachChatView: View {
                 Image(systemName: "trash")
                     .font(.system(size: 9))
                 Text(loc("coach.chat.deleteHint"))
-                    .font(.system(size: 9))
+                    .font(.caption)
             }
             .foregroundStyle(SpiralColors.faint)
         }
@@ -261,7 +305,7 @@ struct CoachChatView: View {
                 .tint(SpiralColors.accent)
 
             Text(loc("coach.chat.loading"))
-                .font(.system(size: 14))
+                .font(.subheadline)
                 .foregroundStyle(SpiralColors.muted)
         }
     }
@@ -314,7 +358,7 @@ struct CoachChatView: View {
 
             // Medical disclaimer
             Text(loc("coach.disclaimer"))
-                .font(.system(size: 9))
+                .font(.caption)
                 .foregroundStyle(SpiralColors.faint)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 16)
@@ -330,7 +374,7 @@ struct CoachChatView: View {
 
             VStack(alignment: message.role == .user ? .trailing : .leading, spacing: 4) {
                 Text(message.content)
-                    .font(.system(size: 14))
+                    .font(.subheadline)
                     .foregroundStyle(message.role == .user ? .white : SpiralColors.text)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 10)
@@ -342,7 +386,7 @@ struct CoachChatView: View {
                     )
 
                 Text(message.timestamp, format: .dateTime.hour().minute())
-                    .font(.system(size: 9, design: .monospaced))
+                    .font(.caption.monospaced())
                     .foregroundStyle(SpiralColors.faint)
             }
 
@@ -368,7 +412,7 @@ struct CoachChatView: View {
                     .padding(.vertical, 12)
                 } else {
                     Text(streamingText)
-                        .font(.system(size: 14))
+                        .font(.subheadline)
                         .foregroundStyle(SpiralColors.text)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 10)
@@ -384,7 +428,7 @@ struct CoachChatView: View {
     private var inputBar: some View {
         HStack(spacing: 10) {
             TextField(loc("coach.chat.placeholder"), text: $inputText, axis: .vertical)
-                .font(.system(size: 14))
+                .font(.subheadline)
                 .lineLimit(1...4)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)

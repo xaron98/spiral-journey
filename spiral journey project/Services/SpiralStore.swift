@@ -323,6 +323,20 @@ final class SpiralStore {
     /// Set by the app entry point after CloudSyncManager is initialized.
     var cloudSync: CloudSyncManager?
 
+    // MARK: - Consent
+
+    /// User has explicitly consented to iCloud sync via Settings.
+    var cloudSyncConsent: Bool {
+        get { UserDefaults.standard.bool(forKey: "cloudSyncConsent") }
+        set { UserDefaults.standard.set(newValue, forKey: "cloudSyncConsent") }
+    }
+
+    /// User has explicitly consented to downloading the AI coach model.
+    var aiCoachConsent: Bool {
+        get { UserDefaults.standard.bool(forKey: "aiCoachConsent") }
+        set { UserDefaults.standard.set(newValue, forKey: "aiCoachConsent") }
+    }
+
     // MARK: - SwiftData
 
     /// Optional SwiftData context — set after the model container is available.
@@ -357,6 +371,24 @@ final class SpiralStore {
     /// Invalidate the cached SwiftData episodes so the next recompute() re-fetches.
     func invalidateEpisodeCache() {
         cachedEpisodes = nil
+    }
+
+    /// Write new episodes to SwiftData (primary store), skipping duplicates by episodeID.
+    private func writeEpisodesToSwiftData(_ episodes: [SleepEpisode]) {
+        guard let ctx = modelContext else { return }
+        for episode in episodes {
+            // Check for existing episode with the same ID to avoid duplicates
+            var descriptor = FetchDescriptor<SDSleepEpisode>(
+                predicate: #Predicate { $0.episodeID == episode.id }
+            )
+            descriptor.fetchLimit = 1
+            let exists = (try? ctx.fetchCount(descriptor)) ?? 0
+            if exists == 0 {
+                ctx.insert(SDSleepEpisode(from: episode))
+            }
+        }
+        try? ctx.save()
+        invalidateEpisodeCache()
     }
 
     /// True while applying remote CloudKit changes — prevents save() from re-pushing to CloudKit.
@@ -602,6 +634,8 @@ final class SpiralStore {
         }
 
         // Write the combined episode list and recompute.
+        // Write to SwiftData first (primary store)
+        writeEpisodesToSwiftData(combined)
         // Suppress CloudKit push for episodes that already exist remotely —
         // only push genuinely new ones (those not previously in the store).
         let existingHKIDs = Set(sleepEpisodes.compactMap(\.healthKitSampleID))
@@ -622,6 +656,9 @@ final class SpiralStore {
         }
         if !toAdd.isEmpty {
             print("[Store] mergeHealthKitEpisodes: adding \(toAdd.count) new episodes")
+            // Write to SwiftData first (primary store)
+            writeEpisodesToSwiftData(toAdd)
+            // Then update UserDefaults cache
             sleepEpisodes.append(contentsOf: toAdd)
             sleepEpisodes.sort { $0.start < $1.start }
             // Ensure numDays covers through today so new data is visible
@@ -1130,6 +1167,8 @@ final class SpiralStore {
             }
         }
         if changed {
+            // Write to SwiftData (primary store)
+            writeEpisodesToSwiftData(remote)
             sleepEpisodes.sort { $0.start < $1.start }
             saveLocalOnly(reloadWidget: true)
             recompute()
