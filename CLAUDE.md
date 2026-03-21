@@ -12,38 +12,40 @@
 
 ## Spiral Rendering Rules (CRITICAL)
 
-### Sliding Window Camera System
+### Camera & Rendering System
 - **Cursor moves freely** — past and future, no limits on movement
-- **Window = [cursor - span, cursor + 0.5]** — only content within this window is rendered
-- **7 days visible** — opacityCurve gives full opacity to 7 days, then 0
-- **No opacity fade** — days inside window are 100%, outside are 0%. The path "shortens" progressively as cursor advances (segmentEdgeFade at the old edge, 1.5 turns of transition)
-- **Zoom auto-adjusts** — `autoFitScale` in CameraState ensures nothing projects beyond 85% of canvas. Calculated by scanning all visible turns and scaling proportionally.
+- **ALL data always visible** — every day with data renders at full opacity regardless of cursor position. Moving cursor never hides or fades existing data.
+- **No opacity fade** — `rawOpacity = 1.0` always. No opacityCurve decay, no segmentEdgeFade. Data paths never disappear.
+- **Render bounds** — `renderFrom = 0`, `renderUpTo = max(cursor, extentTurns + 0.5)`. Everything is always in render range.
+- **Zoom auto-adjusts** — `autoFitScale` in CameraState ensures nothing projects beyond 85% of canvas when cursor goes to future.
 - **User can still pinch-zoom** — changes `span` (visible turns), auto-fit corrects if needed
+- **Tap on spiral** — shows info panel for tapped position via `showInfoForCursorPosition()`. Cursor jumps to tap location, camera follows.
 
 ### Camera (CameraState)
 - `tRef = upToTurns + 0.5` — depth reference point
 - `camZ = margin * zStep - focalLen` — camera position (fixed formula)
 - `focalLen = maxRadius * 1.6` (3D) or `maxRadius * 1.2` (flat) — 3D has closer initial zoom
-- `autoFitScale` — computed per-frame: scans all visible turns, finds max projected radius, scales so it fits in 85% of canvas. 1.0 when everything fits, < 1.0 when too large.
+- `autoFitScale` — computed per-frame in 3D: scans all visible turns, finds max projected radius, scales to fit 85% of canvas. 1.0 when everything fits, < 1.0 when too large. Flat mode always 1.0.
 - Applied in `project()` and `perspectiveScale()` — both position and linewidth scale together
 
 ### Visibility (SpiralVisibilityEngine)
-- **Single distance source** — `abs(requestedActiveIndex - dayIndex)`. NO dual distance (effectiveActiveIndex was removed — it caused non-monotonic fade)
-- `opacityCurve = [1.0 × 7]` — 7 days at full opacity
-- `dist >= 7` → opacity = 0.0 (hard cut, no exponential decay)
-- `segmentEdgeFade` — 1.5 turns of gradual transition at the old edge of the window. Per-segment, not per-day.
-- Context blocks only behind cursor (`dayIndex <= requestedActiveIndex`)
+- **All days visible** — `rawOpacity = 1.0` always, no distance-based fade
+- **Single distance source** — `abs(requestedActiveIndex - dayIndex)` used for blur/strokeScale only
+- **segmentEdgeFade** — always returns 1.0 (disabled). No edge clipping.
+- Context blocks: visible for all days (0...maxDay), only gated by `behindCursor` (dayIndex <= requestedActiveIndex) and `isActive(on:)`
+- Calendar events always visible — not limited to camera window
 
 ### Draw Order
 - Awake data → sleep data (sleep always on top)
 - **Live awake extension** — drawn OUTSIDE the record loop, always extends from data end to cursor position. Not gated by day visibility. This is the vigilia path that grows with the cursor.
 - Live awake extension starts from `max(dataEndTurns, tWakeRaw)`, never from wakeupHour alone
+- **Backbone** — covers `0` to `max(cursor, extentTurns)`, always visible
 
 ### Data Points (drawDataPoints)
 - **No isLastRecord exceptions** — all records treated equally
-- **No skipEdge** — all records apply edge fade equally
-- Records filtered by: window bounds + `vis.isVisible`
-- Per-segment: `isBehindCamera` + `perspectiveScale > 0.04` checks
+- **No skipEdge** — no edge fade applied
+- Records filtered by: `vis.isVisible` (always true) + `isBehindCamera` + `perspectiveScale > 0.04`
+- Tap info: `showInfoForCursorPosition()` uses `cursorAbsHour` directly, searches current + adjacent days for sleep detection
 
 ### Archimedean Mode
 - 2D flat: `startRadius = 75`, `depthScale = 0`, `perspectivePower = 1.0`
@@ -79,14 +81,15 @@
 - Shows the spiral selected in settings, not hardcoded archimedean
 
 ### Pitfalls to Avoid
-1. Never force camera to include distant data — causes compression
-2. Never use min lineWidth without perspScale guard — creates blobs
-3. Never draw live awake extension from wakeupHour — hides sleep data
-4. Never show context blocks ahead of cursor
-5. Never allow unlimited zoom-out to maxReachedTurns
-6. Never pass `maxReachedTurns` directly as `spiralExtentTurns` for logarithmic spirals — use `effectiveSpiralExtent`
-7. Never assume `store.depthScale` is 1.5 — default is **0.15**
-8. Never enable `linkGrowthToTau` for logarithmic spirals with period=24 — growthRate becomes 0
-9. Never use dual-distance opacity (effectiveActiveIndex + requestedActiveIndex) — causes non-monotonic fade
-10. Never add isLastRecord exceptions to drawDataPoints — creates fragments when cursor moves to future
-11. Never let tRef grow unbounded with cursor — autoFitScale handles the zoom adaptation instead
+1. Never use min lineWidth without perspScale guard — creates blobs
+2. Never draw live awake extension from wakeupHour — hides sleep data
+3. Never show context blocks ahead of cursor
+4. Never allow unlimited zoom-out to maxReachedTurns
+5. Never pass `maxReachedTurns` directly as `spiralExtentTurns` for logarithmic spirals — use `effectiveSpiralExtent`
+6. Never assume `store.depthScale` is 1.5 — default is **0.15**
+7. Never enable `linkGrowthToTau` for logarithmic spirals with period=24 — growthRate becomes 0
+8. Never use dual-distance opacity (effectiveActiveIndex + requestedActiveIndex) — causes non-monotonic fade
+9. Never add isLastRecord exceptions to drawDataPoints — creates fragments
+10. Never add window clipping or edge fade to data — ALL data must be visible always
+11. Never limit renderFrom/renderUpTo to the camera window — use 0 to extentTurns
+12. Never limit context block iteration to window.startIndex...endIndex — use 0...maxDay
