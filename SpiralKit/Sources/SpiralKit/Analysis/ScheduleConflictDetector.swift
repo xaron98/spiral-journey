@@ -51,10 +51,8 @@ public enum ScheduleConflictDetector {
         var conflicts: [ScheduleConflict] = []
 
         for record in records {
-            let weekday = Calendar.current.component(.weekday, from: record.date)
-
             for block in activeBlocks {
-                guard block.isActive(weekday: weekday) else { continue }
+                guard block.isActive(on: record.date) else { continue }
 
                 // 1. Direct overlap: sleep window intersects block window
                 let overlapMins = circularOverlapMinutes(

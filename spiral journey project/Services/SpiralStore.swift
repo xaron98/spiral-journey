@@ -913,7 +913,8 @@ final class SpiralStore {
         if notificationsEnabled {
             await NotificationManager.shared.scheduleWeeklyDigest(
                 analysis: analysis,
-                consistency: analysis.consistency
+                consistency: analysis.consistency,
+                localeIdentifier: language.localeIdentifier
             )
         } else {
             await NotificationManager.shared.cancelWeeklyDigest()

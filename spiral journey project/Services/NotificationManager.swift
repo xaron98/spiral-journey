@@ -1,6 +1,21 @@
 import UserNotifications
 import SpiralKit
 
+// MARK: - Foreground Notification Delegate
+
+/// Allows notifications to display as banners even when the app is in the foreground.
+final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
+    static let shared = NotificationDelegate()
+
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        completionHandler([.banner, .sound])
+    }
+}
+
 /// Manages local notifications for the weekly sleep digest.
 ///
 /// Schedules a recurring notification every Monday at 09:00 local time
@@ -11,6 +26,11 @@ actor NotificationManager {
 
     private let center = UNUserNotificationCenter.current()
     private let weeklyDigestID = "spiral.weekly.digest"
+
+    /// Install the foreground delegate. Call once at app launch.
+    func installDelegate() {
+        center.delegate = NotificationDelegate.shared
+    }
 
     // MARK: - Permission
 
@@ -36,16 +56,18 @@ actor NotificationManager {
     /// Generates the notification body from the provided analysis data.
     func scheduleWeeklyDigest(
         analysis: AnalysisResult,
-        consistency: SpiralConsistencyScore?
+        consistency: SpiralConsistencyScore?,
+        localeIdentifier: String
     ) async {
         // Remove existing to avoid duplicates
         center.removePendingNotificationRequests(withIdentifiers: [weeklyDigestID])
 
         guard await isAuthorized() else { return }
+        let bundle = languageBundle(for: localeIdentifier)
 
         let content = UNMutableNotificationContent()
-        content.title = "Spiral Journey"
-        content.body = buildDigestBody(analysis: analysis, consistency: consistency)
+        content.title = NSLocalizedString("notification.digest.title", bundle: bundle, comment: "")
+        content.body = buildDigestBody(analysis: analysis, consistency: consistency, bundle: bundle)
         content.sound = .default
 
         // Every Monday at 09:00 local time
@@ -73,8 +95,10 @@ actor NotificationManager {
 
     private func buildDigestBody(
         analysis: AnalysisResult,
-        consistency: SpiralConsistencyScore?
+        consistency: SpiralConsistencyScore?,
+        bundle: Bundle
     ) -> String {
+        let loc = { (key: String) in NSLocalizedString(key, bundle: bundle, comment: "") }
         var parts: [String] = []
 
         // Consistency score
@@ -85,17 +109,17 @@ actor NotificationManager {
             } else {
                 arrow = ""
             }
-            parts.append("Consistency \(c.score)/100\(arrow)")
+            parts.append(String(format: loc("notification.digest.consistency"), c.score) + arrow)
         }
 
         // Mean duration
         let dur = analysis.stats.meanSleepDuration
         if dur > 0 {
-            parts.append(String(format: "Avg %.1fh", dur))
+            parts.append(String(format: loc("notification.digest.duration"), String(format: "%.1fh", dur)))
         }
 
         // Composite score
-        parts.append("Score \(analysis.composite)/100")
+        parts.append(String(format: loc("notification.digest.score"), analysis.composite))
 
         // Top recommendation
         if let rec = analysis.recommendations.first {

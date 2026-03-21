@@ -23,10 +23,10 @@ enum SpiralColors {
     static let awakeSleep  = Color(hex: "f5c842")
     static let weekend     = Color(hex: "4a3a6a")
 
-    // Score status colors
-    static let good        = Color(hex: "5bffa8")
-    static let moderate    = Color(hex: "f5c842")
-    static let poor        = Color(hex: "f05050")
+    // Score status colors — adaptive: bright for dark mode, high-contrast for light mode
+    static let good        = Color("SpiralGood")     // dark #5bffa8 · light #198752
+    static let moderate    = Color("SpiralModerate") // dark #f5c842 · light #854D0E
+    static let poor        = Color("SpiralPoor")     // dark #f05050 · light #B91C1C
 
     // Context block colors — electric blue family
     static let contextPrimary   = Color(hex: "3B82F6")  // electric blue

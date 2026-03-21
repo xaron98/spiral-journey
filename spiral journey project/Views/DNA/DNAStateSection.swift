@@ -55,10 +55,7 @@ struct DNAStateSection: View {
             }
         }
         .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(SpiralColors.surface)
-        )
+        .liquidGlass(cornerRadius: 16)
     }
 
     // MARK: - Localization

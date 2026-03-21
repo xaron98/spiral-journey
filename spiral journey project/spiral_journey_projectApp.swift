@@ -66,6 +66,9 @@ struct spiral_journey_projectApp: App {
             modelContainer: modelContainer,
             dnaService: dnaService
         )
+
+        // Allow notifications to show as banners while the app is in the foreground.
+        UNUserNotificationCenter.current().delegate = NotificationDelegate.shared
     }
 
     var body: some Scene {

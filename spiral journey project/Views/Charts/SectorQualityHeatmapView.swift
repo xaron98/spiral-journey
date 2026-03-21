@@ -34,7 +34,7 @@ struct SectorQualityHeatmapView: View {
                 viridisLegend
             }
         }
-        .panelStyle()
+        .glassPanel()
     }
 
     // MARK: - Polar Chart

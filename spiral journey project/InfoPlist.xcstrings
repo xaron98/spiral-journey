@@ -32,7 +32,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Spiral Journey can import your calendar events as context blocks (work, study, commute) to detect conflicts between your sleep schedule and daily obligations. Your calendar data stays on your device and is never shared."
+            "value" : "Spiral Journey can import your calendar events as context blocks to detect conflicts between your sleep schedule and daily obligations. Calendar data may sync across your devices via iCloud if cloud sync is enabled."
           }
         }
       }
@@ -44,7 +44,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Spiral Journey can import your calendar events as context blocks (work, study, commute) to detect conflicts between your sleep schedule and daily obligations. Your calendar data stays on your device and is never shared."
+            "value" : "Spiral Journey can import your calendar events as context blocks to detect conflicts between your sleep schedule and daily obligations. Calendar data may sync across your devices via iCloud if cloud sync is enabled."
           }
         }
       }

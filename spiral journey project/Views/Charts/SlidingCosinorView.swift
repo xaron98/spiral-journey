@@ -33,7 +33,7 @@ struct SlidingCosinorView: View {
                 }
             }
         }
-        .panelStyle()
+        .glassPanel()
     }
 
     private func sparkline(title: String, values: [(Int, Double)], color: Color, format: String) -> some View {
@@ -59,6 +59,7 @@ struct SlidingCosinorView: View {
             .chartXAxis(.hidden)
             .chartYAxis(.hidden)
             .chartBackground { _ in Color.clear }
+            .chartPlotStyle { plotArea in plotArea.background(Color.clear) }
             .frame(height: 32)
         }
         .frame(maxWidth: .infinity)

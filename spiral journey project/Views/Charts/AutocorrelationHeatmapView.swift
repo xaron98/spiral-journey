@@ -35,7 +35,7 @@ struct AutocorrelationHeatmapView: View {
                 legendBar
             }
         }
-        .panelStyle()
+        .glassPanel()
     }
 
     // MARK: - Canvas

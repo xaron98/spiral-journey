@@ -23,8 +23,10 @@ struct AnalysisTab: View {
     @State private var isGeneratingPDF       = false
 
     var body: some View {
+        ZStack {
+            SpiralColors.bg.ignoresSafeArea()
         ScrollView(showsIndicators: false) {
-            VStack(spacing: 14) {
+            VStack(spacing: 20) {
                 if store.records.isEmpty {
                     emptyState
                 } else {
@@ -60,7 +62,7 @@ struct AnalysisTab: View {
                                     CategoryRow(category: cat, bundle: bundle)
                                 }
                             }
-                            .panelStyle()
+                            .glassPanel()
                         }
                         if !store.analysis.recommendations.isEmpty {
                             VStack(alignment: .leading, spacing: 8) {
@@ -69,7 +71,7 @@ struct AnalysisTab: View {
                                     RecommendationRow(rec: rec, bundle: bundle)
                                 }
                             }
-                            .panelStyle()
+                            .glassPanel()
                         }
                         StatsPanelView(records: store.records)
                         if showDrift            { DriftChartView(records: store.records) }
@@ -89,7 +91,7 @@ struct AnalysisTab: View {
             .frame(maxWidth: 540)
             .frame(maxWidth: .infinity)
         }
-        .background(SpiralColors.bg.ignoresSafeArea())
+        } // ZStack
     }
 
     // MARK: - Header
@@ -211,9 +213,9 @@ struct AnalysisTab: View {
         if let d = delta {
             let change = abs(Int(d))
             if d >= 2 {
-                base += " · " + String(format: String(localized: "analysis.trend.consistency.better", bundle: bundle), change)
+                base += String(format: String(localized: "analysis.trend.consistency.better", bundle: bundle), change)
             } else if d <= -2 {
-                base += " · " + String(format: String(localized: "analysis.trend.consistency.worse", bundle: bundle), change)
+                base += String(format: String(localized: "analysis.trend.consistency.worse", bundle: bundle), change)
             }
         }
         return base
@@ -251,7 +253,7 @@ struct AnalysisTab: View {
             trend = .down
         }
 
-        let jetlagNote = jetlag > 45 ? " · " + String(format: String(localized: "analysis.trend.drift.jetlagNote", bundle: bundle), formatJetlag(jetlag)) : ""
+        let jetlagNote = jetlag > 45 ? String(format: String(localized: "analysis.trend.drift.jetlagNote", bundle: bundle), formatJetlag(jetlag)) : ""
 
         return TrendDimensionCard(
             title: String(localized: "analysis.trend.drift", bundle: bundle),
@@ -312,7 +314,7 @@ struct AnalysisTab: View {
             ForEach(trends.deteriorating) { t in trendRow(t, color: SpiralColors.poor,  arrow: "arrow.down") }
             ForEach(trends.improving)     { t in trendRow(t, color: SpiralColors.good,  arrow: "arrow.up") }
         }
-        .panelStyle()
+        .glassPanel()
     }
 
     // MARK: - Full Analysis Toggle
@@ -333,10 +335,7 @@ struct AnalysisTab: View {
             .foregroundStyle(SpiralColors.accent)
             .padding(.vertical, 10)
             .frame(maxWidth: .infinity)
-            .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(SpiralColors.border, lineWidth: 0.8)
-            )
+            .liquidGlass(cornerRadius: 12)
         }
         .buttonStyle(.plain)
     }
@@ -397,14 +396,8 @@ struct AnalysisTab: View {
             }
             Spacer()
         }
-        .padding(16)
-        .background(
-            ZStack {
-                RoundedRectangle(cornerRadius: 16).fill(.ultraThinMaterial)
-                RoundedRectangle(cornerRadius: 16).fill(SpiralColors.surface.opacity(0.5))
-                RoundedRectangle(cornerRadius: 16).stroke(SpiralColors.border.opacity(0.4), lineWidth: 0.8)
-            }
-        )
+        .padding(20)
+        .liquidGlass(cornerRadius: 20, tint: Color(hex: store.analysis.hexColor))
     }
 
     // MARK: - Chart toggles
@@ -429,7 +422,7 @@ struct AnalysisTab: View {
                 }
             }
         }
-        .panelStyle()
+        .glassPanel()
     }
 
     // MARK: - Empty state
@@ -545,14 +538,8 @@ struct TrendDimensionCard: View {
             }
             Spacer()
         }
-        .padding(14)
-        .background(
-            ZStack {
-                RoundedRectangle(cornerRadius: 14).fill(.ultraThinMaterial)
-                RoundedRectangle(cornerRadius: 14).fill(accentColor.opacity(0.04))
-                RoundedRectangle(cornerRadius: 14).stroke(accentColor.opacity(0.2), lineWidth: 0.7)
-            }
-        )
+        .padding(20)
+        .liquidGlass(cornerRadius: 16, tint: accentColor)
     }
 }
 
@@ -581,7 +568,23 @@ struct CategoryRow: View {
 
     private var localizedDetail: String {
         if let key = category.detailKey { return loc("category.detail.\(key.rawValue)") }
+        // For "pattern" category, resolve the description via PDF disorder keys.
+        if category.id == "pattern" && category.value != "--" {
+            let resolved = loc("pdf.disorder.desc.\(category.value)")
+            if resolved != "pdf.disorder.desc.\(category.value)" { return resolved }
+        }
         return category.detail
+    }
+
+    /// For the "pattern" category, value is a disorder id (e.g. "n24swd") —
+    /// resolve it to a human-readable localized name via the existing PDF keys.
+    private var localizedValue: String {
+        if category.id == "pattern" && category.value != "--" {
+            let resolved = loc("pdf.disorder.\(category.value)")
+            // If the key isn't found, NSLocalizedString returns the key itself.
+            if resolved != "pdf.disorder.\(category.value)" { return resolved }
+        }
+        return category.value
     }
 
     var body: some View {
@@ -598,7 +601,7 @@ struct CategoryRow: View {
                         .font(.caption.weight(.medium).monospaced())
                         .foregroundStyle(SpiralColors.text)
                     Spacer()
-                    Text(category.value)
+                    Text(localizedValue)
                         .font(.caption.weight(.semibold).monospaced())
                         .foregroundStyle(statusColor)
                     Text("\(category.score)")
@@ -608,7 +611,7 @@ struct CategoryRow: View {
                 Text(localizedDetail)
                     .font(.caption2)
                     .foregroundStyle(SpiralColors.subtle)
-                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
         .padding(.vertical, 2)

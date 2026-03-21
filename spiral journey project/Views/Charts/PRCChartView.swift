@@ -145,7 +145,8 @@ struct PRCChartView: View {
                         .font(.caption2.monospaced())
                 }
             }
-            .chartBackground { _ in SpiralColors.bg }
+            .chartBackground { _ in Color.clear }
+            .chartPlotStyle { plotArea in plotArea.background(Color.clear) }
             .frame(height: 110)
 
             HStack(spacing: 12) {
@@ -157,7 +158,7 @@ struct PRCChartView: View {
                 }
             }
         }
-        .panelStyle()
+        .glassPanel()
     }
 
     private func localizedEventLabel(_ type: EventType) -> String {

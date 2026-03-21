@@ -64,7 +64,7 @@ struct StatsPanelView: View {
                          sub: String(localized: "stats.socialJL.sub", bundle: bundle))
                 StatCard(String(localized: "stats.card.wkndAmp", bundle: bundle),
                          value: String(format: "%.2f", stats.weekendAmp),
-                         sub: String(format: "%.0f%% drop", max(0, stats.ampDrop)))
+                         sub: String(format: NSLocalizedString("stats.ampDrop", bundle: bundle, comment: ""), max(0, stats.ampDrop)))
                 StatCard(String(localized: "stats.card.sleep", bundle: bundle),
                          value: String(format: "%.1fh", stats.meanSleepDuration),
                          sub: String(localized: "stats.sleep.sub", bundle: bundle))
@@ -81,7 +81,7 @@ struct StatsPanelView: View {
                 }
             }
         }
-        .panelStyle()
+        .glassPanel()
     }
 }
 
@@ -197,6 +197,21 @@ private struct StatsGlossarySheet: View {
 
 private struct SignatureBadge: View {
     let signature: DisorderSignature
+    @Environment(\.languageBundle) private var bundle
+
+    /// Localized disorder name (e.g. "Ritmo no-24 horas").
+    private var localizedName: String {
+        let key = "pdf.disorder.\(signature.id)"
+        let resolved = NSLocalizedString(key, bundle: bundle, comment: "")
+        return resolved != key ? resolved : signature.fullLabel
+    }
+
+    /// Localized disorder description.
+    private var localizedDesc: String {
+        let key = "pdf.disorder.desc.\(signature.id)"
+        let resolved = NSLocalizedString(key, bundle: bundle, comment: "")
+        return resolved != key ? resolved : signature.description
+    }
 
     var body: some View {
         HStack(spacing: 8) {
@@ -205,7 +220,7 @@ private struct SignatureBadge: View {
                 .frame(width: 8, height: 8)
             VStack(alignment: .leading, spacing: 2) {
                 HStack {
-                    Text(signature.fullLabel)
+                    Text(localizedName)
                         .font(.caption.weight(.medium).monospaced())
                         .foregroundStyle(SpiralColors.text)
                     Spacer()
@@ -213,10 +228,10 @@ private struct SignatureBadge: View {
                         .font(.caption.monospaced())
                         .foregroundStyle(SpiralColors.subtle)
                 }
-                Text(signature.description)
+                Text(localizedDesc)
                     .font(.caption)
                     .foregroundStyle(SpiralColors.muted)
-                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
         .padding(.vertical, 4)

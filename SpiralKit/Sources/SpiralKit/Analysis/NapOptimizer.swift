@@ -125,7 +125,7 @@ public enum NapOptimizer {
     /// Generate a nap recommendation that respects context blocks (work, study, etc.).
     ///
     /// Uses the base `recommend()` to compute the initial suggestion, then adjusts
-    /// timing and duration to avoid conflicts with active context blocks on `weekday`.
+    /// timing and duration to avoid conflicts with active context blocks on `date`.
     ///
     /// Adjustment strategy (per research recommendation):
     /// 1. If 90-min nap overlaps a block → try 20-min power nap at the same hour.
@@ -138,6 +138,7 @@ public enum NapOptimizer {
     ///   - chronotype: Optional chronotype for window adjustment.
     ///   - contextBlocks: Active context blocks. Empty = behaves like base `recommend()`.
     ///   - weekday: Calendar weekday (1=Sunday, ..., 7=Saturday) to filter active blocks.
+    ///     Deprecated — prefer the `date:` overload for correct one-off event handling.
     /// - Returns: A recommendation if a nap is beneficial and doesn't conflict, nil otherwise.
     public static func recommend(
         records: [SleepRecord],
@@ -154,6 +155,37 @@ public enum NapOptimizer {
         // No blocks → return base unmodified
         let activeBlocks = contextBlocks.filter { $0.isEnabled && $0.isActive(weekday: weekday) }
         guard !activeBlocks.isEmpty else { return base }
+
+        return adjustForBlocks(base: base, activeBlocks: activeBlocks, chronotype: chronotype)
+    }
+
+    /// Generate a nap recommendation that respects context blocks, using full date matching.
+    ///
+    /// This overload correctly restricts one-off calendar events to their specific date
+    /// via `ContextBlock.isActive(on:)`.
+    public static func recommend(
+        records: [SleepRecord],
+        wakeHour: Double,
+        chronotype: Chronotype? = nil,
+        contextBlocks: [ContextBlock],
+        date: Date
+    ) -> NapRecommendation? {
+        guard let base = recommend(records: records, wakeHour: wakeHour, chronotype: chronotype) else {
+            return nil
+        }
+
+        let activeBlocks = contextBlocks.filter { $0.isEnabled && $0.isActive(on: date) }
+        guard !activeBlocks.isEmpty else { return base }
+
+        return adjustForBlocks(base: base, activeBlocks: activeBlocks, chronotype: chronotype)
+    }
+
+    /// Shared logic: adjust a base nap recommendation to avoid context block conflicts.
+    private static func adjustForBlocks(
+        base: NapRecommendation,
+        activeBlocks: [ContextBlock],
+        chronotype: Chronotype?
+    ) -> NapRecommendation? {
 
         // Check if base recommendation conflicts with any block
         if !napConflicts(start: base.suggestedStart, durationMin: base.duration, blocks: activeBlocks) {

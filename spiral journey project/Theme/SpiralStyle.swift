@@ -21,11 +21,21 @@ struct StatCardModifier: ViewModifier {
             .padding(12)
             .background(
                 ZStack {
-                    RoundedRectangle(cornerRadius: 8).fill(SpiralColors.bg)
+                    RoundedRectangle(cornerRadius: 8).fill(SpiralColors.bg.opacity(0.3))
                     RoundedRectangle(cornerRadius: 8).stroke(SpiralColors.border.opacity(0.6), lineWidth: 0.8)
                 }
             )
             .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+}
+
+struct GlassPanelModifier: ViewModifier {
+    var cornerRadius: CGFloat = 16
+    var tint: Color? = nil
+    func body(content: Content) -> some View {
+        content
+            .padding(20)
+            .liquidGlass(cornerRadius: cornerRadius, tint: tint)
     }
 }
 
@@ -63,6 +73,11 @@ extension View {
     /// Reusable card background with material, tinted surface, and border stroke.
     func cardBackground(cornerRadius: CGFloat = 16, hasMaterial: Bool = true, borderOpacity: Double = 0.4) -> some View {
         modifier(CardBackgroundModifier(cornerRadius: cornerRadius, hasMaterial: hasMaterial, borderOpacity: borderOpacity))
+    }
+
+    /// Panel style with Liquid Glass aesthetic (frosted blur + specular stroke + shadow).
+    func glassPanel(cornerRadius: CGFloat = 16, tint: Color? = nil) -> some View {
+        modifier(GlassPanelModifier(cornerRadius: cornerRadius, tint: tint))
     }
 }
 

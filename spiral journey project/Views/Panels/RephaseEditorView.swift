@@ -41,7 +41,8 @@ struct RephaseEditorView: View {
     }
 
     private var effectiveStartRadius: Double {
-        isLog3D ? 60.0 : 75.0
+        guard store.spiralType == .logarithmic else { return 75.0 }
+        return store.flatMode ? 15.0 : 60.0
     }
 
     private var effectiveDepthScale: Double {

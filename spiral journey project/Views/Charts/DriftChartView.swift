@@ -92,9 +92,8 @@ struct DriftChartView: View {
                         .font(.caption2.monospaced())
                 }
             }
-            .chartBackground { _ in
-                SpiralColors.bg
-            }
+            .chartBackground { _ in Color.clear }
+            .chartPlotStyle { plotArea in plotArea.background(Color.clear) }
             .frame(height: 100)
 
             HStack(spacing: 12) {
@@ -102,7 +101,7 @@ struct DriftChartView: View {
                 legendItem(color: SpiralColors.accentDim, label: String(localized: "drift.legend.amplitude", bundle: bundle))
             }
         }
-        .panelStyle()
+        .glassPanel()
     }
 
     private func legendItem(color: Color, label: String) -> some View {

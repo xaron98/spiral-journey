@@ -54,7 +54,7 @@ struct ActogramView: View {
                 }
             }
             .frame(height: min(Double(records.count) * 8, 200))
-            .background(SpiralColors.bg)
+            .background(Color.clear)
             .clipShape(RoundedRectangle(cornerRadius: 6))
 
             // Hour labels
@@ -67,6 +67,6 @@ struct ActogramView: View {
                 }
             }
         }
-        .panelStyle()
+        .glassPanel()
     }
 }

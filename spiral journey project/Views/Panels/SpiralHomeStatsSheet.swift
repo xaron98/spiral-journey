@@ -7,6 +7,7 @@ struct SpiralHomeStatsSheet: View {
 
     @Environment(SpiralStore.self) private var store
     @Environment(\.languageBundle) private var bundle
+    @Environment(\.dismiss) private var dismiss
     @Binding var showConsistencyDetail: Bool
     @Binding var showRephaseEditor: Bool
 
@@ -26,7 +27,7 @@ struct SpiralHomeStatsSheet: View {
                 .padding(.bottom, 32)
             }
             .background(SpiralColors.bg)
-            .navigationTitle(loc("stats.sheet.title"))
+            .navigationTitle(loc("spiral.stats.rhythm"))
             .navigationBarTitleDisplayMode(.inline)
         }
     }
@@ -34,7 +35,12 @@ struct SpiralHomeStatsSheet: View {
     // MARK: - Rhythm State Card
 
     private var rhythmStateCard: some View {
-        Button { showConsistencyDetail = true } label: {
+        Button {
+            dismiss()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                showConsistencyDetail = true
+            }
+        } label: {
             HStack(spacing: 14) {
                 ZStack {
                     Circle()
@@ -121,11 +127,11 @@ struct SpiralHomeStatsSheet: View {
         HStack(spacing: 14) {
             ZStack {
                 Circle()
-                    .fill(Color(hex: "a78bfa").opacity(0.15))
+                    .fill(SpiralColors.accent.opacity(0.15))
                     .frame(width: 52, height: 52)
                 Image(systemName: "moon.stars.fill")
                     .font(.title2)
-                    .foregroundStyle(Color(hex: "a78bfa"))
+                    .foregroundStyle(SpiralColors.accent)
             }
             VStack(alignment: .leading, spacing: 4) {
                 Text(loc("prediction.card.title"))
@@ -199,7 +205,12 @@ struct SpiralHomeStatsSheet: View {
         let plan = store.rephasePlan
         let meanAcrophase = store.analysis.stats.meanAcrophase
 
-        Button { showRephaseEditor = true } label: {
+        Button {
+            dismiss()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                showRephaseEditor = true
+            }
+        } label: {
             HStack(spacing: 10) {
                 Image(systemName: plan.isEnabled ? "target" : "scope")
                     .font(.body)

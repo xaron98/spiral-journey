@@ -135,6 +135,11 @@ public struct ContextBlock: Codable, Identifiable, Sendable, Equatable, Hashable
     /// Calendar event identifier for EventKit deduplication. Nil for manual blocks.
     public var calendarEventID: String?
 
+    /// Specific date for one-off calendar events. When set, this block only
+    /// renders on the exact calendar day (ignoring the `activeDays` bitmask).
+    /// Nil for recurring blocks (manual or calendar-recurring), which use `activeDays`.
+    public var specificDate: Date?
+
     /// Whether this block is included in conflict detection and spiral rendering.
     /// Users can toggle blocks off without deleting them.
     public var isEnabled: Bool
@@ -168,6 +173,7 @@ public struct ContextBlock: Codable, Identifiable, Sendable, Equatable, Hashable
         endHour: Double = 17.0,
         activeDays: UInt8 = 0b0111110,     // Mon–Fri
         calendarEventID: String? = nil,
+        specificDate: Date? = nil,
         isEnabled: Bool = true,
         source: ContextSource? = nil,
         confidence: Double? = nil
@@ -179,6 +185,7 @@ public struct ContextBlock: Codable, Identifiable, Sendable, Equatable, Hashable
         self.endHour = endHour
         self.activeDays = activeDays
         self.calendarEventID = calendarEventID
+        self.specificDate = specificDate
         self.isEnabled = isEnabled
         self.source = source
         self.confidence = confidence
@@ -186,12 +193,28 @@ public struct ContextBlock: Codable, Identifiable, Sendable, Equatable, Hashable
 
     // MARK: - Helpers
 
-    /// Whether this block is active on a given weekday.
+    /// Whether this block is active on a given weekday (legacy — does NOT check `specificDate`).
     /// - Parameter weekday: Calendar weekday (1 = Sunday, 2 = Monday, ..., 7 = Saturday).
+    /// - Note: Prefer `isActive(on:)` when you have a full `Date`, as it correctly
+    ///   restricts one-off calendar events to their exact day.
     public func isActive(weekday: Int) -> Bool {
         guard weekday >= 1 && weekday <= 7 else { return false }
         let bit = weekday - 1  // 0-based
         return activeDays & (1 << bit) != 0
+    }
+
+    /// Whether this block is active on a given calendar date.
+    ///
+    /// - For one-off events (`specificDate != nil`): only returns `true` on the exact calendar day.
+    /// - For recurring blocks (`specificDate == nil`): delegates to the weekday bitmask.
+    ///
+    /// - Parameter date: The calendar date to check.
+    public func isActive(on date: Date) -> Bool {
+        if let specific = specificDate {
+            return Calendar.current.isDate(date, inSameDayAs: specific)
+        }
+        let weekday = Calendar.current.component(.weekday, from: date)
+        return isActive(weekday: weekday)
     }
 
     /// Duration in hours. Handles overnight blocks (e.g. 22:00–06:00 = 8h).
@@ -217,7 +240,15 @@ public struct ContextBlock: Codable, Identifiable, Sendable, Equatable, Hashable
 
     /// Short formatted active-days string using locale-aware day abbreviations.
     /// Returns nil if no days are active.
+    /// For one-off events with `specificDate`, returns the formatted date (e.g. "26 Mar").
     public var activeDaysShort: String? {
+        // One-off event: show the specific date instead of weekday pattern
+        if let specific = specificDate {
+            let fmt = DateFormatter()
+            fmt.dateStyle = .medium
+            fmt.timeStyle = .none
+            return fmt.string(from: specific)
+        }
         // veryShortWeekdaySymbols: index 0 = Sunday, 1 = Monday, …, 6 = Saturday
         let labels = Calendar.current.veryShortWeekdaySymbols
         var active: [String] = []

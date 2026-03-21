@@ -38,15 +38,41 @@ struct CoachTipOverlay: View {
     // MARK: - Helpers
 
     private var localizedTitle: String {
-        let key = "coach.\(insight.issueKey.rawValue).title"
-        let localized = NSLocalizedString(key, bundle: bundle, comment: "")
-        return localized != key ? localized : insight.title
+        localizedCoachString(
+            "coach.issue.\(insight.issueKey.rawValue).title",
+            fallback: insight.title,
+            args: insight.args,
+            stringArgs: insight.stringArgs
+        )
     }
 
     private var localizedAction: String {
-        let key = "coach.\(insight.issueKey.rawValue).action"
-        let localized = NSLocalizedString(key, bundle: bundle, comment: "")
-        return localized != key ? localized : insight.action
+        localizedCoachString(
+            "coach.issue.\(insight.issueKey.rawValue).action",
+            fallback: insight.action,
+            args: insight.args,
+            stringArgs: insight.stringArgs
+        )
+    }
+
+    /// Resolve a coach localization key with optional format args; falls back to English `fallback`.
+    private func localizedCoachString(_ key: String, fallback: String, args: [Double], stringArgs: [String] = []) -> String {
+        let raw = NSLocalizedString(key, bundle: bundle, comment: "")
+        let resolved = raw == key ? fallback : raw
+        if !stringArgs.isEmpty {
+            switch stringArgs.count {
+            case 1: return String(format: resolved, stringArgs[0])
+            case 2: return String(format: resolved, stringArgs[0], stringArgs[1])
+            default: return resolved
+            }
+        }
+        guard !args.isEmpty else { return resolved }
+        switch args.count {
+        case 1: return String(format: resolved, args[0])
+        case 2: return String(format: resolved, args[0], args[1])
+        case 3: return String(format: resolved, args[0], args[1], args[2])
+        default: return resolved
+        }
     }
 
     private var severityIcon: String {

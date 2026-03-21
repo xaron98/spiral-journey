@@ -50,10 +50,7 @@ struct DNATierSection: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(SpiralColors.surface.opacity(0.6))
-        )
+        .liquidGlass(cornerRadius: 12)
     }
 
     // MARK: - Localization

@@ -168,7 +168,7 @@ public enum ConclusionsEngine {
         }
         categories.append(CategoryScore(
             id: "pattern", label: "Pattern",
-            value: topSig?.label ?? "--",
+            value: topSig?.id ?? "--",
             score: Int(patternSc.rounded()), status: statusOf(patternSc),
             detail: topSig?.description ?? "Insufficient data",
             labelKey: .pattern,

@@ -68,10 +68,10 @@ struct DayDetailView: View {
 
             // Cosinor parameters
             HStack(spacing: 12) {
-                cosinorStat("Acrophase", value: SleepStatistics.formatHour(record.cosinor.acrophase))
-                cosinorStat("Amplitude", value: String(format: "%.2f", record.cosinor.amplitude))
-                cosinorStat("MESOR",     value: String(format: "%.2f", record.cosinor.mesor))
-                cosinorStat("R²",        value: String(format: "%.2f", record.cosinor.r2))
+                cosinorStat(NSLocalizedString("day.cosinor.acrophase", bundle: bundle, comment: ""), value: SleepStatistics.formatHour(record.cosinor.acrophase))
+                cosinorStat(NSLocalizedString("day.cosinor.amplitude", bundle: bundle, comment: ""), value: String(format: "%.2f", record.cosinor.amplitude))
+                cosinorStat(NSLocalizedString("day.cosinor.mesor", bundle: bundle, comment: ""),     value: String(format: "%.2f", record.cosinor.mesor))
+                cosinorStat(NSLocalizedString("day.cosinor.r2", bundle: bundle, comment: ""),        value: String(format: "%.2f", record.cosinor.r2))
             }
         }
         .panelStyle()

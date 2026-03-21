@@ -123,7 +123,7 @@ struct SpiralTab: View {
                                 lastInteractionTime = Date()
 
                                 let spiralSize = CGSize(
-                                    width: screen.size.width - 32,
+                                    width: screen.size.width,
                                     height: screen.size.height
                                 )
                                 let scaleDays = max(1, Int(ceil(maxReachedTurns)))
@@ -213,7 +213,6 @@ struct SpiralTab: View {
                                 lastInteractionTime = Date()
                             }
                     )
-                    .padding(.horizontal, 16)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .opacity(spiralGrowthProgress > 0 ? 1.0 : 0)
                     .reportFrame(\.spiralArea)
@@ -370,7 +369,7 @@ struct SpiralTab: View {
                                         // at the current position. This maps each pixel of mouse
                                         // movement to the correct number of hours along the curve,
                                         // responding to every tiny movement without any search.
-                                        let spiralSize = CGSize(width: screen.size.width - 32,
+                                        let spiralSize = CGSize(width: screen.size.width,
                                                                 height: screen.size.height)
                                         let scaleDays = max(1, Int(ceil(maxReachedTurns)))
                                         let maxHours  = Double(maxDays) * store.period
@@ -1672,7 +1671,7 @@ struct EventGridView: View {
         VStack(spacing: 6) {
             LazyVGrid(columns: columns, spacing: 6) {
                 ForEach(EventType.allCases, id: \.self) { type in
-                    GlassEventButton(type: type) {
+                    GlassEventButton(type: type, bundle: bundle) {
                         let event = CircadianEvent(
                             type: type,
                             absoluteHour: cursorAbsHour,
@@ -1707,7 +1706,7 @@ struct EventGridView: View {
                                 .font(.caption2)
                                 .foregroundStyle(Color(hex: event.type.hexColor))
                                 .frame(width: 12)
-                            Text(event.type.label)
+                            Text(NSLocalizedString("event.type.\(event.type.rawValue)", bundle: bundle, comment: ""))
                                 .font(.caption2.monospaced())
                                 .foregroundStyle(SpiralColors.text)
                             Spacer()
@@ -1734,6 +1733,7 @@ struct EventGridView: View {
 
 private struct GlassEventButton: View {
     let type: EventType
+    let bundle: Bundle
     let action: () -> Void
     @State private var pressed = false
 
@@ -1749,7 +1749,7 @@ private struct GlassEventButton: View {
                 Image(systemName: type.sfSymbol)
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(Color(hex: type.hexColor))
-                Text(type.label)
+                Text(NSLocalizedString("event.type.\(type.rawValue)", bundle: bundle, comment: ""))
                     .font(.caption2.weight(.medium).monospaced())
                     .foregroundStyle(SpiralColors.subtle)
                     .lineLimit(1)

@@ -51,7 +51,7 @@ struct ConclusionsPanelView: View {
                 .padding()
             }
             .background(SpiralColors.bg.ignoresSafeArea())
-            .navigationTitle("Spiral Journey")
+            .navigationTitle(String(localized: "app.name", bundle: bundle))
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif

@@ -90,14 +90,8 @@ public enum SleepinessRiskEngine {
         // Focus on the most recent day
         let lastDay = records.count - 1
 
-        // Determine weekday for filtering active blocks
-        let calendar = Calendar.current
-        let weekday: Int
-        if lastDay < records.count {
-            weekday = calendar.component(.weekday, from: records[lastDay].date)
-        } else {
-            weekday = calendar.component(.weekday, from: Date())
-        }
+        // Determine date for filtering active blocks (specificDate-aware)
+        let targetDate: Date = lastDay < records.count ? records[lastDay].date : Date()
 
         let lastDayPoints = points.filter { $0.day == lastDay }
         guard !lastDayPoints.isEmpty else { return [] }
@@ -105,7 +99,7 @@ public enum SleepinessRiskEngine {
         var risks: [WorkHourRisk] = []
 
         for block in activeBlocks {
-            guard block.isActive(weekday: weekday) else { continue }
+            guard block.isActive(on: targetDate) else { continue }
 
             // Collect S values during this block's hours
             let startH = Int(block.startHour) % 24

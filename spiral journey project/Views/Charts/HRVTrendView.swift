@@ -31,7 +31,7 @@ struct HRVTrendView: View {
                 statsRow
             }
         }
-        .panelStyle()
+        .glassPanel()
     }
 
     // MARK: - Sparkline

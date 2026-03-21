@@ -21,7 +21,7 @@ struct EventPanelView: View {
             // Event type buttons
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 6) {
                 ForEach(EventType.allCases, id: \.self) { type in
-                    EventTypeButton(type: type) {
+                    EventTypeButton(type: type, bundle: bundle) {
                         let event = CircadianEvent(
                             type: type,
                             absoluteHour: cursorAbsoluteHour,
@@ -41,7 +41,7 @@ struct EventPanelView: View {
                             .font(.caption)
                             .foregroundStyle(Color(hex: event.type.hexColor))
                             .frame(width: 14)
-                        Text(event.type.label)
+                        Text(NSLocalizedString("event.type.\(event.type.rawValue)", bundle: bundle, comment: ""))
                             .font(.caption.monospaced())
                             .foregroundStyle(SpiralColors.text)
                         Spacer()
@@ -75,6 +75,7 @@ struct EventPanelView: View {
 
 private struct EventTypeButton: View {
     let type: EventType
+    let bundle: Bundle
     let action: () -> Void
 
     var body: some View {
@@ -83,7 +84,7 @@ private struct EventTypeButton: View {
                 Image(systemName: type.sfSymbol)
                     .font(.body)
                     .foregroundStyle(Color(hex: type.hexColor))
-                Text(type.label)
+                Text(NSLocalizedString("event.type.\(type.rawValue)", bundle: bundle, comment: ""))
                     .font(.caption2.monospaced())
                     .foregroundStyle(SpiralColors.muted)
                     .lineLimit(1)

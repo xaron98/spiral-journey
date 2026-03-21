@@ -90,13 +90,7 @@ struct WeekComparisonCard: View {
             }
         }
         .padding(14)
-        .background(
-            ZStack {
-                RoundedRectangle(cornerRadius: 14).fill(.ultraThinMaterial)
-                RoundedRectangle(cornerRadius: 14).fill(overallTint.opacity(0.04))
-                RoundedRectangle(cornerRadius: 14).stroke(overallTint.opacity(0.2), lineWidth: 0.7)
-            }
-        )
+        .liquidGlass(cornerRadius: 16, tint: overallTint)
     }
 
     // MARK: - Spiral row (dual Canvas + drag)
