@@ -83,6 +83,9 @@ enum CloudRecordConverter {
         record["absoluteHour"] = event.absoluteHour as CKRecordValue
         record["timestamp"]    = event.timestamp as CKRecordValue
         record["note"]         = event.note as CKRecordValue?
+        if let dur = event.durationHours {
+            record["durationHours"] = dur as CKRecordValue
+        }
         record["modifiedAt"]   = modifiedAt as CKRecordValue
         return record
     }
@@ -98,7 +101,8 @@ enum CloudRecordConverter {
         else { return nil }
 
         return CircadianEvent(id: id, type: type, absoluteHour: absHour,
-                              timestamp: timestamp, note: record["note"] as? String)
+                              timestamp: timestamp, note: record["note"] as? String,
+                              durationHours: record["durationHours"] as? Double)
     }
 
     // MARK: - CloudSettings ↔ CKRecord

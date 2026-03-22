@@ -20,6 +20,10 @@ struct SpiralView: View {
     var contextBlocks: [ContextBlock] = []
     var cursorAbsHour: Double? = nil
     var sleepStartHour: Double? = nil
+    /// Active event logging: start hour (first tap placed). Nil when not logging.
+    var eventStartHour: Double? = nil
+    /// Active event logging: which event type is being logged. Nil when not logging.
+    var eventLoggingType: EventType? = nil
     /// Maximum days for scale — fixes spacing so it never shifts as spiral grows
     var numDaysHint: Int = 30
     /// Fractional turns the spiral extends to (growth frontier).
@@ -70,19 +74,26 @@ struct SpiralView: View {
     var body: some View {
         GeometryReader { geo in
             Canvas { context, size in
-                let turns = max(spiralExtentTurns ?? Double(numDaysHint), 0.1)
-                let scaleDays = max(1, Int(ceil(turns)))
+                let fullExtent = max(spiralExtentTurns ?? Double(numDaysHint), 0.1)
+                let scaleDays = max(1, Int(ceil(fullExtent)))
+                let span = visibleSpanTurns ?? 7.0
+                let cursorT = cursorAbsHour.map { $0 / max(period, 1.0) } ?? fullExtent
+                let focusT = viewportCenterTurns ?? cursorT
+                // Sliding window: offset geometry so visible turns fill [startRadius, maxRadius]
+                let windowOffset = max(focusT - span, 0)
+                let windowDays = max(1, Int(ceil(span + 1)))
                 let geo = SpiralGeometry(
                     totalDays: scaleDays,
-                    maxDays: scaleDays,
+                    maxDays: windowDays,
                     width: Double(size.width),
                     height: Double(size.height),
                     startRadius: startRadius,
                     spiralType: spiralType,
                     period: period,
-                    linkGrowthToTau: linkGrowthToTau
+                    linkGrowthToTau: linkGrowthToTau,
+                    turnOffset: windowOffset
                 )
-                drawSpiral(context: context, size: size, geo: geo, upToTurns: turns)
+                drawSpiral(context: context, size: size, geo: geo, upToTurns: fullExtent)
             }
             .background(SpiralColors.bg)
             .onTapGesture { location in
@@ -318,17 +329,17 @@ struct SpiralView: View {
                                   geo: geo, depthScale: depthScale,
                                   perspectivePower: perspectivePower)
 
-        // Render bounds: always include ALL data, not just the camera window.
-        // Data is always visible regardless of cursor position.
-        let renderFrom = 0.0
-        let renderUpTo = max(windowUpTo, extentTurns + 0.5)
+        // Render bounds: sliding window — only render data in the visible span.
+        // Combined with turnOffset geometry, this makes N turns fill the canvas properly.
+        let renderFrom = windowFrom
+        let renderUpTo = windowUpTo
 
-        // Backbone extends to cursor or data end, whichever is further
-        let backboneCap = max(floor(cursorT) + 1.0, extentTurns)
+        // Backbone covers the visible window
+        let backboneCap = windowUpTo
 
         // ── Growth animation clamp ──
         let gp = min(max(growthProgress, 0), 1)
-        let growthCutTurns = gp < 1.0 ? extentTurns * gp : Double.greatestFiniteMagnitude
+        let growthCutTurns = gp < 1.0 ? windowFrom + (windowUpTo - windowFrom) * gp : Double.greatestFiniteMagnitude
         let growthBackboneCap = gp < 1.0 ? min(backboneCap, growthCutTurns) : backboneCap
 
         let state = SpiralVisibilityEngine.resolve(
@@ -372,7 +383,9 @@ struct SpiralView: View {
         if showCosinor {
             drawCosinorOverlay(context: context, geo: geo, camera: camera, state: state, growthCutTurns: growthCutTurns)
         }
-        // 8. Events
+        // 7b. Event duration arcs (colored arcs for events with durationHours)
+        drawEventArcs(context: context, geo: geo, camera: camera, state: state, growthCutTurns: growthCutTurns)
+        // 8. Event markers (dots for all events, including duration endpoints)
         drawEventMarkers(context: context, geo: geo, camera: camera, state: state, growthCutTurns: growthCutTurns)
         // 9. Biomarkers
         if showBiomarkers {
@@ -389,6 +402,10 @@ struct SpiralView: View {
         // 13. Sleep arc
         if let cursor = cursorAbsHour, let sleepStart = sleepStartHour {
             drawSleepArc(context: context, geo: geo, camera: camera, from: sleepStart, to: cursor)
+        }
+        // 13b. Event arc preview (live arc during event logging)
+        if let cursor = cursorAbsHour, let evStart = eventStartHour, let evType = eventLoggingType {
+            drawEventPreviewArc(context: context, geo: geo, camera: camera, type: evType, from: evStart, to: cursor)
         }
         // 14. Cursor dot — only show when growth is complete (or nearly so)
         if gp > 0.95, let cursorSt = state.cursorState, cursorSt.shouldDraw {
@@ -1033,23 +1050,101 @@ struct SpiralView: View {
         let fromTurns = state.renderFromTurns
         let upToTurns = state.renderUpToTurns
         for event in events {
-            let t = event.absoluteHour / geo.period
-            guard Int(t) < geo.totalDays, t >= fromTurns, t <= upToTurns, t <= growthCutTurns else { continue }
-            guard !camera.isBehindCamera(turns: t) else { continue }
-            let vis = state.dayVisibility(for: Int(t))
-            guard vis.isVisible else { continue }
-            let pScale = camera.perspectiveScale(turns: t)
-            guard pScale >= camera.cullThreshold else { continue }
-            let p = camera.project(turns: t, geo: geo)
+            // Duration events: draw dots at both start and end
+            let positions: [Double]
+            if let dur = event.durationHours, dur > 0 {
+                positions = [event.absoluteHour, event.absoluteHour + dur]
+            } else {
+                positions = [event.absoluteHour]
+            }
             let color = Color(hex: event.type.hexColor)
-            let baseR = 5.0
-            let r = max(2.0, min(baseR * pScale, baseR * 2.0))
-            let rect = CGRect(x: p.x - r/2, y: p.y - r/2, width: r, height: r)
-            context.fill(Circle().path(in: rect), with: .color(color.opacity(vis.opacity)))
-            let strokeR = max(0.5, 1.0 * pScale)
-            context.stroke(Circle().path(in: rect.insetBy(dx: -strokeR, dy: -strokeR)),
-                           with: .color(color.opacity(0.4 * vis.opacity)), lineWidth: strokeR)
+            for absH in positions {
+                let t = absH / geo.period
+                guard t >= fromTurns, t <= upToTurns, t <= growthCutTurns else { continue }
+                guard !camera.isBehindCamera(turns: t) else { continue }
+                let vis = state.dayVisibility(for: Int(t))
+                guard vis.isVisible else { continue }
+                let pScale = camera.perspectiveScale(turns: t)
+                guard pScale >= camera.cullThreshold else { continue }
+                let p = camera.project(turns: t, geo: geo)
+                let baseR = 5.0
+                let r = max(2.0, min(baseR * pScale, baseR * 2.0))
+                let rect = CGRect(x: p.x - r/2, y: p.y - r/2, width: r, height: r)
+                context.fill(Circle().path(in: rect), with: .color(color.opacity(vis.opacity)))
+                let strokeR = max(0.5, 1.0 * pScale)
+                context.stroke(Circle().path(in: rect.insetBy(dx: -strokeR, dy: -strokeR)),
+                               with: .color(color.opacity(0.4 * vis.opacity)), lineWidth: strokeR)
+            }
         }
+    }
+
+    // MARK: - Event Duration Arcs
+
+    /// Draws colored arcs for events that have `durationHours` (exercise, screen, etc.).
+    private func drawEventArcs(context: GraphicsContext, geo: SpiralGeometry, camera: CameraState, state: SpiralRenderState, growthCutTurns: Double = .greatestFiniteMagnitude) {
+        let fromTurns = state.renderFromTurns
+        let upToTurns = state.renderUpToTurns
+        for event in events {
+            guard let duration = event.durationHours, duration > 0 else { continue }
+            let tStart = event.absoluteHour / geo.period
+            let tEnd = (event.absoluteHour + duration) / geo.period
+            guard tEnd > fromTurns, tStart < upToTurns, tStart <= growthCutTurns else { continue }
+            guard !camera.isRangeCulled(from: tStart, to: tEnd) else { continue }
+            let vis = state.dayVisibility(for: Int(tStart))
+            guard vis.isVisible else { continue }
+            let color = Color(hex: event.type.hexColor)
+            let clampedStart = max(tStart, fromTurns)
+            let clampedEnd = min(tEnd, upToTurns)
+            let arcSteps = max(12, Int((clampedEnd - clampedStart) * 60))
+            for i in 0..<arcSteps {
+                let t0 = clampedStart + (clampedEnd - clampedStart) * Double(i) / Double(arcSteps)
+                let t1 = clampedStart + (clampedEnd - clampedStart) * Double(i + 1) / Double(arcSteps)
+                guard !camera.isBehindCamera(turns: t0),
+                      !camera.isBehindCamera(turns: t1) else { continue }
+                let pt0 = camera.project(turns: t0, geo: geo)
+                let pt1 = camera.project(turns: t1, geo: geo)
+                let sc = camera.perspectiveScale(turns: (t0 + t1) * 0.5)
+                guard sc >= camera.cullThreshold else { continue }
+                let projSpacing = geo.spacing * sc
+                let lw = max(2.0, min(sc * 12.0, max(2.0, (projSpacing - 2.0) * 0.6)))
+                var seg = Path()
+                seg.move(to: pt0)
+                seg.addLine(to: pt1)
+                context.stroke(seg, with: .color(color.opacity(0.7 * vis.opacity)),
+                               style: StrokeStyle(lineWidth: lw, lineCap: .round))
+            }
+        }
+    }
+
+    /// Draws a live preview arc during event duration logging (like sleep arc but in event color).
+    private func drawEventPreviewArc(context: GraphicsContext, geo: SpiralGeometry, camera: CameraState, type: EventType, from startH: Double, to endH: Double) {
+        let lo = min(startH, endH), hi = max(startH, endH)
+        guard hi - lo > 0.01 else { return }
+        let color = Color(hex: type.hexColor)
+        var path = Path()
+        var started = false
+        var h = lo
+        while h <= hi {
+            let t = h / geo.period
+            if camera.isBehindCamera(turns: t) {
+                if started {
+                    context.stroke(path, with: .color(color.opacity(0.85)),
+                                   style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                    context.stroke(path, with: .color(.white.opacity(0.15)),
+                                   style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                    path = Path(); started = false
+                }
+                h = min(h + 0.1, hi + 0.1); continue
+            }
+            let pt = camera.project(turns: t, geo: geo)
+            if !started { path.move(to: pt); started = true } else { path.addLine(to: pt) }
+            h += 0.1
+        }
+        guard started else { return }
+        context.stroke(path, with: .color(color.opacity(0.85)),
+                       style: StrokeStyle(lineWidth: 4, lineCap: .round))
+        context.stroke(path, with: .color(.white.opacity(0.15)),
+                       style: StrokeStyle(lineWidth: 4, lineCap: .round))
     }
 
     private func drawBiomarkers(context: GraphicsContext, geo: SpiralGeometry, camera: CameraState, state: SpiralRenderState, growthCutTurns: Double = .greatestFiniteMagnitude) {

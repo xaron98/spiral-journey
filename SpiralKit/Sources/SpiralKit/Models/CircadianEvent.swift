@@ -49,27 +49,47 @@ public enum EventType: String, Codable, CaseIterable, Sendable {
         case .stress:      return "brain.head.profile"
         }
     }
+
+    /// Whether this event type supports duration logging (two-tap start/end).
+    public var hasDuration: Bool {
+        switch self {
+        case .exercise, .screenLight, .light, .meal: return true
+        case .caffeine, .melatonin, .alcohol, .stress: return false
+        }
+    }
 }
 
 /// A circadian event logged at a specific time on the spiral.
+///
+/// For duration events (exercise, screen, etc.), `durationHours` stores the span.
+/// For instant events (caffeine, melatonin, etc.), `durationHours` is nil.
 public struct CircadianEvent: Codable, Identifiable, Sendable {
     public var id: UUID
     public var type: EventType
     public var absoluteHour: Double   // position on the spiral timeline
     public var timestamp: Date
     public var note: String?
+    public var durationHours: Double? // nil = instant, >0 = duration event
+
+    /// End position on the spiral timeline (nil for instant events).
+    public var endAbsoluteHour: Double? {
+        guard let dur = durationHours else { return nil }
+        return absoluteHour + dur
+    }
 
     public init(
         id: UUID = UUID(),
         type: EventType,
         absoluteHour: Double,
         timestamp: Date = Date(),
-        note: String? = nil
+        note: String? = nil,
+        durationHours: Double? = nil
     ) {
         self.id = id
         self.type = type
         self.absoluteHour = absoluteHour
         self.timestamp = timestamp
         self.note = note
+        self.durationHours = durationHours
     }
 }

@@ -16,6 +16,8 @@ final class SDCircadianEvent {
     var absoluteHour: Double
     var timestamp: Date
     var note: String?
+    /// Duration in hours for duration events (exercise, screen, etc.). Nil for instant events.
+    var durationHours: Double?
 
     // MARK: Init
 
@@ -24,13 +26,15 @@ final class SDCircadianEvent {
         type: String,
         absoluteHour: Double,
         timestamp: Date = Date(),
-        note: String? = nil
+        note: String? = nil,
+        durationHours: Double? = nil
     ) {
         self.eventID = eventID
         self.type = type
         self.absoluteHour = absoluteHour
         self.timestamp = timestamp
         self.note = note
+        self.durationHours = durationHours
     }
 
     // MARK: Converters
@@ -42,7 +46,8 @@ final class SDCircadianEvent {
             type: event.type.rawValue,
             absoluteHour: event.absoluteHour,
             timestamp: event.timestamp,
-            note: event.note
+            note: event.note,
+            durationHours: event.durationHours
         )
     }
 
@@ -53,7 +58,8 @@ final class SDCircadianEvent {
             type: EventType(rawValue: type) ?? .light,
             absoluteHour: absoluteHour,
             timestamp: timestamp,
-            note: note
+            note: note,
+            durationHours: durationHours
         )
     }
 }

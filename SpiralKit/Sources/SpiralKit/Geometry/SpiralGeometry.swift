@@ -24,6 +24,9 @@ public struct SpiralGeometry: Sendable {
     public let spiralType: SpiralType
     public let period: Double           // hours per revolution (usually 24)
     public let linkGrowthToTau: Bool
+    /// Sliding window offset: shifts radius so `radius(turns: turnOffset) = startRadius`.
+    /// This maps the visible window [turnOffset, turnOffset + maxDays] to [startRadius, maxRadius].
+    public let turnOffset: Double
 
     public init(
         totalDays: Int,
@@ -33,7 +36,8 @@ public struct SpiralGeometry: Sendable {
         startRadius: Double = 20,
         spiralType: SpiralType = .archimedean,
         period: Double = 24,
-        linkGrowthToTau: Bool = false
+        linkGrowthToTau: Bool = false,
+        turnOffset: Double = 0
     ) {
         self.totalDays = totalDays
         self.maxDays = maxDays ?? totalDays
@@ -43,6 +47,7 @@ public struct SpiralGeometry: Sendable {
         self.spiralType = spiralType
         self.period = period
         self.linkGrowthToTau = linkGrowthToTau
+        self.turnOffset = turnOffset
     }
 
     // MARK: - Derived geometry
@@ -78,12 +83,14 @@ public struct SpiralGeometry: Sendable {
     }
 
     /// Radius at a given number of turns from center.
+    /// When `turnOffset > 0`, the radius is shifted so that `radius(turns: turnOffset) = startRadius`.
     public func radius(turns: Double) -> Double {
+        let t = turns - turnOffset
         switch spiralType {
         case .logarithmic:
-            return startRadius * exp(growthRate * turns)
+            return startRadius * exp(growthRate * t)
         case .archimedean:
-            return startRadius + spacing * turns
+            return startRadius + spacing * t
         }
     }
 
@@ -159,7 +166,7 @@ public struct SpiralGeometry: Sendable {
         // h=24 into the loop, producing a duplicate 00:00 label at the wrong angle.
         let step: Double = period <= 24 ? 3 : period / 8
         // Use at least 7 days so labels stay near the canvas edge with few records.
-        let refDay = max(maxDays, totalDays, 7)
+        let refDay = max(maxDays, 7) + Int(turnOffset)
         var h = 0.0
         while h < period {
             let p = point(day: refDay, hour: h + period / 2)
@@ -176,7 +183,7 @@ public struct SpiralGeometry: Sendable {
 
     /// Radial guide lines from center to edge.
     public func radialLines() -> [RadialLine] {
-        let refTurns = Double(max(maxDays, totalDays, 7)) + 1
+        let refTurns = Double(max(maxDays, 7)) + turnOffset + 1
         let outerR = radius(turns: refTurns) + 20
         var lines: [RadialLine] = []
         // Same fix as hourLabels: no rounding to prevent duplicate 00 radial line.

@@ -18,6 +18,9 @@ struct SpiralTab: View {
     // Sleep logging
     @State private var cursorAbsHour: Double = 0
     @State private var sleepStartHour: Double? = nil
+    // Duration event logging
+    @State private var eventLoggingType: EventType? = nil
+    @State private var eventStartHour: Double? = nil
     /// True when the cursor tracks real-world time automatically.
     /// Set to false when the user drags the cursor to a past hour.
     @State private var isCursorLive: Bool = true
@@ -96,6 +99,8 @@ struct SpiralTab: View {
                         contextBlocks: store.contextBlocksEnabled ? store.contextBlocks : [],
                         cursorAbsHour: cursorAbsHour,
                         sleepStartHour: sleepStartHour,
+                        eventStartHour: eventStartHour,
+                        eventLoggingType: eventLoggingType,
                         numDaysHint: effectiveNumDaysHint,
                         spiralExtentTurns: effectiveSpiralExtent,
                         viewportCenterTurns: smoothCameraCenterTurns - (0.5 - cameraFrontPadding),
@@ -452,7 +457,12 @@ struct SpiralTab: View {
                     cursorAbsHour: cursorAbsHour,
                     bundle: bundle,
                     onAdd: { store.addEvent($0) },
-                    onRemove: { store.removeEvent(id: $0) }
+                    onRemove: { store.removeEvent(id: $0) },
+                    onStartDuration: { type in
+                        guard sleepStartHour == nil else { return }
+                        eventLoggingType = type
+                        showEventSheet2 = false
+                    }
                 )
                 .presentationDetents([.medium])
                 .presentationDragIndicator(.visible)
@@ -618,7 +628,21 @@ struct SpiralTab: View {
 
         let statusText: String
         let statusColor: Color
-        if let ss = sleepStartHour {
+        if let eventType = eventLoggingType {
+            let evtColor = Color(hex: eventType.hexColor)
+            if let es = eventStartHour {
+                let dur = abs(absH - es)
+                let mins = Int(dur * 60)
+                let h = mins / 60
+                let m = mins % 60
+                let durStr = h > 0 ? "\(h)h\(m)m" : "\(m)m"
+                statusText  = "\(eventType.label) (\(durStr))"
+                statusColor = evtColor
+            } else {
+                statusText  = "Tap \u{25B6} \(eventType.label)"
+                statusColor = evtColor
+            }
+        } else if let ss = sleepStartHour {
             let dur = abs(absH - ss)
             statusText  = String(format: String(localized: "spiral.cursor.saveWake", bundle: bundle), dur)
             statusColor = SpiralColors.awakeSleep
@@ -1002,20 +1026,34 @@ struct SpiralTab: View {
             }
             .buttonStyle(.plain)
 
-            // Central sleep/wake button — original style with liquid glass
-            Button { handleLogButton() } label: {
+            // Central sleep/wake/event button — original style with liquid glass
+            Button {
+                if eventLoggingType != nil {
+                    handleEventLogButton()
+                } else {
+                    handleLogButton()
+                }
+            } label: {
                 ZStack {
                     Circle()
-                        .fill(sleepStartHour != nil ? SpiralColors.awakeSleep : Color(hex: "7c3aed"))
+                        .fill(logButtonColor)
                         .frame(width: 64, height: 64)
-                        .shadow(color: (sleepStartHour != nil ? SpiralColors.awakeSleep : Color(hex: "7c3aed")).opacity(0.5), radius: 10)
-                    Image(systemName: sleepStartHour != nil ? "sun.max.fill" : "moon.fill")
+                        .shadow(color: logButtonColor.opacity(0.5), radius: 10)
+                    Image(systemName: logButtonIcon)
                         .font(.title.weight(.semibold))
                         .foregroundStyle(.white)
                 }
                 .liquidGlass(circular: true)
             }
             .buttonStyle(.plain)
+            .simultaneousGesture(
+                LongPressGesture(minimumDuration: 0.5)
+                    .onEnded { _ in
+                        sleepStartHour = nil
+                        eventLoggingType = nil
+                        eventStartHour = nil
+                    }
+            )
 
             // Coach tip button (right, small)
             Button {
@@ -1040,6 +1078,26 @@ struct SpiralTab: View {
 
     // MARK: - Log button
 
+    private var logButtonIcon: String {
+        if let eventType = eventLoggingType {
+            return eventType.sfSymbol
+        } else if sleepStartHour != nil {
+            return "sun.max.fill"
+        } else {
+            return "moon.fill"
+        }
+    }
+
+    private var logButtonColor: Color {
+        if let eventType = eventLoggingType {
+            return Color(hex: eventType.hexColor)
+        } else if sleepStartHour != nil {
+            return SpiralColors.awakeSleep
+        } else {
+            return Color(hex: "7c3aed")
+        }
+    }
+
     private func handleLogButton() {
         if sleepStartHour == nil {
             sleepStartHour = cursorAbsHour
@@ -1055,6 +1113,30 @@ struct SpiralTab: View {
                 if endTurns > maxReachedTurns { maxReachedTurns = endTurns }
             }
             sleepStartHour = nil
+        }
+    }
+
+    private func handleEventLogButton() {
+        guard let eventType = eventLoggingType else { return }
+        if eventStartHour == nil {
+            // First tap: mark start
+            eventStartHour = cursorAbsHour
+        } else {
+            // Second tap: create event with duration
+            let start = min(eventStartHour!, cursorAbsHour)
+            let end   = max(eventStartHour!, cursorAbsHour)
+            let duration = end - start
+            if duration >= 5.0 / 60.0 {  // Minimum 5 minutes
+                let event = CircadianEvent(
+                    type: eventType,
+                    absoluteHour: start,
+                    timestamp: Date(),
+                    durationHours: duration
+                )
+                store.addEvent(event)
+            }
+            eventStartHour = nil
+            eventLoggingType = nil
         }
     }
 
@@ -1572,6 +1654,7 @@ struct EventSheetView: View {
     let bundle: Bundle
     let onAdd: (CircadianEvent) -> Void
     let onRemove: (UUID) -> Void
+    var onStartDuration: ((EventType) -> Void)? = nil
 
     var body: some View {
         VStack(spacing: 0) {
@@ -1593,7 +1676,7 @@ struct EventSheetView: View {
             .padding(.bottom, 16)
 
             EventGridView(events: events, cursorAbsHour: cursorAbsHour, bundle: bundle,
-                          onAdd: onAdd, onRemove: onRemove)
+                          onAdd: onAdd, onRemove: onRemove, onStartDuration: onStartDuration)
                 .padding(.horizontal, 16)
 
             Spacer()
@@ -1663,6 +1746,7 @@ struct EventGridView: View {
     let bundle: Bundle
     let onAdd: (CircadianEvent) -> Void
     let onRemove: (UUID) -> Void
+    var onStartDuration: ((EventType) -> Void)? = nil
     @State private var showLog = false
 
     private let columns = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
@@ -1672,12 +1756,16 @@ struct EventGridView: View {
             LazyVGrid(columns: columns, spacing: 6) {
                 ForEach(EventType.allCases, id: \.self) { type in
                     GlassEventButton(type: type, bundle: bundle) {
-                        let event = CircadianEvent(
-                            type: type,
-                            absoluteHour: cursorAbsHour,
-                            timestamp: Date()
-                        )
-                        onAdd(event)
+                        if type.hasDuration, let startDuration = onStartDuration {
+                            startDuration(type)
+                        } else {
+                            let event = CircadianEvent(
+                                type: type,
+                                absoluteHour: cursorAbsHour,
+                                timestamp: Date()
+                            )
+                            onAdd(event)
+                        }
                     }
                 }
             }
@@ -1713,6 +1801,14 @@ struct EventGridView: View {
                             Text(SleepStatistics.formatHour(event.absoluteHour.truncatingRemainder(dividingBy: 24)))
                                 .font(.caption2.monospaced())
                                 .foregroundStyle(SpiralColors.muted)
+                            if let dur = event.durationHours {
+                                Text("\u{2192}")
+                                    .font(.caption2)
+                                    .foregroundStyle(SpiralColors.subtle)
+                                Text(SleepStatistics.formatHour((event.absoluteHour + dur).truncatingRemainder(dividingBy: 24)))
+                                    .font(.caption2.monospaced())
+                                    .foregroundStyle(SpiralColors.muted)
+                            }
                             Button {
                                 onRemove(event.id)
                             } label: {
