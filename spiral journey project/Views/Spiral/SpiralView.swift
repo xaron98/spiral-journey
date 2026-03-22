@@ -1192,13 +1192,13 @@ struct SpiralView: View {
         let enabledBlocks = contextBlocks.filter(\.isEnabled)
         guard !enabledBlocks.isEmpty else { return }
 
-        let window = state.visibleWindow
+        let fromTurns = state.renderFromTurns
         let upToTurns = state.renderUpToTurns
 
-        // Iterate all days that could have context blocks — not just the
-        // camera window. Data is always visible regardless of cursor position.
-        let maxDay = max(window.endIndex, Int(upToTurns) + 1)
-        for day in 0...maxDay {
+        // Only iterate days inside the render window (sliding window)
+        let minDay = max(0, Int(floor(fromTurns)))
+        let maxDay = Int(ceil(upToTurns)) + 1
+        for day in minDay...maxDay {
             let dayTurns = Double(day)
             guard dayTurns <= growthCutTurns else { continue }
             // Viewport culling: skip entire day if fully behind camera / below threshold
