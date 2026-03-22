@@ -19,7 +19,6 @@ struct SpiralHomeStatsSheet: View {
                     if store.predictionEnabled, let pred = store.latestPrediction {
                         predictionCard(pred)
                     }
-                    humanStatsRow
                     rephasePill
                 }
                 .padding(.horizontal, 16)
@@ -124,47 +123,46 @@ struct SpiralHomeStatsSheet: View {
     // MARK: - Prediction Card
 
     private func predictionCard(_ pred: PredictionOutput) -> some View {
-        HStack(spacing: 14) {
-            ZStack {
-                Circle()
-                    .fill(SpiralColors.accent.opacity(0.15))
-                    .frame(width: 52, height: 52)
-                Image(systemName: "moon.stars.fill")
-                    .font(.title2)
-                    .foregroundStyle(SpiralColors.accent)
+        VStack(alignment: .leading, spacing: 8) {
+            Text(loc("prediction.card.title"))
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(SpiralColors.subtle)
+                .textCase(.uppercase)
+
+            Text("\(formatClockHour(pred.predictedBedtimeHour))  →  \(formatClockHour(pred.predictedWakeHour))")
+                .font(.title2.weight(.bold).monospaced())
+                .foregroundStyle(SpiralColors.text)
+
+            HStack(spacing: 8) {
+                Text(String(format: "~%.1fh", pred.predictedDuration))
+                    .font(.footnote)
+                    .foregroundStyle(SpiralColors.muted)
+                Text("·")
+                    .foregroundStyle(SpiralColors.subtle)
+                Text(confidenceText(pred.confidence))
+                    .font(.footnote.weight(.medium))
+                    .foregroundStyle(confidenceColor(pred.confidence))
             }
-            VStack(alignment: .leading, spacing: 4) {
-                Text(loc("prediction.card.title"))
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(SpiralColors.text)
-                HStack(spacing: 16) {
-                    Label(formatClockHour(pred.predictedBedtimeHour), systemImage: "bed.double.fill")
-                    Label(formatClockHour(pred.predictedWakeHour), systemImage: "alarm.fill")
-                    Label(String(format: "%.1fh", pred.predictedDuration), systemImage: "hourglass")
-                }
-                .font(.footnote.monospaced())
-                .foregroundStyle(SpiralColors.muted)
-                HStack(spacing: 6) {
-                    predictionConfidenceBadge(pred.confidence)
-                }
-            }
-            Spacer()
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(14)
         .liquidGlass(cornerRadius: 20)
     }
 
-    private func predictionConfidenceBadge(_ confidence: PredictionConfidence) -> some View {
-        let (text, color): (String, Color) = {
-            switch confidence {
-            case .high:   return ("●●●", Color(hex: "34d399"))
-            case .medium: return ("●●○", Color(hex: "fbbf24"))
-            case .low:    return ("●○○", Color(hex: "f87171"))
-            }
-        }()
-        return Text(text)
-            .font(.caption.monospaced())
-            .foregroundStyle(color)
+    private func confidenceText(_ c: PredictionConfidence) -> String {
+        switch c {
+        case .high:   return loc("prediction.confidence.high")
+        case .medium: return loc("prediction.confidence.medium")
+        case .low:    return loc("prediction.confidence.low")
+        }
+    }
+
+    private func confidenceColor(_ c: PredictionConfidence) -> Color {
+        switch c {
+        case .high:   return SpiralColors.good
+        case .medium: return SpiralColors.moderate
+        case .low:    return SpiralColors.poor
+        }
     }
 
     // MARK: - Human Stats Row

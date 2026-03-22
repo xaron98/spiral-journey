@@ -377,8 +377,11 @@ private struct NightCell: View {
         return Color(hex: "5bffa8")
     }
 
+    private var hasBothIssues: Bool {
+        isGlobalShift && isLocalDisruption
+    }
+
     private var durationHeight: CGFloat {
-        // Map 0–10h → 8–36 pt
         let clamped = min(max(record.sleepDuration, 0), 10)
         return 8 + CGFloat(clamped / 10) * 28
     }
@@ -390,6 +393,13 @@ private struct NightCell: View {
                 .fill(cellColor.opacity(0.8))
                 .frame(maxWidth: .infinity)
                 .frame(height: durationHeight)
+                .overlay(
+                    // Yellow border when both global shift + local disruption
+                    hasBothIssues ?
+                        RoundedRectangle(cornerRadius: 3)
+                            .stroke(Color(hex: "f5c842"), lineWidth: 2)
+                        : nil
+                )
             Text(String(format: "%.1fh", record.sleepDuration))
                 .font(.caption2.monospaced())
                 .foregroundStyle(SpiralColors.muted)
