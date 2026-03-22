@@ -329,8 +329,7 @@ struct SpiralView: View {
                                   geo: geo, depthScale: depthScale,
                                   perspectivePower: perspectivePower)
 
-        // Render bounds: sliding window — only render data in the visible span.
-        // Combined with turnOffset geometry, this makes N turns fill the canvas properly.
+        // Render bounds: sliding window.
         let renderFrom = windowFrom
         let renderUpTo = windowUpTo
 
@@ -338,6 +337,8 @@ struct SpiralView: View {
         let backboneCap = windowUpTo
 
         // ── Growth animation clamp ──
+        // Animate from windowFrom (inner visible edge) to windowUpTo (cursor).
+        // The path draws from the innermost visible turn outward.
         let gp = min(max(growthProgress, 0), 1)
         let growthCutTurns = gp < 1.0 ? windowFrom + (windowUpTo - windowFrom) * gp : Double.greatestFiniteMagnitude
         let growthBackboneCap = gp < 1.0 ? min(backboneCap, growthCutTurns) : backboneCap
@@ -363,14 +364,19 @@ struct SpiralView: View {
             let radialLimit = gp < 1.0 ? min(state.renderUpToTurns, growthCutTurns) : state.renderUpToTurns
             drawRadialLines(context: context, geo: geo, upToTurns: radialLimit)
         }
-        // 3. Vigilia path (backbone)
-        drawSpiralPath(context: context, geo: geo, camera: camera, state: state)
+        // 3. Vigilia path (backbone) — respect growth animation
+        if gp >= 1.0 {
+            drawSpiralPath(context: context, geo: geo, camera: camera, state: state)
+        } else {
+            drawSpiralPath(context: context, geo: geo, camera: camera,
+                          fromTurns: state.renderFromTurns, upToTurns: growthCutTurns)
+        }
         // 4. Two-process model
         if showTwoProcess {
             drawTwoProcess(context: context, geo: geo, camera: camera, state: state, growthCutTurns: growthCutTurns)
         }
-        // 4b. Glow under sleep data (intensity-gated)
-        if glowIntensity > 0.01 {
+        // 4b. Glow under sleep data (intensity-gated) — respect growth animation
+        if glowIntensity > 0.01 && gp >= 1.0 {
             drawDataGlow(context: context, geo: geo, camera: camera, state: state)
         }
         // 5. Data points (phase strokes)
@@ -942,7 +948,9 @@ struct SpiralView: View {
         // Drawn OUTSIDE the record loop so it always renders, even when
         // the last record is not visible (cursor far in the future).
         // The vigilia path extends from where data ends to the cursor.
-        if let lastRec = lastRecord, let cursorH = cursorAbsHour {
+        // During growth animation, only draw if the cursor is within growthCutTurns.
+        if let lastRec = lastRecord, let cursorH = cursorAbsHour,
+           cursorH / geo.period <= growthCutTurns {
             let tCursor = cursorH / geo.period
             let tWakeRaw = geo.turns(day: lastRec.day, hour: lastRec.wakeupHour)
             let tDataEnd = state.dataEndTurns

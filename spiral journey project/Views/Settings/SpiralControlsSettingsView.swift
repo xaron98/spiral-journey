@@ -206,6 +206,20 @@ struct SpiralControlsSettingsView: View {
 
                     Divider().background(SpiralColors.border.opacity(0.5))
 
+                    // Reveal animation toggle
+                    HStack {
+                        Text(String(localized: "spiral.controls.revealAnimation", bundle: bundle))
+                            .font(.subheadline.monospaced())
+                            .foregroundStyle(SpiralColors.text)
+                        Spacer()
+                        Toggle("", isOn: $store.spiralRevealAnimation)
+                            .labelsHidden()
+                            .tint(SpiralColors.accent)
+                    }
+                    .padding(.vertical, 12)
+
+                    Divider().background(SpiralColors.border.opacity(0.5))
+
                     // Grid guides toggle
                     HStack {
                         Text(String(localized: "spiral.controls.grid", bundle: bundle))

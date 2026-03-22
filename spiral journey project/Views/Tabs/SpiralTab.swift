@@ -492,8 +492,23 @@ struct SpiralTab: View {
         }
         .onAppear {
             initCursor()
-            // Animate the spiral growing from center — 2.5s for dramatic Liquid Glass reveal
-            withAnimation(.easeInOut(duration: 2.5).delay(0.2)) {
+            // Animate the spiral path drawing from inner edge to cursor over 2s.
+            if store.spiralRevealAnimation {
+                let animDuration = 2.0
+                let fps = 60.0
+                let totalFrames = Int(animDuration * fps)
+                var frame = 0
+                Timer.scheduledTimer(withTimeInterval: 1.0 / fps, repeats: true) { timer in
+                    frame += 1
+                    let t = Double(frame) / Double(totalFrames)
+                    let eased = 1.0 - pow(1.0 - t, 3)
+                    spiralGrowthProgress = min(eased, 1.0)
+                    if frame >= totalFrames {
+                        spiralGrowthProgress = 1.0
+                        timer.invalidate()
+                    }
+                }
+            } else {
                 spiralGrowthProgress = 1.0
             }
             // Stagger floating UI elements: appear 1s after spiral starts

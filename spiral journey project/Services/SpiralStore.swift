@@ -159,6 +159,9 @@ final class SpiralStore {
     var glowIntensity: Double = 0.3 {
         didSet { save() }
     }
+    var spiralRevealAnimation: Bool = true {
+        didSet { save() }
+    }
     var language: AppLanguage = .systemMatch {
         didSet {
             settingsNeedCloudPush = true
@@ -932,6 +935,7 @@ final class SpiralStore {
         var depthScale: Double?
         var showGrid: Bool?
         var glowIntensity: Double?
+        var spiralRevealAnimation: Bool?
         var language: AppLanguage?
         var appearance: AppAppearance?
         var rephasePlan: RephasePlan?
@@ -998,6 +1002,7 @@ final class SpiralStore {
             depthScale: depthScale,
             showGrid: showGrid,
             glowIntensity: glowIntensity,
+            spiralRevealAnimation: spiralRevealAnimation,
             language: language,
             appearance: appearance,
             rephasePlan: rephasePlan,
@@ -1072,6 +1077,7 @@ final class SpiralStore {
         }
         if let grid = stored.showGrid    { showGrid = grid }
         if let gi  = stored.glowIntensity { glowIntensity = gi }
+        if let sra = stored.spiralRevealAnimation { spiralRevealAnimation = sra }
         if let lang = stored.language {
             // Migrate: if the stored language was set before the "System" option existed,
             // reset to .system so the app follows the device language going forward.
@@ -1134,6 +1140,7 @@ final class SpiralStore {
             depthScale: depthScale,
             showGrid: showGrid,
             glowIntensity: glowIntensity,
+            spiralRevealAnimation: spiralRevealAnimation,
             language: language,
             appearance: appearance,
             rephasePlan: rephasePlan,
