@@ -50,9 +50,12 @@ private func loadEntry() -> SpiralEntry {
         startDate: snapshot.startDate
     )
 
+    // Only pass the last 7 records to the widget
+    let widgetRecords = Array(records.suffix(7))
+
     return SpiralEntry(
         date: .now,
-        records: records,
+        records: widgetRecords,
         spiralType: snapshot.spiralType ?? .logarithmic,
         period: snapshot.period ?? 24.0,
         depthScale: snapshot.depthScale ?? 1.5,

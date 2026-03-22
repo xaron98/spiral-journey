@@ -30,9 +30,9 @@ struct WidgetSpiralCanvas: View {
         return best
     }
 
-    // Show the most recent ~5 days (or all data if less)
+    // Show the most recent 7 days
     private var visibleDays: Double {
-        min(spiralExtentTurns, 5.0)
+        min(spiralExtentTurns, 7.0)
     }
 
     var body: some View {
@@ -41,74 +41,35 @@ struct WidgetSpiralCanvas: View {
             // no manual fill here to avoid a visible inner rectangle.
 
             let turns = max(spiralExtentTurns, 0.1)
-            let scaleDays = max(1, Int(ceil(turns)))
+            // Offset so only the last 7 turns fill the widget — no empty center
+            let windowFrom = max(turns - 7, 0)
             let geo = SpiralGeometry(
-                totalDays: scaleDays,
-                maxDays:   max(scaleDays, 7),
+                totalDays: max(Int(ceil(turns)), 7),
+                maxDays:   7,
                 width:     size.width,
                 height:    size.height,
-                startRadius: 5,
-                spiralType: spiralType,
-                period:    period
+                startRadius: 0.5,
+                spiralType: .archimedean,
+                period:    period,
+                turnOffset: windowFrom
             )
-            let maxVisible = min(turns, cameraMaxVisibleTurn(geo: geo))
 
-            // Scale the spiral up to fill the widget area (same as Watch)
-            let spiralScale: CGFloat = 2.6
-            let tx = geo.cx * (1 - spiralScale)
-            let ty = geo.cy * (1 - spiralScale)
-            var scaledCtx = context
-            scaledCtx.concatenate(CGAffineTransform(a: spiralScale, b: 0, c: 0, d: spiralScale, tx: tx, ty: ty))
-
-            drawDayRings(context: scaledCtx, geo: geo, upToTurns: maxVisible)
-            drawRadialLines(context: scaledCtx, geo: geo)
-            drawDataPoints(context: scaledCtx, geo: geo)
+            drawDayRings(context: context, geo: geo, upToTurns: turns)
+            drawRadialLines(context: context, geo: geo)
+            drawDataPoints(context: context, geo: geo)
             if showHourLabels {
                 drawHourLabels(context: context, geo: geo)
             }
         }
     }
 
-    // MARK: - Projection (identical to WatchSpiralCanvas)
+    // MARK: - Projection (flat 2D — direct geometry)
 
     private func project(turns t: Double, geo: SpiralGeometry) -> CGPoint {
         let day = Int(t)
         let hr  = (t - Double(day)) * geo.period
-        let flat = geo.point(day: day, hour: hr)
-
-        let totalT  = max(spiralExtentTurns, 0.5)
-        let margin  = 0.35
-        let visible = max(visibleDays + margin, 1.0 + margin)
-        let cx = geo.cx, cy = geo.cy
-        let wx = flat.x - cx, wy = flat.y - cy
-        let zStep    = geo.maxRadius * depthScale
-        let tRef     = totalT + margin
-        let wz       = (tRef - t) * zStep
-        let focalLen = geo.maxRadius * 1.2
-        let tTarget  = min(visible, tRef)
-        let rTarget  = max(geo.radius(turns: min(tTarget, totalT)), 1.0)
-        let wzTarget = (tRef - tTarget) * zStep
-        let dzTarget = focalLen * rTarget / geo.maxRadius
-        let camZ     = wzTarget - dzTarget
-        let dz       = wz - camZ
-        let safeDz   = max(dz, focalLen * 0.05)
-        let scale    = focalLen / safeDz
-        return CGPoint(x: cx + wx * scale, y: cy + wy * scale)
-    }
-
-    private func cameraMaxVisibleTurn(geo: SpiralGeometry) -> Double {
-        let totalT   = max(spiralExtentTurns, 0.5)
-        let margin   = 0.35
-        let tRef     = totalT + margin
-        let visible  = max(visibleDays + margin, 1.0 + margin)
-        let zStep    = geo.maxRadius * depthScale
-        let focalLen = geo.maxRadius * 1.2
-        let tTarget  = min(visible, tRef)
-        let rTarget  = max(geo.radius(turns: min(tTarget, totalT)), 1.0)
-        let wzTarget = (tRef - tTarget) * zStep
-        let dzTarget = focalLen * rTarget / geo.maxRadius
-        let camZ     = wzTarget - dzTarget
-        return tRef - camZ / zStep
+        let pt = geo.point(day: day, hour: hr)
+        return CGPoint(x: pt.x, y: pt.y)
     }
 
     private func weekWindowOpacity(turns t: Double) -> Double {
@@ -121,20 +82,7 @@ struct WidgetSpiralCanvas: View {
     }
 
     private func perspectiveScale(turns t: Double, geo: SpiralGeometry) -> Double {
-        let totalT   = max(spiralExtentTurns, 0.5)
-        let margin   = 0.35
-        let visible  = max(visibleDays + margin, 1.0 + margin)
-        let zStep    = geo.maxRadius * depthScale
-        let tRef     = totalT + margin
-        let focalLen = geo.maxRadius * 1.2
-        let tTarget  = min(visible, tRef)
-        let rTarget  = max(geo.radius(turns: min(tTarget, totalT)), 1.0)
-        let wzTarget = (tRef - tTarget) * zStep
-        let dzTarget = focalLen * rTarget / geo.maxRadius
-        let camZ     = wzTarget - dzTarget
-        let wz       = (tRef - t) * zStep
-        let dz       = max(wz - camZ, focalLen * 0.05)
-        return focalLen / dz
+        1.0  // Flat 2D — uniform line width
     }
 
     // MARK: - Drawing
@@ -253,7 +201,7 @@ struct WidgetSpiralCanvas: View {
             let dayT   = Double(record.day)
             let phases = record.phases
             guard !phases.isEmpty else { continue }
-            let cutT   = min(globalCut, dayT + 1.0)
+            let cutT = dayT + 2.0  // allow overnight sleep
 
             var runs: [Run] = []
             var runPhase  = phases[0].phase
@@ -267,7 +215,7 @@ struct WidgetSpiralCanvas: View {
             }
 
             for (i, phase) in phases.enumerated() {
-                let t = dayT + phase.hour / geo.period
+                let t = phase.timestamp / geo.period  // continuous, no midnight wrap
                 if t > cutT { break }
                 if phase.phase != runPhase {
                     let edgePt = project(turns: t, geo: geo)
@@ -280,7 +228,7 @@ struct WidgetSpiralCanvas: View {
                     runPts.append((t, project(turns: t, geo: geo)))
                 }
                 if i == phases.count - 1 {
-                    let tEnd = min(cutT, dayT + 1.0)
+                    let tEnd = min(cutT, t + 0.25 / geo.period)  // extend 15 min past last phase
                     runPts.append((tEnd, project(turns: tEnd, geo: geo)))
                     flushRun(nextPhase: nil)
                 }

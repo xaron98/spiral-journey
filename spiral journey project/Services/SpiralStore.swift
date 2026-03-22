@@ -1057,6 +1057,8 @@ final class SpiralStore {
             sharedDefaults.set(data, forKey: storageKey)
             // Only reload widget timelines when data the widget displays has changed
             // (sleep episodes, events) — not on every settings tweak.
+            // Write state data for the StateWidget
+            writeStateWidgetData(to: sharedDefaults)
             if shouldReloadWidget {
                 WidgetCenter.shared.reloadAllTimelines()
             }
@@ -1291,6 +1293,27 @@ final class SpiralStore {
     }
 
     /// Snapshot current settings for CloudKit upload.
+    // MARK: - State Widget Data
+
+    private struct WidgetState: Codable {
+        var coherence: Double?
+        var predictedBedtime: Double?
+        var predictedWake: Double?
+        var predictedDuration: Double?
+    }
+
+    private func writeStateWidgetData(to defaults: UserDefaults) {
+        let state = WidgetState(
+            coherence: analysis.consistency.map { Double($0.score) / 100.0 },
+            predictedBedtime: latestPrediction?.predictedBedtimeHour,
+            predictedWake: latestPrediction?.predictedWakeHour,
+            predictedDuration: latestPrediction?.predictedDuration
+        )
+        if let data = try? JSONEncoder().encode(state) {
+            defaults.set(data, forKey: "spiral-journey-state")
+        }
+    }
+
     func currentCloudSettings(modifiedAt: Date = Date()) -> CloudSettings {
         CloudSettings(
             startDate: startDate,

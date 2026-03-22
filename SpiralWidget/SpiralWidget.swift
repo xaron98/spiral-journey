@@ -5,6 +5,7 @@ import SwiftUI
 struct SpiralWidgetBundle: WidgetBundle {
     var body: some Widget {
         SpiralWidget()
+        StateWidget()
     }
 }
 

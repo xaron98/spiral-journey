@@ -10,12 +10,13 @@ struct SpiralWidgetEntryView: View {
         GeometryReader { geo in
             WidgetSpiralCanvas(
                 records: entry.records,
-                spiralType: entry.spiralType,
+                spiralType: .archimedean,
                 period: entry.period,
-                depthScale: entry.depthScale,
+                depthScale: 0,
                 numDays: entry.numDays,
                 showHourLabels: family != .systemSmall
             )
+            .padding(12)
             .frame(width: geo.size.width, height: geo.size.height)
             .clipShape(ContainerRelativeShape())
         }
