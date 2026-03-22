@@ -12,13 +12,11 @@ struct SpiralWidgetEntryView: View {
                 records: entry.records,
                 spiralType: .archimedean,
                 period: entry.period,
-                depthScale: 0,
                 numDays: entry.numDays,
                 showHourLabels: family != .systemSmall
             )
-            .padding(12)
+            .scaleEffect(0.9)
             .frame(width: geo.size.width, height: geo.size.height)
-            .clipShape(ContainerRelativeShape())
         }
         .ignoresSafeArea()
     }

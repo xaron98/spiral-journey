@@ -1,5 +1,10 @@
 # Spiral Journey Project
 
+## Git Commit Rules (CRITICAL)
+- **NEVER commit automatically.** Only commit when the user explicitly says "commitea", "haz commit", or "commit".
+- Do NOT commit after builds succeed, after the user confirms something works, or after completing a feature.
+- The user controls when commits happen. Zero exceptions.
+
 ## Build
 - iOS: `xcodebuild build -scheme "spiral journey project" -destination "platform=iOS Simulator,id=58B00C42-E274-4903-8E91-84CCA65CBC3A"`
 - Watch: `xcodebuild build -scheme "Spiral Watch App Watch App" -destination generic/platform=watchOS`
@@ -122,3 +127,28 @@
 ## Motif Discovery
 - Default DTW threshold: **2.0** (not 8.0). With normalized [0,1] features, 8.0 merges everything into one cluster.
 - Motif patterns visualized via colored base pair connectors + SwiftUI legend (not 3D cylinders/text)
+
+## Widget Rules (CRITICAL)
+
+### Spiral Widget
+- **Always archimedean 2D flat** — no 3D perspective, no depthScale
+- **Flat projection only** — use `geo.point()` directly, never 3D perspective math (focalLen/zStep)
+- **Re-index records to day 0-6** — last 7 records re-indexed so geometry has only 7 turns
+- **Re-base timestamps** — when re-indexing, subtract `baseTimestamp` from all `phase.timestamp` values so they start from 0. Without this, `timestamp/period` gives turns of 60+ which project outside the widget.
+- **Use `phase.timestamp / period` for turn calculation** — NOT `dayT + phase.hour / period`. The `hour` field wraps at midnight (23→0) causing lines that cross the entire spiral. Timestamps are continuous and never wrap.
+- **`scaleEffect(0.9)`** on the entry view — controls final widget spiral size
+- **`startRadius: 1`** — nearly from center
+- **`contentMarginsDisabled()`** on the widget configuration — removes iOS system padding
+- **Size control via `scaleEffect`** — NOT via `maxDays`, `padding`, or geometry hacks
+
+### State Widget
+- Shows circadian state (Sincronizado/En transición/Desalineado) + prediction
+- Reads from `spiral-journey-state` key in App Group UserDefaults
+- Written by `SpiralStore.writeStateWidgetData()` on every save
+
+### Pitfalls to Avoid
+1. Never use `dayT + phase.hour / period` — wraps at midnight, creates visual cuts
+2. Never use 3D perspective projection in widget — makes spiral too small or too big
+3. Never use `turnOffset` with re-indexed records — causes coordinate mismatch
+4. Never change widget size via `maxDays` — use `scaleEffect` instead
+5. Never pass records without re-basing timestamps — turns will be 60+ and project outside widget

@@ -17,6 +17,7 @@ struct SpiralWidget: Widget {
             SpiralWidgetEntryView(entry: entry)
                 .containerBackground(Color(hex: "0c0e14"), for: .widget)
         }
+        .contentMarginsDisabled()
         .configurationDisplayName("Spiral")
         .description("Your sleep spiral.")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])

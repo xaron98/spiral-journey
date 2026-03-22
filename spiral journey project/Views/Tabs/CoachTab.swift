@@ -48,6 +48,8 @@ struct CoachTab: View {
                     }
                     // Nap recommendation — only when Process S is high enough
                     if let nap = napRecommendation { napCard(nap) }
+                    // Optimal sleep duration suggestion
+                    if let optimal = optimalDuration { optimalDurationCard(optimal) }
                     // Jet lag planner button
                     jetLagButton
                     // Conflict trend — if we have enough history
@@ -326,6 +328,41 @@ struct CoachTab: View {
                 .overlay(
                     RoundedRectangle(cornerRadius: 14)
                         .stroke(SpiralColors.accent.opacity(0.18), lineWidth: 0.8)
+                )
+        )
+    }
+
+    // MARK: - Optimal Duration
+
+    private var optimalDuration: OptimalDurationAnalyzer.OptimalDurationResult? {
+        OptimalDurationAnalyzer.analyze(records: store.records)
+    }
+
+    private func optimalDurationCard(_ result: OptimalDurationAnalyzer.OptimalDurationResult) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: "bed.double.fill")
+                .font(.title2)
+                .foregroundStyle(SpiralColors.good)
+                .frame(width: 36)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(String(format: loc("coach.optimal.title"), result.formatted))
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(SpiralColors.text)
+                Text(result.isConfident
+                     ? loc("coach.optimal.confident")
+                     : loc("coach.optimal.preliminary"))
+                    .font(.caption)
+                    .foregroundStyle(SpiralColors.muted)
+            }
+            Spacer()
+        }
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(SpiralColors.good.opacity(0.06))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(SpiralColors.good.opacity(0.18), lineWidth: 0.8)
                 )
         )
     }

@@ -10,6 +10,7 @@ struct spiral_journey_projectApp: App {
     @State private var calendarManager = CalendarManager.shared
     @State private var llmService = LLMService()
     @State private var dnaService = SleepDNAService()
+    @State private var aiService = OnDeviceAIService()
     @State private var watchBridge: WatchSyncBridge?
 
     @State private var modelContainer: ModelContainer = {
@@ -80,6 +81,7 @@ struct spiral_journey_projectApp: App {
                 .environment(calendarManager)
                 .environment(llmService)
                 .environment(dnaService)
+                .environment(aiService)
                 .environment(\.locale, Locale(identifier: store.language.localeIdentifier))
                 .environment(\.languageBundle, languageBundle(for: store.language.localeIdentifier))
                 .modelContainer(modelContainer)

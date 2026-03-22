@@ -169,7 +169,23 @@ public actor SleepDNAComputer {
             chronotype: chronotype
         )
 
-        // Step 9b: Advanced metrics (full tier only)
+        // Step 9b: Poisson fragmentation (intermediate+ tier, >= 14 nights)
+        let poissonResult: PoissonFragmentationResult?
+        if tier != .basic && sortedRecords.count >= 14 {
+            poissonResult = PoissonFragmentation.analyze(records: sortedRecords)
+        } else {
+            poissonResult = nil
+        }
+
+        // Step 9c: Hawkes event-impact model (full tier only)
+        let hawkesResult: HawkesAnalysisResult?
+        if tier == .full {
+            hawkesResult = HawkesEventModel.analyze(records: sortedRecords, events: events)
+        } else {
+            hawkesResult = nil
+        }
+
+        // Step 9d: Advanced metrics (full tier only)
         let pchResult: PersistentHomologyResult?
         let lndResult: LinkingNumberResult?
         let misResult: MISResult?
@@ -285,6 +301,8 @@ public actor SleepDNAComputer {
             mutualInfoSpectrum: misResult,
             hasScore: hasScore,
             baselineHAS: baselineHAS,
+            poissonFragmentation: poissonResult,
+            hawkesAnalysis: hawkesResult,
             tier: tier,
             computedAt: Date(),
             dataWeeks: dataWeeks

@@ -1,11 +1,11 @@
 import Foundation
 import SwiftData
 
-/// A dream journal entry linked to a specific sleep record.
+/// A dream journal entry linked to a specific sleep date.
 @Model
 final class SDDreamEntry {
-    /// The day index of the sleep record this dream belongs to.
-    var day: Int
+    /// The date of the sleep night this dream belongs to.
+    var sleepDate: Date
     /// When the entry was created.
     var createdAt: Date
     /// The dream description text.
@@ -13,8 +13,8 @@ final class SDDreamEntry {
     /// Optional mood/intensity tag (1-5, nil if not set).
     var intensity: Int?
 
-    init(day: Int, createdAt: Date = Date(), text: String, intensity: Int? = nil) {
-        self.day = day
+    init(sleepDate: Date, createdAt: Date = Date(), text: String, intensity: Int? = nil) {
+        self.sleepDate = sleepDate
         self.createdAt = createdAt
         self.text = text
         self.intensity = intensity

@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 import SpiralKit
 
 /// Main spiral tab — full-screen spiral with contextual greeting, sleep logging,
@@ -7,6 +8,7 @@ struct SpiralTab: View {
 
     @Environment(SpiralStore.self) private var store
     @Environment(\.languageBundle) private var bundle
+    @Environment(\.modelContext) private var modelContext
     @Binding var selectedTab: AppTab
 
     @State private var selectedDay: Int? = nil
@@ -267,19 +269,18 @@ struct SpiralTab: View {
 
                             Button {
                                 if let info = cursorSleepInfo {
-                                    // Post notification to ContentView — avoids SpiralTab re-render
                                     NotificationCenter.default.post(
                                         name: .showDreamEntry,
                                         object: nil,
-                                        userInfo: ["day": info.day, "timeRange": info.timeRange]
+                                        userInfo: ["date": info.date, "timeRange": info.timeRange]
                                     )
                                 } else {
                                     showEventSheet2 = true
                                 }
                             } label: {
-                                Image(systemName: "plus")
+                                Image(systemName: addButtonIcon)
                                     .font(.title3.weight(.semibold))
-                                    .foregroundStyle(SpiralColors.accent)
+                                    .foregroundStyle(addButtonColor)
                                     .frame(width: 44, height: 44)
                                     .liquidGlass(circular: true)
                             }
@@ -846,10 +847,32 @@ struct SpiralTab: View {
             .foregroundStyle(color)
     }
 
+    // MARK: - Add Button Icon (sleep detection + dream check)
+
+    private var addButtonIcon: String {
+        guard let info = cursorSleepInfo else { return "plus" }
+        return hasDreamEntry(for: info.date) ? "eye" : "moon.zzz"
+    }
+
+    private var addButtonColor: Color {
+        guard let info = cursorSleepInfo else { return SpiralColors.accent }
+        return hasDreamEntry(for: info.date) ? SpiralColors.remSleep : SpiralColors.accent
+    }
+
+    private func hasDreamEntry(for date: Date) -> Bool {
+        let calendar = Calendar.current
+        let start = calendar.startOfDay(for: date)
+        let end = calendar.date(byAdding: .day, value: 1, to: start) ?? start
+        let descriptor = FetchDescriptor<SDDreamEntry>(
+            predicate: #Predicate { $0.sleepDate >= start && $0.sleepDate < end }
+        )
+        return (try? modelContext.fetchCount(descriptor)) ?? 0 > 0
+    }
+
     // MARK: - Sleep phase detection for dream entry
 
-    /// Returns (day, sleepTimeRange) if cursor is on a sleep phase, nil otherwise.
-    private var cursorSleepInfo: (day: Int, timeRange: String)? {
+    /// Returns (date, sleepTimeRange) if cursor is on a sleep phase, nil otherwise.
+    private var cursorSleepInfo: (date: Date, timeRange: String)? {
         let cursorH = cursorAbsHour
         guard cursorH > 0 else { return nil }
         let dayIndex = Int(cursorH / store.period)
@@ -866,7 +889,7 @@ struct SpiralTab: View {
             else { inSleepRange = false }
 
             if isSleepPhase || inSleepRange {
-                return (candidateDay, "\(formatClockHour(bedH)) – \(formatClockHour(wakeH))")
+                return (record.date, "\(formatClockHour(bedH)) – \(formatClockHour(wakeH))")
             }
         }
         return nil

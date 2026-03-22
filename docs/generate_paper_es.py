@@ -531,6 +531,29 @@ S(Paragraph(
     styles["Body"]
 ))
 
+S(Paragraph("7.7. Modelizacion Estocastica de Eventos mediante Procesos de Poisson", styles["SubHead"]))
+S(Paragraph(
+    "Los eventos contextuales registrados por el usuario (cafeina, ejercicio, estres, alcohol) constituyen "
+    "un proceso puntual discreto en el tiempo, susceptible de ser formalizado mediante procesos de Poisson [28]. "
+    "La tasa de fragmentacion del sueno (despertares nocturnos) puede modelarse como un proceso de Poisson "
+    "con intensidad lambda, donde lambda varia en funcion de los factores contextuales del dia (Proceso de "
+    "Poisson No Homogeneo). Esta formalizacion permitiria: (a) cuantificar la tasa base de despertares de "
+    "cada usuario, (b) medir el exceso de fragmentacion atribuible a factores especificos, y (c) validar "
+    "estadisticamente las correlaciones mediante pruebas de bondad de ajuste Chi-cuadrado.",
+    styles["Body"]
+))
+S(Paragraph(
+    "De particular interes es la extension al Proceso de Hawkes (auto-excitado) [29], donde cada evento "
+    "incrementa temporalmente la probabilidad de eventos subsiguientes. Este modelo captura la hipotesis "
+    "central del proyecto: que la historia temporal completa — no solo eventos individuales aislados — modula "
+    "la arquitectura del sueno. Un despertar nocturno aumenta la probabilidad de despertares posteriores "
+    "en la misma noche (cascada intra-noche), y un patron de estres sostenido durante varios dias puede "
+    "elevar la tasa base de fragmentacion con un retardo de 24-72 horas. La implementacion de un modelo "
+    "de Hawkes en SpiralKit permitiria formalizar estos efectos retardados y acumulativos, complementando "
+    "el analisis de PLV y DTW con un marco probabilistico riguroso.",
+    styles["Body"]
+))
+
 # ═══ 8. Limitaciones ═══
 S(Paragraph("8. Limitaciones", styles["SectionHead"]))
 S(Paragraph(
@@ -595,6 +618,8 @@ refs = [
     "[25] MSBA-YOLO (2026). Lightweight laryngeal disease detection algorithm. <i>AI</i>, 7(3). MDPI.",
     "[26] Massenkoff, M. & McCrory, P. (2026). Labor market impacts of AI: A new measure and early evidence. Anthropic Research.",
     "[27] Lerchner, A. (2026). The Abstraction Fallacy: Why AI Can Simulate But Not Instantiate Consciousness. Google DeepMind Publications.",
+    "[28] Proceso de Poisson. En: <i>Wikipedia, la enciclopedia libre</i>. Basado en Poisson, S.D. (1837) y Lundberg, F. (1903).",
+    "[29] Hawkes, A.G. (1971). Spectra of some self-exciting and mutually exciting point processes. <i>Biometrika</i>, 58(1), 83-90.",
 ]
 
 for ref in refs:

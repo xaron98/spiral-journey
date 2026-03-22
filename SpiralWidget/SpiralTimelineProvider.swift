@@ -50,8 +50,17 @@ private func loadEntry() -> SpiralEntry {
         startDate: snapshot.startDate
     )
 
-    // Only pass the last 7 records to the widget
-    let widgetRecords = Array(records.suffix(7))
+    // Re-index last 7 to days 0-6, re-base timestamps to start from 0
+    let last7 = Array(records.suffix(7))
+    let baseTimestamp = last7.first?.phases.first?.timestamp ?? 0
+    let widgetRecords: [SleepRecord] = last7.enumerated().map { idx, r in
+        var copy = r
+        copy.day = idx
+        copy.phases = r.phases.map { p in
+            PhaseInterval(hour: p.hour, phase: p.phase, timestamp: p.timestamp - baseTimestamp)
+        }
+        return copy
+    }
 
     return SpiralEntry(
         date: .now,
@@ -59,7 +68,7 @@ private func loadEntry() -> SpiralEntry {
         spiralType: snapshot.spiralType ?? .logarithmic,
         period: snapshot.period ?? 24.0,
         depthScale: snapshot.depthScale ?? 1.5,
-        numDays: n
+        numDays: min(n, 7)
     )
 }
 

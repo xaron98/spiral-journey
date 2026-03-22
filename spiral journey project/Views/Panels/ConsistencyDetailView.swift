@@ -10,6 +10,10 @@ struct ConsistencyDetailView: View {
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.languageBundle) private var bundle
+    @Environment(\.modelContext) private var modelContext
+    @Environment(SleepDNAService.self) private var dnaService
+    @Environment(SpiralStore.self) private var store
+    @Environment(OnDeviceAIService.self) private var aiService
     @State private var showLegendHelp = false
 
     var body: some View {
@@ -30,6 +34,12 @@ struct ConsistencyDetailView: View {
                     insightsSection
                 }
 
+                // ── Temporal Impact (Poisson + Hawkes) ─────────────────────
+                if let profile = dnaService.latestProfile,
+                   profile.poissonFragmentation != nil || profile.hawkesAnalysis != nil {
+                    temporalImpactSection(profile: profile)
+                }
+
                 // ── Previous Week Comparison ─────────────────────────────
                 if let delta = consistency.deltaVsPreviousWeek {
                     comparisonSection(delta: delta)
@@ -41,6 +51,15 @@ struct ConsistencyDetailView: View {
             .padding(.top, 16)
         }
         .background(SpiralColors.bg.ignoresSafeArea())
+        .task {
+            // Auto-refresh DNA profile if Poisson/Hawkes fields are missing
+            if let profile = dnaService.latestProfile,
+               profile.poissonFragmentation == nil && profile.hawkesAnalysis == nil {
+                await dnaService.forceRefresh(store: store, context: modelContext)
+            } else if dnaService.latestProfile == nil {
+                await dnaService.refreshIfNeeded(store: store, context: modelContext)
+            }
+        }
         .navigationTitle(String(localized: "consistency.title", bundle: bundle))
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
@@ -242,6 +261,192 @@ struct ConsistencyDetailView: View {
                 .foregroundStyle(SpiralColors.muted)
         }
         .frame(maxWidth: .infinity)
+    }
+
+    // MARK: - Temporal Impact
+
+    @State private var showTemporalHelp = false
+    @State private var aiSummary: String?
+    @State private var isGeneratingAI = false
+
+    @ViewBuilder
+    private func temporalImpactSection(profile: SleepDNAProfile) -> some View {
+        let hasPoisson = profile.poissonFragmentation != nil
+        let hasHawkes = profile.hawkesAnalysis != nil
+
+        if hasPoisson || hasHawkes {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    sectionHeader(loc("consistency.temporal.title"))
+                    Spacer()
+                    Button { showTemporalHelp = true } label: {
+                        Image(systemName: "questionmark.circle")
+                            .font(.subheadline)
+                            .foregroundStyle(SpiralColors.muted)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .sheet(isPresented: $showTemporalHelp) {
+                    TemporalImpactHelpSheet()
+                        .presentationDetents([.medium])
+                        .presentationDragIndicator(.visible)
+                }
+
+                // Poisson: baseline rate + anomalies
+                if let poisson = profile.poissonFragmentation {
+                    // Baseline
+                    HStack(spacing: 8) {
+                        Image(systemName: "waveform.path")
+                            .font(.subheadline)
+                            .foregroundStyle(SpiralColors.accent)
+                            .frame(width: 24)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(String(format: loc("consistency.temporal.baseline"), poisson.baselineRate))
+                                .font(.footnote.weight(.semibold))
+                                .foregroundStyle(SpiralColors.text)
+                            Text(poisson.followsPoisson
+                                 ? loc("consistency.temporal.random")
+                                 : loc("consistency.temporal.pattern"))
+                                .font(.caption)
+                                .foregroundStyle(poisson.followsPoisson ? SpiralColors.muted : SpiralColors.accent)
+                        }
+                    }
+
+                    // Anomalous nights
+                    if !poisson.anomalousNights.isEmpty {
+                        HStack(spacing: 8) {
+                            Image(systemName: "exclamationmark.triangle")
+                                .font(.subheadline)
+                                .foregroundStyle(SpiralColors.moderate)
+                                .frame(width: 24)
+                            Text(String(format: loc("consistency.temporal.anomalies"), poisson.anomalousNights.count))
+                                .font(.caption)
+                                .foregroundStyle(SpiralColors.muted)
+                        }
+                    }
+                }
+
+                // Hawkes: event impacts
+                if let hawkes = profile.hawkesAnalysis {
+                    let significant = hawkes.eventImpacts.filter { $0.significantEffect }
+                    if !significant.isEmpty {
+                        Divider().background(SpiralColors.border.opacity(0.5))
+
+                        ForEach(Array(significant.enumerated()), id: \.offset) { _, impact in
+                            let isHarmful = impact.excitationStrength > 0
+                            HStack(spacing: 8) {
+                                Image(systemName: eventIcon(impact.eventType))
+                                    .font(.subheadline)
+                                    .foregroundStyle(isHarmful ? SpiralColors.poor : SpiralColors.good)
+                                    .frame(width: 24)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(String(format: isHarmful
+                                                ? loc("consistency.temporal.impact")
+                                                : loc("consistency.temporal.impact.positive"),
+                                               eventName(impact.eventType),
+                                               Int(abs(impact.excitationStrength) * 100)))
+                                        .font(.footnote)
+                                        .foregroundStyle(SpiralColors.text)
+                                    Text(String(format: loc("consistency.temporal.delay"), Int(impact.delayHours)))
+                                        .font(.caption)
+                                        .foregroundStyle(SpiralColors.muted)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // AI Summary button
+                if aiService.isAvailable {
+                    Divider().background(SpiralColors.border.opacity(0.5))
+                    if let summary = aiSummary {
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "sparkles")
+                                    .font(.caption)
+                                    .foregroundStyle(SpiralColors.accent)
+                                Text("AI")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(SpiralColors.accent)
+                            }
+                            Text(summary)
+                                .font(.footnote)
+                                .foregroundStyle(SpiralColors.muted)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        .transition(.opacity)
+                    } else {
+                        Button {
+                            if #available(iOS 26, *) {
+                                Task { await generateAISummary(profile: profile) }
+                            }
+                        } label: {
+                            HStack(spacing: 6) {
+                                if isGeneratingAI {
+                                    ProgressView().controlSize(.small).tint(SpiralColors.accent)
+                                } else {
+                                    Image(systemName: "sparkles")
+                                        .font(.caption)
+                                }
+                                Text(loc("consistency.temporal.ai.button"))
+                                    .font(.footnote.weight(.medium))
+                            }
+                            .foregroundStyle(SpiralColors.accent)
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(isGeneratingAI)
+                    }
+                }
+            }
+            .padding(14)
+            .background(cardBackground)
+        }
+    }
+
+    @available(iOS 26, *)
+    private func generateAISummary(profile: SleepDNAProfile) async {
+        isGeneratingAI = true
+        defer { isGeneratingAI = false }
+
+        let result = await aiService.interpretSleepInsights(
+            poisson: profile.poissonFragmentation,
+            hawkes: profile.hawkesAnalysis,
+            healthMarkers: profile.healthMarkers,
+            consistency: consistency,
+            locale: bundle.preferredLocalizations.first ?? "es"
+        )
+
+        withAnimation(.easeInOut(duration: 0.3)) {
+            aiSummary = result
+        }
+    }
+
+    private func eventIcon(_ type: EventType) -> String {
+        switch type {
+        case .caffeine: return "cup.and.saucer.fill"
+        case .exercise: return "figure.run"
+        case .alcohol:  return "wineglass.fill"
+        case .stress:   return "brain.head.profile"
+        case .melatonin: return "moon.fill"
+        case .light:    return "sun.max.fill"
+        default:        return "circle.fill"
+        }
+    }
+
+    private func eventName(_ type: EventType) -> String {
+        switch type {
+        case .caffeine: return loc("consistency.temporal.caffeine")
+        case .exercise: return loc("consistency.temporal.exercise")
+        case .alcohol:  return loc("consistency.temporal.alcohol")
+        case .stress:   return loc("consistency.temporal.stress")
+        case .melatonin: return loc("consistency.temporal.melatonin")
+        case .light:    return loc("consistency.temporal.light")
+        default:        return ""
+        }
+    }
+
+    private func loc(_ key: String) -> String {
+        NSLocalizedString(key, bundle: bundle, comment: "")
     }
 
     // MARK: - Helpers
@@ -599,4 +804,74 @@ private func makeRecord(day: Int, daysAgo: Int, bedHour: Double, wakeHour: Doubl
         ConsistencyDetailView(consistency: consistency, records: records)
     }
     .preferredColorScheme(.dark)
+}
+
+// MARK: - Temporal Impact Help Sheet
+
+private struct TemporalImpactHelpSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.languageBundle) private var bundle
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    helpItem(
+                        icon: "waveform.path",
+                        title: loc("temporal.help.what.title"),
+                        body: loc("temporal.help.what.body")
+                    )
+                    helpItem(
+                        icon: "function",
+                        title: loc("temporal.help.how.title"),
+                        body: loc("temporal.help.how.body")
+                    )
+                    helpItem(
+                        icon: "clock.arrow.2.circlepath",
+                        title: loc("temporal.help.delay.title"),
+                        body: loc("temporal.help.delay.body")
+                    )
+                    Text(loc("temporal.help.disclaimer"))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 8)
+                }
+                .padding(20)
+            }
+            .background(SpiralColors.bg.ignoresSafeArea())
+            .navigationTitle(loc("temporal.help.title"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button { dismiss() } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(SpiralColors.muted)
+                    }
+                }
+            }
+        }
+    }
+
+    private func helpItem(icon: String, title: String, body: String) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: icon)
+                .font(.title3)
+                .foregroundStyle(SpiralColors.accent)
+                .frame(width: 28)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
+                Text(body)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    private func loc(_ key: String) -> String {
+        NSLocalizedString(key, bundle: bundle, comment: "")
+    }
 }

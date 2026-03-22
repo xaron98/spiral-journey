@@ -11,7 +11,7 @@ struct ContentView: View {
     @State private var selectedTab: AppTab = .spiral
     @State private var onboardingFrames = OnboardingFrames()
     @State private var showDreamSheet = false
-    @State private var dreamDay: Int = 0
+    @State private var dreamDate: Date = Date()
     @State private var dreamTimeRange: String = ""
 
     var body: some View {
@@ -132,15 +132,15 @@ struct ContentView: View {
             SpiralColors.theme.scheme = colorScheme
         }
         .onReceive(NotificationCenter.default.publisher(for: .showDreamEntry)) { notification in
-            if let day = notification.userInfo?["day"] as? Int,
+            if let date = notification.userInfo?["date"] as? Date,
                let timeRange = notification.userInfo?["timeRange"] as? String {
-                dreamDay = day
+                dreamDate = date
                 dreamTimeRange = timeRange
                 showDreamSheet = true
             }
         }
         .sheet(isPresented: $showDreamSheet) {
-            DreamEntrySheet(day: dreamDay, sleepTimeRange: dreamTimeRange)
+            DreamEntrySheet(sleepDate: dreamDate, sleepTimeRange: dreamTimeRange)
                 .presentationDetents([.medium])
         }
         .onChange(of: store.hasShownWelcome) { _, newVal in

@@ -135,15 +135,22 @@ enum MockDataGenerator {
         events: inout [CircadianEvent]
     ) {
         switch pattern {
-        case "A": // Early bird — morning caffeine only, daily exercise, lots of light
+        case "A": // Early bird — morning caffeine, exercise morning+afternoon, light
             events.append(CircadianEvent(
                 type: .caffeine,
                 absoluteHour: dayAbsStart + Double.random(in: 6.0...7.0)
             ))
+            // Morning exercise (shortly after waking)
             events.append(CircadianEvent(
                 type: .exercise,
-                absoluteHour: dayAbsStart + Double.random(in: 6.0...7.5),
-                durationHours: Double.random(in: 1.0...1.5)
+                absoluteHour: dayAbsStart + Double.random(in: 6.5...8.0),
+                durationHours: Double.random(in: 0.5...1.0)
+            ))
+            // Afternoon exercise
+            events.append(CircadianEvent(
+                type: .exercise,
+                absoluteHour: dayAbsStart + Double.random(in: 16.0...18.0),
+                durationHours: Double.random(in: 0.5...1.0)
             ))
             events.append(CircadianEvent(
                 type: .light,

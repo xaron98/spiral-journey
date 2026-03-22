@@ -79,6 +79,12 @@ public struct SleepDNAProfile: Codable, Sendable {
     /// Helix Alignment Score: current week vs 4-week rolling baseline [0, 1].
     /// `nil` when fewer than 28 days of data are available.
     public let baselineHAS: Double?
+    /// Poisson fragmentation analysis: models nightly awakenings as a Poisson process.
+    /// `nil` when tier is below `.intermediate` (fewer than 4 weeks of data).
+    public let poissonFragmentation: PoissonFragmentationResult?
+    /// Hawkes event-impact analysis: temporal excitation of fragmentation by circadian events.
+    /// `nil` when tier is not `.full` (fewer than 8 weeks of data).
+    public let hawkesAnalysis: HawkesAnalysisResult?
     /// Data sufficiency tier that was used for this computation.
     public let tier: AnalysisTier
     /// When this profile was computed.
@@ -104,6 +110,8 @@ public struct SleepDNAProfile: Codable, Sendable {
         mutualInfoSpectrum: MISResult? = nil,
         hasScore: Double? = nil,
         baselineHAS: Double? = nil,
+        poissonFragmentation: PoissonFragmentationResult? = nil,
+        hawkesAnalysis: HawkesAnalysisResult? = nil,
         tier: AnalysisTier,
         computedAt: Date,
         dataWeeks: Int
@@ -125,6 +133,8 @@ public struct SleepDNAProfile: Codable, Sendable {
         self.mutualInfoSpectrum = mutualInfoSpectrum
         self.hasScore = hasScore
         self.baselineHAS = baselineHAS
+        self.poissonFragmentation = poissonFragmentation
+        self.hawkesAnalysis = hawkesAnalysis
         self.tier = tier
         self.computedAt = computedAt
         self.dataWeeks = dataWeeks

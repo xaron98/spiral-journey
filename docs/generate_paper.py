@@ -514,6 +514,28 @@ S(Paragraph(
     styles["Body"]
 ))
 
+S(Paragraph("7.7. Stochastic Event Modeling via Poisson Processes", styles["SubHead"]))
+S(Paragraph(
+    "User-reported contextual events (caffeine, exercise, stress, alcohol) constitute a discrete point "
+    "process amenable to formalization via Poisson processes [28]. Sleep fragmentation rate (nocturnal "
+    "awakenings) can be modeled as a Poisson process with intensity lambda that varies as a function of "
+    "daily contextual factors (Non-Homogeneous Poisson Process). This formalization would enable: "
+    "(a) quantifying each user's baseline awakening rate, (b) measuring excess fragmentation attributable "
+    "to specific factors, and (c) statistically validating correlations via chi-squared goodness-of-fit tests.",
+    styles["Body"]
+))
+S(Paragraph(
+    "Of particular interest is the extension to the Hawkes Process (self-exciting) [29], where each event "
+    "temporarily increases the probability of subsequent events. This model captures the project's central "
+    "hypothesis: that the complete temporal history — not just isolated individual events — modulates sleep "
+    "architecture. A nocturnal awakening increases the probability of subsequent awakenings within the same "
+    "night (intra-night cascade), and a sustained stress pattern over several days may elevate the baseline "
+    "fragmentation rate with a 24-72 hour delay. Implementing a Hawkes model in SpiralKit would formalize "
+    "these delayed and cumulative effects, complementing PLV and DTW analysis with a rigorous probabilistic "
+    "framework.",
+    styles["Body"]
+))
+
 # ═══ 8. Limitations ═══
 S(Paragraph("8. Limitations", styles["SectionHead"]))
 S(Paragraph(
@@ -576,6 +598,8 @@ refs = [
     "[25] MSBA-YOLO (2026). Lightweight laryngeal disease detection algorithm. <i>AI</i>, 7(3). MDPI.",
     "[26] Massenkoff, M. & McCrory, P. (2026). Labor market impacts of AI: A new measure and early evidence. Anthropic Research.",
     "[27] Lerchner, A. (2026). The Abstraction Fallacy: Why AI Can Simulate But Not Instantiate Consciousness. Google DeepMind Publications.",
+    "[28] Poisson process. Based on Poisson, S.D. (1837) and Lundberg, F. (1903). Formalized in Cramer, H. (1930).",
+    "[29] Hawkes, A.G. (1971). Spectra of some self-exciting and mutually exciting point processes. <i>Biometrika</i>, 58(1), 83-90.",
 ]
 
 for ref in refs:
