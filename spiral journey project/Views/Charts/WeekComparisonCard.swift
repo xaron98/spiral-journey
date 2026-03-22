@@ -27,16 +27,32 @@ struct WeekComparisonCard: View {
         committedAzimuth + dragDelta.width * 0.007
     }
 
+    // MARK: - Week Selection
+
+    /// How many weeks back from the latest. 0 = most recent pair, 1 = one week earlier, etc.
+    @State private var weekOffset: Int = 0
+
     // MARK: - Data
 
     private var meaningful: [SleepRecord] {
         records.filter { $0.sleepDuration >= 3.0 }.sorted { $0.day < $1.day }
     }
 
+    /// Total number of full week pairs available.
+    private var totalWeekPairs: Int { max(0, meaningful.count / 7 - 1) }
+
     private var hasEnoughData: Bool { meaningful.count >= 14 }
 
-    private var thisWeekRaw: [SleepRecord] { Array(meaningful.suffix(7)) }
-    private var prevWeekRaw: [SleepRecord] { Array(meaningful.dropLast(7).suffix(7)) }
+    private var thisWeekRaw: [SleepRecord] {
+        let dropFromEnd = weekOffset * 7
+        let available = meaningful.dropLast(dropFromEnd)
+        return Array(available.suffix(7))
+    }
+    private var prevWeekRaw: [SleepRecord] {
+        let dropFromEnd = weekOffset * 7
+        let available = meaningful.dropLast(dropFromEnd)
+        return Array(available.dropLast(7).suffix(7))
+    }
 
     private var thisWeekRecords: [SleepRecord] { reIndex(thisWeekRaw) }
     private var prevWeekRecords: [SleepRecord] { reIndex(prevWeekRaw) }
@@ -70,16 +86,38 @@ struct WeekComparisonCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
 
-            // Title row
+            // Title row with week navigation
             HStack {
                 Text(String(localized: "analysis.weekComparison.title", bundle: bundle))
                     .font(.caption.weight(.semibold).monospaced())
                     .foregroundStyle(SpiralColors.muted)
                     .textCase(.uppercase)
                 Spacer()
-                Image(systemName: "hand.draw")
-                    .font(.caption)
-                    .foregroundStyle(SpiralColors.muted)
+                if totalWeekPairs > 0 {
+                    HStack(spacing: 12) {
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                weekOffset = min(weekOffset + 1, totalWeekPairs - 1)
+                            }
+                        } label: {
+                            Image(systemName: "chevron.left")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(weekOffset < totalWeekPairs - 1 ? SpiralColors.accent : SpiralColors.subtle)
+                        }
+                        .disabled(weekOffset >= totalWeekPairs - 1)
+
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                weekOffset = max(weekOffset - 1, 0)
+                            }
+                        } label: {
+                            Image(systemName: "chevron.right")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(weekOffset > 0 ? SpiralColors.accent : SpiralColors.subtle)
+                        }
+                        .disabled(weekOffset <= 0)
+                    }
+                }
             }
 
             if hasEnoughData {
@@ -107,12 +145,12 @@ struct WeekComparisonCard: View {
             VStack(spacing: 6) {
                 dualCanvas(prev: prevRecs, this: thisRecs, elevation: elev, azimuth: az)
                 HStack(spacing: 0) {
-                    Text(String(localized: "analysis.weekComparison.prevWeek", bundle: bundle))
+                    Text(weekLabel(for: prevWeekRaw, isCurrent: false))
                         .font(.caption.weight(.medium).monospaced())
                         .foregroundStyle(weekLabelColor(isThisWeek: false))
                         .frame(width: 110, alignment: .center)
                     Spacer()
-                    Text(String(localized: "analysis.weekComparison.thisWeek", bundle: bundle))
+                    Text(weekLabel(for: thisWeekRaw, isCurrent: true))
                         .font(.caption.weight(.medium).monospaced())
                         .foregroundStyle(weekLabelColor(isThisWeek: true))
                         .frame(width: 110, alignment: .center)
@@ -419,5 +457,24 @@ struct WeekComparisonCard: View {
         recs.enumerated().map { idx, r in
             var copy = r; copy.day = idx; return copy
         }
+    }
+
+    /// Label for a week: "Esta semana" / "Anterior" when at offset 0,
+    /// otherwise the date range (e.g. "3-9 mar").
+    private func weekLabel(for recs: [SleepRecord], isCurrent: Bool) -> String {
+        if weekOffset == 0 {
+            return isCurrent
+                ? String(localized: "analysis.weekComparison.thisWeek", bundle: bundle)
+                : String(localized: "analysis.weekComparison.prevWeek", bundle: bundle)
+        }
+        guard let first = recs.first?.date, let last = recs.last?.date else {
+            return "--"
+        }
+        let fmt = DateFormatter()
+        fmt.dateFormat = "d"
+        let startDay = fmt.string(from: first)
+        fmt.dateFormat = "d MMM"
+        let endDay = fmt.string(from: last)
+        return "\(startDay)-\(endDay)"
     }
 }
