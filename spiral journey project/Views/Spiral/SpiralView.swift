@@ -1223,7 +1223,7 @@ struct SpiralView: View {
         let outerR = geo.maxRadius + 20
         let hours: [(hour: Double, color: Color)] = [
             targetWakeHour.map { ($0, SpiralColors.awakeSleep.opacity(0.7)) },
-            targetBedHour.map  { ($0, Color(hex: "7c3aed").opacity(0.6)) }
+            targetBedHour.map  { ($0, SpiralColors.accent.opacity(0.6)) }
         ].compactMap { $0 }
 
         for (hour, color) in hours {
@@ -1277,7 +1277,7 @@ struct SpiralView: View {
         }
 
         let lw = max(4.0, min(sc * 14.0, 18.0))
-        context.stroke(path, with: .color(Color(hex: "a78bfa").opacity(0.35)),
+        context.stroke(path, with: .color(SpiralColors.remSleep.opacity(0.35)),
                        style: StrokeStyle(lineWidth: lw, lineCap: .round, dash: [6, 4]))
     }
 
@@ -1511,7 +1511,7 @@ struct SpiralView: View {
             // FIX: Skip behind-camera points in sleep arc
             if camera.isBehindCamera(turns: t) {
                 if started {
-                    context.stroke(path, with: .color(Color(hex: "7c3aed").opacity(0.85)),
+                    context.stroke(path, with: .color(SpiralColors.accent.opacity(0.85)),
                                    style: StrokeStyle(lineWidth: 5, lineCap: .round))
                     context.stroke(path, with: .color(.white.opacity(0.15)),
                                    style: StrokeStyle(lineWidth: 5, lineCap: .round))
@@ -1527,7 +1527,7 @@ struct SpiralView: View {
             if h >= hi { break }
         }
         guard started else { return }
-        context.stroke(path, with: .color(Color(hex: "7c3aed").opacity(0.85)),
+        context.stroke(path, with: .color(SpiralColors.accent.opacity(0.85)),
                        style: StrokeStyle(lineWidth: 5, lineCap: .round))
         context.stroke(path, with: .color(.white.opacity(0.15)),
                        style: StrokeStyle(lineWidth: 5, lineCap: .round))
@@ -1578,21 +1578,16 @@ struct SpiralView: View {
 
     private func phaseColor(_ phase: SleepPhase) -> Color {
         switch phase {
-        case .deep:  return Color(hex: "7c3aed")  // violeta puro (sueño profundo)
-        case .rem:   return Color(hex: "a78bfa")  // violeta claro (REM)
-        case .light: return Color(hex: "c4b5fd")  // lila (sueño ligero)
-        case .awake: return Color(hex: "fbbf24")  // ámbar cálido (vigilia)
+        case .deep:  return SpiralColors.deepSleep
+        case .rem:   return SpiralColors.remSleep
+        case .light: return SpiralColors.lightSleep
+        case .awake: return SpiralColors.awakeSleep
         }
     }
 
-    /// Glow color per phase — slightly more saturated/warm than the crisp stroke color.
+    /// Glow color per phase — same as phase color with slight opacity shift.
     private func phaseGlowColor(_ phase: SleepPhase) -> Color {
-        switch phase {
-        case .deep:  return Color(hex: "6d28d9")  // deep indigo glow
-        case .rem:   return Color(hex: "8b5cf6")  // violet glow
-        case .light: return Color(hex: "a78bfa")  // soft purple glow
-        case .awake: return Color(hex: "fbbf24")  // amber (unused — awake excluded from glow)
-        }
+        phaseColor(phase).opacity(0.8)
     }
 
     /// Linear interpolation between two SwiftUI Colors in RGB space.

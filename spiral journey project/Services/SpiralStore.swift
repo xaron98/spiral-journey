@@ -162,6 +162,12 @@ final class SpiralStore {
     var spiralRevealAnimation: Bool = true {
         didSet { save() }
     }
+    var selectedTheme: String = "midnight" {
+        didSet {
+            SpiralColors.theme.apply(id: selectedTheme)
+            save()
+        }
+    }
     var language: AppLanguage = .systemMatch {
         didSet {
             settingsNeedCloudPush = true
@@ -936,6 +942,7 @@ final class SpiralStore {
         var showGrid: Bool?
         var glowIntensity: Double?
         var spiralRevealAnimation: Bool?
+        var selectedTheme: String?
         var language: AppLanguage?
         var appearance: AppAppearance?
         var rephasePlan: RephasePlan?
@@ -1003,6 +1010,7 @@ final class SpiralStore {
             showGrid: showGrid,
             glowIntensity: glowIntensity,
             spiralRevealAnimation: spiralRevealAnimation,
+            selectedTheme: selectedTheme,
             language: language,
             appearance: appearance,
             rephasePlan: rephasePlan,
@@ -1078,6 +1086,7 @@ final class SpiralStore {
         if let grid = stored.showGrid    { showGrid = grid }
         if let gi  = stored.glowIntensity { glowIntensity = gi }
         if let sra = stored.spiralRevealAnimation { spiralRevealAnimation = sra }
+        if let st = stored.selectedTheme { selectedTheme = st; SpiralColors.theme.apply(id: st) }
         if let lang = stored.language {
             // Migrate: if the stored language was set before the "System" option existed,
             // reset to .system so the app follows the device language going forward.
@@ -1141,6 +1150,7 @@ final class SpiralStore {
             showGrid: showGrid,
             glowIntensity: glowIntensity,
             spiralRevealAnimation: spiralRevealAnimation,
+            selectedTheme: selectedTheme,
             language: language,
             appearance: appearance,
             rephasePlan: rephasePlan,

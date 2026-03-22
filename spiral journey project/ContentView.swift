@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(\.languageBundle) private var bundle
+    @Environment(\.colorScheme) private var colorScheme
     @Environment(SpiralStore.self) private var store
     @State private var selectedTab: AppTab = .spiral
     @State private var onboardingFrames = OnboardingFrames()
@@ -117,6 +118,12 @@ struct ContentView: View {
         .animation(.easeInOut(duration: 0.35), value: store.hasCompletedChronotype)
         .animation(.easeInOut(duration: 0.35), value: store.hasCompletedOnboarding)
         // When onboarding resets (e.g. Reset All Data), jump back to Spiral tab
+        .onChange(of: colorScheme) { _, newScheme in
+            SpiralColors.theme.scheme = newScheme
+        }
+        .onAppear {
+            SpiralColors.theme.scheme = colorScheme
+        }
         .onChange(of: store.hasShownWelcome) { _, newVal in
             if !newVal { selectedTab = .spiral }
         }

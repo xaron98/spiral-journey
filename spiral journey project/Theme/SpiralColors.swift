@@ -1,36 +1,47 @@
 import SwiftUI
 
 /// Color palette for Spiral Journey.
-/// Theme-adaptive colors (bg, surface, border, muted, text, accent, accentDim) are backed
-/// by Asset Catalog color sets with separate dark and light variants.
-/// Phase colors and score colors remain constant across both appearances.
+///
+/// All colors delegate to the shared ThemeManager, which resolves based on
+/// the active theme + current color scheme. Existing call sites (SpiralColors.accent,
+/// SpiralColors.bg, etc.) continue to work without changes.
 enum SpiralColors {
-    // Adaptive — defined in Assets.xcassets with dark + light variants
-    static let bg          = Color("SpiralBg")
-    static let surface     = Color("SpiralSurface")
-    static let border      = Color("SpiralBorder")
-    static let text        = Color("SpiralText")       // Primary — titles, values, headlines
-    static let muted       = Color("SpiralMuted")      // Secondary — card body, subtitles, descriptions
-    static let subtle      = Color("SpiralSubtle")     // Tertiary — eyebrows, units, axis labels
-    static let faint       = Color("SpiralFaint")      // Quaternary — date lines, placeholders, microcopy
-    static let accent      = Color("SpiralAccent")
-    static let accentDim   = Color("SpiralAccentDim")
 
-    // Sleep phase colors
-    static let deepSleep   = Color(hex: "1a1a6e")
-    static let remSleep    = Color(hex: "6e3fa0")
-    static let lightSleep  = Color(hex: "5b8bd4")
-    static let awakeSleep  = Color(hex: "f5c842")
-    static let weekend     = Color(hex: "4a3a6a")
+    /// Shared theme manager — set once at app launch, updated when theme changes.
+    @MainActor static var theme = ThemeManager()
 
-    // Score status colors — adaptive: bright for dark mode, high-contrast for light mode
-    static let good        = Color("SpiralGood")     // dark #5bffa8 · light #198752
-    static let moderate    = Color("SpiralModerate") // dark #f5c842 · light #854D0E
-    static let poor        = Color("SpiralPoor")     // dark #f05050 · light #B91C1C
+    // MARK: - Adaptive colors (theme + light/dark aware)
 
-    // Context block colors — electric blue family
-    static let contextPrimary   = Color(hex: "3B82F6")  // electric blue
-    static let contextSecondary = Color(hex: "60A5FA")  // lighter variant
+    @MainActor static var bg:        Color { theme.bg }
+    @MainActor static var surface:   Color { theme.surface }
+    @MainActor static var border:    Color { theme.border }
+    @MainActor static var text:      Color { theme.text }
+    @MainActor static var muted:     Color { theme.muted }
+    @MainActor static var subtle:    Color { theme.subtle }
+    @MainActor static var faint:     Color { theme.faint }
+    @MainActor static var accent:    Color { theme.accent }
+    @MainActor static var accentDim: Color { theme.accentDim }
+
+    // MARK: - Sleep phase colors (theme-specific, constant across light/dark)
+
+    @MainActor static var deepSleep:  Color { theme.deepSleep }
+    @MainActor static var remSleep:   Color { theme.remSleep }
+    @MainActor static var lightSleep: Color { theme.lightSleep }
+    @MainActor static var awakeSleep: Color { theme.awakeSleep }
+    @MainActor static var weekend:    Color { theme.weekend }
+
+    // MARK: - Context block colors
+
+    @MainActor static var contextPrimary:   Color { theme.contextPrimary }
+    @MainActor static var contextSecondary: Color { theme.contextSecondary }
+
+    // MARK: - Score status colors — fixed across all themes (semantic, not aesthetic)
+
+    static let good     = Color("SpiralGood")     // dark #5bffa8 · light #198752
+    static let moderate = Color("SpiralModerate") // dark #f5c842 · light #854D0E
+    static let poor     = Color("SpiralPoor")     // dark #f05050 · light #B91C1C
+
+    // MARK: - Interpolation functions (unchanged)
 
     /// Viridis-like interpolation for activity heatmaps (0 = dark blue, 1 = yellow-green)
     static func viridis(_ t: Double) -> Color {

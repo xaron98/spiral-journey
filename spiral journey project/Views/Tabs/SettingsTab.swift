@@ -54,6 +54,47 @@ struct SettingsTab: View {
 
                         Divider().background(SpiralColors.border.opacity(0.5))
 
+                        // Theme picker
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(String(localized: "settings.theme.title", bundle: bundle).uppercased())
+                                .font(.caption2.weight(.semibold).monospaced())
+                                .foregroundStyle(SpiralColors.muted)
+                                .tracking(1)
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 10) {
+                                    ForEach(ThemeLibrary.all) { theme in
+                                        Button {
+                                            withAnimation(.easeInOut(duration: 0.3)) {
+                                                store.selectedTheme = theme.id
+                                            }
+                                        } label: {
+                                            VStack(spacing: 6) {
+                                                Circle()
+                                                    .fill(Color(hex: theme.accentHex))
+                                                    .frame(width: 36, height: 36)
+                                                    .overlay(
+                                                        Circle()
+                                                            .stroke(store.selectedTheme == theme.id
+                                                                    ? Color(hex: theme.accentHex)
+                                                                    : Color.clear,
+                                                                    lineWidth: 2)
+                                                            .frame(width: 42, height: 42)
+                                                    )
+                                                Text(String(localized: String.LocalizationValue(theme.nameKey), bundle: bundle))
+                                                    .font(.caption2)
+                                                    .foregroundStyle(store.selectedTheme == theme.id
+                                                                     ? SpiralColors.text
+                                                                     : SpiralColors.muted)
+                                            }
+                                        }
+                                        .buttonStyle(.plain)
+                                    }
+                                }
+                            }
+                        }
+
+                        Divider().background(SpiralColors.border.opacity(0.5))
+
                         // Language → NavigationLink
                         NavigationLink {
                             LanguagePickerView()
