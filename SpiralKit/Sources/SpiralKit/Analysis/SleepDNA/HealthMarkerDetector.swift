@@ -59,6 +59,12 @@ public enum AlertSeverity: String, Codable, Sendable {
 /// Analyzes sleep records and two-process model data to produce health markers and alerts.
 public enum HealthMarkerDetector {
 
+    // Alert thresholds — used by HealthInsightRules for proximity warnings
+    public static let circadianCoherenceThreshold = 0.2
+    public static let fragmentationScoreThreshold = 0.6
+    public static let driftSeverityThreshold = 15.0
+    public static let homeostasisBalanceThreshold = 0.3
+
     /// Analyze the most recent 14 records and optional two-process points.
     ///
     /// - Parameters:

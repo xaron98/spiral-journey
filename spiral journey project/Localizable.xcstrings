@@ -45227,6 +45227,294 @@
           }
         }
       }
+    },
+    "settings.notifications.morning": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Morning summary"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resumen matutino"
+          }
+        }
+      }
+    },
+    "settings.notifications.morning.desc": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daily notification with sleep recap and tips"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notificación diaria con resumen de sueño y consejos"
+          }
+        }
+      }
+    },
+    "settings.notifications.predictive": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Predictive alerts"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alertas predictivas"
+          }
+        }
+      }
+    },
+    "settings.notifications.predictive.desc": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Warns you when patterns suggest poor sleep ahead"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Te avisa cuando los patrones indican que podrías dormir mal"
+          }
+        }
+      }
+    },
+    "morning.summary.title.morning": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Good morning"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buenos días"
+          }
+        }
+      }
+    },
+    "morning.summary.title.afternoon": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Good afternoon"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buenas tardes"
+          }
+        }
+      }
+    },
+    "morning.summary.duration": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You slept %dh and %d minutes"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dormiste %dh y %d minutos"
+          }
+        }
+      }
+    },
+    "morning.summary.duration.exact": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You slept %d hours"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dormiste %d horas"
+          }
+        }
+      }
+    },
+    "morning.summary.rhythm.improving": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your rhythm improved ↑"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu ritmo mejoró ↑"
+          }
+        }
+      }
+    },
+    "morning.summary.rhythm.declining": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your rhythm got worse ↓"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu ritmo empeoró ↓"
+          }
+        }
+      }
+    },
+    "morning.summary.rhythm.stable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your rhythm is stable →"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu ritmo está estable →"
+          }
+        }
+      }
+    },
+    "morning.summary.tip.caffeine": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avoid coffee after 3 PM today"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoy evita café después de las 15h"
+          }
+        }
+      }
+    },
+    "morning.summary.tip.screens": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avoid screens 1h before bed"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Evita pantallas 1h antes de dormir"
+          }
+        }
+      }
+    },
+    "morning.summary.tip.schedule": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try to keep a regular wake time"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Intenta mantener una hora fija de despertar"
+          }
+        }
+      }
+    },
+    "predictive.alert.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sleep forecast"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pronóstico de sueño"
+          }
+        }
+      }
+    },
+    "predictive.alert.pattern": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Based on your pattern, tomorrow you might sleep worse. Good day for exercise."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Basado en tu patrón, mañana podrías dormir peor. Buen día para ejercicio."
+          }
+        }
+      }
+    },
+    "predictive.alert.mutation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your sleep pattern changed significantly this week. Try to regularize schedules."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu patrón de sueño cambió significativamente esta semana. Intenta regularizar horarios."
+          }
+        }
+      }
+    },
+    "predictive.alert.drift": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your schedule is shifting. Try to fix your wake time."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu horario se está desplazando. Intenta fijar la hora de despertar."
+          }
+        }
+      }
     }
   },
   "version": "1.1"

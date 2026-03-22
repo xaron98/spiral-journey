@@ -128,4 +128,76 @@ actor NotificationManager {
 
         return parts.joined(separator: " · ")
     }
+
+    // MARK: - Morning Summary
+
+    private let morningSummaryID = "spiral.morning.summary"
+
+    /// Schedule a morning summary notification.
+    /// - Parameters:
+    ///   - summary: The generated summary from MorningSummaryBuilder.
+    ///   - wakeHour: Predicted wake hour (0-24). Notification fires 30 min after.
+    func scheduleMorningSummary(_ summary: MorningSummaryBuilder.Summary, wakeHour: Double?) async {
+        center.removePendingNotificationRequests(withIdentifiers: [morningSummaryID])
+        guard await isAuthorized() else { return }
+
+        let content = UNMutableNotificationContent()
+        content.title = summary.title
+        content.body = summary.body
+        content.sound = .default
+
+        // Schedule 30 min after predicted wake, or 08:00 fallback
+        let triggerHour: Int
+        let triggerMin: Int
+        if let wake = wakeHour {
+            let totalMin = Int(wake * 60) + 30
+            triggerHour = (totalMin / 60) % 24
+            triggerMin = totalMin % 60
+        } else {
+            triggerHour = 8
+            triggerMin = 0
+        }
+
+        var dateComponents = DateComponents()
+        dateComponents.hour = triggerHour
+        dateComponents.minute = triggerMin
+
+        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
+        let request = UNNotificationRequest(identifier: morningSummaryID, content: content, trigger: trigger)
+
+        try? await center.add(request)
+    }
+
+    func cancelMorningSummary() {
+        center.removePendingNotificationRequests(withIdentifiers: [morningSummaryID])
+    }
+
+    // MARK: - Predictive Alert
+
+    private let predictiveAlertID = "spiral.predictive.alert"
+
+    /// Schedule a predictive alert for 18:00 today if conditions are met.
+    func schedulePredictiveAlert(_ alert: PredictiveAlertBuilder.Alert, localeIdentifier: String) async {
+        center.removePendingNotificationRequests(withIdentifiers: [predictiveAlertID])
+        guard alert.shouldFire, await isAuthorized() else { return }
+
+        let bundle = languageBundle(for: localeIdentifier)
+        let content = UNMutableNotificationContent()
+        content.title = NSLocalizedString("predictive.alert.title", bundle: bundle, comment: "")
+        content.body = alert.body
+        content.sound = .default
+
+        var dateComponents = DateComponents()
+        dateComponents.hour = 18
+        dateComponents.minute = 0
+
+        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
+        let request = UNNotificationRequest(identifier: predictiveAlertID, content: content, trigger: trigger)
+
+        try? await center.add(request)
+    }
+
+    func cancelPredictiveAlert() {
+        center.removePendingNotificationRequests(withIdentifiers: [predictiveAlertID])
+    }
 }

@@ -162,6 +162,12 @@ final class SpiralStore {
     var spiralRevealAnimation: Bool = true {
         didSet { save() }
     }
+    var morningSummaryEnabled: Bool = true {
+        didSet { save() }
+    }
+    var predictiveAlertsEnabled: Bool = true {
+        didSet { save() }
+    }
     var selectedTheme: String = "midnight" {
         didSet {
             SpiralColors.theme.apply(id: selectedTheme)
@@ -942,6 +948,8 @@ final class SpiralStore {
         var showGrid: Bool?
         var glowIntensity: Double?
         var spiralRevealAnimation: Bool?
+        var morningSummaryEnabled: Bool?
+        var predictiveAlertsEnabled: Bool?
         var selectedTheme: String?
         var language: AppLanguage?
         var appearance: AppAppearance?
@@ -1010,6 +1018,8 @@ final class SpiralStore {
             showGrid: showGrid,
             glowIntensity: glowIntensity,
             spiralRevealAnimation: spiralRevealAnimation,
+            morningSummaryEnabled: morningSummaryEnabled,
+            predictiveAlertsEnabled: predictiveAlertsEnabled,
             selectedTheme: selectedTheme,
             language: language,
             appearance: appearance,
@@ -1086,6 +1096,8 @@ final class SpiralStore {
         if let grid = stored.showGrid    { showGrid = grid }
         if let gi  = stored.glowIntensity { glowIntensity = gi }
         if let sra = stored.spiralRevealAnimation { spiralRevealAnimation = sra }
+        if let ms = stored.morningSummaryEnabled { morningSummaryEnabled = ms }
+        if let pa = stored.predictiveAlertsEnabled { predictiveAlertsEnabled = pa }
         if let st = stored.selectedTheme { selectedTheme = st; SpiralColors.theme.apply(id: st) }
         if let lang = stored.language {
             // Migrate: if the stored language was set before the "System" option existed,
@@ -1150,6 +1162,8 @@ final class SpiralStore {
             showGrid: showGrid,
             glowIntensity: glowIntensity,
             spiralRevealAnimation: spiralRevealAnimation,
+            morningSummaryEnabled: morningSummaryEnabled,
+            predictiveAlertsEnabled: predictiveAlertsEnabled,
             selectedTheme: selectedTheme,
             language: language,
             appearance: appearance,

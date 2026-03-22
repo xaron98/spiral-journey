@@ -138,6 +138,9 @@ enum BackgroundTaskManager {
         let refreshTask = Task {
             await dnaService.refreshIfNeeded(store: store, context: context)
 
+            // Schedule morning summary + predictive alerts
+            await scheduleNotifications(store: store, dnaService: dnaService)
+
             // Schedule next run
             scheduleDNARefresh()
 
@@ -148,6 +151,41 @@ enum BackgroundTaskManager {
         task.expirationHandler = {
             refreshTask.cancel()
             task.setTaskCompleted(success: false)
+        }
+    }
+
+    // MARK: - Notification Scheduling
+
+    @MainActor
+    private static func scheduleNotifications(
+        store: SpiralStore,
+        dnaService: SleepDNAService
+    ) async {
+        let bundle = languageBundle(for: store.language.localeIdentifier)
+
+        // Morning summary
+        if store.morningSummaryEnabled, let lastRecord = store.records.last {
+            let summary = MorningSummaryBuilder.build(
+                lastNight: lastRecord,
+                dnaProfile: dnaService.latestProfile,
+                consistency: store.analysis.consistency,
+                bundle: bundle
+            )
+            let wakeHour = store.latestPrediction?.predictedWakeHour
+            await NotificationManager.shared.scheduleMorningSummary(summary, wakeHour: wakeHour)
+        }
+
+        // Predictive alert
+        if store.predictiveAlertsEnabled {
+            let alert = PredictiveAlertBuilder.evaluate(
+                currentWeekRecords: Array(store.records.suffix(7)),
+                dnaProfile: dnaService.latestProfile,
+                stats: store.analysis.stats,
+                bundle: bundle
+            )
+            await NotificationManager.shared.schedulePredictiveAlert(
+                alert, localeIdentifier: store.language.localeIdentifier
+            )
         }
     }
 

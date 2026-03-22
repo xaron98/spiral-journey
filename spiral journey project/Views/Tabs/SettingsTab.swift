@@ -201,6 +201,62 @@ struct SettingsTab: View {
 
                         Divider().background(SpiralColors.border.opacity(0.5))
 
+                        // Morning summary toggle
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(String(localized: "settings.notifications.morning", bundle: bundle))
+                                    .font(.subheadline.monospaced())
+                                    .foregroundStyle(SpiralColors.text)
+                                Text(String(localized: "settings.notifications.morning.desc", bundle: bundle))
+                                    .font(.caption)
+                                    .foregroundStyle(SpiralColors.muted)
+                            }
+                            Spacer()
+                            Toggle("", isOn: $store.morningSummaryEnabled)
+                                .labelsHidden()
+                                .toggleStyle(SwitchToggleStyle(tint: SpiralColors.accent))
+                                .onChange(of: store.morningSummaryEnabled) { _, newValue in
+                                    if newValue {
+                                        Task {
+                                            let granted = await NotificationManager.shared.requestPermission()
+                                            if !granted { store.morningSummaryEnabled = false }
+                                        }
+                                    } else {
+                                        Task { await NotificationManager.shared.cancelMorningSummary() }
+                                    }
+                                }
+                        }
+
+                        Divider().background(SpiralColors.border.opacity(0.5))
+
+                        // Predictive alerts toggle
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(String(localized: "settings.notifications.predictive", bundle: bundle))
+                                    .font(.subheadline.monospaced())
+                                    .foregroundStyle(SpiralColors.text)
+                                Text(String(localized: "settings.notifications.predictive.desc", bundle: bundle))
+                                    .font(.caption)
+                                    .foregroundStyle(SpiralColors.muted)
+                            }
+                            Spacer()
+                            Toggle("", isOn: $store.predictiveAlertsEnabled)
+                                .labelsHidden()
+                                .toggleStyle(SwitchToggleStyle(tint: SpiralColors.accent))
+                                .onChange(of: store.predictiveAlertsEnabled) { _, newValue in
+                                    if newValue {
+                                        Task {
+                                            let granted = await NotificationManager.shared.requestPermission()
+                                            if !granted { store.predictiveAlertsEnabled = false }
+                                        }
+                                    } else {
+                                        Task { await NotificationManager.shared.cancelPredictiveAlert() }
+                                    }
+                                }
+                        }
+
+                        Divider().background(SpiralColors.border.opacity(0.5))
+
                         // About → NavigationLink
                         NavigationLink {
                             AboutView()
