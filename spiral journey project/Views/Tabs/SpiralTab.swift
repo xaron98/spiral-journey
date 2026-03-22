@@ -53,6 +53,7 @@ struct SpiralTab: View {
     @State private var showConsistencyDetail = false
     // Event sheet
     @State private var showEventSheet2 = false
+    // Dream entry state moved to ContentView to avoid re-rendering SpiralTab
     // Rephase editor sheet
     @State private var showRephaseEditor = false
     // Spiral growth animation — 0→1 drives the spiral's organic grow-from-center reveal
@@ -264,7 +265,18 @@ struct SpiralTab: View {
 
                             Spacer()
 
-                            Button { showEventSheet2 = true } label: {
+                            Button {
+                                if let info = cursorSleepInfo {
+                                    // Post notification to ContentView — avoids SpiralTab re-render
+                                    NotificationCenter.default.post(
+                                        name: .showDreamEntry,
+                                        object: nil,
+                                        userInfo: ["day": info.day, "timeRange": info.timeRange]
+                                    )
+                                } else {
+                                    showEventSheet2 = true
+                                }
+                            } label: {
                                 Image(systemName: "plus")
                                     .font(.title3.weight(.semibold))
                                     .foregroundStyle(SpiralColors.accent)
@@ -467,6 +479,7 @@ struct SpiralTab: View {
                 .presentationDetents([.medium])
                 .presentationDragIndicator(.visible)
             }
+            // Dream entry sheet presented from ContentView to avoid SpiralTab re-render
             .sheet(isPresented: $showRephaseEditor) {
                 RephaseEditorView(plan: store.rephasePlan)
                     .presentationDetents([.large])
@@ -831,6 +844,32 @@ struct SpiralTab: View {
         return Text(text)
             .font(.caption.monospaced())
             .foregroundStyle(color)
+    }
+
+    // MARK: - Sleep phase detection for dream entry
+
+    /// Returns (day, sleepTimeRange) if cursor is on a sleep phase, nil otherwise.
+    private var cursorSleepInfo: (day: Int, timeRange: String)? {
+        let cursorH = cursorAbsHour
+        guard cursorH > 0 else { return nil }
+        let dayIndex = Int(cursorH / store.period)
+        let clockHour = cursorH.truncatingRemainder(dividingBy: store.period)
+
+        for candidateDay in [dayIndex, dayIndex - 1, dayIndex + 1] {
+            guard let record = store.records.first(where: { $0.day == candidateDay }) else { continue }
+            let phaseAtHour = record.phases.last(where: { $0.hour <= clockHour })
+            let isSleepPhase = phaseAtHour != nil && phaseAtHour!.phase != .awake
+            let bedH = record.bedtimeHour, wakeH = record.wakeupHour
+            let inSleepRange: Bool
+            if bedH > wakeH { inSleepRange = clockHour >= bedH || clockHour <= wakeH }
+            else if bedH < wakeH { inSleepRange = clockHour >= bedH && clockHour <= wakeH }
+            else { inSleepRange = false }
+
+            if isSleepPhase || inSleepRange {
+                return (candidateDay, "\(formatClockHour(bedH)) – \(formatClockHour(wakeH))")
+            }
+        }
+        return nil
     }
 
     private func formatClockHour(_ h: Double) -> String {

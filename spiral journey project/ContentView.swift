@@ -1,11 +1,18 @@
 import SwiftUI
 
+extension Notification.Name {
+    static let showDreamEntry = Notification.Name("showDreamEntry")
+}
+
 struct ContentView: View {
     @Environment(\.languageBundle) private var bundle
     @Environment(\.colorScheme) private var colorScheme
     @Environment(SpiralStore.self) private var store
     @State private var selectedTab: AppTab = .spiral
     @State private var onboardingFrames = OnboardingFrames()
+    @State private var showDreamSheet = false
+    @State private var dreamDay: Int = 0
+    @State private var dreamTimeRange: String = ""
 
     var body: some View {
         @Bindable var store = store
@@ -123,6 +130,18 @@ struct ContentView: View {
         }
         .onAppear {
             SpiralColors.theme.scheme = colorScheme
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .showDreamEntry)) { notification in
+            if let day = notification.userInfo?["day"] as? Int,
+               let timeRange = notification.userInfo?["timeRange"] as? String {
+                dreamDay = day
+                dreamTimeRange = timeRange
+                showDreamSheet = true
+            }
+        }
+        .sheet(isPresented: $showDreamSheet) {
+            DreamEntrySheet(day: dreamDay, sleepTimeRange: dreamTimeRange)
+                .presentationDetents([.medium])
         }
         .onChange(of: store.hasShownWelcome) { _, newVal in
             if !newVal { selectedTab = .spiral }
