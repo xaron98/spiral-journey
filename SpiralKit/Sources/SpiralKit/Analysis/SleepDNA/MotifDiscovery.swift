@@ -31,8 +31,9 @@ public enum MotifDiscovery {
     private static let maxMotifs = 10
 
     /// Default DTW distance threshold for merging clusters. Tuned for 16-feature nucleotides
-    /// with uniform weights.
-    public static let defaultThreshold = 8.0
+    /// normalized to [0,1]. Max theoretical DTW distance ~28 (7 days × sqrt(16)).
+    /// Empirical: 2.0 separates genuinely distinct weekly patterns while grouping similar ones.
+    public static let defaultThreshold = 2.0
 
     // MARK: - Public API
 

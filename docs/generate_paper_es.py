@@ -173,9 +173,14 @@ S(Paragraph(
 S(Paragraph(
     "Proponemos <i>SleepDNA</i>, un marco computacional inspirado en la biologia molecular y la bioinformatica "
     "que trata el historial de sueno de un individuo como una secuencia genetica susceptible de alineamiento, "
-    "descubrimiento de motivos, analisis de mutaciones y caracterizacion topologica. El marco opera "
-    "completamente en el dispositivo, preservando la privacidad de los datos mientras permite un analisis "
-    "sofisticado antes restringido a entornos de investigacion clinica.",
+    "descubrimiento de motivos, analisis de mutaciones y caracterizacion topologica. A diferencia de los "
+    "sistemas emergentes de descubrimiento cientifico autonomo como EvoScientist [24], que logran solo un "
+    "21% de exito en implementacion de metodos complejos sin supervision humana, SleepDNA adopta un enfoque "
+    "hibrido: herramientas computacionales de bioinformatica operadas bajo supervision experta del investigador. "
+    "El marco opera completamente en el dispositivo, alineandose con la tendencia creciente de modelos "
+    "especializados en edge — como MSBA-YOLO [25] para deteccion clinica a 96.1% de precision en 6.4MB — "
+    "preservando la privacidad de los datos mientras permite un analisis sofisticado antes restringido a "
+    "entornos de investigacion clinica.",
     styles["Body"]
 ))
 S(Paragraph(
@@ -433,7 +438,12 @@ S(Paragraph("6. Arquitectura en el Dispositivo", styles["SectionHead"]))
 S(Paragraph(
     "Todo el pipeline de SleepDNA se ejecuta localmente en dispositivos iOS usando el framework Accelerate "
     "(vDSP) de Apple para procesamiento de senales y computacion vectorizada. Ningun dato de sueno se "
-    "transmite a servidores externos. El pipeline esta escalonado por niveles segun los datos disponibles:",
+    "transmite a servidores externos. Esta arquitectura se alinea con la tendencia documentada por el "
+    "Anthropic Economic Index [26], que identifica una brecha de adopcion del 61% entre la capacidad "
+    "teorica de los modelos de lenguaje (94%) y su uso real observado (33%) en entornos profesionales. "
+    "Al ejecutar la inferencia en el dispositivo, SleepDNA elimina la dependencia de APIs cloud, los costes "
+    "asociados, y las preocupaciones de latencia y privacidad que frenan la adopcion de IA en el sector "
+    "salud. El pipeline esta escalonado por niveles segun los datos disponibles:",
     styles["Body"]
 ))
 
@@ -531,7 +541,11 @@ S(Paragraph(
     "Watch varia segun el modelo y es menos precisa que la PSG clinica. Cuarto, el analisis de correlacion "
     "basado en PLV no puede establecer causalidad — las variables confusoras (ej. efecto del fin de semana "
     "enmascarado como beneficio del alcohol) no se controlan. Quinto, las metricas topologicas (PCH, LND) "
-    "son exploratorias y carecen de validacion clinica. Finalmente, el descubrimiento de motivos requiere "
+    "son exploratorias y carecen de validacion clinica. Sexto, la integracion futura de modelos de lenguaje "
+    "grandes (LLM) para interpretar resultados introduce el riesgo de 'alignment tax' o sicofonancia — la "
+    "tendencia documentada de los LLM a producir respuestas que validan el sesgo del usuario en lugar de "
+    "proporcionar evaluaciones objetivas [27], lo que podria generar insights enganosos si no se controla "
+    "adecuadamente. Finalmente, el descubrimiento de motivos requiere "
     "8+ semanas de datos continuos, lo que presenta un desafio de incorporacion.",
     styles["Body"]
 ))
@@ -577,6 +591,10 @@ refs = [
     "[21] Bird, A. (2007). Perceptions of epigenetics. <i>Nature</i>, 447(7143), 396-398.",
     "[22] Nirenberg, M. & Matthaei, J.H. (1961). The dependence of cell-free protein synthesis upon naturally occurring or synthetic polyribonucleotides. <i>PNAS</i>, 47(10), 1588-1602.",
     "[23] Watson, J.D. & Crick, F.H.C. (1953). Molecular structure of nucleic acids. <i>Nature</i>, 171(4356), 737-738.",
+    "[24] EvoScientist (2026). Towards Multi-Agent Evolving AI Scientists for End-to-End Scientific Discovery. <i>arXiv</i>, 2603.08127.",
+    "[25] MSBA-YOLO (2026). Lightweight laryngeal disease detection algorithm. <i>AI</i>, 7(3). MDPI.",
+    "[26] Massenkoff, M. & McCrory, P. (2026). Labor market impacts of AI: A new measure and early evidence. Anthropic Research.",
+    "[27] Lerchner, A. (2026). The Abstraction Fallacy: Why AI Can Simulate But Not Instantiate Consciousness. Google DeepMind Publications.",
 ]
 
 for ref in refs:

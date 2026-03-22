@@ -15,12 +15,16 @@ struct HelixRealityView: View {
     @Environment(\.languageBundle) private var bundle
     @Environment(\.scenePhase) private var scenePhase
     @State private var manager = HelixInteractionManager()
-    @State private var helixRoot: Entity?
 
-    /// Baseline zoom before the current pinch gesture.
-    @State private var baseZoom: Float = 1.0
-    /// Accumulated drag for the current gesture.
-    @State private var dragStart: CGSize = .zero
+    // manager.baseZoom and manager.dragStart stored in manager (@ObservationIgnored) to avoid @State re-renders
+
+    // ── Dirty-tracking: skip expensive ops when only transform changed ──
+    private final class DirtyState {
+        var selectedWeek: Int? = nil
+        var showPatterns: Bool = false
+        var zoomBracket: Int = 1
+    }
+    @State private var dirty = DirtyState()
 
     var body: some View {
         if profile.helixGeometry.count < 3 {
@@ -80,65 +84,68 @@ struct HelixRealityView: View {
             anchor.addChild(light)
 
             content.add(anchor)
-            helixRoot = root
+            manager.rootEntity = root
         } update: { content in
-            guard let root = helixRoot else { return }
+            guard let root = manager.rootEntity else { return }
+            let totalDays = profile.nucleotides.count
 
-            // Apply interaction transform
-            root.transform = manager.sceneTransform
+            // ① Transform is handled by CADisplayLink at 60fps — NOT here.
+            // This update: closure only runs when observed state changes
+            // (selectedWeek, showPatterns).
 
-            // Progressive LOD: update materials based on zoom level
-            HelixSceneBuilder.updateMaterialLOD(
-                root: root,
-                totalDays: profile.nucleotides.count,
-                zoomScale: manager.zoomScale
-            )
-
-            // Handle motif toggling
-            HelixSceneBuilder.toggleMotifRegions(
-                root: root,
-                motifs: profile.motifs,
-                show: manager.showPatterns,
-                totalDays: profile.nucleotides.count
-            )
-
-            // Handle week highlights
-            if let week = manager.selectedWeek {
-                HelixSceneBuilder.resetHighlights(
+            // ② LOD: only update materials when zoom crosses a bracket boundary
+            let zoomBracket = manager.zoomScale > 1.5 ? 2 : (manager.zoomScale > 0.8 ? 1 : 0)
+            if zoomBracket != dirty.zoomBracket {
+                dirty.zoomBracket = zoomBracket
+                HelixSceneBuilder.updateMaterialLOD(
                     root: root,
-                    totalDays: profile.nucleotides.count
-                )
-                HelixSceneBuilder.highlightSimilarWeeks(
-                    root: root,
-                    selectedWeek: week,
-                    alignments: profile.alignments,
-                    totalDays: profile.nucleotides.count
-                )
-            } else {
-                HelixSceneBuilder.resetHighlights(
-                    root: root,
-                    totalDays: profile.nucleotides.count
+                    totalDays: totalDays,
+                    zoomScale: manager.zoomScale
                 )
             }
+
+            // ③ Motif toggle: only when showPatterns actually changed
+            if manager.showPatterns != dirty.showPatterns {
+                dirty.showPatterns = manager.showPatterns
+                HelixSceneBuilder.toggleMotifRegions(
+                    root: root,
+                    motifs: profile.motifs,
+                    show: manager.showPatterns,
+                    totalDays: totalDays
+                )
+            }
+
+            // ④ Week highlights: only when selection changed
+            if manager.selectedWeek != dirty.selectedWeek {
+                dirty.selectedWeek = manager.selectedWeek
+                if let week = manager.selectedWeek {
+                    HelixSceneBuilder.resetHighlights(root: root, totalDays: totalDays)
+                    HelixSceneBuilder.highlightSimilarWeeks(
+                        root: root,
+                        selectedWeek: week,
+                        alignments: profile.alignments,
+                        totalDays: totalDays
+                    )
+                } else {
+                    HelixSceneBuilder.resetHighlights(root: root, totalDays: totalDays)
+                }
+            }
         }
-        .simultaneousGesture(dragGesture)
-        .simultaneousGesture(magnifyGesture)
+        .gesture(dragGesture)
+        .gesture(magnifyGesture)
         .simultaneousGesture(tapGesture)
-        .contentShape(Rectangle())  // ensure full area is gesture-tappable
         .onAppear {
-            startAutoRotation()
+            manager.startDisplayLink()
         }
         .onDisappear {
-            autoRotationTimer?.invalidate()
-            autoRotationTimer = nil
+            manager.stopDisplayLink()
         }
         .onChange(of: scenePhase) { _, newPhase in
             switch newPhase {
             case .active:
-                if autoRotationTimer == nil { startAutoRotation() }
+                manager.startDisplayLink()
             case .inactive, .background:
-                autoRotationTimer?.invalidate()
-                autoRotationTimer = nil
+                manager.stopDisplayLink()
             @unknown default:
                 break
             }
@@ -182,6 +189,14 @@ struct HelixRealityView: View {
             }
 
             Spacer()
+
+            // Bottom: motif legend (when patterns are shown)
+            if manager.showPatterns && !profile.motifs.isEmpty {
+                motifLegend
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .padding(.horizontal, 12)
+                    .padding(.bottom, 4)
+            }
 
             // Bottom: week info card
             if let week = manager.selectedWeek {
@@ -238,27 +253,57 @@ struct HelixRealityView: View {
         )
     }
 
+    // MARK: - Motif Legend
+
+    @ViewBuilder
+    private var motifLegend: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                ForEach(Array(profile.motifs.enumerated()), id: \.offset) { idx, motif in
+                    let uiColor = HelixSceneBuilder.motifColorPalette[idx % HelixSceneBuilder.motifColorPalette.count]
+                    HStack(spacing: 5) {
+                        Circle()
+                            .fill(Color(uiColor))
+                            .frame(width: 8, height: 8)
+                        Text(localizedMotifName(motif.name))
+                            .font(.caption2.weight(.medium))
+                            .foregroundStyle(SpiralColors.text)
+                    }
+                }
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+            .background(
+                Capsule()
+                    .fill(SpiralColors.surface.opacity(0.85))
+            )
+        }
+    }
+
+    private func localizedMotifName(_ engineName: String) -> String {
+        let key = "dna.motif.name.\(engineName.lowercased())"
+        let result = loc(key)
+        return result == key ? engineName : result
+    }
+
     // MARK: - Gestures
 
     private var dragGesture: some Gesture {
         DragGesture(minimumDistance: 5)
             .onChanged { value in
                 if !manager.isInteracting {
-                    // First frame: record start, don't apply yet
                     manager.isInteracting = true
-                    isInteractingWith3D = true
-                    dragStart = value.translation
+                    manager.dragStart = value.translation
                     return
                 }
-                let deltaX = Float(value.translation.width - dragStart.width)
-                let deltaY = Float(value.translation.height - dragStart.height)
+                let deltaX = Float(value.translation.width - manager.dragStart.width)
+                let deltaY = Float(value.translation.height - manager.dragStart.height)
                 manager.applyDrag(translationX: deltaX * 0.5, translationY: deltaY * 0.5)
-                dragStart = value.translation
+                manager.dragStart = value.translation
             }
             .onEnded { _ in
                 manager.isInteracting = false
-                isInteractingWith3D = false
-                dragStart = .zero
+                manager.dragStart = .zero
             }
     }
 
@@ -266,14 +311,12 @@ struct HelixRealityView: View {
         MagnifyGesture()
             .onChanged { value in
                 manager.isInteracting = true
-                isInteractingWith3D = true
-                let mag = Float(value.magnification) * baseZoom
+                let mag = Float(value.magnification) * manager.baseZoom
                 manager.applyZoom(mag)
             }
             .onEnded { value in
-                baseZoom = manager.zoomScale
+                manager.baseZoom = manager.zoomScale
                 manager.isInteracting = false
-                isInteractingWith3D = false
             }
     }
 
@@ -294,20 +337,7 @@ struct HelixRealityView: View {
             }
     }
 
-    // MARK: - Auto-rotation Timer
-
-    @State private var autoRotationTimer: Timer?
-
-    private func startAutoRotation() {
-        // Invalidate any existing timer first
-        autoRotationTimer?.invalidate()
-        // Low frequency (10fps) to save memory and CPU
-        autoRotationTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 10.0, repeats: true) { _ in
-            Task { @MainActor [weak manager] in
-                manager?.tickAutoRotation()
-            }
-        }
-    }
+    // Auto-rotation and transform handled by CADisplayLink in HelixInteractionManager
 
     // MARK: - Localization
 

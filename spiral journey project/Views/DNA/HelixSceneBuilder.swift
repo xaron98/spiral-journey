@@ -215,6 +215,14 @@ enum HelixSceneBuilder {
     // MARK: - Toggle Motif Regions
 
     /// Show or hide translucent cylinders around weeks belonging to motifs.
+    /// Motif color palette — shared with SwiftUI overlay for legend.
+    static let motifColorPalette: [UIColor] = [
+        UIColor(Color(hex: "22d3ee")),  // cyan
+        UIColor(Color(hex: "a78bfa")),  // violet
+        UIColor(Color(hex: "34d399")),  // emerald
+        UIColor(Color(hex: "fb923c")),  // orange
+    ]
+
     static func toggleMotifRegions(
         root: Entity,
         motifs: [SleepMotif],
@@ -222,51 +230,39 @@ enum HelixSceneBuilder {
         totalDays: Int,
         yOffset: Float? = nil
     ) {
-        let computedYOffset = yOffset ?? (Float(totalDays - 1) * zStep / 2.0)
-
-        // Remove any existing motif entities first
-        let existing = root.children.filter { $0.name.hasPrefix("motif_") }
-        for entity in existing {
-            root.removeChild(entity)
+        // Build day → motif color mapping
+        // All motifs get distinct colors so different patterns are visually distinguishable.
+        var dayMotifColor: [Int: UIColor] = [:]
+        if show {
+            for (motifIdx, motif) in motifs.enumerated() {
+                let color = motifColorPalette[motifIdx % motifColorPalette.count]
+                for weekIdx in motif.instanceWeekIndices {
+                    let startDay = weekIdx * 7
+                    guard startDay < totalDays else { continue }
+                    for d in startDay..<min(startDay + 7, totalDays) {
+                        dayMotifColor[d] = color
+                    }
+                }
+            }
         }
 
-        guard show else { return }
+        // Color existing base pair connectors by motif (or reset to default)
+        for child in root.children where child.name.hasPrefix("basepair_") {
+            guard let model = child as? ModelEntity else { continue }
+            let dayStr = child.name.replacingOccurrences(of: "basepair_", with: "")
+            guard let dayIndex = Int(dayStr) else { continue }
 
-        // Color palette for different motifs
-        let motifColors: [UIColor] = [
-            UIColor(Color(hex: "22d3ee")),  // cyan
-            UIColor(Color(hex: "a78bfa")),  // violet
-            UIColor(Color(hex: "34d399")),  // emerald
-            UIColor(Color(hex: "fb923c")),  // orange
-        ]
-
-        for (motifIdx, motif) in motifs.enumerated() {
-            let color = motifColors[motifIdx % motifColors.count]
-
-            for weekIdx in motif.instanceWeekIndices {
-                let startDay = weekIdx * 7
-                let endDay = min(startDay + 6, totalDays - 1)
-                guard startDay < totalDays else { continue }
-
-                let yStart = Float(startDay) * zStep - computedYOffset
-                let yEnd = Float(endDay) * zStep - computedYOffset
-                let height = abs(yEnd - yStart) + zStep
-                let midY = (yStart + yEnd) / 2.0
-
-                let mesh = MeshResource.generateCylinder(
-                    height: height,
-                    radius: baseRadius + radiusScale + 0.02
-                )
-                var material = SimpleMaterial(
-                    color: color.withAlphaComponent(0.15),
-                    roughness: 0.8,
-                    isMetallic: false
-                )
-                material.color.tint = color.withAlphaComponent(0.15)
-                let cylinder = ModelEntity(mesh: mesh, materials: [material])
-                cylinder.name = "motif_\(motif.id.uuidString)_\(weekIdx)"
-                cylinder.position = SIMD3<Float>(0, midY, 0)
-                root.addChild(cylinder)
+            if let motifColor = dayMotifColor[dayIndex] {
+                // Color connector with motif color — thicker and opaque
+                var mat = SimpleMaterial(color: motifColor, roughness: 0.3, isMetallic: false)
+                mat.color.tint = motifColor
+                model.model?.materials = [mat]
+                model.scale = SIMD3<Float>(2.5, 1.0, 2.5) // thicker connector
+            } else {
+                // Reset to default
+                let mat = SimpleMaterial(color: basePairColor, roughness: 0.8, isMetallic: false)
+                model.model?.materials = [mat]
+                model.scale = SIMD3<Float>(1.0, 1.0, 1.0)
             }
         }
     }

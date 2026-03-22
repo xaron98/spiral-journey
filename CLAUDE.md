@@ -93,3 +93,32 @@
 10. Never add window clipping or edge fade to data — ALL data must be visible always
 11. Never limit renderFrom/renderUpTo to the camera window — use 0 to extentTurns
 12. Never limit context block iteration to window.startIndex...endIndex — use 0...maxDay
+
+## DNA 3D Helix Performance Rules (CRITICAL)
+
+### Gesture & Transform System
+- **CADisplayLink at 60fps** — transform applied directly to entity, NOT via SwiftUI `update:` closure
+- **@ObservationIgnored** — `rotationX`, `rotationY`, `zoomScale`, `dragStart`, `baseZoom`, `isInteracting` are all `@ObservationIgnored` in `HelixInteractionManager`. They MUST NOT trigger SwiftUI re-renders.
+- **Only `selectedWeek` and `showPatterns` are @Observable** — these are the only properties that need SwiftUI updates (for overlays/legend)
+- **No @State during drag** — `dragStart` and `baseZoom` live in the manager, not as `@State` in the view
+- **No @Binding during drag** — `isInteractingWith3D` is NOT set during drag/pinch gestures. It caused parent ScrollView re-render.
+- **`.gesture()` not `.highPriorityGesture()`** — highPriority adds gesture conflict resolution overhead
+- **No `contentShape(Rectangle())`** — adds unnecessary hit testing overhead
+- **`rootEntity` stored as weak ref in manager** — allows CADisplayLink to apply transform without capturing @State
+
+### Dirty-Tracking in `update:` Closure
+- `update:` only runs when `selectedWeek` or `showPatterns` change
+- LOD materials: only update when zoom crosses bracket boundary (0.8 or 1.5)
+- Motif regions: only update when `showPatterns` toggles
+- Week highlights: only update when `selectedWeek` changes
+
+### Pitfalls to Avoid
+1. Never make rotation/zoom properties `@Observable` or `@State` — causes re-render on every drag frame
+2. Never use `@Binding` changes during continuous gestures (drag/pinch)
+3. Never use Timer for transform — use CADisplayLink for 60fps
+4. Never apply transform in `update:` closure — it runs on SwiftUI's schedule, not render schedule
+5. Never use `highPriorityGesture` or `contentShape` — adds gesture resolution overhead
+
+## Motif Discovery
+- Default DTW threshold: **2.0** (not 8.0). With normalized [0,1] features, 8.0 merges everything into one cluster.
+- Motif patterns visualized via colored base pair connectors + SwiftUI legend (not 3D cylinders/text)

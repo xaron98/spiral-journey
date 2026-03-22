@@ -2,53 +2,74 @@ import SwiftUI
 import RealityKit
 
 /// Manages rotation, zoom, selection, and auto-rotation state for the 3D helix view.
+///
+/// Rotation and zoom are @ObservationIgnored — they update the entity directly
+/// via a CADisplayLink at 60fps, completely bypassing SwiftUI's update: cycle.
+/// Only selectedWeek and showPatterns trigger SwiftUI re-renders (for overlays).
 @available(iOS 18.0, *)
 @Observable
 @MainActor
 final class HelixInteractionManager {
 
-    // MARK: - Rotation
+    // MARK: - Entity reference (set once from RealityView make:)
 
-    /// Cumulative rotation around the Y axis (horizontal drag).
-    var rotationY: Float = 0
-    /// Cumulative rotation around the X axis (vertical drag).
-    var rotationX: Float = 0
+    @ObservationIgnored weak var rootEntity: Entity?
 
-    // MARK: - Zoom
+    // MARK: - Rotation (NOT observed)
 
-    /// Current magnification scale, clamped to [0.5, 3.0].
-    var zoomScale: Float = 1.0
+    @ObservationIgnored var rotationY: Float = 0
+    @ObservationIgnored var rotationX: Float = 0
 
-    // MARK: - Selection
+    // MARK: - Zoom (NOT observed)
 
-    /// Currently selected week index, or nil.
+    @ObservationIgnored var zoomScale: Float = 1.0
+
+    // MARK: - Selection (observed — SwiftUI needs this for overlays)
+
     var selectedWeek: Int? = nil
 
-    // MARK: - Motif Toggle
+    // MARK: - Motif Toggle (observed — SwiftUI needs this for legend)
 
-    /// Whether motif region highlights are visible.
     var showPatterns: Bool = false
 
     // MARK: - Interaction State
 
-    /// True while the user is dragging or pinching; pauses auto-rotation.
-    var isInteracting: Bool = false
+    @ObservationIgnored var isInteracting: Bool = false
+    /// Accumulated drag translation — stored here to avoid @State re-renders.
+    @ObservationIgnored var dragStart: CGSize = .zero
+    /// Baseline zoom before current pinch gesture.
+    @ObservationIgnored var baseZoom: Float = 1.0
 
-    // MARK: - Auto-rotation
+    // MARK: - Display Link
 
-    /// Radians per tick for idle auto-rotation.
+    @ObservationIgnored private var displayLink: CADisplayLink?
     private let autoRotationSpeed: Float = 0.003
 
-    /// Advance auto-rotation by one frame tick.
-    func tickAutoRotation() {
-        guard !isInteracting else { return }
-        rotationY += autoRotationSpeed
+    func startDisplayLink() {
+        guard displayLink == nil else { return }
+        let link = CADisplayLink(target: self, selector: #selector(displayLinkTick))
+        link.preferredFrameRateRange = CAFrameRateRange(minimum: 30, maximum: 60, preferred: 60)
+        link.add(to: .main, forMode: .common)
+        displayLink = link
+    }
+
+    func stopDisplayLink() {
+        displayLink?.invalidate()
+        displayLink = nil
+    }
+
+    @objc private func displayLinkTick() {
+        // Auto-rotate when idle
+        if !isInteracting {
+            rotationY += autoRotationSpeed
+        }
+        // Apply transform directly to entity — no SwiftUI involved
+        rootEntity?.transform = sceneTransform
     }
 
     // MARK: - Computed Transform
 
-    /// Combined transform from rotation + zoom, suitable for the helix root entity.
-    var sceneTransform: Transform {
+    private var sceneTransform: Transform {
         let scaleVec = SIMD3<Float>(repeating: zoomScale)
         let rotY = simd_quatf(angle: rotationY, axis: SIMD3<Float>(0, 1, 0))
         let rotX = simd_quatf(angle: rotationX, axis: SIMD3<Float>(1, 0, 0))
@@ -58,25 +79,20 @@ final class HelixInteractionManager {
 
     // MARK: - Gesture Helpers
 
-    /// Apply a drag delta to rotation.
     func applyDrag(translationX: Float, translationY: Float) {
         let sensitivity: Float = 0.008
         rotationY += translationX * sensitivity
         rotationX += translationY * sensitivity
-        // Clamp X rotation to avoid flipping
         rotationX = max(-.pi / 2.5, min(.pi / 2.5, rotationX))
+        // No need to notify SwiftUI — displayLink applies transform next frame
     }
 
-    /// Apply a magnification value from MagnifyGesture.
     func applyZoom(_ magnification: Float) {
         zoomScale = max(0.5, min(3.0, magnification))
     }
 
-    /// Select a week from a tapped entity name (e.g. "nucleotide_1_42" -> week 6).
-    /// Returns the selected week if parsing succeeds.
     @discardableResult
     func selectFromEntityName(_ name: String) -> Int? {
-        // Expected format: "nucleotide_STRAND_DAY"
         let parts = name.split(separator: "_")
         guard parts.count >= 3,
               parts[0] == "nucleotide",
@@ -85,7 +101,7 @@ final class HelixInteractionManager {
         }
         let week = dayIndex / 7
         if selectedWeek == week {
-            selectedWeek = nil  // toggle off
+            selectedWeek = nil
         } else {
             selectedWeek = week
         }
