@@ -302,6 +302,7 @@ public actor SleepDNAComputer {
             hasScore: hasScore,
             baselineHAS: baselineHAS,
             poissonFragmentation: poissonResult,
+            codonAnalysis: SleepCodonAnalyzer.analyzeMultiNight(records: records),
             hawkesAnalysis: hawkesResult,
             tier: tier,
             computedAt: Date(),

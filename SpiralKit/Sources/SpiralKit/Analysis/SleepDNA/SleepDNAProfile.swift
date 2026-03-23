@@ -85,6 +85,9 @@ public struct SleepDNAProfile: Codable, Sendable {
     /// Hawkes event-impact analysis: temporal excitation of fragmentation by circadian events.
     /// `nil` when tier is not `.full` (fewer than 8 weeks of data).
     public let hawkesAnalysis: HawkesAnalysisResult?
+    /// Intra-night codon analysis: sleep stage transition quality.
+    /// `nil` when phase data is unavailable (no Apple Watch).
+    public let codonAnalysis: SleepCodonAnalyzer.MultiNightCodonResult?
     /// Data sufficiency tier that was used for this computation.
     public let tier: AnalysisTier
     /// When this profile was computed.
@@ -111,6 +114,7 @@ public struct SleepDNAProfile: Codable, Sendable {
         hasScore: Double? = nil,
         baselineHAS: Double? = nil,
         poissonFragmentation: PoissonFragmentationResult? = nil,
+        codonAnalysis: SleepCodonAnalyzer.MultiNightCodonResult? = nil,
         hawkesAnalysis: HawkesAnalysisResult? = nil,
         tier: AnalysisTier,
         computedAt: Date,
@@ -134,6 +138,7 @@ public struct SleepDNAProfile: Codable, Sendable {
         self.hasScore = hasScore
         self.baselineHAS = baselineHAS
         self.poissonFragmentation = poissonFragmentation
+        self.codonAnalysis = codonAnalysis
         self.hawkesAnalysis = hawkesAnalysis
         self.tier = tier
         self.computedAt = computedAt

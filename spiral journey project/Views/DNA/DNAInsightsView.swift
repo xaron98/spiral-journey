@@ -74,6 +74,9 @@ struct DNAInsightsView: View {
                 DNAAlignmentSection(profile: profile)
                 DNAHealthSection(profile: profile)
                 DNABasePairsSection(profile: profile)
+                if let codons = profile.codonAnalysis {
+                    DNACodonSection(codonResult: codons)
+                }
                 DNATierSection(profile: profile)
 
                 Text(loc("dna.disclaimer"))
