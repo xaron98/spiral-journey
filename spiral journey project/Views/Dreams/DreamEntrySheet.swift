@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import Speech
 
 /// Sheet for writing or reading dream journal entries.
 /// Supports multiple dreams per night.
@@ -19,6 +20,7 @@ struct DreamEntrySheet: View {
     @State private var existingDreams: [SDDreamEntry] = []
     @State private var interpretation: String?
     @State private var isInterpreting = false
+    @State private var transcriber = SpeechTranscriber()
     @FocusState private var isTextFocused: Bool
 
     var body: some View {
@@ -84,16 +86,36 @@ struct DreamEntrySheet: View {
                     }
 
                     // New dream input
-                    TextField(loc("dream.entry.placeholder"), text: $dreamText, axis: .vertical)
-                        .focused($isTextFocused)
-                        .lineLimit(4...12)
-                        .font(.body)
-                        .foregroundStyle(SpiralColors.text)
-                        .padding(12)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(SpiralColors.surface)
-                        )
+                    ZStack(alignment: .bottomTrailing) {
+                        TextField(loc("dream.entry.placeholder"), text: $dreamText, axis: .vertical)
+                            .focused($isTextFocused)
+                            .lineLimit(4...12)
+                            .font(.body)
+                            .foregroundStyle(SpiralColors.text)
+                            .padding(12)
+                            .padding(.trailing, 36)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(SpiralColors.surface)
+                            )
+
+                        // Microphone button for voice input
+                        Button {
+                            Task { await toggleVoiceInput() }
+                        } label: {
+                            Image(systemName: transcriber.isRecording ? "mic.fill" : "mic")
+                                .font(.body)
+                                .foregroundStyle(transcriber.isRecording ? .red : SpiralColors.muted)
+                                .frame(width: 32, height: 32)
+                        }
+                        .buttonStyle(.plain)
+                        .padding(6)
+                    }
+                    .onChange(of: transcriber.transcript) { _, newValue in
+                        if !newValue.isEmpty {
+                            dreamText = newValue
+                        }
+                    }
 
                     // Intensity
                     HStack(spacing: 10) {
@@ -225,6 +247,20 @@ struct DreamEntrySheet: View {
             sortBy: [SortDescriptor(\.createdAt)]
         )
         existingDreams = (try? modelContext.fetch(descriptor)) ?? []
+    }
+
+    private func toggleVoiceInput() async {
+        if transcriber.isRecording {
+            transcriber.stopRecording()
+        } else {
+            // Pre-fill transcript with existing text so it appends
+            transcriber.transcript = dreamText
+            let granted = await transcriber.requestPermissions()
+            if granted {
+                transcriber.startRecording()
+                isTextFocused = false
+            }
+        }
     }
 
     private func saveDream() {

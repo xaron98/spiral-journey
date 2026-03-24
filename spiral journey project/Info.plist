@@ -14,6 +14,10 @@
 	</array>
 	<key>NSHealthShareUsageDescription</key>
 	<string>Spiral Journey reads your sleep, heart rate, HRV, activity, wrist temperature, daylight exposure, and menstrual cycle data from Apple Health to build a complete picture of your circadian rhythm. This transforms the app into a personal chronobiograph — combining sleep architecture with daytime physiology for deeper insights. All analysis runs on-device. Data may sync across your devices via iCloud if cloud sync is enabled. Your health data is never shared with third parties.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Spiral Journey uses on-device speech recognition to transcribe your dream journal entries by voice. Audio is processed entirely on your device and never sent to external servers.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Spiral Journey needs microphone access to transcribe your dream journal entries by voice.</string>
 	<key>NSCalendarsFullAccessUsageDescription</key>
 	<string>Spiral Journey can import your calendar events as context blocks to detect conflicts between your sleep schedule and daily obligations. Calendar data may sync across your devices via iCloud if cloud sync is enabled.</string>
 	<key>NSCalendarsUsageDescription</key>

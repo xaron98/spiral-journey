@@ -21,6 +21,7 @@ struct AnalysisTab: View {
     @State private var showSectorQuality     = false
     @State private var showHRV               = false
     @State private var showPeriodogram       = false
+    @State private var showTimeline         = false
     @State private var isGeneratingPDF       = false
 
     var body: some View {
@@ -87,6 +88,19 @@ struct AnalysisTab: View {
                                 periodogramResults: store.analysis.periodogramResults,
                                 healthProfiles: store.healthProfiles,
                                 recordCount: store.records.count
+                            )
+                        }
+                        if showTimeline {
+                            DiscoveryTimelineView(
+                                discoveries: DiscoveryDetector.detect(
+                                    records: store.records,
+                                    dnaProfile: store.dnaProfile,
+                                    consistency: store.analysis.consistency,
+                                    periodograms: store.analysis.periodogramResults,
+                                    healthProfiles: store.healthProfiles,
+                                    events: store.events,
+                                    startDate: store.startDate
+                                )
                             )
                         }
                         chartToggles
@@ -433,6 +447,12 @@ struct AnalysisTab: View {
                     isActive: showPeriodogram
                 ) {
                     showPeriodogram.toggle()
+                }
+                PillButton(
+                    label: String(localized: "analysis.charts.timeline", bundle: bundle),
+                    isActive: showTimeline
+                ) {
+                    showTimeline.toggle()
                 }
             }
         }
