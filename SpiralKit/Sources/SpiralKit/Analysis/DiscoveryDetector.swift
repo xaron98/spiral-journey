@@ -126,27 +126,22 @@ public enum DiscoveryDetector {
         // MARK: - Periodogram milestones
 
         if let results = periodograms {
-            for result in results {
-                for peak in result.peaks {
-                    if peak.label == .circadian {
-                        discoveries.append(Discovery(
-                            type: .circadianRhythm, date: dateFor(day: count - 1), dayIndex: count - 1,
-                            titleKey: "discovery.circadianRhythm.title",
-                            detailKey: "discovery.circadianRhythm.detail",
-                            icon: "waveform.path"
-                        ))
-                        break
-                    }
-                    if peak.label == .weekly {
-                        discoveries.append(Discovery(
-                            type: .weeklyPattern, date: dateFor(day: count - 1), dayIndex: count - 1,
-                            titleKey: "discovery.weeklyPattern.title",
-                            detailKey: "discovery.weeklyPattern.detail",
-                            icon: "calendar"
-                        ))
-                        break
-                    }
-                }
+            let allPeaks = results.flatMap(\.peaks)
+            if allPeaks.contains(where: { $0.label == .circadian }) {
+                discoveries.append(Discovery(
+                    type: .circadianRhythm, date: dateFor(day: count - 1), dayIndex: count - 1,
+                    titleKey: "discovery.circadianRhythm.title",
+                    detailKey: "discovery.circadianRhythm.detail",
+                    icon: "waveform.path"
+                ))
+            }
+            if allPeaks.contains(where: { $0.label == .weekly }) {
+                discoveries.append(Discovery(
+                    type: .weeklyPattern, date: dateFor(day: count - 1), dayIndex: count - 1,
+                    titleKey: "discovery.weeklyPattern.title",
+                    detailKey: "discovery.weeklyPattern.detail",
+                    icon: "calendar"
+                ))
             }
         }
 

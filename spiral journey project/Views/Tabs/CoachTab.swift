@@ -55,6 +55,9 @@ struct CoachTab: View {
                     jetLagButton
                     // Conflict trend — if we have enough history
                     if let trend = store.conflictTrend { conflictTrendCard(trend) }
+
+                    // 📚 Learn about sleep
+                    LearnView()
                 }
             }
             .padding(.horizontal, 16)

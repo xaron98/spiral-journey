@@ -521,7 +521,9 @@ final class SpiralStore {
         if !brokenCalendarBlocks.isEmpty {
             let brokenIDs = Set(brokenCalendarBlocks.map(\.id))
             contextBlocks.removeAll { brokenIDs.contains($0.id) }
+            #if DEBUG
             print("[Store] Removed \(brokenCalendarBlocks.count) broken calendar blocks for reimport")
+            #endif
         }
 
         // Only recompute if there are actual episodes — avoids generating
@@ -564,13 +566,23 @@ final class SpiralStore {
         let hk = HealthKitManager.shared
         guard hk.isAuthorized else { return }
 
-        // Remove stale auto-events so they get re-evaluated with current thresholds
-        events.removeAll { $0.source == .healthKit }
+        // HR threshold: restingHR + 60, clamped to [110, 180], default 140
+        let rawThreshold = (healthProfiles.last?.restingHR).map { $0 + 60 } ?? 140.0
+        let hrThreshold = min(180, max(110, rawThreshold))
 
-        let hrThreshold = (healthProfiles.last?.restingHR).map { $0 + 60 } ?? 140.0
+        // Only check recent days (last 3) — re-import for these days only
+        let recentRecords = Array(records.suffix(3))
+        guard !recentRecords.isEmpty else { return }
 
-        // Only check recent days (last 3) — older days already processed, dedup protects anyway
-        for record in records.suffix(3) {
+        // Remove auto-events only for the days we're about to re-import
+        let recentDays = Set(recentRecords.map(\.day))
+        let period = 24.0
+        events.removeAll { event in
+            event.source == .healthKit &&
+            recentDays.contains(Int(event.absoluteHour / period))
+        }
+
+        for record in recentRecords {
             let date = record.date
 
             async let workoutsTask = hk.fetchWorkouts(for: date)
@@ -784,7 +796,9 @@ final class SpiralStore {
     /// wrong epoch (e.g. install date) and stored episodes with shifted coordinates.
     func applyHealthKitResult(epoch: Date, episodes: [SleepEpisode]) {
         let calendar = Calendar.current
+        #if DEBUG
         print("[Store] applyHealthKitResult: epoch=\(epoch), currentStartDate=\(startDate), episodes=\(episodes.count)")
+        #endif
 
         // Keep manually-entered episodes — replace all HealthKit ones with the fresh fetch.
         let manualEpisodes = sleepEpisodes.filter { $0.source == .manual }
@@ -792,10 +806,14 @@ final class SpiralStore {
 
         // Update startDate before writing episodes so save() persists the correct epoch.
         let newEpoch = min(epoch, startDate)
+        #if DEBUG
         print("[Store] newEpoch=\(newEpoch), will update startDate: \(newEpoch < startDate)")
+        #endif
         if newEpoch < startDate {
             startDate = newEpoch
+            #if DEBUG
             print("[Store] startDate updated to \(startDate)")
+            #endif
         }
 
         // Ensure numDays covers from startDate through today.
@@ -827,7 +845,9 @@ final class SpiralStore {
             return !existingIDs.contains(hkID)
         }
         if !toAdd.isEmpty {
+            #if DEBUG
             print("[Store] mergeHealthKitEpisodes: adding \(toAdd.count) new episodes")
+            #endif
             // Write to SwiftData first (primary store)
             writeEpisodesToSwiftData(toAdd)
             // Then update UserDefaults cache
@@ -839,7 +859,9 @@ final class SpiralStore {
             // Push new episodes to CloudKit
             for ep in toAdd { cloudSync?.enqueueEpisodeSave(ep) }
         } else {
+            #if DEBUG
             print("[Store] mergeHealthKitEpisodes: 0 new (all \(newEpisodes.count) already known)")
+            #endif
         }
     }
 
@@ -927,7 +949,9 @@ final class SpiralStore {
             .map(\.element)
         let removed = before - predictionHistory.count
         if removed > 0 {
+            #if DEBUG
             print("[SpiralStore] Deduplicated predictions: removed \(removed) duplicates, kept \(predictionHistory.count)")
+            #endif
             save()
         }
     }

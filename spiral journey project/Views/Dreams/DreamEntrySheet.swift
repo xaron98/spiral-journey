@@ -113,8 +113,16 @@ struct DreamEntrySheet: View {
                     }
                     .onChange(of: transcriber.transcript) { _, newValue in
                         if !newValue.isEmpty {
-                            dreamText = newValue
+                            let separator = textBeforeVoice.isEmpty ? "" : " "
+                            dreamText = textBeforeVoice + separator + newValue
                         }
+                    }
+
+                    // Show speech error if any
+                    if let error = transcriber.errorMessage {
+                        Text(error)
+                            .font(.caption)
+                            .foregroundStyle(.red)
                     }
 
                     // Intensity
@@ -249,12 +257,15 @@ struct DreamEntrySheet: View {
         existingDreams = (try? modelContext.fetch(descriptor)) ?? []
     }
 
+    @State private var textBeforeVoice = ""
+
     private func toggleVoiceInput() async {
         if transcriber.isRecording {
             transcriber.stopRecording()
         } else {
-            // Pre-fill transcript with existing text so it appends
-            transcriber.transcript = dreamText
+            // Save existing text so voice transcription appends to it
+            textBeforeVoice = dreamText
+            transcriber.transcript = ""
             let granted = await transcriber.requestPermissions()
             if granted {
                 transcriber.startRecording()

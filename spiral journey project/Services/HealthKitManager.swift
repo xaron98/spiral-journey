@@ -15,8 +15,8 @@ final class HealthKitManager {
     var isAuthorized = false
     var errorMessage: String? = nil
 
-    private let sleepType = HKObjectType.categoryType(forIdentifier: .sleepAnalysis)!
-    private let hrvType = HKQuantityType.quantityType(forIdentifier: .heartRateVariabilitySDNN)!
+    private let sleepType = HKCategoryType(.sleepAnalysis)
+    private let hrvType = HKQuantityType(.heartRateVariabilitySDNN)
 
     // Fitness & health types for full-day chronobiograph
     private static var fitnessReadTypes: Set<HKObjectType> {
@@ -51,7 +51,7 @@ final class HealthKitManager {
         // the dialog has never been shown, so we can infer "previously shown = authorized".
         guard HKHealthStore.isHealthDataAvailable() else { return }
         let tempStore = HKHealthStore()
-        let status = tempStore.authorizationStatus(for: HKObjectType.categoryType(forIdentifier: .sleepAnalysis)!)
+        let status = tempStore.authorizationStatus(for: HKCategoryType(.sleepAnalysis))
         // .notDetermined = never asked; anything else = user was asked, treat as authorized
         // so imports are always attempted (fetchSleepEpisodes returns [] if truly denied).
         if status != .notDetermined {

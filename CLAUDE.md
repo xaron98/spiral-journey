@@ -161,3 +161,51 @@
 3. Never use `turnOffset` with re-indexed records — causes coordinate mismatch
 4. Never change widget size via `maxDays` — use `scaleEffect` instead
 5. Never pass records without re-basing timestamps — turns will be 60+ and project outside widget
+
+## Watch Spiral Rules (CRITICAL)
+
+### Rendering
+- **Always flat 2D archimedean** — no 3D perspective, no depthScale, no Cam struct
+- **Windowed view** — show ~4 days centered on cursor, NOT all data
+- **Thick paths** (Activity Rings style) — backbone 6pt, sleep data 8pt, events 5pt, cursor 7pt, marking arc 10pt
+- **`turnOffset`** — first visible turn maps to `startRadius`, radius = `startRadius + spacing * (t - turnOffset)`, clamped to ≥ 0
+- **Radius clamp** — `max(0, ...)` prevents negative radii that create mirror spirals
+- **Filter by window** — only draw records/events where `geo.isVisible(turns:)` is true
+
+### Crown
+- Crown moves cursor position along the spiral
+- No zoom on Watch — fixed 4-day window follows cursor
+
+### Pitfalls to Avoid
+1. Never use perspective projection (Cam/focalLen/zStep) on Watch — always flat
+2. Never show all data at once — Watch screen too small, use windowed view (~4 days)
+3. Never allow negative radius — clamp with `max(0, ...)` or turns before window produce mirror spirals
+4. Never use thin line widths (<3pt) on Watch — illegible on small screen
+5. Never store Watch spiral settings (depthScale/spiralType) from iPhone sync — Watch is always flat archimedean
+
+## Code Quality Rules
+
+### Logging
+- **All print() statements MUST be wrapped in `#if DEBUG`** — production logs must not leak sleep data, dates, or personal info
+- Applies to: SpiralStore, HealthKitManager, WatchHealthKitManager, WatchConnectivityManager
+
+### Safety
+- **No force unwraps** on HealthKit types — use modern non-optional API: `HKCategoryType(.sleepAnalysis)` not `HKObjectType.categoryType(forIdentifier:)!`
+- **No force unwraps** on `.min()`, `.max()`, `.last` — always `guard let` or `?? default`
+- **HR threshold bounds** — always clamp to [110, 180] bpm
+
+### Auto-Events (HealthKit → CircadianEvent)
+- Only remove auto-events for days being re-imported (not all `source == .healthKit`)
+- Deduplication: ±0.5h same type = duplicate, manual takes priority
+- CloudKit skip: `event.source == .manual` only syncs to cloud
+- `deletedAutoEventKeys` prevents re-import of user-deleted auto-events
+
+### Localization
+- ALL user-facing strings via `String(localized:bundle:)` or `NSLocalizedString(_:bundle:comment:)`
+- New features MUST add localization keys to `Localizable.xcstrings` for all 8 languages (ar, ca, de, en, es, fr, ja, zh-Hans)
+- JSON content files (Learn) go in `SpiralKit/Sources/SpiralKit/Resources/` with `Bundle.module`
+
+### Codable Backward Compatibility
+- New fields on `Codable` structs MUST be optional or use `decodeIfPresent` with fallback
+- Dictionary keys with enum types don't auto-synthesize Codable — use arrays instead
+- Test: decode JSON without new field → must not crash

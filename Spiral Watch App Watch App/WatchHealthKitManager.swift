@@ -11,7 +11,7 @@ final class WatchHealthKitManager {
     static let shared = WatchHealthKitManager()
 
     private let store = HKHealthStore()
-    private let sleepType = HKObjectType.categoryType(forIdentifier: .sleepAnalysis)!
+    private let sleepType = HKCategoryType(.sleepAnalysis)
 
     /// Persisted across launches so `refreshFromHealthKit()` works immediately
     /// when the watch face or complication wakes the app, before `setupHealthKit()`
@@ -33,16 +33,22 @@ final class WatchHealthKitManager {
 
     func requestAuthorization() async {
         guard isAvailable else {
+            #if DEBUG
             print("[WatchHK] HK not available — cannot authorize")
+            #endif
             return
         }
         let readTypes: Set<HKObjectType> = [sleepType]
         do {
             try await store.requestAuthorization(toShare: [], read: readTypes)
             isAuthorized = true
+            #if DEBUG
             print("[WatchHK] Authorization succeeded, isAuthorized=true")
+            #endif
         } catch {
+            #if DEBUG
             print("[WatchHK] Authorization error: \(error)")
+            #endif
             // Authorization declined or unavailable — continue without HealthKit.
         }
     }
@@ -69,7 +75,9 @@ final class WatchHealthKitManager {
     /// Start an anchored query that fires on every new sleep sample.
     func startAnchoredSleepQuery() {
         guard isAvailable, anchoredQuery == nil else { return }
+        #if DEBUG
         print("[WatchHK-Anchor] Starting anchored query")
+        #endif
 
         let query = HKAnchoredObjectQuery(
             type: sleepType,
@@ -85,7 +93,9 @@ final class WatchHealthKitManager {
         query.updateHandler = { [weak self] _, newSamples, _, newAnchor, error in
             guard error == nil else { return }
             guard let samples = newSamples, !samples.isEmpty else { return }
+            #if DEBUG
             print("[WatchHK-Anchor] UPDATE: \(samples.count) new samples!")
+            #endif
             DispatchQueue.main.async {
                 self?.sleepAnchor = newAnchor
                 self?.onNewSleepData?()
@@ -103,14 +113,18 @@ final class WatchHealthKitManager {
     /// - Parameter searchFromEpoch: If true, search from `epoch` instead of `days` ago (for initial epoch discovery).
     func fetchRecentSleepEpisodes(days: Int = 30, epoch: Date, searchFromEpoch: Bool = false) async -> [SleepEpisode] {
         guard isAvailable, isAuthorized else {
+            #if DEBUG
             print("[WatchHK] fetchRecentSleepEpisodes: guard failed — isAvailable=\(isAvailable) isAuthorized=\(isAuthorized)")
+            #endif
             return []
         }
         let end = Date()
         let calendar = Calendar.current
         let recentStart = calendar.date(byAdding: .day, value: -days, to: end) ?? epoch
         let searchStart = searchFromEpoch ? min(epoch, recentStart) : recentStart
+        #if DEBUG
         print("[WatchHK] Querying HK sleep from \(searchStart) to \(end), epoch=\(epoch)")
+        #endif
         return await fetchSleepEpisodes(from: searchStart, to: end, epoch: epoch)
     }
 
@@ -130,19 +144,25 @@ final class WatchHealthKitManager {
                 sortDescriptors: [sortDescriptor]
             ) { _, samples, error in
                 if let error = error {
+                    #if DEBUG
                     print("[WatchHK] HKSampleQuery error: \(error)")
+                    #endif
                 }
                 guard let samples = samples as? [HKCategorySample], error == nil else {
                     continuation.resume(returning: [])
                     return
                 }
 
+                #if DEBUG
                 print("[WatchHK] Raw samples from HK: \(samples.count)")
+                #endif
                 // Only actual sleep stages — skip "inBed" which is not a sleep phase.
                 let sleepSamples = samples.filter {
                     HKCategoryValueSleepAnalysis(rawValue: $0.value) != .inBed
                 }
+                #if DEBUG
                 print("[WatchHK] After filtering inBed: \(sleepSamples.count) sleep samples")
+                #endif
                 let sorted = sleepSamples.sorted { $0.startDate < $1.startDate }
                 var episodes: [SleepEpisode] = []
 

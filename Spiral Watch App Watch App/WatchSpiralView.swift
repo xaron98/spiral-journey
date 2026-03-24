@@ -4,13 +4,11 @@ import WatchKit
 
 /// Spiral view for Apple Watch.
 ///
-/// Identical rendering logic to iPhone SpiralView — same perspective projection,
-/// same phase colours, same weekWindowOpacity fade, same backbone/cursor drawing.
+/// Flat 2D archimedean spiral — identical to iPhone SpiralView in flat mode.
+/// Uses direct (x, y) projection via radius + angle, no perspective.
+/// All data always visible at full opacity. No zoom windowing.
 ///
-/// startRadius = 15 (vs 75 on iPhone) so the spiral fits the smaller Watch screen.
-///
-/// Digital Crown = same as iPhone drag gesture: moves the cursor along the spiral
-/// path and grows visibleDays to match, exactly replicating iPhone drag behaviour.
+/// Digital Crown moves the cursor along the spiral path.
 /// Finer steps (0.25 h/detent) when marking sleep.
 struct WatchSpiralView: View {
 
@@ -21,21 +19,14 @@ struct WatchSpiralView: View {
     @State private var crownRaw: Double = 0
     @State private var lastCrownRaw: Double = 0
 
-    // Spiral state — same semantics as iPhone SpiralTab
+    // Spiral state
     @State private var cursorAbsHour: Double = 0
     @State private var maxReachedTurns: Double = 1.0
-    @State private var visibleDays: Double = 1.0
+    @State private var visibleDays: Double = 4.0
     @State private var storeInitialised = false
     /// True once the user has physically turned the crown.
     /// When false, any new data arriving from iPhone is allowed to re-position the cursor.
     @State private var userHasMovedCrown = false
-
-    // Deferred visibleDays: the canvas reads this value so heavy redraws
-    // don't block every single crown tick. We batch-flush it via a Task.
-    @State private var deferredVisibleDays: Double = 1.0
-    @State private var flushPending = false
-
-
 
     // Sleep marking
     @State private var markingState: MarkingState = .idle
@@ -48,13 +39,6 @@ struct WatchSpiralView: View {
 
     enum MarkingState { case idle, sleeping }
 
-    // startRadius=5 gives more room between the center and first turn on Watch's tiny screen.
-    private static let startRadius: Double = 5
-
-    private var totalDataDays: Int {
-        max((store.recentRecords.map { $0.day }.max() ?? 0) + 1, 1)
-    }
-
     var body: some View {
         GeometryReader { geo in
             ZStack(alignment: .topTrailing) {
@@ -66,13 +50,9 @@ struct WatchSpiralView: View {
                     cursorAbsHour: cursorAbsHour,
                     sleepStartHour: sleepStartHour,
                     markingColor: markingState == .sleeping ? SpiralColors.sleep : SpiralColors.accent,
-                    numDaysHint: max(totalDataDays, 1),
                     spiralExtentTurns: maxReachedTurns,
-                    visibleDays: deferredVisibleDays,
-                    depthScale: store.depthScale,
-                    spiralType: store.spiralType,
-                    period: store.period,
-                    startRadius: Self.startRadius
+                    visibleDays: visibleDays,
+                    period: store.period
                 )
                 .frame(width: geo.size.width, height: geo.size.height)
                 .ignoresSafeArea()
@@ -180,11 +160,10 @@ struct WatchSpiralView: View {
 
     private func moveCursor(delta: Double) {
         userHasMovedCrown = true
-        let hourDelta  = markingState == .sleeping ? delta * 0.25 : delta * 0.5
-        let turnsDelta = hourDelta / store.period
-        let newHour    = cursorAbsHour + hourDelta
-        let maxHour    = maxReachedTurns * store.period + 24.0
-        cursorAbsHour  = max(0, min(newHour, maxHour))
+        let hourDelta = markingState == .sleeping ? delta * 0.25 : delta * 0.5
+        let newHour   = cursorAbsHour + hourDelta
+        let maxHour   = maxReachedTurns * store.period + 24.0
+        cursorAbsHour = max(0, min(newHour, maxHour))
         store.cursorAbsoluteHour = cursorAbsHour
 
         // Fire a haptic tick each time the cursor crosses an hour boundary
@@ -193,21 +172,8 @@ struct WatchSpiralView: View {
             lastHapticHour = currentHour
             WKInterfaceDevice.current().play(.click)
         }
-        let newTurns   = cursorAbsHour / store.period
+        let newTurns = cursorAbsHour / store.period
         if newTurns > maxReachedTurns { maxReachedTurns = newTurns }
-        // Move visibleDays by the same delta as the cursor — zoom level stays constant,
-        // cursor and camera window move together like the iPhone drag behaviour.
-        visibleDays = max(3.0, min(maxReachedTurns, visibleDays + turnsDelta))
-        // Schedule a deferred canvas flush. The canvas uses deferredVisibleDays so
-        // the heavy redraw doesn't block every single crown tick. We yield to the
-        // run loop once (Task) so multiple rapid ticks coalesce into one redraw.
-        if !flushPending {
-            flushPending = true
-            Task { @MainActor in
-                deferredVisibleDays = visibleDays
-                flushPending = false
-            }
-        }
     }
 
     // MARK: - Sleep marking
@@ -263,10 +229,6 @@ struct WatchSpiralView: View {
             cursorAbsHour = now
             store.cursorAbsoluteHour = now
             maxReachedTurns = max(1.0, now / store.period)
-            // Camera is centered on cursor; visibleDays is the backward span.
-            // Keep it very tight on Watch's small screen — half turn at start.
-            visibleDays = min(maxReachedTurns, 0.5)
-            deferredVisibleDays = visibleDays
             storeInitialised = false; return
         }
         // Use the same end-of-data logic as dataEndTurns() so the cursor lands
@@ -288,13 +250,9 @@ struct WatchSpiralView: View {
             storeInitialised = false; return
         }
         let endTurns = bestAbsHour / store.period
-        cursorAbsHour      = bestAbsHour
+        cursorAbsHour = bestAbsHour
         store.cursorAbsoluteHour = bestAbsHour
-        maxReachedTurns    = max(1.0, endTurns)
-        // Camera is centered on cursor; visibleDays is the backward span.
-        // Half turn keeps the spiral very large on Watch's small screen.
-        visibleDays        = min(endTurns, 7.0)
-        deferredVisibleDays = visibleDays
+        maxReachedTurns = max(1.0, endTurns)
         crownRaw = 0; lastCrownRaw = 0
         storeInitialised = true
         userHasMovedCrown = false
@@ -303,195 +261,84 @@ struct WatchSpiralView: View {
 
 // MARK: - Canvas
 
-/// Watch spiral canvas using the same CameraState projection model as iPhone.
-/// Camera is centered on the cursor, looking back `visibleDays` turns.
-/// Perspective depth makes recent turns large and older turns shrink away.
+/// Flat 2D archimedean spiral canvas for Apple Watch.
+///
+/// Matches the iPhone SpiralView in archimedean 2D flat mode:
+/// - Uses `SpiralGeometry.point()` directly — no perspective projection
+/// - All data always visible at full opacity — no windowed fade
+/// - Constant line widths — no perspective scaling
+/// - Backbone from turn 0 to extentTurns, always visible
 private struct WatchSpiralCanvas: View {
     let records: [SleepRecord]
     let events: [CircadianEvent]
     let cursorAbsHour: Double
     let sleepStartHour: Double?
     let markingColor: Color
-    let numDaysHint: Int
     let spiralExtentTurns: Double
     let visibleDays: Double
-    let depthScale: Double
-    var spiralType: SpiralType = .archimedean
     var period: Double = 24.0
-    var startRadius: Double = 5
-    var linkGrowthToTau: Bool = false
 
-    // MARK: - CameraState (identical to iPhone SpiralView)
+    // MARK: - Flat Geometry (windowed, like iPhone)
 
-    private struct Cam {
-        let tRef: Double
-        let zStep: Double
-        let focalLen: Double
-        let camZ: Double
+    /// Flat archimedean geometry scaled to show a window of `span` turns
+    /// centered on the cursor, matching iPhone behavior.
+    private struct FlatGeo {
+        let cx: Double
+        let cy: Double
+        let startRadius: Double
+        let spacing: Double
+        let period: Double
+        let renderFrom: Double   // first turn to render
+        let renderUpTo: Double   // last turn to render
+        let maxTurns: Double
 
-        init(fromTurns: Double, upToTurns: Double, geo: SpiralGeometry, depthScale: Double) {
-            let zStep    = geo.maxRadius * depthScale
-            let focalLen = geo.maxRadius * 1.2
-            let nearPlane = focalLen * 0.1
-            let safetyMargin = nearPlane * 1.0
+        let turnOffset: Double  // first visible turn maps to startRadius
 
-            let margin = 0.5
-            let tRef = upToTurns + margin
+        init(size: CGSize, cursorTurns: Double, span: Double, extentTurns: Double, period: Double) {
+            self.cx = size.width / 2
+            self.cy = size.height / 2
+            self.period = period
 
-            let spanZ = max((upToTurns - fromTurns), 0.5) * zStep
-            let maxRatio = 5.0
-            let dzFarForRatio = spanZ / (maxRatio - 1.0)
-            let dzFarMin = nearPlane + safetyMargin
-            let dzFar = max(dzFarForRatio, dzFarMin)
-            let camZ = margin * zStep - dzFar
+            // Window: span turns behind cursor, 0.5 ahead
+            let from = max(cursorTurns - span, 0)
+            let upTo = cursorTurns + 0.5
+            self.renderFrom = from
+            self.renderUpTo = upTo
+            self.maxTurns = max(upTo, extentTurns)
+            self.turnOffset = from
 
-            self.tRef     = tRef
-            self.zStep    = zStep
-            self.focalLen = focalLen
-            self.camZ     = camZ
+            // Scale: visible window [from, upTo] maps to [startRadius, outerR]
+            let outerR = min(size.width, size.height) / 2 * 0.85
+            let inner: Double = 8
+            self.startRadius = inner
+            let visibleSpan = max(upTo - from, 1)
+            self.spacing = max(3.0, (outerR - inner) / visibleSpan)
         }
 
-        func project(turns t: Double, geo: SpiralGeometry) -> CGPoint {
+        func radius(turns t: Double) -> Double {
+            // Offset so renderFrom maps to startRadius. Clamp to avoid negative radii.
+            max(0, startRadius + spacing * (t - turnOffset))
+        }
+
+        func point(turns t: Double) -> CGPoint {
             let theta = t * 2 * Double.pi
-            let r     = geo.radius(turns: t)
-            let flatX = geo.cx + r * cos(theta - Double.pi / 2)
-            let flatY = geo.cy + r * sin(theta - Double.pi / 2)
-
-            let wx = flatX - geo.cx
-            let wy = flatY - geo.cy
-            let wz = (tRef - t) * zStep
-            let dz = max(wz - camZ, focalLen * 0.05)
-            let scale = focalLen / dz
-
-            return CGPoint(x: geo.cx + wx * scale,
-                           y: geo.cy + wy * scale)
+            let r = radius(turns: t)
+            return CGPoint(x: cx + r * cos(theta - .pi / 2),
+                           y: cy + r * sin(theta - .pi / 2))
         }
 
-        func perspectiveScale(turns t: Double) -> Double {
-            let wz = (tRef - t) * zStep
-            let dz = max(wz - camZ, focalLen * 0.05)
-            return focalLen / dz
-        }
-
-        func isBehindCamera(turns t: Double) -> Bool {
-            let wz = (tRef - t) * zStep
-            let dz = wz - camZ
-            return dz < focalLen * 0.1
-        }
-
-        var maxVisibleTurn: Double {
-            tRef - camZ / zStep
+        func isVisible(turns t: Double) -> Bool {
+            t >= renderFrom - 0.5 && t <= renderUpTo + 0.5
         }
     }
 
-    private func weekWindowOpacity(turns t: Double) -> Double {
-        let cursorTurns = cursorAbsHour / period
-        let dist = abs(cursorTurns - t)
-        let curve: [Double] = [1.0, 0.75, 0.50, 0.30, 0.15, 0.06]
-        if dist < Double(curve.count) {
-            let idx = Int(dist)
-            let frac = dist - Double(idx)
-            let lo = curve[idx]
-            let hi = idx + 1 < curve.count ? curve[idx + 1] : lo * 0.5
-            return lo + (hi - lo) * frac
-        }
-        let base = curve.last ?? 0.06
-        let extra = dist - Double(curve.count) + 1
-        return base * pow(0.5, extra)
-    }
+    // MARK: - Helpers
 
-    // MARK: - Drawing
-
-    var body: some View {
-        Canvas { context, size in
-            context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(Color(hex: "0c0e14")))
-
-            let turns     = max(spiralExtentTurns, 0.1)
-            let scaleDays = max(1, Int(ceil(turns)))
-            let geo = SpiralGeometry(
-                totalDays: scaleDays,
-                maxDays:   max(scaleDays, 7),
-                width:     size.width,
-                height:    size.height,
-                startRadius: startRadius,
-                spiralType: spiralType,
-                period:    period,
-                linkGrowthToTau: linkGrowthToTau
-            )
-
-            // Build camera centered on cursor, looking back visibleDays turns
-            let cursorTurns = cursorAbsHour / period
-            let span = visibleDays
-            let camFrom = max(cursorTurns - span, 0)
-            let camUpTo = cursorTurns + 0.5
-            let cam = Cam(fromTurns: camFrom, upToTurns: camUpTo,
-                          geo: geo, depthScale: depthScale)
-            let maxVisible = min(turns, cam.maxVisibleTurn)
-
-            drawDayRings(context: context, geo: geo, cam: cam, maxVisible: maxVisible)
-            drawRadialLines(context: context, geo: geo)
-            drawSpiralPath(context: context, geo: geo, cam: cam, maxVisible: maxVisible)
-            drawDataPoints(context: context, geo: geo, cam: cam)
-            drawEventMarkers(context: context, geo: geo, cam: cam)
-            drawSleepArc(context: context, geo: geo, cam: cam)
-            drawCursor(context: context, geo: geo, cam: cam)
-            drawHourLabels(context: context, geo: geo)
-        }
-    }
-
-    private func drawDayRings(context: GraphicsContext, geo: SpiralGeometry, cam: Cam, maxVisible: Double) {
-        for ring in geo.dayRings() where ring.day > 0 && Double(ring.day) <= maxVisible {
-            let opac = weekWindowOpacity(turns: Double(ring.day))
-            guard opac > 0.01 else { continue }
-            let color = ring.isWeekBoundary
-                ? Color.white.opacity(0.18 * opac)
-                : Color.white.opacity(0.09 * opac)
-            let lw: CGFloat = ring.isWeekBoundary ? 0.8 : 0.4
-            var path = Path()
-            var started = false
-            for i in 0...60 {
-                let t  = Double(ring.day) + Double(i) / 60.0
-                if cam.isBehindCamera(turns: t) || cam.perspectiveScale(turns: t) < 0.10 {
-                    // Flush current segment and start fresh after the gap
-                    if started {
-                        context.stroke(path, with: .color(color), lineWidth: lw)
-                        path = Path(); started = false
-                    }
-                    continue
-                }
-                let pt = cam.project(turns: t, geo: geo)
-                if !started { path.move(to: pt); started = true } else { path.addLine(to: pt) }
-            }
-            if started {
-                context.stroke(path, with: .color(color), lineWidth: lw)
-            }
-        }
-    }
-
-    private func drawRadialLines(context: GraphicsContext, geo: SpiralGeometry) {
-        let canvasEdge = max(geo.width, geo.height)
-        let minorStep: Double = geo.period <= 24 ? 3 : (geo.period / 8).rounded()
-        let majorStep: Double = minorStep * 2
-        var h = 0.0
-        while h < geo.period {
-            let isMajor = h.truncatingRemainder(dividingBy: majorStep) < 0.001
-            let angle   = (h / geo.period) * 2 * Double.pi - Double.pi / 2
-            var path = Path()
-            path.move(to: CGPoint(x: geo.cx, y: geo.cy))
-            path.addLine(to: CGPoint(x: geo.cx + canvasEdge * cos(angle),
-                                     y: geo.cy + canvasEdge * sin(angle)))
-            context.stroke(path,
-                           with: .color(Color.white.opacity(isMajor ? 0.18 : 0.09)),
-                           lineWidth: isMajor ? 1.0 : 0.6)
-            h += minorStep
-        }
-    }
-
-    private func dataEndTurns(geo: SpiralGeometry) -> Double {
+    private func dataEndTurns() -> Double {
         guard !records.isEmpty else { return 0.0 }
         var best = 0.0
         for r in records {
-            let dayT     = Double(r.day)
+            let dayT = Double(r.day)
             let dayStart = dayT * 24.0
             let endAbsH: Double
             if let lastSleep = r.phases.last(where: { $0.phase != .awake }) {
@@ -499,22 +346,90 @@ private struct WatchSpiralCanvas: View {
             } else {
                 endAbsH = dayStart + r.wakeupHour
             }
-            let turns = dayT + (endAbsH - dayStart) / geo.period
+            let turns = dayT + (endAbsH - dayStart) / period
             if turns > best { best = turns }
         }
         return best
     }
 
-    private func drawSpiralPath(context: GraphicsContext, geo: SpiralGeometry, cam: Cam, maxVisible: Double) {
-        let cursorTurns = cursorAbsHour / period
-        let backboneTo = min(cursorTurns + 0.15, maxVisible)
-        let backboneFrom = max(backboneTo - 7.0, 0)
-        guard backboneTo > backboneFrom else { return }
+    // MARK: - Drawing
 
-        let dataEnd = dataEndTurns(geo: geo)
+    var body: some View {
+        Canvas { context, size in
+            context.fill(Path(CGRect(origin: .zero, size: size)),
+                         with: .color(Color(hex: "0c0e14")))
+
+            let cursorTurns = cursorAbsHour / period
+            let extentTurns = max(spiralExtentTurns, 0.5)
+            let geo = FlatGeo(size: size, cursorTurns: cursorTurns,
+                              span: visibleDays, extentTurns: extentTurns, period: period)
+
+            drawRadialLines(context: context, geo: geo, size: size)
+            drawDayRings(context: context, geo: geo)
+            drawSpiralPath(context: context, geo: geo)
+            drawDataPoints(context: context, geo: geo)
+            drawEventMarkers(context: context, geo: geo)
+            drawSleepArc(context: context, geo: geo)
+            drawCursor(context: context, geo: geo)
+            drawHourLabels(context: context, geo: geo, size: size)
+        }
+    }
+
+    // MARK: - Day rings
+
+    private func drawDayRings(context: GraphicsContext, geo: FlatGeo) {
+        let firstDay = max(1, Int(floor(geo.renderFrom)))
+        let lastDay = Int(ceil(geo.renderUpTo))
+        guard lastDay >= firstDay else { return }
+        for day in firstDay...lastDay {
+            let t = Double(day)
+            guard geo.isVisible(turns: t) else { continue }
+            let isWeek = day % 7 == 0
+            let color = Color.white.opacity(isWeek ? 0.15 : 0.07)
+            let lw: CGFloat = isWeek ? 0.6 : 0.3
+            var path = Path()
+            for i in 0...60 {
+                let frac = Double(i) / 60.0
+                let pt = geo.point(turns: t + frac)
+                if i == 0 { path.move(to: pt) } else { path.addLine(to: pt) }
+            }
+            context.stroke(path, with: .color(color), lineWidth: lw)
+        }
+    }
+
+    // MARK: - Radial lines
+
+    private func drawRadialLines(context: GraphicsContext, geo: FlatGeo, size: CGSize) {
+        let canvasEdge = max(size.width, size.height)
+        let minorStep: Double = period <= 24 ? 3 : (period / 8).rounded()
+        let majorStep: Double = minorStep * 2
+        var h = 0.0
+        while h < period {
+            let isMajor = h.truncatingRemainder(dividingBy: majorStep) < 0.001
+            let angle = (h / period) * 2 * Double.pi - .pi / 2
+            var path = Path()
+            path.move(to: CGPoint(x: geo.cx, y: geo.cy))
+            path.addLine(to: CGPoint(x: geo.cx + canvasEdge * cos(angle),
+                                     y: geo.cy + canvasEdge * sin(angle)))
+            context.stroke(path,
+                           with: .color(Color.white.opacity(isMajor ? 0.12 : 0.06)),
+                           lineWidth: isMajor ? 0.6 : 0.3)
+            h += minorStep
+        }
+    }
+
+    // MARK: - Backbone
+
+    private func drawSpiralPath(context: GraphicsContext, geo: FlatGeo) {
+        let backboneTo = geo.renderUpTo
+        guard backboneTo > 0 else { return }
+        let backboneFrom = max(geo.renderFrom - 0.5, 0)
+
+        // Skip backbone where data arcs are drawn (they cover it)
+        let dataEnd = dataEndTurns()
         let skipFrom: Double
         let skipTo: Double
-        if !records.isEmpty && dataEnd > backboneFrom {
+        if !records.isEmpty && dataEnd > 0 {
             let firstDataDay = records.map(\.day).min() ?? 0
             skipFrom = Double(firstDataDay)
             skipTo = dataEnd
@@ -529,7 +444,7 @@ private struct WatchSpiralCanvas: View {
         var first = true
 
         let backboneColor = Color(hex: "2e3248").opacity(0.4)
-        let backboneWidth: CGFloat = 1.5
+        let backboneWidth: CGFloat = 6.0
 
         func flush() {
             guard !first else { return }
@@ -543,10 +458,7 @@ private struct WatchSpiralCanvas: View {
             if hasSkip && t >= skipFrom && t < skipTo {
                 flush(); if d >= backboneTo { break }; d += step; continue
             }
-            if cam.isBehindCamera(turns: t) {
-                flush(); if d >= backboneTo { break }; d += step; continue
-            }
-            let pt = cam.project(turns: t, geo: geo)
+            let pt = geo.point(turns: t)
             if first { path.move(to: pt); first = false } else { path.addLine(to: pt) }
             if d >= backboneTo { break }
             d += step
@@ -554,8 +466,10 @@ private struct WatchSpiralCanvas: View {
         flush()
     }
 
-    private func drawDataPoints(context: GraphicsContext, geo: SpiralGeometry, cam: Cam) {
-        let globalCut = dataEndTurns(geo: geo)
+    // MARK: - Data arcs
+
+    private func drawDataPoints(context: GraphicsContext, geo: FlatGeo) {
+        let globalCut = dataEndTurns()
 
         struct Run {
             var phase: SleepPhase
@@ -569,128 +483,110 @@ private struct WatchSpiralCanvas: View {
         func drawRun(_ run: Run) {
             guard run.points.count >= 2 else { return }
             let color = phaseColor(run.phase)
-            let maxLW = max(3.0, geo.spacing * 0.65)
-            let opac  = weekWindowOpacity(turns: run.points[0].t)
-            guard opac > 0.01 else { return }
+            let lw: CGFloat = 8.0
 
             for i in 0..<(run.points.count - 1) {
-                let p0   = run.points[i]
-                let p1   = run.points[i + 1]
-                // Skip segment if either endpoint is behind the camera or too compressed
-                guard !cam.isBehindCamera(turns: p0.t),
-                      !cam.isBehindCamera(turns: p1.t) else { continue }
-                let tSeg = (p0.t + p1.t) * 0.5
-                let sc   = cam.perspectiveScale(turns: tSeg)
-                guard sc >= 0.10 else { continue }
-                let lw   = max(2.0, min(sc * maxLW, maxLW))
-
+                let p0 = run.points[i]
+                let p1 = run.points[i + 1]
                 var seg = Path()
                 seg.move(to: p0.pt)
                 seg.addLine(to: p1.pt)
-                context.stroke(seg, with: .color(color.opacity(opac)),
+                context.stroke(seg, with: .color(color),
                                style: StrokeStyle(lineWidth: lw, lineCap: .round))
             }
 
+            // Round caps at sleep run boundaries
             guard isSleep(run.phase) else { return }
             let capStart = run.prevPhase == nil || !isSleep(run.prevPhase!)
             let capEnd   = run.nextPhase == nil || !isSleep(run.nextPhase!)
 
-            if capStart, !cam.isBehindCamera(turns: run.points[0].t) {
-                let tFirst = run.points[0].t
-                let sc = cam.perspectiveScale(turns: tFirst)
-                let lw = max(2.0, min(sc * maxLW, maxLW))
-                let r = lw * 0.5; let pt = run.points[0].pt
-                context.fill(Circle().path(in: CGRect(x: pt.x - r, y: pt.y - r, width: lw, height: lw)),
-                             with: .color(color.opacity(opac)))
+            if capStart {
+                let pt = run.points[0].pt
+                let r = lw * 0.5
+                context.fill(Circle().path(in: CGRect(x: pt.x - r, y: pt.y - r,
+                                                      width: lw, height: lw)),
+                             with: .color(color))
             }
-            if capEnd, !cam.isBehindCamera(turns: run.points[run.points.count - 1].t) {
-                let tLast = run.points[run.points.count - 1].t
-                let sc = cam.perspectiveScale(turns: tLast)
-                let lw = max(2.0, min(sc * maxLW, maxLW))
-                let r = lw * 0.5; let pt = run.points[run.points.count - 1].pt
-                context.fill(Circle().path(in: CGRect(x: pt.x - r, y: pt.y - r, width: lw, height: lw)),
-                             with: .color(color.opacity(opac)))
+            if capEnd {
+                let pt = run.points[run.points.count - 1].pt
+                let r = lw * 0.5
+                context.fill(Circle().path(in: CGRect(x: pt.x - r, y: pt.y - r,
+                                                      width: lw, height: lw)),
+                             with: .color(color))
             }
         }
 
         for record in records {
-            let dayT   = Double(record.day)
+            let dayT = Double(record.day)
+            // Skip records outside the visible window
+            guard dayT + 1 >= geo.renderFrom && dayT <= geo.renderUpTo else { continue }
             let phases = record.phases
             guard !phases.isEmpty else { continue }
             let cutT = min(globalCut, dayT + 1.0)
 
             var runs: [Run] = []
-            var runPhase  = phases[0].phase
-            var runPts:   [(t: Double, pt: CGPoint)] = []
+            var runPhase = phases[0].phase
+            var runPts: [(t: Double, pt: CGPoint)] = []
             var prevPhase: SleepPhase? = nil
 
             func flushRun(nextPhase: SleepPhase?) {
                 guard runPts.count >= 2 else { runPts.removeAll(); return }
-                runs.append(Run(phase: runPhase, points: runPts, prevPhase: prevPhase, nextPhase: nextPhase))
+                runs.append(Run(phase: runPhase, points: runPts,
+                                prevPhase: prevPhase, nextPhase: nextPhase))
                 runPts.removeAll()
             }
 
             for (i, phase) in phases.enumerated() {
-                let t = dayT + phase.hour / geo.period
+                let t = dayT + phase.hour / period
                 if t > cutT { break }
-                let behind = cam.isBehindCamera(turns: t)
-                if behind {
-                    // Point is behind camera — flush the current run segment
-                    // so we don't connect distant visible points with a straight line
-                    if !runPts.isEmpty {
-                        flushRun(nextPhase: phase.phase)
-                        prevPhase = runPhase
-                        runPhase = phase.phase
-                    }
-                    continue
-                }
                 if phase.phase != runPhase {
-                    let edgePt = cam.project(turns: t, geo: geo)
-                    runPts.append((t, edgePt))
+                    let pt = geo.point(turns: t)
+                    runPts.append((t, pt))
                     flushRun(nextPhase: phase.phase)
                     prevPhase = runPhase
-                    runPhase  = phase.phase
-                    runPts.append((t, edgePt))
+                    runPhase = phase.phase
+                    runPts.append((t, pt))
                 } else {
-                    runPts.append((t, cam.project(turns: t, geo: geo)))
+                    runPts.append((t, geo.point(turns: t)))
                 }
                 if i == phases.count - 1 {
                     let tEnd = min(cutT, dayT + 1.0)
-                    if !cam.isBehindCamera(turns: tEnd) {
-                        runPts.append((tEnd, cam.project(turns: tEnd, geo: geo)))
-                    }
+                    runPts.append((tEnd, geo.point(turns: tEnd)))
                     flushRun(nextPhase: nil)
                 }
             }
             flushRun(nextPhase: nil)
 
+            // Draw awake first, sleep on top
             for run in runs where !isSleep(run.phase) { drawRun(run) }
             for run in runs where  isSleep(run.phase) { drawRun(run) }
         }
     }
 
-    private func drawEventMarkers(context: GraphicsContext, geo: SpiralGeometry, cam: Cam) {
+    // MARK: - Events
+
+    private func drawEventMarkers(context: GraphicsContext, geo: FlatGeo) {
         for event in events {
-            let t = event.absoluteHour / geo.period
-            guard !cam.isBehindCamera(turns: t) else { continue }
-            let opac = weekWindowOpacity(turns: t)
-            guard opac > 0.01 else { continue }
-            let p = cam.project(turns: t, geo: geo)
+            let t = event.absoluteHour / period
+            guard geo.isVisible(turns: t) else { continue }
+            let p = geo.point(turns: t)
             let color = Color(hex: event.type.hexColor)
-            let sc = cam.perspectiveScale(turns: t)
-            let r = max(1.5, min(sc * 3.0, 5.0))
+            let r: CGFloat = 5.0
             let rect = CGRect(x: p.x - r, y: p.y - r, width: r * 2, height: r * 2)
-            context.fill(Circle().path(in: rect), with: .color(color.opacity(opac)))
+            context.fill(Circle().path(in: rect), with: .color(color))
         }
     }
 
-    private func drawHourLabels(context: GraphicsContext, geo: SpiralGeometry) {
-        let step: Double = geo.period <= 24 ? 6 : (geo.period / 4).rounded()
-        let labelR = min(geo.cx, geo.cy) - 10
+    // MARK: - Hour labels
+
+    private func drawHourLabels(context: GraphicsContext, geo: FlatGeo, size: CGSize) {
+        let step: Double = period <= 24 ? 6 : (period / 4).rounded()
+        let labelR = min(geo.cx, geo.cy) - 6
         var h = 0.0
-        while h < geo.period {
-            let angle = (h / geo.period) * 2 * Double.pi - Double.pi / 2
-            let pt = CGPoint(x: geo.cx + labelR * cos(angle), y: geo.cy + labelR * sin(angle))
+        while h < period {
+            let angle = (h / period) * 2 * Double.pi - .pi / 2
+            let pt = CGPoint(x: geo.cx + labelR * cos(angle),
+                             y: geo.cy + labelR * sin(angle))
             let displayH = Int(h.rounded()) % 24
             let resolved = context.resolve(
                 Text(String(format: "%02d", displayH))
@@ -702,47 +598,53 @@ private struct WatchSpiralCanvas: View {
         }
     }
 
-    private func drawSleepArc(context: GraphicsContext, geo: SpiralGeometry, cam: Cam) {
+    // MARK: - Sleep marking arc
+
+    private func drawSleepArc(context: GraphicsContext, geo: FlatGeo) {
         guard let startH = sleepStartHour else { return }
-        let lo = min(startH, cursorAbsHour); let hi = max(startH, cursorAbsHour)
+        let lo = min(startH, cursorAbsHour)
+        let hi = max(startH, cursorAbsHour)
         guard hi - lo > 0.01 else { return }
         let arcColor = Color(hex: "7c3aed").opacity(0.85)
         let glowColor = Color.white.opacity(0.15)
-        let style = StrokeStyle(lineWidth: 5, lineCap: .round)
-        var path = Path(); var started = false; var h = lo
-
-        func flushArc() {
-            guard started else { return }
-            context.stroke(path, with: .color(arcColor), style: style)
-            context.stroke(path, with: .color(glowColor), style: style)
-            path = Path(); started = false
-        }
+        let style = StrokeStyle(lineWidth: 10, lineCap: .round)
+        var path = Path()
+        var started = false
+        var h = lo
 
         while h <= hi {
-            let t = h / geo.period
-            if cam.isBehindCamera(turns: t) {
-                flushArc()
-            } else {
-                let pt = cam.project(turns: t, geo: geo)
-                if !started { path.move(to: pt); started = true } else { path.addLine(to: pt) }
-            }
-            h = min(h + 0.1, hi); if h >= hi { break }
+            let t = h / period
+            let pt = geo.point(turns: t)
+            if !started { path.move(to: pt); started = true }
+            else { path.addLine(to: pt) }
+            h = min(h + 0.1, hi)
+            if h >= hi { break }
         }
-        flushArc()
+        if started {
+            context.stroke(path, with: .color(arcColor), style: style)
+            context.stroke(path, with: .color(glowColor), style: style)
+        }
     }
 
-    private func drawCursor(context: GraphicsContext, geo: SpiralGeometry, cam: Cam) {
-        let t = cursorAbsHour / geo.period
-        let p = cam.project(turns: t, geo: geo)
-        let sc = cam.perspectiveScale(turns: t)
-        // Scale cursor with perspective — large when close, min 4pt
-        let r = max(4.0, min(sc * 5.0, 8.0))
-        let rect = CGRect(x: p.x - r, y: p.y - r, width: r*2, height: r*2)
-        context.fill(Circle().path(in: rect.insetBy(dx: -3, dy: -3)),
+    // MARK: - Cursor
+
+    private func drawCursor(context: GraphicsContext, geo: FlatGeo) {
+        let t = cursorAbsHour / period
+        let p = geo.point(turns: t)
+        let r: CGFloat = 7.0
+        let rect = CGRect(x: p.x - r, y: p.y - r, width: r * 2, height: r * 2)
+        // Glow
+        context.fill(Circle().path(in: rect.insetBy(dx: -4, dy: -4)),
                      with: .color(markingColor.opacity(0.25)))
-        context.stroke(Circle().path(in: rect), with: .color(.white.opacity(0.9)), lineWidth: 1.5)
-        context.fill(Circle().path(in: rect.insetBy(dx: 1.5, dy: 1.5)), with: .color(markingColor))
+        // Ring
+        context.stroke(Circle().path(in: rect),
+                       with: .color(.white.opacity(0.9)), lineWidth: 1.5)
+        // Fill
+        context.fill(Circle().path(in: rect.insetBy(dx: 1.5, dy: 1.5)),
+                     with: .color(markingColor))
     }
+
+    // MARK: - Phase colours
 
     private func phaseColor(_ phase: SleepPhase) -> Color {
         switch phase {
@@ -757,41 +659,37 @@ private struct WatchSpiralCanvas: View {
 #Preview("With Data") {
     WatchSpiralCanvas(
         records: {
-            // 7 nights of sample data
             var eps: [SleepEpisode] = []
             let beds: [Double] = [23, 23.5, 0, 23, 23.5, 1, 0.5]
             let durs: [Double] = [7.5, 8, 7, 7.5, 8, 6.5, 7]
             for i in 0..<7 {
                 let base = Double(i) * 24.0
-                eps.append(SleepEpisode(start: base + beds[i], end: base + beds[i] + durs[i], source: .manual))
+                eps.append(SleepEpisode(start: base + beds[i],
+                                        end: base + beds[i] + durs[i],
+                                        source: .manual))
             }
             return ManualDataConverter.convert(episodes: eps, numDays: 7)
         }(),
         events: [],
-        cursorAbsHour: 6 * 24 + 7.5,  // cursor at end of last night
+        cursorAbsHour: 6 * 24 + 7.5,
         sleepStartHour: nil,
         markingColor: Color(hex: "a78bfa"),
-        numDaysHint: 7,
         spiralExtentTurns: 6.3,
-        visibleDays: 5.0,
-        depthScale: 0.3
+        visibleDays: 7
     )
     .frame(width: 184, height: 224)
     .background(Color(hex: "0c0e14"))
 }
 
 #Preview("Empty State") {
-    // Simulates first launch: no records, cursor at current time (~7 days from startDate)
     WatchSpiralCanvas(
         records: [],
         events: [],
         cursorAbsHour: 168,
         sleepStartHour: nil,
         markingColor: Color(hex: "a78bfa"),
-        numDaysHint: 1,
         spiralExtentTurns: 7.0,
-        visibleDays: 7.0,
-        depthScale: 0.3
+        visibleDays: 7
     )
     .frame(width: 184, height: 224)
     .background(Color(hex: "0c0e14"))

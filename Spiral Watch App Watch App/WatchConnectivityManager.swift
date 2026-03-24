@@ -57,7 +57,9 @@ final class WatchConnectivityManager: NSObject, WCSessionDelegate {
         guard WCSession.default.activationState == .activated,
               WCSession.default.isReachable else { return }
         WCSession.default.sendMessage(["requestData": true], replyHandler: nil) { error in
+            #if DEBUG
             print("[WatchConnectivity] Failed to request data: \(error.localizedDescription)")
+            #endif
         }
     }
 

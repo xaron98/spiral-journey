@@ -14,7 +14,10 @@ let package = Package(
     targets: [
         .target(
             name: "SpiralKit",
-            path: "Sources/SpiralKit"
+            path: "Sources/SpiralKit",
+            resources: [
+                .copy("Resources/Learn")
+            ]
         ),
         .testTarget(
             name: "SpiralKitTests",

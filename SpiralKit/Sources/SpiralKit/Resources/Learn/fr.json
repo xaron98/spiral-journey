@@ -1,0 +1,224 @@
+{
+  "articles": [
+    {
+      "id": "what-is-sleep",
+      "title": "Qu'est-ce que le sommeil ?",
+      "icon": "moon.stars.fill",
+      "sections": [
+        {
+          "header": "Une définition scientifique",
+          "body": "Le sommeil est un état naturellement récurrent et réversible de conscience réduite et de désengagement sensoriel de l'environnement. Contrairement au coma ou à l'anesthésie, le sommeil est rapidement réversible : un bruit fort ou une légère secousse peut vous réveiller. Il est régulé par deux mécanismes indépendants — une horloge circadienne qui indique à votre corps quand dormir, et une pression homéostatique qui s'accumule plus longtemps vous restez éveillé. Chaque animal doté d'un système nerveux étudié à ce jour présente une forme de sommeil, suggérant qu'il est apparu très tôt dans l'évolution. Malgré des décennies de recherche, aucune théorie unique n'explique entièrement pourquoi nous passons environ un tiers de notre vie inconscients. Ce que nous savons, c'est que le sommeil n'est pas un temps d'inactivité passif — c'est un processus biologique actif, hautement orchestré et essentiel à la survie.",
+          "funFact": "Le saviez-vous ? Le sommeil REM a été identifié pour la première fois en 1953 par Eugene Aserinsky et Nathaniel Kleitman à l'Université de Chicago, lorsqu'ils ont remarqué des mouvements oculaires rapides chez des nourrissons endormis."
+        },
+        {
+          "header": "Architecture du sommeil",
+          "body": "Une nuit de sommeil n'est pas un bloc uniforme — c'est une séquence de stades soigneusement structurée. Le sommeil non-REM (NREM) comporte trois stades : N1 est une phase de transition légère qui ne dure qu'environ 5% du sommeil total ; N2, le stade dominant, représente environ 50% et se caractérise par des fuseaux du sommeil et des complexes K ; N3, également appelé sommeil lent profond (SWS), constitue environ 18% et produit les grandes ondes delta synchronisées, essentielles pour la restauration physique et la mémoire. Le sommeil REM, où surviennent les rêves les plus vifs, occupe les ~23% restants. Ces stades ne se distribuent pas uniformément — N3 se concentre dans la première moitié de la nuit lorsque la pression homéostatique du sommeil est la plus élevée, tandis que les épisodes REM s'allongent vers le matin à mesure que le rythme circadien déplace l'équilibre.",
+          "funFact": "Le saviez-vous ? Les nouveau-nés passent environ 50% de leur sommeil en phase REM, contre environ 23% chez les adultes. On pense que cela soutient le développement neuronal massif qui se produit dans les premiers mois de vie."
+        },
+        {
+          "header": "Cycles ultradiens",
+          "body": "Les stades du sommeil se répètent en cycles tout au long de la nuit, appelés cycles ultradiens. La durée médiane d'un cycle est d'environ 96 minutes, bien que les cycles individuels puissent varier de 70 à 120 minutes. La plupart des adultes complètent 4 à 6 cycles complets par nuit. Chaque cycle progresse typiquement à travers N1, N2, N3, puis REM, mais la composition évolue au fil de la nuit. Les premiers cycles sont riches en sommeil lent profond — votre cerveau priorise le stade le plus réparateur en premier. Les cycles suivants contiennent des périodes REM progressivement plus longues et moins de N3. C'est pourquoi raccourcir le sommeil d'un seul cycle réduit de manière disproportionnée le temps de REM. Le schéma cyclique est remarquablement stable chez un individu donné mais varie dans la population, influencé par l'âge, le chronotype et l'historique de sommeil.",
+          "funFact": "Le saviez-vous ? Les fuseaux du sommeil — de brèves bouffées d'activité cérébrale oscillatoire pendant N2 — vous aident en fait à vous protéger du réveil. Les personnes qui produisent davantage de fuseaux ont tendance à dormir plus facilement malgré le bruit."
+        },
+        {
+          "header": "Comment le sommeil est mesuré",
+          "body": "L'étalon-or de la mesure du sommeil est la polysomnographie (PSG), un examen clinique qui enregistre simultanément les ondes cérébrales (EEG), les mouvements oculaires (EOG), l'activité musculaire (EMG), le rythme cardiaque, la respiration et l'oxygène sanguin. La PSG peut identifier chaque stade du sommeil avec une grande précision, mais nécessite un environnement de laboratoire et un équipement spécialisé. Pour le suivi à long terme en dehors de la clinique, l'actigraphie utilise un accéléromètre porté au poignet pour estimer le sommeil et l'éveil en se basant sur les schémas de mouvement — c'est pratique mais ne peut pas distinguer les stades du sommeil. Les appareils grand public comme l'Apple Watch combinent accélérométrie, fréquence cardiaque et parfois oxygène sanguin pour déduire les stades du sommeil. Les études montrent que l'Apple Watch atteint environ 61–65% de concordance avec la PSG pour la classification des stades — utile pour repérer les tendances sur des semaines, mais pas un remplacement clinique.",
+          "funFact": "Le saviez-vous ? Le premier enregistrement EEG du sommeil humain a été réalisé par Hans Berger à la fin des années 1920, mais il a fallu 25 ans de plus avant que les chercheurs ne réalisent que le sommeil avait des stades distincts avec des signatures d'ondes cérébrales uniques."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Quel stade du sommeil représente la plus grande proportion du sommeil adulte ?",
+          "options": ["N3 (sommeil lent profond)", "N2", "REM"],
+          "correct": 1
+        },
+        {
+          "question": "Quelle est la durée médiane approximative d'un cycle de sommeil ?",
+          "options": ["60 minutes", "96 minutes", "120 minutes"],
+          "correct": 1
+        },
+        {
+          "question": "Quelle est la précision de l'Apple Watch pour classifier les stades du sommeil par rapport à la PSG ?",
+          "options": ["Environ 85–90%", "Environ 61–65%", "Environ 40–45%"],
+          "correct": 1
+        }
+      ]
+    },
+    {
+      "id": "biological-clock",
+      "title": "Votre horloge biologique",
+      "icon": "clock.fill",
+      "sections": [
+        {
+          "header": "L'horloge maîtresse",
+          "body": "Au plus profond de votre cerveau, un minuscule amas d'environ 20 000 neurones appelé noyau suprachiasmatique (SCN) sert d'horloge biologique maîtresse. Situé dans l'hypothalamus, juste au-dessus du croisement des nerfs optiques, le SCN reçoit une entrée lumineuse directe de cellules rétiniennes spécialisées contenant le photopigment mélanopsine. Ces cellules ganglionnaires rétiniennes intrinsèquement photosensibles (ipRGCs) sont les plus sensibles à la lumière bleue de courte longueur d'onde (~480 nm) et signalent au SCN la luminosité ambiante. Le SCN synchronise ensuite les horloges de pratiquement chaque cellule de votre corps — foie, cœur, muscles, même la peau — coordonnant un vaste réseau de rythmes physiologiques. Température, sécrétion hormonale, digestion et vigilance suivent ce cycle d'environ 24 heures. Les lésions du SCN dans les études animales abolissent entièrement les rythmes circadiens cohérents.",
+          "funFact": "Le saviez-vous ? Le SCN peut maintenir le temps sans aucun indice externe. Dans les expériences d'isolement, les humains continuent de cycler entre sommeil et éveil sur un rythme d'environ 24 heures même dans l'obscurité constante pendant des semaines."
+        },
+        {
+          "header": "Le modèle à deux processus",
+          "body": "En 1982, le chercheur du sommeil Alexander Borbély a proposé le modèle à deux processus, qui reste le cadre dominant pour comprendre la régulation du sommeil. Le Processus S (pression homéostatique du sommeil) s'accumule régulièrement pendant l'éveil — plus vous restez éveillé, plus votre besoin de dormir est fort. La molécule adénosine, un sous-produit de la consommation d'énergie neuronale, est un marqueur moléculaire clé de cette pression. Le Processus C (signal d'alerte circadien) oscille indépendamment sur un cycle d'environ 24 heures contrôlé par le SCN. Vous vous endormez lorsque le Processus S dépasse le seuil circadien et vous vous réveillez lorsqu'il tombe en dessous. L'interaction élégante signifie que même après une longue journée, vous pouvez ressentir un regain d'énergie en début de soirée — c'est votre signal circadien qui contrecarre temporairement la pression de sommeil accumulée avant de céder finalement à votre nuit biologique.",
+          "funFact": "Le saviez-vous ? La caféine agit en bloquant les récepteurs d'adénosine dans le cerveau, masquant efficacement la pression de sommeil du Processus S sans la réduire réellement. L'adénosine est toujours là — vous ne la sentez simplement pas tant que la caféine ne se dissipe pas."
+        },
+        {
+          "header": "Mélatonine et lumière",
+          "body": "La mélatonine, souvent appelée « l'hormone de l'obscurité », est produite par la glande pinéale lorsque le SCN signale que la nuit est arrivée. Elle ne provoque pas directement le sommeil mais ouvre une « porte » physiologique en abaissant la température corporelle centrale et en réduisant la vigilance. Le moment de l'apparition de la mélatonine — appelé début de la mélatonine en lumière tamisée (DLMO) — est le biomarqueur le plus fiable de la phase circadienne. L'exposition à la lumière le soir supprime puissamment la production de mélatonine. La recherche montre que l'utilisation d'écrans lumineux (téléphones, tablettes, moniteurs) avant le coucher peut retarder le DLMO d'environ 1,5 heure, décalant effectivement votre nuit biologique sans décaler votre réveil. Même un éclairage ambiant modéré (100–200 lux) peut atténuer la sécrétion de mélatonine. L'exposition à la lumière matinale a l'effet inverse — elle avance votre horloge, favorisant un endormissement plus précoce la nuit suivante.",
+          "funFact": "Le saviez-vous ? De nombreuses personnes totalement aveugles qui n'ont aucune perception de la lumière développent un trouble appelé Trouble du rythme veille-sommeil différent de 24 heures, où leur horloge circadienne dérive un peu plus tard chaque jour car elle ne peut pas se synchroniser avec le cycle lumière-obscurité."
+        },
+        {
+          "header": "Chronotype",
+          "body": "Votre chronotype est votre préférence innée pour les horaires de sommeil et d'activité. Les types matinaux (« alouettes ») se réveillent naturellement tôt et sont les plus alertes dans la première moitié de la journée ; les types vespéraux (« hiboux ») atteignent leur pic de vigilance plus tard et préfèrent veiller après minuit. Ce n'est ni de la paresse ni de la discipline — c'est déterminé par la génétique, avec des variants dans les gènes horloge comme PER2, PER3 et CRY1 qui décalent la phase de l'oscillateur circadien. Le décalage entre l'horloge biologique d'une personne et son emploi du temps social (travail, école) crée ce que le chronobiologiste Till Roenneberg a appelé le « jetlag social » — la sensation de vivre entre des fuseaux horaires sans jamais prendre l'avion. De vastes enquêtes montrent que la différence moyenne entre les points médians de sommeil des jours libres et des jours de travail dépasse une heure pour la plupart des adultes, les chronotypes vespéraux accumulant le plus de jetlag social et ses conséquences sanitaires associées.",
+          "funFact": "Le saviez-vous ? La période intrinsèque de l'horloge circadienne humaine (appelée tau) est en moyenne d'environ 24,18 heures — légèrement plus longue qu'un jour solaire. Sans exposition quotidienne à la lumière pour la recaler, votre rythme de sommeil dériverait d'environ 11 minutes par jour."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Qu'utilise principalement le noyau suprachiasmatique (SCN) pour synchroniser votre horloge ?",
+          "options": ["Les changements de température", "La lumière de l'environnement", "L'horaire des repas"],
+          "correct": 1
+        },
+        {
+          "question": "Dans le modèle à deux processus, que représente le Processus S ?",
+          "options": ["Le signal d'alerte circadien", "La pression homéostatique du sommeil", "Le besoin de sommeil REM"],
+          "correct": 1
+        },
+        {
+          "question": "De combien l'utilisation d'écrans le soir peut-elle retarder l'apparition de la mélatonine ?",
+          "options": ["Environ 15 minutes", "Environ 1,5 heure", "Environ 4 heures"],
+          "correct": 1
+        }
+      ]
+    },
+    {
+      "id": "why-we-sleep",
+      "title": "Pourquoi dormons-nous ?",
+      "icon": "brain.head.profile",
+      "sections": [
+        {
+          "header": "Homéostasie synaptique",
+          "body": "Pendant les heures d'éveil, votre cerveau apprend constamment — renforçant les connexions synaptiques chaque fois que vous vivez quelque chose de nouveau. Mais ce processus ne peut pas continuer indéfiniment ; les synapses finiraient par saturer, consommant une énergie excessive et perdant la capacité d'encoder de nouvelles informations. L'hypothèse de l'homéostasie synaptique, proposée par Giulio Tononi et Chiara Cirelli, soutient qu'une fonction essentielle du sommeil — en particulier du sommeil lent profond — est de réduire proportionnellement la force synaptique dans tout le cerveau. Les oscillations lentes du sommeil profond « renormalisent » les connexions : les synapses importantes et bien renforcées survivent à l'élagage tandis que les faibles et bruitées s'estompent. Cette recalibration nocturne restaure la capacité d'apprentissage du cerveau pour le lendemain. Les preuves de cette hypothèse proviennent d'études moléculaires montrant que les protéines synaptiques sont plus élevées après l'éveil et plus basses après le sommeil.",
+          "funFact": "Le saviez-vous ? Dans les expériences de privation de sommeil, les rats meurent après environ 11 à 32 jours sans dormir. La cause exacte de la mort est encore débattue, mais l'effondrement immunitaire et la dégradation métabolique semblent jouer des rôles clés."
+        },
+        {
+          "header": "Consolidation de la mémoire",
+          "body": "Le sommeil est le moment où les souvenirs passent d'un stockage temporaire et fragile à une forme stable et à long terme — un processus appelé consolidation. Différents stades du sommeil jouent des rôles distincts. Le sommeil lent profond (N3) est essentiel pour les mémoires déclaratives : faits, événements et connaissances spatiales. Pendant le SWS, l'hippocampe rejoue les expériences sous forme compressée tout en se coordonnant avec le néocortex par des oscillations lentes, des fuseaux du sommeil et des ondes pointues-ripples précisément synchronisés. Le sommeil REM, quant à lui, semble particulièrement important pour les mémoires procédurales et émotionnelles. Les études montrent que les personnes qui apprennent une compétence motrice performent significativement mieux après une nuit de sommeil qu'après une période équivalente d'éveil. Les souvenirs émotionnels sont également sélectivement renforcés pendant le REM, tandis que la tonalité émotionnelle associée est progressivement atténuée — vous vous souvenez de ce qui s'est passé mais vous vous en sentez moins affecté avec le temps.",
+          "funFact": "Le saviez-vous ? Des études ont montré que dormir après avoir reçu un vaccin peut renforcer la réponse immunitaire. Dans une expérience, les participants qui ont dormi la nuit suivant un vaccin contre l'hépatite A ont produit presque deux fois plus d'anticorps quatre semaines plus tard par rapport à ceux qui étaient restés éveillés."
+        },
+        {
+          "header": "Nettoyage cérébral : le système glymphatique",
+          "body": "En 2012, des chercheurs dirigés par Maiken Nedergaard ont découvert le système glymphatique — un réseau d'élimination des déchets dans le cerveau qui fonctionne principalement pendant le sommeil. Le liquide céphalorachidien (LCR) circule le long des canaux entourant les artères, traversant le tissu cérébral et emportant les déchets métaboliques, notamment la bêta-amyloïde et les protéines tau impliquées dans la maladie d'Alzheimer. De manière cruciale, ce nettoyage s'accélère pendant le sommeil car les cellules gliales se contractent, élargissant l'espace interstitiel d'environ 60% et permettant au LCR de circuler beaucoup plus efficacement. Pendant l'éveil, le système fonctionne à un rythme très réduit. Cette découverte fournit une explication biologique convaincante de la raison pour laquelle la perturbation chronique du sommeil est associée à un risque accru d'Alzheimer : le cerveau ne peut littéralement pas se nettoyer correctement sans un sommeil adéquat. Cette découverte a transformé notre compréhension du sommeil, passant du repos passif à la maintenance active.",
+          "funFact": "Le saviez-vous ? Pendant le sommeil, les cellules cérébrales rétrécissent physiquement d'environ 20%, créant des canaux plus larges entre elles. Cette expansion de l'espace interstitiel est ce qui permet au système glymphatique d'évacuer les déchets beaucoup plus efficacement que pendant les heures d'éveil."
+        },
+        {
+          "header": "Immunité et réparation",
+          "body": "Le sommeil est profondément lié à la fonction immunitaire. Pendant le sommeil, le corps augmente la production de cytokines — des protéines de signalisation qui dirigent les réponses immunitaires — et redistribue les cellules immunitaires vers les tissus où elles sont le plus nécessaires. L'activité des cellules tueuses naturelles, essentielle pour combattre les infections virales et surveiller les tumeurs, diminue de manière mesurable après une seule nuit de sommeil court. La restriction chronique du sommeil élève les marqueurs d'inflammation systémique, dont la protéine C-réactive et l'interleukine-6, imitant un état d'infection chronique de bas grade. Le sommeil aide aussi à gérer le stress oxydatif : les espèces réactives de l'oxygène (ROS) s'accumulent pendant un éveil prolongé, et le sommeil fournit une fenêtre pour la récupération des défenses antioxydantes. L'hormone de croissance, essentielle pour la réparation des tissus et la récupération musculaire, est libérée principalement pendant le premier épisode de sommeil lent profond. C'est pourquoi athlètes, entraîneurs et médecins mettent de plus en plus l'accent sur le sommeil comme pilier de la récupération physique.",
+          "funFact": "Le saviez-vous ? Dormir après une vaccination augmente significativement la production d'anticorps. Votre système immunitaire utilise le sommeil pour consolider les « mémoires » immunologiques des agents pathogènes, tout comme le cerveau consolide les mémoires cognitives."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Selon l'hypothèse de l'homéostasie synaptique, que se passe-t-il au niveau des synapses pendant le sommeil ?",
+          "options": ["Elles se renforcent toutes", "Elles sont proportionnellement réduites", "Elles sont complètement éliminées"],
+          "correct": 1
+        },
+        {
+          "question": "Quel stade du sommeil est le plus important pour la consolidation des mémoires factuelles (déclaratives) ?",
+          "options": ["N1 (sommeil léger)", "N3 (sommeil lent profond)", "N2"],
+          "correct": 1
+        },
+        {
+          "question": "Que fait le système glymphatique pendant le sommeil ?",
+          "options": ["Il produit de nouveaux neurones", "Il élimine les déchets métaboliques comme la bêta-amyloïde du cerveau", "Il génère des fuseaux du sommeil"],
+          "correct": 1
+        }
+      ]
+    },
+    {
+      "id": "animal-sleep",
+      "title": "Le sommeil dans le règne animal",
+      "icon": "tortoise.fill",
+      "sections": [
+        {
+          "header": "Dormir sans cerveau",
+          "body": "On n'a pas besoin de cerveau pour dormir. En 2017, des chercheurs du Caltech ont démontré que la méduse inversée Cassiopea — qui n'a aucun système nerveux central, seulement un réseau nerveux diffus — présente toutes les caractéristiques comportementales du sommeil. Pendant la nuit, Cassiopea pulse moins fréquemment, répond plus lentement aux stimuli, et si on la maintient éveillée en lui envoyant des jets d'eau, elle montre un rebond de quiescence la nuit suivante, tout comme un humain privé de sommeil qui dort plus longtemps pour récupérer. C'est une découverte majeure car elle a repoussé les origines évolutives du sommeil avant même l'existence des cerveaux — il y a au moins 600 millions d'années. Des états similaires au sommeil ont depuis été documentés chez le nématode C. elegans (302 neurones) et même chez l'hydre. L'implication est frappante : le sommeil pourrait être une propriété fondamentale de la vie multicellulaire, et non un luxe inventé par des cerveaux complexes.",
+          "funFact": "Le saviez-vous ? Les koalas dorment environ 22 heures par jour, ce qui en fait l'un des mammifères qui dorment le plus longtemps. Leur régime d'eucalyptus est si pauvre en énergie qu'un repos extrême est nécessaire pour survivre."
+        },
+        {
+          "header": "Sommeil unihémisphérique",
+          "body": "Certains animaux ont résolu le problème de rester vigilants en dormant en ne désactivant qu'une moitié du cerveau à la fois — une stratégie appelée sommeil lent unihémisphérique (USWS). Les grands dauphins sont les praticiens les plus célèbres : un hémisphère dort tandis que l'autre reste éveillé, leur permettant de remonter à la surface pour respirer et surveiller les prédateurs. L'œil ouvert est toujours du côté opposé à l'hémisphère endormi. De nombreuses espèces d'oiseaux peuvent aussi le faire, mais le cas le plus extrême est peut-être la frégate superbe. Des chercheurs ont équipé des frégates d'enregistreurs EEG pendant des vols transocéaniques de 10 jours et ont constaté qu'elles dormaient en moyenne seulement 42 minutes par jour en vol — principalement lors de brefs épisodes unihémisphériques de quelques secondes — contre plus de 12 heures par jour à terre. Elles pouvaient littéralement dormir avec un œil scrutant les obstacles tout en planant sur les thermiques.",
+          "funFact": "Le saviez-vous ? Les girafes n'ont qu'environ 30 minutes de sommeil profond par jour, réparties en brefs épisodes de seulement 1 à 2 minutes. Leur extrême vulnérabilité face aux prédateurs en position couchée a probablement conduit à cette adaptation."
+        },
+        {
+          "header": "La surprise des reptiles",
+          "body": "Pendant des décennies, les scientifiques croyaient que seuls les mammifères et les oiseaux connaissaient un véritable sommeil REM. Cette hypothèse a été renversée en 2016 lorsqu'une équipe dirigée par Gilles Laurent a enregistré l'activité cérébrale du dragon barbu australien (Pogona vitticeps) et a trouvé une alternance claire entre deux états de sommeil distincts, étonnamment similaires au sommeil lent et au sommeil REM des mammifères. L'état « de type REM » des reptiles comprenait des mouvements oculaires rapides, une fréquence cardiaque irrégulière et une activité cérébrale de faible amplitude — toutes les caractéristiques du REM chez les mammifères. Cependant, les cycles étaient beaucoup plus courts (~80 secondes chacun, contre ~96 minutes chez l'humain) et provenaient d'une structure cérébrale différente. Cette découverte a repoussé l'origine évolutive du sommeil à deux états au moins jusqu'à l'ancêtre commun des reptiles et des mammifères, il y a environ 300 millions d'années. Elle a aussi soulevé une question fascinante : les lézards rêvent-ils ?",
+          "funFact": "Le saviez-vous ? Les martinets alpins détiennent le record du plus long vol continu — jusqu'à 200 jours sans se poser. Comme les frégates, on pense qu'ils dorment par brèves siestes en vol, bien que le mécanisme exact soit encore à l'étude."
+        },
+        {
+          "header": "Les rêves des poulpes",
+          "body": "En 2021, des chercheurs brésiliens ont publié une étude remarquable montrant que les poulpes alternent entre deux états de sommeil distincts : le « sommeil calme », pendant lequel ils sont pâles et immobiles, et le « sommeil actif », pendant lequel leur peau éclate en changements de couleur rapides, leurs yeux bougent et leurs bras tremblent. La phase active ressemble étonnamment au sommeil REM des mammifères, jusque dans les contractions musculaires. Chaque cycle calme-actif ne dure qu'environ 30 à 40 minutes, avec des phases actives d'environ 40 secondes. Comme les poulpes sont séparés des mammifères par plus de 500 millions d'années d'évolution — leur dernier ancêtre commun était un simple organisme vermiforme — cela suggère que le sommeil à deux états a pu évoluer indépendamment au moins deux fois. Certains chercheurs spéculent que la phase active implique le rejeu d'expériences visuelles récentes, étant donné que les motifs de couleur ressemblent parfois à des séquences observées pendant le comportement de chasse à l'état éveillé. La possibilité que les poulpes rêvent reste l'une des questions ouvertes les plus fascinantes de la science du sommeil.",
+          "funFact": "Le saviez-vous ? Pendant le « sommeil actif », les poulpes passent par des motifs de couleur en environ 40 secondes qui ressemblent étroitement à leurs affichages de camouflage à l'état éveillé. Certains chercheurs pensent qu'ils pourraient répéter des stratégies de chasse ou de camouflage pendant leur sommeil."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Quel organisme a démontré que le sommeil peut exister sans cerveau ?",
+          "options": ["Poulpe", "Méduse Cassiopea", "Dragon barbu"],
+          "correct": 1
+        },
+        {
+          "question": "Combien les frégates dorment-elles par jour en volant au-dessus de l'océan ?",
+          "options": ["Environ 42 minutes", "Environ 4 heures", "Elles ne dorment pas du tout en volant"],
+          "correct": 0
+        },
+        {
+          "question": "Pourquoi l'étude du dragon barbu de 2016 était-elle significative ?",
+          "options": ["Elle a montré que les reptiles ne dorment pas", "Elle a trouvé un sommeil de type REM chez un reptile, repoussant son origine évolutive de 300 millions d'années", "Elle a prouvé que seuls les mammifères rêvent"],
+          "correct": 1
+        }
+      ]
+    },
+    {
+      "id": "rhythm-and-health",
+      "title": "Votre rythme, votre santé",
+      "icon": "heart.text.square.fill",
+      "sections": [
+        {
+          "header": "Le coût de la dette de sommeil",
+          "body": "Dans une étude marquante de 2003, Hans Van Dongen et ses collègues ont démontré que la restriction partielle chronique du sommeil est cumulativement dévastatrice — et largement invisible pour ceux qui en souffrent. Les sujets limités à 6 heures de sommeil par nuit pendant 14 nuits consécutives ont montré des déficiences cognitives équivalentes à quelqu'un totalement privé de sommeil pendant deux nuits complètes (48 heures d'éveil). De manière cruciale, alors que les sujets totalement privés étaient pleinement conscients de leur dégradation, le groupe chroniquement restreint évaluait sa somnolence comme seulement légèrement élevée. Ils avaient perdu la capacité de percevoir précisément leur propre déficience. Cette découverte a des implications profondes : des millions de personnes fonctionnant avec 6 heures ou moins croient qu'elles performent adéquatement alors que les tests objectifs montrent le contraire. La dette de sommeil s'accumule silencieusement, érodant l'attention, le temps de réaction, la prise de décision et la régulation émotionnelle sans déclencher les signaux d'alarme que la privation aiguë provoque.",
+          "funFact": "Le saviez-vous ? Les travailleurs postés ont des taux significativement plus élevés d'insomnie, de troubles métaboliques et de maladies cardiovasculaires. L'Organisation mondiale de la Santé a classé le travail de nuit comme probablement cancérogène (Groupe 2A) en 2007, sur la base des preuves de perturbation circadienne."
+        },
+        {
+          "header": "Jetlag social",
+          "body": "En 2006, Till Wittmann et ses collègues ont formalisé le concept de « jetlag social » — le décalage chronique entre votre horloge biologique et votre emploi du temps social. Il se calcule comme la différence du point médian de sommeil entre les jours libres (week-ends) et les jours de travail. Si vous vous endormez naturellement à 1 h du matin et vous réveillez à 9 h le week-end, mais vous vous forcez à dormir à 23 h et à vous réveiller à 6 h 30 les jours de travail, vous subissez environ 2 heures de jetlag social — l'équivalent de traverser deux fuseaux horaires chaque lundi et de revenir chaque vendredi. De vastes études de population révèlent que plus de deux tiers des adultes subissent au moins une heure de jetlag social. Les conséquences ne sont pas anodines : le jetlag social est corrélé à un IMC plus élevé, davantage de symptômes dépressifs, un risque cardiovasculaire accru, de moins bonnes performances académiques et une consommation accrue de caféine, d'alcool et de nicotine comme mécanismes d'adaptation.",
+          "funFact": "Le saviez-vous ? Des études sur des sociétés préindustrielles sans électricité (en Tanzanie, Namibie et Bolivie) montrent des durées de sommeil moyennes de seulement 5,7 à 7,1 heures — moins que la recommandation de « 8 heures ». Cependant, leurs horaires de sommeil étaient remarquablement réguliers et alignés sur les cycles naturels de lumière."
+        },
+        {
+          "header": "La lumière artificielle nocturne",
+          "body": "La lumière artificielle nocturne (ALAN) est l'un des perturbateurs les plus répandus et les plus sous-estimés de la santé circadienne humaine. Avant l'éclairage électrique, les humains recevaient environ 50 lux à la lumière du feu le soir et quasi zéro lux après le coucher. Aujourd'hui, un environnement intérieur typique délivre 100–300 lux, avec les écrans de téléphone et de tablette atteignant 40–80 lux au niveau de l'œil — suffisant pour supprimer significativement la production de mélatonine. La lumière enrichie en bleu (400–490 nm) des écrans LED est particulièrement puissante car elle stimule au maximum le photopigment mélanopsine dans les cellules ganglionnaires rétiniennes qui signalent au SCN. Une étude de 2014 a montré que lire sur un iPad pendant quatre heures avant le coucher retardait l'apparition de la mélatonine, réduisait le sommeil REM et laissait les sujets plus somnolents le lendemain matin par rapport à la lecture d'un livre imprimé sous lumière tamisée. Le problème va au-delà des écrans : l'ALAN provenant des lampadaires est corrélée à des horaires de sommeil plus tardifs et une durée de sommeil plus courte au niveau de la population.",
+          "funFact": "Le saviez-vous ? Les historiens ont documenté un schéma de « premier sommeil » et « second sommeil » dans l'Europe médiévale — les gens dormaient environ quatre heures, se réveillaient pour une à deux heures d'activité calme au milieu de la nuit, puis se rendormaient jusqu'à l'aube. L'éclairage électrique a peut-être compressé cela en un seul bloc consolidé que nous considérons comme normal aujourd'hui."
+        },
+        {
+          "header": "Hygiène du sommeil : conseils fondés sur les preuves",
+          "body": "Les recommandations d'hygiène du sommeil gagnent en poids scientifique lorsqu'elles sont contextualisées autour de la courbe de réponse de phase (PRC) — le graphique montrant comment l'exposition à la lumière à différents moments décale votre horloge circadienne. La lumière matinale (les 2 premières heures après le réveil) avance votre horloge, favorisant un endormissement plus précoce la nuit suivante ; c'est particulièrement utile pour les chronotypes vespéraux confrontés à des horaires matinaux. La lumière du soir retarde votre horloge — donc tamiser les lumières et utiliser des ampoules à spectre chaud après le coucher du soleil aide à protéger l'apparition de la mélatonine. Au-delà de la lumière : maintenez une heure de réveil constante (même le week-end) pour minimiser le jetlag social ; réservez le lit au sommeil pour renforcer l'association sommeil-lit ; évitez la caféine dans les 8 à 10 heures avant le coucher, car sa demi-vie est en moyenne de 5 à 6 heures ; gardez la chambre fraîche (18–19°C / 65–67°F), car la baisse de la température corporelle centrale est un prérequis pour l'initiation du sommeil. Ce ne sont pas des conseils de grand-mère — chaque recommandation correspond directement à un mécanisme physiologique connu.",
+          "funFact": "Le saviez-vous ? Votre température corporelle centrale doit baisser d'environ 1°C (1,8°F) pour initier le sommeil. Un bain ou une douche chaude 1 à 2 heures avant le coucher aide paradoxalement : cela attire le sang vers la surface, accélérant la perte de chaleur et refroidissant le noyau plus rapidement une fois que vous en sortez."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Dans l'étude de Van Dongen de 2003, 14 jours de 6 heures de sommeil équivalaient à la déficience de combien de nuits de privation totale de sommeil ?",
+          "options": ["Une demi-nuit", "Une nuit", "Deux nuits complètes"],
+          "correct": 2
+        },
+        {
+          "question": "Qu'est-ce que le jetlag social ?",
+          "options": ["La fatigue liée aux voyages entre fuseaux horaires", "Le décalage entre votre horloge biologique et votre emploi du temps social", "Dormir trop le week-end"],
+          "correct": 1
+        },
+        {
+          "question": "Pourquoi l'exposition à la lumière matinale est-elle bénéfique pour le sommeil ?",
+          "options": ["Elle augmente immédiatement la mélatonine", "Elle avance votre horloge circadienne, favorisant un endormissement plus précoce cette nuit-là", "Elle réduit les niveaux de cortisol tout au long de la journée"],
+          "correct": 1
+        }
+      ]
+    }
+  ]
+}
