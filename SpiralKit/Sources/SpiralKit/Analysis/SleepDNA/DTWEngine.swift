@@ -130,7 +130,7 @@ public enum DTWEngine {
                     (i - 1, j, cost[i - 1][j]),
                     (i, j - 1, cost[i][j - 1]),
                 ]
-                let best = candidates.min(by: { $0.2 < $1.2 })!
+                guard let best = candidates.min(by: { $0.2 < $1.2 }) else { break }
                 i = best.0
                 j = best.1
             }

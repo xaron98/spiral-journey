@@ -9,6 +9,15 @@
 - iOS: `xcodebuild build -scheme "spiral journey project" -destination "platform=iOS Simulator,id=58B00C42-E274-4903-8E91-84CCA65CBC3A"`
 - Watch: `xcodebuild build -scheme "Spiral Watch App Watch App" -destination generic/platform=watchOS`
 
+## Swift Skills (use when writing or reviewing code)
+- **swift-best-practices** — Swift 6+ patterns, async/await, actors, MainActor, Sendable, typed throws. Use when writing/reviewing ANY Swift code.
+- **swift-concurrency-6-2** — Swift 6.2 approachable concurrency, @concurrent, isolated conformances. Use for concurrency questions and data race fixes.
+- **swift-actor-persistence** — Thread-safe actor-based persistence. Use when working on data storage, caching, or fixing data races in persistence code.
+- **swift-protocol-di-testing** — Protocol-based DI for testable code. Use when writing tests that need mocks (HealthKit, network, file system).
+- **swiftui-patterns** — @Observable, view composition, navigation, performance. Use when working on SwiftUI views.
+- **apple-on-device-ai** — Foundation Models, Core ML, MLX Swift. Use for AI/ML features.
+- **liquid-glass-design** — iOS 26 Liquid Glass design system. Use for UI styling.
+
 ## Key Files
 - `spiral journey project/Views/Spiral/SpiralView.swift` — all rendering (Canvas)
 - `spiral journey project/Views/Spiral/SpiralVisibilityEngine.swift` — per-day visibility/opacity

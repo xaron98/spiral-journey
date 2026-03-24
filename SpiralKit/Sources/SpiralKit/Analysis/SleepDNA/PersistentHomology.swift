@@ -59,7 +59,9 @@ public enum PersistentHomology {
             return PersistentHomologyResult(features: [], beta0: 0, beta1: 0, structuralStability: 0)
         }
 
-        let maxDist = edges.last!.distance
+        guard let maxDist = edges.last?.distance else {
+            return PersistentHomologyResult(features: [], beta0: 0, beta1: 0, structuralStability: 0)
+        }
 
         // Track beta-0 via Union-Find
         var features = [PersistenceFeature]()

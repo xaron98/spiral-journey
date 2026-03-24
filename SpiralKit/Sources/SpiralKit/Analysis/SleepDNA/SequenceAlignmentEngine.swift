@@ -99,7 +99,7 @@ public enum SequenceAlignmentEngine {
         // 3. Rank by DTW score (ascending), take top 5
         alignments.sort { $0.dtwScore < $1.dtwScore }
         let topK = min(5, alignments.count)
-        let topAlignments = Array(alignments.prefix(topK))
+        let topAlignments = alignments[..<topK]
 
         // 4. For each top week, look at the NEXT day after currentDays.count
         let nextDayIndex = currentDays.count // 0-based index within the 7-day week
@@ -182,6 +182,6 @@ public enum SequenceAlignmentEngine {
             targetDate: targetDate
         )
 
-        return (output: output, prediction: sequencePrediction, alignments: topAlignments)
+        return (output: output, prediction: sequencePrediction, alignments: Array(topAlignments))
     }
 }

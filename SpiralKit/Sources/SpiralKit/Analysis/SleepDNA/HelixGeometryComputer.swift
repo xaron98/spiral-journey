@@ -39,9 +39,7 @@ public enum HelixGeometryComputer {
         let idealMid = idealMidSleep(from: chronotype)
 
         return records.map { record in
-            let twist = avgPLV != nil
-                ? avgPLV! * maxTwist
-                : 0.5 * maxTwist
+            let twist = (avgPLV ?? 0.5) * maxTwist
 
             let midSleep = (record.bedtimeHour + record.wakeupHour) / 2.0
             let deviation = abs(circularTimeDiff(midSleep, idealMid))

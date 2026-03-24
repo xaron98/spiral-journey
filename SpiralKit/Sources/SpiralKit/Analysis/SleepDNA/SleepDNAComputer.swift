@@ -237,7 +237,7 @@ public actor SleepDNAComputer {
 
         if let currentWeek = sequences.last, sequences.count >= 2 {
             // HAS: current week vs most similar historical week
-            let history = Array(sequences.dropLast())
+            let history = sequences.dropLast()
             var bestScore = 0.0
             for past in history {
                 let score = DTWEngine.helixAlignmentScore(currentWeek, past, weights: blosum.weights)

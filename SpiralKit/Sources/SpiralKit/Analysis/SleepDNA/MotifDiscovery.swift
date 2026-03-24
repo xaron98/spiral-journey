@@ -136,20 +136,19 @@ public enum MotifDiscovery {
 
         // Each cluster is a set of original indices
         var clusters: [[Int]] = (0..<n).map { [$0] }
-        // Track which clusters are still active
-        var active = Set(0..<n)
+        // Maintain a sorted array of active cluster indices (avoids Set→Array→sort each iteration)
+        var activeArray = Array(0..<n)
 
         // Inter-cluster distance (single-linkage = min of pairwise)
         // We maintain a mutable copy of the distance matrix indexed by cluster ID
         var clusterDist = distanceMatrix
 
-        while active.count > 1 {
+        while activeArray.count > 1 {
             // Find the closest pair of active clusters
             var bestI = -1
             var bestJ = -1
             var bestDist = Double.infinity
 
-            let activeArray = Array(active).sorted()
             for ai in 0..<activeArray.count {
                 for aj in (ai + 1)..<activeArray.count {
                     let ci = activeArray[ai]
@@ -166,17 +165,20 @@ public enum MotifDiscovery {
 
             // Merge bestJ into bestI
             clusters[bestI].append(contentsOf: clusters[bestJ])
-            active.remove(bestJ)
+            // Remove bestJ from activeArray (it's sorted, so use binary search)
+            if let removeIdx = activeArray.firstIndex(of: bestJ) {
+                activeArray.remove(at: removeIdx)
+            }
 
             // Update distances: single-linkage uses min
-            for ci in active where ci != bestI {
+            for ci in activeArray where ci != bestI {
                 let newDist = min(clusterDist[bestI][ci], clusterDist[bestJ][ci])
                 clusterDist[bestI][ci] = newDist
                 clusterDist[ci][bestI] = newDist
             }
         }
 
-        return active.sorted().map { clusters[$0] }
+        return activeArray.map { clusters[$0] }
     }
 
     // MARK: - Centroid

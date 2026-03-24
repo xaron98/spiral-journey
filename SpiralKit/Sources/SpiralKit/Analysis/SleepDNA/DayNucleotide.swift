@@ -93,25 +93,24 @@ public struct DayNucleotide: Codable, Sendable {
         let dayEnd = dayStart + period
         let dayEvents = events.filter { $0.absoluteHour >= dayStart && $0.absoluteHour < dayEnd }
 
+        // Single-pass event counting (avoids 5 separate filter passes)
+        var eventCounts: [EventType: Int] = [:]
+        for event in dayEvents { eventCounts[event.type, default: 0] += 1 }
+
         // Feature 8: caffeine count / 5
-        let caffeineCount = Double(dayEvents.filter { $0.type == .caffeine }.count)
-        f[Feature.caffeine.rawValue] = min(caffeineCount / 5.0, 1.0)
+        f[Feature.caffeine.rawValue] = min(Double(eventCounts[.caffeine] ?? 0) / 5.0, 1.0)
 
         // Feature 9: exercise — binary (any exercise event)
-        let exerciseCount = dayEvents.filter { $0.type == .exercise }.count
-        f[Feature.exercise.rawValue] = min(Double(exerciseCount), 1.0)
+        f[Feature.exercise.rawValue] = min(Double(eventCounts[.exercise] ?? 0), 1.0)
 
         // Feature 10: alcohol count / 3
-        let alcoholCount = Double(dayEvents.filter { $0.type == .alcohol }.count)
-        f[Feature.alcohol.rawValue] = min(alcoholCount / 3.0, 1.0)
+        f[Feature.alcohol.rawValue] = min(Double(eventCounts[.alcohol] ?? 0) / 3.0, 1.0)
 
         // Feature 11: melatonin — binary
-        let melatoninCount = dayEvents.filter { $0.type == .melatonin }.count
-        f[Feature.melatonin.rawValue] = min(Double(melatoninCount), 1.0)
+        f[Feature.melatonin.rawValue] = min(Double(eventCounts[.melatonin] ?? 0), 1.0)
 
         // Feature 12: stress count / 3
-        let stressCount = Double(dayEvents.filter { $0.type == .stress }.count)
-        f[Feature.stress.rawValue] = min(stressCount / 3.0, 1.0)
+        f[Feature.stress.rawValue] = min(Double(eventCounts[.stress] ?? 0) / 3.0, 1.0)
 
         // Feature 13: isWeekend
         f[Feature.isWeekend.rawValue] = record.isWeekend ? 1.0 : 0.0
