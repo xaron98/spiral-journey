@@ -26,16 +26,27 @@
   <h3>Apple Health / HealthKit</h3>
   <p>With your explicit permission, the app reads the following data from Apple Health:</p>
   <ul>
-    <li><strong>Sleep analysis</strong> — sleep stages (deep, REM, core, awake) to calculate circadian rhythm metrics (acrophase, MESOR, amplitude), detect patterns, and provide recommendations.</li>
-    <li><strong>Heart rate variability (HRV)</strong> — SDNN measurements to compute nightly HRV trends as part of your sleep health profile.</li>
+    <li><strong>Sleep analysis</strong> — sleep stages (deep, REM, core, awake) to calculate circadian rhythm metrics, detect patterns, and provide recommendations.</li>
+    <li><strong>Heart rate &amp; HRV</strong> — resting heart rate, heart rate variability (SDNN), and high heart rate events to track autonomic health and detect anomalies.</li>
+    <li><strong>Activity</strong> — step count, exercise minutes, active calories, and workouts to compute your circadian activity rhythm (cosinor analysis) and auto-populate exercise events on the spiral.</li>
+    <li><strong>Temperature</strong> — wrist temperature deviation as a proxy for circadian phase.</li>
+    <li><strong>Daylight exposure</strong> — time in daylight to correlate with sleep quality.</li>
+    <li><strong>Menstrual cycle</strong> — flow data to detect ~28-day cycles in sleep patterns.</li>
+    <li><strong>Caffeine</strong> — dietary caffeine intake (if logged by a compatible app) to auto-populate caffeine events.</li>
   </ul>
   <p>The app does <strong>not</strong> write any data to Apple Health.</p>
 
   <h3>Calendar (optional)</h3>
   <p>If you grant permission, the app can read your calendar events to create context blocks (work, study, commute) and detect conflicts between your sleep schedule and daily obligations. Calendar data is processed entirely on your device and is never transmitted to any server.</p>
 
+  <h3>Microphone &amp; Speech Recognition (optional)</h3>
+  <p>If you grant permission, the app uses on-device speech recognition (Apple's SFSpeechRecognizer) to transcribe your dream journal entries by voice. Audio is processed entirely on your device using on-device recognition — it is never sent to external servers or stored after transcription.</p>
+
+  <h3>Local Network / Peer Comparison (optional)</h3>
+  <p>The app can discover nearby devices running Spiral Journey via Multipeer Connectivity (Bluetooth/WiFi) for anonymous sleep profile comparison. Only aggregated metrics (consistency score, mean duration, chronotype, etc.) are shared — no raw sleep records, health data, or personal information. The connection is encrypted by default. Data from the other device is ephemeral and is deleted from memory when the session ends. No peer data is stored permanently.</p>
+
   <h3>Notifications (optional)</h3>
-  <p>If you enable notifications, the app sends local reminders for sleep goals and weekly digests. No notification data is shared externally.</p>
+  <p>If you enable notifications, the app sends local reminders for sleep goals, morning summaries, and predictive alerts. No notification data is shared externally.</p>
 
   <h2>Data We Do NOT Collect</h2>
   <ul>
@@ -47,7 +58,7 @@
   </ul>
 
   <h2>On-Device Processing</h2>
-  <p>All sleep analysis — including the SleepDNA Engine, pattern detection, health markers, Hilbert phase analysis, persistent homology, and ML predictions — is performed entirely on your device. No sleep data is sent to external servers.</p>
+  <p>All analysis — including the SleepDNA Engine, Lomb-Scargle periodogram, Poisson/Hawkes event modeling, codon analysis, pattern detection, health markers, Hilbert phase analysis, persistent homology, and ML predictions — is performed entirely on your device. No sleep or health data is sent to external servers.</p>
 
   <h2>Data Storage</h2>
   <p>Primary app data (sleep episodes, circadian events, predictions, coach messages, goals, and training metrics) is stored locally on your device using SwiftData. If iCloud is enabled on your Apple account, records may be synced using Apple's CloudKit private database so your own devices stay in sync. This data is only accessible to your Apple ID — Apple does not have access to your CloudKit private database content.</p>
