@@ -631,8 +631,16 @@ final class SpiralStore {
         #endif
     }
 
+    /// Monotonic generation counter — ensures stale recompute results are discarded.
+    private var recomputeGeneration: Int = 0
+    /// Active recompute task — cancelled when a new recompute starts.
+    private var recomputeTask: Task<Void, Never>?
+
     /// Recompute SleepRecords and AnalysisResult from current episodes.
     func recompute() {
+        recomputeGeneration += 1
+        let generation = recomputeGeneration
+        recomputeTask?.cancel()
         let eps = loadEpisodesFromSwiftData() ?? sleepEpisodes
         guard !eps.isEmpty else {
             records = []
@@ -659,7 +667,7 @@ final class SpiralStore {
         let currentStreak = streakHistory
         let currentEvents = events
         let hp = healthProfiles
-        Task.detached(priority: .userInitiated) { [weak self] in
+        recomputeTask = Task.detached(priority: .userInitiated) { [weak self] in
             let newRecords = ManualDataConverter.convert(episodes: eps, numDays: n, startDate: sd)
             // Use context-aware analysis if blocks are enabled
             let newAnalysis: AnalysisResult
@@ -696,8 +704,11 @@ final class SpiralStore {
                 newPeriodograms = nil
             }
 
+            // Check if this recompute is still current (not superseded by a newer one)
+            guard !Task.isCancelled else { return }
+
             await MainActor.run { [weak self] in
-                guard let self else { return }
+                guard let self, generation == self.recomputeGeneration else { return }
                 self.records = newRecords
                 self.analysis = newAnalysis
                 self.analysis.periodogramResults = newPeriodograms

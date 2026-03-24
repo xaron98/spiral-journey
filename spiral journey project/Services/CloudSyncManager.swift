@@ -26,6 +26,7 @@ final class CloudSyncManager: NSObject, CKSyncEngineDelegate {
     /// Cache of CKRecord objects pending upload, keyed by CKRecord.ID.
     /// Capped at `maxPendingRecords` to prevent unbounded memory growth under poor connectivity.
     private var pendingRecords: [CKRecord.ID: CKRecord] = [:]
+    private var pendingOrder: [CKRecord.ID] = [] // FIFO insertion order for eviction
     private static let maxPendingRecords = 200
 
     // MARK: - Init
@@ -116,14 +117,16 @@ final class CloudSyncManager: NSObject, CKSyncEngineDelegate {
     // MARK: - Private
 
     private func enqueueRecord(_ record: CKRecord) {
-        // Evict oldest pending record if at capacity to prevent unbounded memory growth.
-        if pendingRecords.count >= Self.maxPendingRecords {
-            if let oldest = pendingRecords.keys.first {
-                pendingRecords.removeValue(forKey: oldest)
-                logger.warning("Pending records at capacity (\(Self.maxPendingRecords)), evicted oldest")
-            }
+        // Evict oldest pending record (FIFO) if at capacity to prevent unbounded memory growth.
+        if pendingRecords.count >= Self.maxPendingRecords, !pendingOrder.isEmpty {
+            let oldest = pendingOrder.removeFirst()
+            pendingRecords.removeValue(forKey: oldest)
+            logger.warning("Pending records at capacity (\(Self.maxPendingRecords)), evicted oldest")
         }
         pendingRecords[record.recordID] = record
+        // Update FIFO order: remove if re-enqueued, then append to back
+        pendingOrder.removeAll { $0 == record.recordID }
+        pendingOrder.append(record.recordID)
         engine.state.add(pendingRecordZoneChanges: [.saveRecord(record.recordID)])
     }
 
@@ -226,10 +229,12 @@ final class CloudSyncManager: NSObject, CKSyncEngineDelegate {
     private func processSentChanges(_ e: CKSyncEngine.Event.SentRecordZoneChanges, syncEngine: CKSyncEngine) {
         for saved in e.savedRecords {
             pendingRecords.removeValue(forKey: saved.recordID)
+            pendingOrder.removeAll { $0 == saved.recordID }
         }
         for failure in e.failedRecordSaves {
             // Remove from pending regardless — we'll re-enqueue only if the client wins.
             pendingRecords.removeValue(forKey: failure.record.recordID)
+            pendingOrder.removeAll { $0 == failure.record.recordID }
 
             if failure.error.code == .serverRecordChanged,
                let serverRecord = failure.error.serverRecord {
@@ -239,6 +244,7 @@ final class CloudSyncManager: NSObject, CKSyncEngineDelegate {
                     // Client is newer — overwrite server record fields and re-enqueue with correct etag.
                     for key in failure.record.allKeys() { serverRecord[key] = failure.record[key] }
                     pendingRecords[serverRecord.recordID] = serverRecord
+                    pendingOrder.append(serverRecord.recordID)
                     syncEngine.state.add(pendingRecordZoneChanges: [.saveRecord(serverRecord.recordID)])
                 } else {
                     // Server is newer — apply server version to local store.

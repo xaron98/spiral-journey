@@ -95,6 +95,9 @@ struct spiral_journey_projectApp: App {
                     //    permission dialog pops up.
                     await Task.yield()
 
+                    // Clean up stale CSV export directories from previous sessions.
+                    DataExporter.cleanupOldExports()
+
                     // Wire up SwiftData context so SpiralStore can read from it.
                     store.configure(with: modelContainer.mainContext)
 

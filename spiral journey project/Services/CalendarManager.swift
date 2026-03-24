@@ -40,6 +40,11 @@ final class CalendarManager {
 
     func requestAuthorization() async {
         do {
+            // The app only reads calendar events (to create ContextBlocks).
+            // Note: iOS 17 has no dedicated read-only API for events
+            // (requestReadOnlyAccess exists only for reminders, not events).
+            // requestFullAccessToEvents() is required for reading events on iOS 17+;
+            // the legacy requestAccess(to:) covers read on older versions.
             if #available(iOS 17.0, *) {
                 let granted = try await eventStore.requestFullAccessToEvents()
                 isAuthorized = granted

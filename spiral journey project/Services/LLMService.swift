@@ -250,6 +250,7 @@ final class LLMService {
     /// thread isn't flooded with one dispatch per token.
     @discardableResult
     func generate(prompt: String, systemContext: String) async -> String {
+        guard !isGenerating else { return "" }
         guard let llm, state == .ready else { return "" }
 
         isGenerating = true

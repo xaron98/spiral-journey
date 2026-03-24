@@ -42,6 +42,19 @@ enum DataExporter {
         }
     }
 
+    // MARK: - Cleanup
+
+    /// Remove old export directories from the temporary directory.
+    /// Call on app launch to prevent stale CSVs from accumulating.
+    static func cleanupOldExports() {
+        let tmp = FileManager.default.temporaryDirectory
+        guard let contents = try? FileManager.default.contentsOfDirectory(at: tmp, includingPropertiesForKeys: [.creationDateKey]) else { return }
+        let exportDirs = contents.filter { $0.lastPathComponent.hasPrefix("spiral-export-") }
+        for dir in exportDirs {
+            try? FileManager.default.removeItem(at: dir)
+        }
+    }
+
     // MARK: - Predictions CSV
 
     private static func writePredictions(_ history: [PredictionResult], to dir: URL) throws {
