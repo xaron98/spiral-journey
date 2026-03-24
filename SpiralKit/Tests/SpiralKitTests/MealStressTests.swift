@@ -51,7 +51,7 @@ struct MealStressTests {
 
     @Test("All PRC models present in registry including meal and stress")
     func allModelsPresent() {
-        for eventType in EventType.allCases {
+        for eventType in EventType.allCases where eventType.isManuallyLoggable {
             #expect(PhaseResponse.models[eventType] != nil, "Missing PRC model for \(eventType.rawValue)")
         }
     }

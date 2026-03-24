@@ -47,7 +47,7 @@ struct PhaseResponseTests {
 
     @Test("All PRC models present in registry")
     func testAllModelsPresent() {
-        for eventType in EventType.allCases {
+        for eventType in EventType.allCases where eventType.isManuallyLoggable {
             #expect(PhaseResponse.models[eventType] != nil, "Missing model for \(eventType)")
         }
     }

@@ -208,15 +208,25 @@ struct spiral_journey_projectApp: App {
                         // recorded while the app was backgrounded appears immediately.
                         #if !targetEnvironment(simulator)
                         if healthKit.isAuthorized {
-                            // Fast path: incremental merge of last 3 days (quick, no 365-day scan).
-                            // If nothing new is found, there's genuinely nothing new — no fallback
-                            // to the expensive 365-day full import. The full import only runs on
-                            // first launch (via importAndAdjustEpoch in .task{}).
+                            // Fast path: incremental merge of last 3 days.
                             let knownIDs = Set(store.sleepEpisodes.compactMap(\.healthKitSampleID))
                             let newEpisodes = await healthKit.fetchRecentNewEpisodes(
                                 epoch: store.startDate, knownIDs: knownIDs)
                             if !newEpisodes.isEmpty {
                                 store.mergeHealthKitEpisodes(newEpisodes)
+                            }
+                            // Refresh health profiles + auto-import events
+                            await store.refreshHealthProfiles()
+
+                            // Retry after 10s — Watch data may still be transferring via Bluetooth
+                            if newEpisodes.isEmpty {
+                                try? await Task.sleep(for: .seconds(10))
+                                let retryIDs = Set(store.sleepEpisodes.compactMap(\.healthKitSampleID))
+                                let retryEpisodes = await healthKit.fetchRecentNewEpisodes(
+                                    epoch: store.startDate, knownIDs: retryIDs)
+                                if !retryEpisodes.isEmpty {
+                                    store.mergeHealthKitEpisodes(retryEpisodes)
+                                }
                             }
                         }
                         #endif

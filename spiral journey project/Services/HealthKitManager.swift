@@ -31,6 +31,8 @@ final class HealthKitManager {
             HKCategoryType(.sleepAnalysis),
             HKCategoryType(.mindfulSession),
             HKWorkoutType.workoutType(),
+            HKQuantityType(.dietaryCaffeine),
+            HKCategoryType(.highHeartRateEvent),
         ]
         // iOS 17+
         if #available(iOS 17.0, *) {
@@ -97,7 +99,9 @@ final class HealthKitManager {
                 withRootObject: anchor, requiringSecureCoding: true)
             UserDefaults.standard.set(data, forKey: Self.anchorKey)
         } catch {
+            #if DEBUG
             print("[HK] Failed to persist anchor: \(error)")
+            #endif
         }
     }
 
@@ -109,10 +113,14 @@ final class HealthKitManager {
             sleepAnchor = try NSKeyedUnarchiver.unarchivedObject(
                 ofClass: HKQueryAnchor.self, from: data)
             isRestoringAnchor = false
+            #if DEBUG
             print("[HK] Restored persisted anchor")
+            #endif
         } catch {
             isRestoringAnchor = false
+            #if DEBUG
             print("[HK] Failed to restore anchor: \(error)")
+            #endif
         }
     }
 
@@ -155,7 +163,9 @@ final class HealthKitManager {
         // Enable background delivery so the callback fires even when the app is backgrounded.
         store.enableBackgroundDelivery(for: sleepType, frequency: .immediate) { success, error in
             if let error {
+                #if DEBUG
                 print("[HealthKit] Background delivery failed: \(error.localizedDescription)")
+                #endif
             }
         }
     }
@@ -168,7 +178,9 @@ final class HealthKitManager {
     func startAnchoredSleepQuery(epoch: Date, onNewEpisodes: @escaping ([SleepEpisode]) -> Void) {
         guard isAvailable, anchoredQuery == nil else { return }
 
+        #if DEBUG
         print("[HK-Anchor] Starting anchored query, existing anchor: \(String(describing: sleepAnchor))")
+        #endif
 
         let query = HKAnchoredObjectQuery(
             type: sleepType,
@@ -176,8 +188,15 @@ final class HealthKitManager {
             anchor: sleepAnchor,
             limit: HKObjectQueryNoLimit
         ) { [weak self] _, newSamples, _, newAnchor, error in
-            if let error { print("[HK-Anchor] initial error: \(error)"); return }
+            if let error {
+                #if DEBUG
+                print("[HK-Anchor] initial error: \(error)")
+                #endif
+                return
+            }
+            #if DEBUG
             print("[HK-Anchor] initial fetch: \(newSamples?.count ?? 0) samples")
+            #endif
             Task { @MainActor [weak self] in
                 self?.sleepAnchor = newAnchor
                 self?.processAnchoredSamples(newSamples, epoch: epoch, callback: onNewEpisodes)
@@ -186,8 +205,15 @@ final class HealthKitManager {
 
         // updateHandler fires on EVERY new sample added to HealthKit
         query.updateHandler = { [weak self] _, newSamples, _, newAnchor, error in
-            if let error { print("[HK-Anchor] update error: \(error)"); return }
+            if let error {
+                #if DEBUG
+                print("[HK-Anchor] update error: \(error)")
+                #endif
+                return
+            }
+            #if DEBUG
             print("[HK-Anchor] UPDATE: \(newSamples?.count ?? 0) new samples received!")
+            #endif
             Task { @MainActor [weak self] in
                 self?.sleepAnchor = newAnchor
                 self?.processAnchoredSamples(newSamples, epoch: epoch, callback: onNewEpisodes)
@@ -279,21 +305,29 @@ final class HealthKitManager {
                 sortDescriptors: [sortDescriptor]
             ) { _, samples, error in
                 if let error {
+                    #if DEBUG
                     print("[HK] fetchSleepEpisodes error: \(error)")
+                    #endif
                 }
                 guard let samples = samples as? [HKCategorySample] else {
+                    #if DEBUG
                     print("[HK] fetchSleepEpisodes: samples cast failed, count=\(samples?.count ?? -1)")
+                    #endif
                     continuation.resume(returning: [])
                     return
                 }
+                #if DEBUG
                 print("[HK] fetchSleepEpisodes: raw samples=\(samples.count)")
+                #endif
 
                 // Only include actual sleep stages (not inBed).
                 let sleepSamples = samples.filter { sample in
                     let value = HKCategoryValueSleepAnalysis(rawValue: sample.value)
                     return value != .inBed
                 }
+                #if DEBUG
                 print("[HK] fetchSleepEpisodes: after inBed filter=\(sleepSamples.count)")
+                #endif
 
                 // Convert each HealthKit sample to a SleepEpisode preserving its phase.
                 // Apple Watch records short per-stage samples (deep/core/REM/awake) — keeping
@@ -360,13 +394,17 @@ final class HealthKitManager {
     /// Returns the adjusted epoch so the caller can update store.startDate.
     func importAndAdjustEpoch() async -> (episodes: [SleepEpisode], epoch: Date)? {
         guard isAuthorized, isAvailable else {
+            #if DEBUG
             print("[HK] importAndAdjustEpoch: not authorized or not available")
+            #endif
             return nil
         }
         guard !isImporting else {
             // Don't drop the request — mark for retry once the current import finishes.
             // This prevents lost observer callbacks when foreground + observer overlap.
+            #if DEBUG
             print("[HK] importAndAdjustEpoch: already in progress, queuing retry")
+            #endif
             needsRetryAfterImport = true
             return nil
         }
@@ -374,7 +412,9 @@ final class HealthKitManager {
         let importStart = CFAbsoluteTimeGetCurrent()
         defer {
             let elapsed = CFAbsoluteTimeGetCurrent() - importStart
+            #if DEBUG
             print("[HK] importAndAdjustEpoch took \(String(format: "%.2f", elapsed))s")
+            #endif
             isImporting = false
             // If another request came in while we were importing, fire a retry
             // so freshly synced Watch data isn't missed.
@@ -388,22 +428,30 @@ final class HealthKitManager {
         let calendar = Calendar.current
         let end = Date()
         guard let searchStart = calendar.date(byAdding: .day, value: -Self.maxImportDays, to: end) else { return nil }
+        #if DEBUG
         print("[HK] searching from \(searchStart) to \(end)")
+        #endif
 
         // First pass: raw fetch with a temporary epoch = searchStart to find all samples
         let rawEpisodes = await fetchSleepEpisodes(from: searchStart, to: end, epoch: searchStart)
+        #if DEBUG
         print("[HK] first pass: \(rawEpisodes.count) episodes")
+        #endif
         guard !rawEpisodes.isEmpty else { return nil }
 
         // Compute the real epoch: start of the day containing the earliest sleep
         let earliestAbsHour = rawEpisodes.map(\.start).min() ?? 0
         let earliestDate = searchStart.addingTimeInterval(earliestAbsHour * 3600)
         let realEpoch = calendar.startOfDay(for: earliestDate)
+        #if DEBUG
         print("[HK] realEpoch: \(realEpoch)  (earliestAbsHour=\(earliestAbsHour)h, earliestDate=\(earliestDate))")
+        #endif
 
         // Second pass: re-fetch with the correct epoch so absolute hours are right
         let episodes = await fetchSleepEpisodes(from: searchStart, to: end, epoch: realEpoch)
+        #if DEBUG
         print("[HK] second pass: \(episodes.count) episodes, returning epoch=\(realEpoch)")
+        #endif
         return (episodes, realEpoch)
     }
 
@@ -423,7 +471,9 @@ final class HealthKitManager {
             return !knownIDs.contains(hkID)
         }
         let elapsed = CFAbsoluteTimeGetCurrent() - fetchStart
+        #if DEBUG
         print("[HK] incremental fetch took \(String(format: "%.2f", elapsed))s — \(newOnly.count) new of \(recent.count) recent")
+        #endif
         return newOnly
     }
 
@@ -668,19 +718,172 @@ final class HealthKitManager {
         }
     }
 
+    // MARK: - Auto-Event Fetch Methods
+
+    struct WorkoutEvent {
+        let startDate: Date
+        let endDate: Date
+        let durationHours: Double
+        let workoutType: HKWorkoutActivityType
+    }
+
+    func fetchWorkouts(for date: Date) async -> [WorkoutEvent] {
+        let calendar = Calendar.current
+        let start = calendar.startOfDay(for: date)
+        let end = calendar.date(byAdding: .day, value: 1, to: start)!
+        let predicate = HKQuery.predicateForSamples(withStart: start, end: end, options: .strictStartDate)
+
+        return await withCheckedContinuation { continuation in
+            let query = HKSampleQuery(
+                sampleType: HKWorkoutType.workoutType(),
+                predicate: predicate,
+                limit: HKObjectQueryNoLimit,
+                sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)]
+            ) { _, samples, _ in
+                let workouts = (samples as? [HKWorkout])?.map { w in
+                    WorkoutEvent(
+                        startDate: w.startDate,
+                        endDate: w.endDate,
+                        durationHours: w.duration / 3600.0,
+                        workoutType: w.workoutActivityType
+                    )
+                } ?? []
+                continuation.resume(returning: workouts)
+            }
+            self.store.execute(query)
+        }
+    }
+
+    struct CaffeineEvent {
+        let date: Date
+        let milligrams: Double
+    }
+
+    func fetchCaffeineIntake(for date: Date) async -> [CaffeineEvent] {
+        let calendar = Calendar.current
+        let start = calendar.startOfDay(for: date)
+        let end = calendar.date(byAdding: .day, value: 1, to: start)!
+        let predicate = HKQuery.predicateForSamples(withStart: start, end: end, options: .strictStartDate)
+        let caffeineType = HKQuantityType(.dietaryCaffeine)
+
+        return await withCheckedContinuation { continuation in
+            let query = HKSampleQuery(
+                sampleType: caffeineType,
+                predicate: predicate,
+                limit: HKObjectQueryNoLimit,
+                sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)]
+            ) { _, samples, _ in
+                let events = (samples as? [HKQuantitySample])?.map { s in
+                    CaffeineEvent(
+                        date: s.startDate,
+                        milligrams: s.quantity.doubleValue(for: .gramUnit(with: .milli))
+                    )
+                } ?? []
+                continuation.resume(returning: events)
+            }
+            self.store.execute(query)
+        }
+    }
+
+    func fetchHighHRAlerts(for date: Date, threshold: Double = 120) async -> [Date] {
+        let calendar = Calendar.current
+        let start = calendar.startOfDay(for: date)
+        let end = calendar.date(byAdding: .day, value: 1, to: start)!
+        let predicate = HKQuery.predicateForSamples(withStart: start, end: end, options: .strictStartDate)
+
+        // Primary: Apple Watch system high HR alerts
+        let systemAlerts = await fetchSystemHighHRAlerts(predicate: predicate)
+        if !systemAlerts.isEmpty { return systemAlerts }
+
+        // Fallback: manual HR sample filtering
+        return await fetchManualHighHRAlerts(predicate: predicate, for: date, threshold: threshold)
+    }
+
+    private func fetchSystemHighHRAlerts(predicate: NSPredicate) async -> [Date] {
+        let hrEventType = HKCategoryType(.highHeartRateEvent)
+
+        return await withCheckedContinuation { continuation in
+            let query = HKSampleQuery(
+                sampleType: hrEventType,
+                predicate: predicate,
+                limit: HKObjectQueryNoLimit,
+                sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)]
+            ) { _, samples, _ in
+                let dates = (samples as? [HKCategorySample])?.map(\.startDate) ?? []
+                continuation.resume(returning: dates)
+            }
+            self.store.execute(query)
+        }
+    }
+
+    private func fetchManualHighHRAlerts(predicate: NSPredicate, for date: Date, threshold: Double) async -> [Date] {
+        let workouts = await fetchWorkouts(for: date)
+        let workoutRanges = workouts.map { ($0.startDate, $0.endDate) }
+
+        let hrType = HKQuantityType(.heartRate)
+        let samples: [HKQuantitySample] = await withCheckedContinuation { continuation in
+            let query = HKSampleQuery(
+                sampleType: hrType,
+                predicate: predicate,
+                limit: HKObjectQueryNoLimit,
+                sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)]
+            ) { _, samples, _ in
+                continuation.resume(returning: (samples as? [HKQuantitySample]) ?? [])
+            }
+            self.store.execute(query)
+        }
+
+        let bpmUnit = HKUnit.count().unitDivided(by: .minute())
+        let highSamples = samples.filter { sample in
+            let bpm = sample.quantity.doubleValue(for: bpmUnit)
+            guard bpm > threshold else { return false }
+            let t = sample.startDate
+            return !workoutRanges.contains { start, end in t >= start && t <= end }
+        }
+
+        return clusterHighHRAlerts(highSamples, bpmUnit: bpmUnit)
+    }
+
+    private func clusterHighHRAlerts(_ samples: [HKQuantitySample], bpmUnit: HKUnit) -> [Date] {
+        guard !samples.isEmpty else { return [] }
+        var clusters: [[HKQuantitySample]] = [[samples[0]]]
+        for i in 1..<samples.count {
+            let gap = samples[i].startDate.timeIntervalSince(samples[i-1].startDate)
+            if gap <= 300 { // 5 minutes
+                clusters[clusters.count - 1].append(samples[i])
+            } else {
+                clusters.append([samples[i]])
+            }
+        }
+        return clusters.compactMap { cluster in
+            cluster.max(by: {
+                $0.quantity.doubleValue(for: bpmUnit) < $1.quantity.doubleValue(for: bpmUnit)
+            })?.startDate
+        }
+    }
+
     /// Fetch a complete DayHealthProfile for a given date.
     func fetchDayHealthProfile(for date: Date, dayIndex: Int) async -> DayHealthProfile {
-        let hourlySteps = await fetchHourlySteps(for: date)
-        let totalSteps = Int(hourlySteps.reduce(0, +))
-        let exerciseMin = await fetchExerciseMinutes(for: date)
-        let activeCal = await fetchActiveCalories(for: date)
-        let (restingHR, nadirHour) = await fetchHeartRateData(for: date)
-        let wristTemp = await fetchWristTemperature(for: date)
-        let daylight = await fetchDaylightMinutes(for: date)
-        let menstrual = await fetchMenstrualFlow(for: date)
+        // Run all HealthKit queries in parallel (was 8+ sequential awaits)
+        async let stepsTask = fetchHourlySteps(for: date)
+        async let exerciseTask = fetchExerciseMinutes(for: date)
+        async let caloriesTask = fetchActiveCalories(for: date)
+        async let hrTask = fetchHeartRateData(for: date)
+        async let tempTask = fetchWristTemperature(for: date)
+        async let daylightTask = fetchDaylightMinutes(for: date)
+        async let menstrualTask = fetchMenstrualFlow(for: date)
+        async let hrvTask = fetchNightlyHRV(days: 2)
 
-        // Get nocturnal HRV for this specific date
-        let hrvForDate = await fetchNightlyHRV(days: 2)
+        let hourlySteps = await stepsTask
+        let totalSteps = Int(hourlySteps.reduce(0, +))
+        let exerciseMin = await exerciseTask
+        let activeCal = await caloriesTask
+        let (restingHR, nadirHour) = await hrTask
+        let wristTemp = await tempTask
+        let daylight = await daylightTask
+        let menstrual = await menstrualTask
+
+        let hrvForDate = await hrvTask
         let calendar = Calendar.current
         let todayHRV = hrvForDate.first(where: { calendar.isDate($0.date, inSameDayAs: date) })
 

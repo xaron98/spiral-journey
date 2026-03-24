@@ -1,5 +1,11 @@
 import Foundation
 
+/// Source of a circadian event — manual user entry or automatic HealthKit import.
+public enum EventSource: String, Codable, Sendable {
+    case manual
+    case healthKit
+}
+
 /// Type of circadian zeitgeber event.
 public enum EventType: String, Codable, CaseIterable, Sendable {
     case light       = "light"
@@ -10,6 +16,7 @@ public enum EventType: String, Codable, CaseIterable, Sendable {
     case alcohol     = "alcohol"
     case meal        = "meal"
     case stress      = "stress"
+    case highHR      = "highHR"
 
     public var label: String {
         switch self {
@@ -21,6 +28,7 @@ public enum EventType: String, Codable, CaseIterable, Sendable {
         case .alcohol:     return "Alcohol"
         case .meal:        return "Meal"
         case .stress:      return "Stress"
+        case .highHR:      return "High Heart Rate"
         }
     }
 
@@ -34,6 +42,7 @@ public enum EventType: String, Codable, CaseIterable, Sendable {
         case .alcohol:     return "#e04040"
         case .meal:        return "#7cb342"
         case .stress:      return "#e57373"
+        case .highHR:      return "#ff6b6b"
         }
     }
 
@@ -47,6 +56,7 @@ public enum EventType: String, Codable, CaseIterable, Sendable {
         case .alcohol:     return "wineglass"
         case .meal:        return "fork.knife"
         case .stress:      return "brain.head.profile"
+        case .highHR:      return "heart.fill"
         }
     }
 
@@ -54,8 +64,14 @@ public enum EventType: String, Codable, CaseIterable, Sendable {
     public var hasDuration: Bool {
         switch self {
         case .exercise, .screenLight, .light, .meal: return true
-        case .caffeine, .melatonin, .alcohol, .stress: return false
+        case .caffeine, .melatonin, .alcohol, .stress, .highHR: return false
         }
+    }
+
+    /// Whether this event type can be logged manually by the user.
+    /// `.highHR` is auto-generated from HealthKit only.
+    public var isManuallyLoggable: Bool {
+        self != .highHR
     }
 }
 
@@ -70,6 +86,7 @@ public struct CircadianEvent: Codable, Identifiable, Sendable {
     public var timestamp: Date
     public var note: String?
     public var durationHours: Double? // nil = instant, >0 = duration event
+    public var source: EventSource
 
     /// End position on the spiral timeline (nil for instant events).
     public var endAbsoluteHour: Double? {
@@ -83,7 +100,8 @@ public struct CircadianEvent: Codable, Identifiable, Sendable {
         absoluteHour: Double,
         timestamp: Date = Date(),
         note: String? = nil,
-        durationHours: Double? = nil
+        durationHours: Double? = nil,
+        source: EventSource = .manual
     ) {
         self.id = id
         self.type = type
@@ -91,5 +109,25 @@ public struct CircadianEvent: Codable, Identifiable, Sendable {
         self.timestamp = timestamp
         self.note = note
         self.durationHours = durationHours
+        self.source = source
     }
+
+    // MARK: - Custom Codable (backward compatible)
+
+    private enum CodingKeys: String, CodingKey {
+        case id, type, absoluteHour, timestamp, note, durationHours, source
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        type = try container.decode(EventType.self, forKey: .type)
+        absoluteHour = try container.decode(Double.self, forKey: .absoluteHour)
+        timestamp = try container.decode(Date.self, forKey: .timestamp)
+        note = try container.decodeIfPresent(String.self, forKey: .note)
+        durationHours = try container.decodeIfPresent(Double.self, forKey: .durationHours)
+        source = try container.decodeIfPresent(EventSource.self, forKey: .source) ?? .manual
+    }
+
+    // encode(to:) is synthesized — all properties are Codable and CodingKeys match
 }

@@ -60,7 +60,7 @@ struct PRCChartView: View {
             // Model selector
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 6) {
-                    ForEach(EventType.allCases, id: \.self) { type in
+                    ForEach(EventType.allCases.filter(\.isManuallyLoggable), id: \.self) { type in
                         PillButton(label: localizedEventLabel(type), isActive: selectedModel == type) {
                             selectedModel = type
                         }
@@ -171,6 +171,7 @@ struct PRCChartView: View {
         case .alcohol:     return String(localized: "event.type.alcohol",     bundle: bundle)
         case .meal:        return String(localized: "event.type.meal",        bundle: bundle)
         case .stress:      return String(localized: "event.type.stress",      bundle: bundle)
+        case .highHR:      return String(localized: "event.type.highHR",      bundle: bundle)
         }
     }
 

@@ -433,6 +433,33 @@ final class SpiralStore {
     private(set) var hrvData: [NightlyHRV] = []
     private(set) var scheduleConflicts: [ScheduleConflict] = []
 
+    // MARK: - Auto-Event Deletion Tracking
+
+    private static let deletedAutoEventsKey = "spiral-journey-deleted-auto-events"
+
+    private(set) var deletedAutoEventKeys: Set<String> = [] {
+        didSet {
+            if let data = try? JSONEncoder().encode(Array(deletedAutoEventKeys)) {
+                sharedDefaults.set(data, forKey: Self.deletedAutoEventsKey)
+            }
+        }
+    }
+
+    private func autoEventKey(_ event: CircadianEvent) -> String {
+        "\(event.type.rawValue)|\(Int(event.timestamp.timeIntervalSince1970))"
+    }
+
+    private func isDeletedAutoEvent(_ event: CircadianEvent) -> Bool {
+        deletedAutoEventKeys.contains(autoEventKey(event))
+    }
+
+    private func isDuplicate(_ autoEvent: CircadianEvent) -> Bool {
+        events.contains { existing in
+            existing.type == autoEvent.type &&
+            abs(existing.absoluteHour - autoEvent.absoluteHour) < 0.5
+        }
+    }
+
     // MARK: - Init
 
     init() {
@@ -515,6 +542,72 @@ final class SpiralStore {
             healthProfiles.append(contentsOf: newProfiles)
             healthProfiles.sort { $0.day < $1.day }
         }
+
+        // Auto-import HealthKit events (workouts, caffeine, HR alerts)
+        await importHealthKitEvents()
+    }
+
+    /// Import workouts, caffeine, and high HR alerts from HealthKit as auto-events.
+    func importHealthKitEvents() async {
+        #if targetEnvironment(simulator)
+        return
+        #else
+        let hk = HealthKitManager.shared
+        guard hk.isAuthorized else { return }
+
+        // Remove stale auto-events so they get re-evaluated with current thresholds
+        events.removeAll { $0.source == .healthKit }
+
+        let hrThreshold = (healthProfiles.last?.restingHR).map { $0 + 60 } ?? 140.0
+
+        // Only check recent days (last 3) — older days already processed, dedup protects anyway
+        for record in records.suffix(3) {
+            let date = record.date
+
+            async let workoutsTask = hk.fetchWorkouts(for: date)
+            async let caffeineTask = hk.fetchCaffeineIntake(for: date)
+            async let hrAlertsTask = hk.fetchHighHRAlerts(for: date, threshold: hrThreshold)
+            let workouts = await workoutsTask
+            let caffeine = await caffeineTask
+            let hrAlerts = await hrAlertsTask
+
+            var autoEvents: [CircadianEvent] = []
+
+            for w in workouts {
+                autoEvents.append(CircadianEvent(
+                    type: .exercise,
+                    absoluteHour: absoluteHour(from: w.startDate),
+                    timestamp: w.startDate,
+                    durationHours: w.durationHours,
+                    source: .healthKit
+                ))
+            }
+
+            for c in caffeine {
+                autoEvents.append(CircadianEvent(
+                    type: .caffeine,
+                    absoluteHour: absoluteHour(from: c.date),
+                    timestamp: c.date,
+                    source: .healthKit
+                ))
+            }
+
+            for alertDate in hrAlerts {
+                autoEvents.append(CircadianEvent(
+                    type: .highHR,
+                    absoluteHour: absoluteHour(from: alertDate),
+                    timestamp: alertDate,
+                    source: .healthKit
+                ))
+            }
+
+            for event in autoEvents {
+                if !isDuplicate(event) && !isDeletedAutoEvent(event) {
+                    addEvent(event)
+                }
+            }
+        }
+        #endif
     }
 
     /// Recompute SleepRecords and AnalysisResult from current episodes.
@@ -647,6 +740,11 @@ final class SpiralStore {
     /// never stored. This method can only fix what IS stored. The real fix for missing
     /// early episodes happens in importAndAdjustEpoch → applyHealthKitResult on next launch.
     ///
+    /// Convert a Date to absoluteHour (hours since startDate).
+    private func absoluteHour(from date: Date) -> Double {
+        date.timeIntervalSince(startDate) / 3600.0
+    }
+
     /// What this CAN fix: if episodes are present and startDate is set to install date
     /// (today or very recent) but episodes have absStart that implies they started on
     /// an earlier real date — but wait, absStart is always relative to startDate so we
@@ -742,7 +840,9 @@ final class SpiralStore {
         #if os(iOS)
         WatchConnectivityManager.shared.sendEvents(events)
         #endif
-        cloudSync?.enqueueEventSave(event)
+        if event.source == .manual {
+            cloudSync?.enqueueEventSave(event)
+        }
     }
 
     /// Refresh nightly HRV data from HealthKit.
@@ -759,6 +859,9 @@ final class SpiralStore {
     }
 
     func removeEvent(id: UUID) {
+        if let event = events.first(where: { $0.id == id }), event.source == .healthKit {
+            deletedAutoEventKeys.insert(autoEventKey(event))
+        }
         events.removeAll { $0.id == id }
         #if os(iOS)
         WatchConnectivityManager.shared.sendEvents(events)
@@ -1176,6 +1279,12 @@ final class SpiralStore {
         if savedVersion >= currentOnboardingVersion {
             if let hco = stored.hasCompletedOnboarding { hasCompletedOnboarding = hco }
             if let hsw = stored.hasShownWelcome { hasShownWelcome = hsw }
+        }
+
+        // Restore deleted auto-event keys
+        if let data = sharedDefaults.data(forKey: Self.deletedAutoEventsKey),
+           let keys = try? JSONDecoder().decode([String].self, from: data) {
+            deletedAutoEventKeys = Set(keys)
         }
     }
 

@@ -28,7 +28,7 @@ struct WatchEventLogView: View {
 
                 // 2-column grid
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 6) {
-                    ForEach(EventType.allCases, id: \.self) { type in
+                    ForEach(EventType.allCases.filter(\.isManuallyLoggable), id: \.self) { type in
                         eventButton(type)
                     }
                 }

@@ -19,6 +19,8 @@ struct SpiralTab: View {
 
     // Sleep logging
     @State private var cursorAbsHour: Double = 0
+    @State private var cachedHasDream: Bool = false
+    @State private var cachedDreamDate: Date?
     @State private var sleepStartHour: Double? = nil
     // Duration event logging
     @State private var eventLoggingType: EventType? = nil
@@ -173,6 +175,7 @@ struct SpiralTab: View {
                                 let newHour = max(0, min(maxHours, cursorAbsHour + hoursStep))
                                 cursorAbsHour = newHour
                                 smoothCameraCenterTurns = newHour / store.period
+                                showInfoForCursorPosition()
                                 let nowH = Date().timeIntervalSince(store.startDate) / 3600
                                 isCursorLive = abs(newHour - nowH) < 0.25
                                 let newTurns = newHour / store.period
@@ -190,9 +193,8 @@ struct SpiralTab: View {
                                 if dist < 8 {
                                     // Tap: cursor already jumped, show info
                                     showInfoForCursorPosition()
-                                } else {
-                                    selectedElementInfo = nil
                                 }
+                                // After drag: keep showing info (auto-dismiss timer handles cleanup)
                             }
                     )
                     #endif
@@ -850,23 +852,33 @@ struct SpiralTab: View {
     // MARK: - Add Button Icon (sleep detection + dream check)
 
     private var addButtonIcon: String {
-        guard let info = cursorSleepInfo else { return "plus" }
-        return hasDreamEntry(for: info.date) ? "eye" : "moon.zzz"
+        guard cursorSleepInfo != nil else { return "plus" }
+        return cachedHasDream ? "eye" : "moon.zzz"
     }
 
     private var addButtonColor: Color {
-        guard let info = cursorSleepInfo else { return SpiralColors.accent }
-        return hasDreamEntry(for: info.date) ? SpiralColors.remSleep : SpiralColors.accent
+        guard cursorSleepInfo != nil else { return SpiralColors.accent }
+        return cachedHasDream ? SpiralColors.remSleep : SpiralColors.accent
     }
 
-    private func hasDreamEntry(for date: Date) -> Bool {
+    /// Update dream cache only when the cursor moves to a different sleep date.
+    /// Avoids SwiftData query on every frame.
+    private func updateDreamCache() {
+        guard let info = cursorSleepInfo else {
+            cachedHasDream = false
+            cachedDreamDate = nil
+            return
+        }
         let calendar = Calendar.current
-        let start = calendar.startOfDay(for: date)
+        // Only re-query if date actually changed
+        if let cached = cachedDreamDate, calendar.isDate(cached, inSameDayAs: info.date) { return }
+        cachedDreamDate = info.date
+        let start = calendar.startOfDay(for: info.date)
         let end = calendar.date(byAdding: .day, value: 1, to: start) ?? start
         let descriptor = FetchDescriptor<SDDreamEntry>(
             predicate: #Predicate { $0.sleepDate >= start && $0.sleepDate < end }
         )
-        return (try? modelContext.fetchCount(descriptor)) ?? 0 > 0
+        cachedHasDream = (try? modelContext.fetchCount(descriptor)) ?? 0 > 0
     }
 
     // MARK: - Sleep phase detection for dream entry
@@ -1426,6 +1438,7 @@ struct SpiralTab: View {
     /// Shows info for whatever is at the CURSOR position.
     /// Called on tap — the cursor already jumped to the tapped location.
     private func showInfoForCursorPosition() {
+        updateDreamCache()
         let period = store.period
         let dayIndex = Int(cursorAbsHour / period)
         let clockHour = ((cursorAbsHour.truncatingRemainder(dividingBy: period))
@@ -1451,7 +1464,27 @@ struct SpiralTab: View {
             }
         }
 
-        // 2. Sleep (search current + adjacent days)
+        // 2. Event logs (find nearest event within ±0.5h of cursor)
+        let nearestEvent = store.events.min(by: {
+            abs($0.absoluteHour - cursorAbsHour) < abs($1.absoluteHour - cursorAbsHour)
+        })
+        if let event = nearestEvent, abs(event.absoluteHour - cursorAbsHour) < 0.5 {
+            let eventLabel = NSLocalizedString("event.type.\(event.type.rawValue)", bundle: bundle, comment: "")
+            let timeStr = formatClockHour(event.absoluteHour.truncatingRemainder(dividingBy: 24))
+            var durationStr = ""
+            if let dur = event.durationHours {
+                durationStr = formatDurationCompact(dur)
+            }
+            showElementInfo(SpiralElementInfo(
+                label: eventLabel,
+                timeRange: timeStr,
+                duration: durationStr,
+                color: Color(hex: event.type.hexColor)
+            ))
+            return
+        }
+
+        // 3. Sleep (search current + adjacent days)
         for candidateDay in [dayIndex, dayIndex - 1, dayIndex + 1] {
             guard let record = store.records.first(where: { $0.day == candidateDay }) else { continue }
             let phaseAtHour = record.phases.last(where: { $0.hour <= clockHour })
@@ -1473,7 +1506,7 @@ struct SpiralTab: View {
             }
         }
 
-        // 3. Awake (record exists but not sleeping)
+        // 4. Awake (record exists but not sleeping)
         if let record = store.records.first(where: { $0.day == dayIndex }) {
             showElementInfo(SpiralElementInfo(
                 label: loc("spiral.info.awake"),
@@ -1484,7 +1517,7 @@ struct SpiralTab: View {
             return
         }
 
-        // 4. Vigilia (no record, live day)
+        // 5. Vigilia (no record, live day)
         let nowAbsHour = Date().timeIntervalSince(store.startDate) / 3600
         if dayIndex >= Int(nowAbsHour / period) - 1 {
             showElementInfo(SpiralElementInfo(
@@ -1831,7 +1864,7 @@ struct EventGridView: View {
     var body: some View {
         VStack(spacing: 6) {
             LazyVGrid(columns: columns, spacing: 6) {
-                ForEach(EventType.allCases, id: \.self) { type in
+                ForEach(EventType.allCases.filter(\.isManuallyLoggable), id: \.self) { type in
                     GlassEventButton(type: type, bundle: bundle) {
                         if type.hasDuration, let startDuration = onStartDuration {
                             startDuration(type)

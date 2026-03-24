@@ -20,7 +20,7 @@ struct EventPanelView: View {
 
             // Event type buttons
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 6) {
-                ForEach(EventType.allCases, id: \.self) { type in
+                ForEach(EventType.allCases.filter(\.isManuallyLoggable), id: \.self) { type in
                     EventTypeButton(type: type, bundle: bundle) {
                         let event = CircadianEvent(
                             type: type,
@@ -41,6 +41,11 @@ struct EventPanelView: View {
                             .font(.caption)
                             .foregroundStyle(Color(hex: event.type.hexColor))
                             .frame(width: 14)
+                        if event.source == .healthKit {
+                            Image(systemName: "applewatch")
+                                .font(.caption2)
+                                .foregroundStyle(SpiralColors.muted)
+                        }
                         Text(NSLocalizedString("event.type.\(event.type.rawValue)", bundle: bundle, comment: ""))
                             .font(.caption.monospaced())
                             .foregroundStyle(SpiralColors.text)
