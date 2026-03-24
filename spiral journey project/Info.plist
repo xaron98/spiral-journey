@@ -22,5 +22,11 @@
 	<string>Spiral Journey can import your calendar events as context blocks to detect conflicts between your sleep schedule and daily obligations. Calendar data may sync across your devices via iCloud if cloud sync is enabled.</string>
 	<key>NSCalendarsUsageDescription</key>
 	<string>Spiral Journey can import your calendar events as context blocks to detect conflicts between your sleep schedule and daily obligations. Calendar data may sync across your devices via iCloud if cloud sync is enabled.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Spiral Journey uses the local network to discover nearby devices for anonymous sleep profile comparison via Multipeer Connectivity. Only aggregated metrics are shared — no raw health data leaves your device.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_spiral-compare._tcp</string>
+	</array>
 </dict>
 </plist>

@@ -9,6 +9,7 @@ struct CoachTab: View {
     @Environment(\.languageBundle) private var bundle
     @State private var showJetLagSetup = false
     @State private var showCoachChat = false
+    @State private var showPeerComparison = false
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -69,6 +70,9 @@ struct CoachTab: View {
         .sheet(isPresented: $showCoachChat) {
             CoachChatView()
         }
+        .sheet(isPresented: $showPeerComparison) {
+            PeerComparisonView()
+        }
     }
 
     // MARK: - Header
@@ -84,6 +88,19 @@ struct CoachTab: View {
                     .foregroundStyle(SpiralColors.subtle)
             }
             Spacer()
+            Button {
+                showPeerComparison = true
+            } label: {
+                Image(systemName: "person.2.wave.2")
+                    .font(.headline)
+                    .foregroundStyle(SpiralColors.accent)
+                    .frame(width: 36, height: 36)
+                    .overlay(
+                        Circle()
+                            .stroke(SpiralColors.accent.opacity(0.4), lineWidth: 1)
+                    )
+            }
+            .buttonStyle(.plain)
             if store.llmEnabled {
                 Button {
                     showCoachChat = true

@@ -229,6 +229,15 @@ final class SpiralStore {
         }
     }
 
+    // MARK: - Peer Comparison
+
+    /// Alias shown to peers during Multipeer Connectivity comparison sessions.
+    /// Defaults to the device name, truncated to 20 characters.
+    var comparisonAlias: String {
+        get { sharedDefaults.string(forKey: "comparison-alias") ?? UIDevice.current.name.prefix(20).description }
+        set { sharedDefaults.set(newValue, forKey: "comparison-alias") }
+    }
+
     // MARK: - Background Processing
 
     var bgRetrainEnabled: Bool {

@@ -10,6 +10,7 @@ struct SettingsTab: View {
     @Environment(\.languageBundle) private var bundle
 
     @State private var isRefreshing = false
+    @State private var showPeerComparison = false
 
     // MARK: - Helpers
 
@@ -471,6 +472,9 @@ struct SettingsTab: View {
 
                     // ── COACH IA ──────────────────────────────────────────────
                     aiCoachGroup
+
+                    // ── COMPARAR ─────────────────────────────────────────────
+                    comparisonGroup
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 16)
@@ -479,6 +483,57 @@ struct SettingsTab: View {
                 .frame(maxWidth: .infinity)
             }
             .background(SpiralColors.bg.ignoresSafeArea())
+            .sheet(isPresented: $showPeerComparison) {
+                PeerComparisonView()
+            }
+        }
+    }
+
+    // MARK: - Peer Comparison Group
+
+    @ViewBuilder
+    private var comparisonGroup: some View {
+        @Bindable var store = store
+
+        SettingsGroup(
+            title: String(localized: "comparison.title", bundle: bundle),
+            icon: "person.2.wave.2"
+        ) {
+            // Alias field
+            VStack(alignment: .leading, spacing: 4) {
+                Text(String(localized: "comparison.alias", bundle: bundle))
+                    .font(.caption2.weight(.semibold).monospaced())
+                    .foregroundStyle(SpiralColors.muted)
+                    .tracking(1)
+                TextField(
+                    String(localized: "comparison.alias", bundle: bundle),
+                    text: $store.comparisonAlias
+                )
+                .font(.subheadline.monospaced())
+                .foregroundStyle(SpiralColors.text)
+                .textFieldStyle(.plain)
+                .padding(8)
+                .background(SpiralColors.surface.opacity(0.5))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+            }
+
+            Divider().background(SpiralColors.border.opacity(0.5))
+
+            // Compare button
+            Button {
+                showPeerComparison = true
+            } label: {
+                HStack {
+                    Image(systemName: "antenna.radiowaves.left.and.right")
+                        .font(.subheadline)
+                    Text(String(localized: "comparison.searchAgain", bundle: bundle))
+                        .font(.subheadline.weight(.medium).monospaced())
+                }
+                .foregroundStyle(SpiralColors.accent)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+            }
+            .buttonStyle(.plain)
         }
     }
 
