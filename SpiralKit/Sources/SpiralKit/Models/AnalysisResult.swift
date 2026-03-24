@@ -219,6 +219,9 @@ public struct AnalysisResult: Codable, Sendable {
     /// Enhanced coaching data: temporal patterns, celebrations, streaks, micro-habits, weekly digest.
     /// nil when the analysis was produced without enhanced evaluation.
     public var enhancedCoach: EnhancedCoachResult?
+    /// Lomb-Scargle periodogram results (one per analyzed signal). nil when < 14 days of data.
+    /// Optional to preserve backward-compatible Codable decoding.
+    public var periodogramResults: [LombScargle.PeriodogramResult]?
 
     public init(
         composite: Int = 0,
@@ -232,7 +235,8 @@ public struct AnalysisResult: Codable, Sendable {
         stats: SleepStats = SleepStats(),
         consistency: SpiralConsistencyScore? = nil,
         coachInsight: CoachInsight? = nil,
-        enhancedCoach: EnhancedCoachResult? = nil
+        enhancedCoach: EnhancedCoachResult? = nil,
+        periodogramResults: [LombScargle.PeriodogramResult]? = nil
     ) {
         self.composite = composite
         self.label = label
@@ -246,5 +250,6 @@ public struct AnalysisResult: Codable, Sendable {
         self.consistency = consistency
         self.coachInsight = coachInsight
         self.enhancedCoach = enhancedCoach
+        self.periodogramResults = periodogramResults
     }
 }

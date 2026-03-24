@@ -20,6 +20,7 @@ struct AnalysisTab: View {
     @State private var showAutocorrelation   = false
     @State private var showSectorQuality     = false
     @State private var showHRV               = false
+    @State private var showPeriodogram       = false
     @State private var isGeneratingPDF       = false
 
     var body: some View {
@@ -81,6 +82,13 @@ struct AnalysisTab: View {
                         if showAutocorrelation { AutocorrelationHeatmapView(records: store.records) }
                         if showSectorQuality   { SectorQualityHeatmapView(records: store.records) }
                         if showHRV             { HRVTrendView(hrvData: store.hrvData) }
+                        if showPeriodogram {
+                            PeriodogramView(
+                                periodogramResults: store.analysis.periodogramResults,
+                                healthProfiles: store.healthProfiles,
+                                recordCount: store.records.count
+                            )
+                        }
                         chartToggles
                     }
                 }
@@ -419,6 +427,12 @@ struct AnalysisTab: View {
                     if showHRV && store.hrvData.isEmpty {
                         Task { await store.refreshHRV() }
                     }
+                }
+                PillButton(
+                    label: String(localized: "analysis.charts.periodogram", bundle: bundle),
+                    isActive: showPeriodogram
+                ) {
+                    showPeriodogram.toggle()
                 }
             }
         }

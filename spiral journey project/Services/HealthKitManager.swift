@@ -18,6 +18,30 @@ final class HealthKitManager {
     private let sleepType = HKObjectType.categoryType(forIdentifier: .sleepAnalysis)!
     private let hrvType = HKQuantityType.quantityType(forIdentifier: .heartRateVariabilitySDNN)!
 
+    // Fitness & health types for full-day chronobiograph
+    private static var fitnessReadTypes: Set<HKObjectType> {
+        var types: Set<HKObjectType> = [
+            HKQuantityType(.stepCount),
+            HKQuantityType(.heartRate),
+            HKQuantityType(.heartRateVariabilitySDNN),
+            HKQuantityType(.restingHeartRate),
+            HKQuantityType(.activeEnergyBurned),
+            HKQuantityType(.appleExerciseTime),
+            HKQuantityType(.environmentalAudioExposure),
+            HKCategoryType(.sleepAnalysis),
+            HKCategoryType(.mindfulSession),
+            HKWorkoutType.workoutType(),
+        ]
+        // iOS 17+
+        if #available(iOS 17.0, *) {
+            types.insert(HKQuantityType(.timeInDaylight))
+            types.insert(HKQuantityType(.appleSleepingWristTemperature))
+        }
+        // Menstrual cycle
+        types.insert(HKCategoryType(.menstrualFlow))
+        return types
+    }
+
     init() {
         // Restore authorized state on re-launch without showing a dialog.
         // HKAuthorizationStatus.sharingAuthorized is used for write types; for read types
@@ -101,7 +125,7 @@ final class HealthKitManager {
             errorMessage = String(localized: "healthkit.error.notAvailable")
             return
         }
-        let readTypes: Set<HKObjectType> = [sleepType, hrvType]
+        let readTypes = Self.fitnessReadTypes
         do {
             try await store.requestAuthorization(toShare: [], read: readTypes)
             // requestAuthorization always succeeds (even if user denies) — HealthKit
@@ -452,6 +476,228 @@ final class HealthKitManager {
             }
             self.store.execute(query)
         }
+    }
+    // MARK: - Fitness Data Fetch Methods
+
+    /// Fetch hourly step counts for a given date (24 values).
+    func fetchHourlySteps(for date: Date) async -> [Double] {
+        guard isAvailable, isAuthorized else { return Array(repeating: 0, count: 24) }
+
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: date)
+        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
+            return Array(repeating: 0, count: 24)
+        }
+
+        let stepType = HKQuantityType(.stepCount)
+        let interval = DateComponents(hour: 1)
+        let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay)
+
+        return await withCheckedContinuation { continuation in
+            let query = HKStatisticsCollectionQuery(
+                quantityType: stepType,
+                quantitySamplePredicate: predicate,
+                options: .cumulativeSum,
+                anchorDate: startOfDay,
+                intervalComponents: interval
+            )
+            query.initialResultsHandler = { _, results, _ in
+                var hourly = Array(repeating: 0.0, count: 24)
+                results?.enumerateStatistics(from: startOfDay, to: endOfDay) { stats, _ in
+                    let hour = calendar.component(.hour, from: stats.startDate)
+                    hourly[hour] = stats.sumQuantity()?.doubleValue(for: .count()) ?? 0
+                }
+                continuation.resume(returning: hourly)
+            }
+            self.store.execute(query)
+        }
+    }
+
+    /// Fetch resting heart rate and hour of minimum HR for a date.
+    func fetchHeartRateData(for date: Date) async -> (restingHR: Double?, nadirHour: Double?) {
+        guard isAvailable, isAuthorized else { return (nil, nil) }
+
+        let calendar = Calendar.current
+        let start = calendar.startOfDay(for: date)
+        guard let end = calendar.date(byAdding: .day, value: 1, to: start) else { return (nil, nil) }
+
+        // Resting HR
+        let restingType = HKQuantityType(.restingHeartRate)
+        let restingPredicate = HKQuery.predicateForSamples(withStart: start, end: end)
+        let restingHR: Double? = await withCheckedContinuation { continuation in
+            let query = HKStatisticsQuery(quantityType: restingType, quantitySamplePredicate: restingPredicate, options: .discreteAverage) { _, stats, _ in
+                continuation.resume(returning: stats?.averageQuantity()?.doubleValue(for: HKUnit.count().unitDivided(by: .minute())))
+            }
+            self.store.execute(query)
+        }
+
+        // HR nadir (minimum hour)
+        let hrType = HKQuantityType(.heartRate)
+        let hrPredicate = HKQuery.predicateForSamples(withStart: start, end: end)
+        let nadirHour: Double? = await withCheckedContinuation { continuation in
+            let query = HKSampleQuery(sampleType: hrType, predicate: hrPredicate, limit: HKObjectQueryNoLimit, sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)]) { _, samples, _ in
+                guard let samples = samples as? [HKQuantitySample], !samples.isEmpty else {
+                    continuation.resume(returning: nil)
+                    return
+                }
+                let bpmUnit = HKUnit.count().unitDivided(by: .minute())
+                var minBPM = Double.infinity
+                var minHour = 0.0
+                for s in samples {
+                    let bpm = s.quantity.doubleValue(for: bpmUnit)
+                    if bpm < minBPM {
+                        minBPM = bpm
+                        let comps = calendar.dateComponents([.hour, .minute], from: s.startDate)
+                        minHour = Double(comps.hour ?? 0) + Double(comps.minute ?? 0) / 60.0
+                    }
+                }
+                continuation.resume(returning: minHour)
+            }
+            self.store.execute(query)
+        }
+
+        return (restingHR, nadirHour)
+    }
+
+    /// Fetch wrist temperature deviation for a date (iOS 17+).
+    func fetchWristTemperature(for date: Date) async -> Double? {
+        guard isAvailable, isAuthorized else { return nil }
+        guard #available(iOS 17.0, *) else { return nil }
+
+        let calendar = Calendar.current
+        let start = calendar.startOfDay(for: date)
+        guard let end = calendar.date(byAdding: .day, value: 1, to: start) else { return nil }
+
+        let tempType = HKQuantityType(.appleSleepingWristTemperature)
+        let predicate = HKQuery.predicateForSamples(withStart: start, end: end)
+
+        return await withCheckedContinuation { continuation in
+            let query = HKSampleQuery(sampleType: tempType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, _ in
+                guard let samples = samples as? [HKQuantitySample], !samples.isEmpty else {
+                    continuation.resume(returning: nil)
+                    return
+                }
+                let mean = samples.map { $0.quantity.doubleValue(for: .degreeCelsius()) }.reduce(0, +) / Double(samples.count)
+                continuation.resume(returning: mean)
+            }
+            self.store.execute(query)
+        }
+    }
+
+    /// Fetch daylight exposure minutes for a date (iOS 17+).
+    func fetchDaylightMinutes(for date: Date) async -> Double? {
+        guard isAvailable, isAuthorized else { return nil }
+        guard #available(iOS 17.0, *) else { return nil }
+
+        let calendar = Calendar.current
+        let start = calendar.startOfDay(for: date)
+        guard let end = calendar.date(byAdding: .day, value: 1, to: start) else { return nil }
+
+        let type = HKQuantityType(.timeInDaylight)
+        let predicate = HKQuery.predicateForSamples(withStart: start, end: end)
+
+        return await withCheckedContinuation { continuation in
+            let query = HKStatisticsQuery(quantityType: type, quantitySamplePredicate: predicate, options: .cumulativeSum) { _, stats, _ in
+                let minutes = stats?.sumQuantity()?.doubleValue(for: .minute())
+                continuation.resume(returning: minutes)
+            }
+            self.store.execute(query)
+        }
+    }
+
+    /// Fetch exercise minutes for a date.
+    func fetchExerciseMinutes(for date: Date) async -> Double {
+        guard isAvailable, isAuthorized else { return 0 }
+
+        let calendar = Calendar.current
+        let start = calendar.startOfDay(for: date)
+        guard let end = calendar.date(byAdding: .day, value: 1, to: start) else { return 0 }
+
+        let type = HKQuantityType(.appleExerciseTime)
+        let predicate = HKQuery.predicateForSamples(withStart: start, end: end)
+
+        return await withCheckedContinuation { continuation in
+            let query = HKStatisticsQuery(quantityType: type, quantitySamplePredicate: predicate, options: .cumulativeSum) { _, stats, _ in
+                continuation.resume(returning: stats?.sumQuantity()?.doubleValue(for: .minute()) ?? 0)
+            }
+            self.store.execute(query)
+        }
+    }
+
+    /// Fetch active calories for a date.
+    func fetchActiveCalories(for date: Date) async -> Double {
+        guard isAvailable, isAuthorized else { return 0 }
+
+        let calendar = Calendar.current
+        let start = calendar.startOfDay(for: date)
+        guard let end = calendar.date(byAdding: .day, value: 1, to: start) else { return 0 }
+
+        let type = HKQuantityType(.activeEnergyBurned)
+        let predicate = HKQuery.predicateForSamples(withStart: start, end: end)
+
+        return await withCheckedContinuation { continuation in
+            let query = HKStatisticsQuery(quantityType: type, quantitySamplePredicate: predicate, options: .cumulativeSum) { _, stats, _ in
+                continuation.resume(returning: stats?.sumQuantity()?.doubleValue(for: .kilocalorie()) ?? 0)
+            }
+            self.store.execute(query)
+        }
+    }
+
+    /// Fetch menstrual flow for a date (nil if not tracked).
+    func fetchMenstrualFlow(for date: Date) async -> Int? {
+        guard isAvailable, isAuthorized else { return nil }
+
+        let calendar = Calendar.current
+        let start = calendar.startOfDay(for: date)
+        guard let end = calendar.date(byAdding: .day, value: 1, to: start) else { return nil }
+
+        let type = HKCategoryType(.menstrualFlow)
+        let predicate = HKQuery.predicateForSamples(withStart: start, end: end)
+
+        return await withCheckedContinuation { continuation in
+            let query = HKSampleQuery(sampleType: type, predicate: predicate, limit: 1, sortDescriptors: nil) { _, samples, _ in
+                guard let sample = samples?.first as? HKCategorySample else {
+                    continuation.resume(returning: nil)
+                    return
+                }
+                // HKCategoryValueMenstrualFlow: 1=unspecified, 2=light, 3=medium, 4=heavy
+                let flow = max(0, sample.value - 1) // map to 0-3
+                continuation.resume(returning: flow)
+            }
+            self.store.execute(query)
+        }
+    }
+
+    /// Fetch a complete DayHealthProfile for a given date.
+    func fetchDayHealthProfile(for date: Date, dayIndex: Int) async -> DayHealthProfile {
+        let hourlySteps = await fetchHourlySteps(for: date)
+        let totalSteps = Int(hourlySteps.reduce(0, +))
+        let exerciseMin = await fetchExerciseMinutes(for: date)
+        let activeCal = await fetchActiveCalories(for: date)
+        let (restingHR, nadirHour) = await fetchHeartRateData(for: date)
+        let wristTemp = await fetchWristTemperature(for: date)
+        let daylight = await fetchDaylightMinutes(for: date)
+        let menstrual = await fetchMenstrualFlow(for: date)
+
+        // Get nocturnal HRV for this specific date
+        let hrvForDate = await fetchNightlyHRV(days: 2)
+        let calendar = Calendar.current
+        let todayHRV = hrvForDate.first(where: { calendar.isDate($0.date, inSameDayAs: date) })
+
+        return DayHealthProfileBuilder.build(
+            day: dayIndex,
+            date: date,
+            hourlySteps: hourlySteps,
+            totalSteps: totalSteps,
+            exerciseMinutes: exerciseMin,
+            activeCalories: activeCal,
+            restingHR: restingHR,
+            avgNocturnalHRV: todayHRV?.meanSDNN,
+            hrNadirHour: nadirHour,
+            wristTempDeviation: wristTemp,
+            daylightMinutes: daylight,
+            menstrualFlow: menstrual
+        )
     }
 }
 

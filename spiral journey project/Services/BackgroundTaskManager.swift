@@ -138,6 +138,9 @@ enum BackgroundTaskManager {
         let refreshTask = Task {
             await dnaService.refreshIfNeeded(store: store, context: context)
 
+            // Fetch daily health profiles (steps, HR, temp, etc.)
+            await store.refreshHealthProfiles()
+
             // Schedule morning summary + predictive alerts
             await scheduleNotifications(store: store, dnaService: dnaService)
 

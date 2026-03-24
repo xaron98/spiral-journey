@@ -427,6 +427,7 @@ final class SpiralStore {
     // MARK: - Computed State
 
     private(set) var records: [SleepRecord] = []
+    private(set) var healthProfiles: [DayHealthProfile] = []
     private(set) var analysis: AnalysisResult = AnalysisResult()
     private(set) var isProcessing = false
     private(set) var hrvData: [NightlyHRV] = []
@@ -496,6 +497,26 @@ final class SpiralStore {
 
     // MARK: - Data Processing
 
+    /// Fetch health profiles for days that don't have one yet (incremental).
+    func refreshHealthProfiles() async {
+        let existingDays = Set(healthProfiles.map(\.day))
+        var newProfiles: [DayHealthProfile] = []
+
+        for record in records where !existingDays.contains(record.day) {
+            let profile = await HealthKitManager.shared.fetchDayHealthProfile(
+                for: record.date, dayIndex: record.day
+            )
+            if profile.totalSteps > 0 || profile.restingHR != nil || profile.avgNocturnalHRV != nil {
+                newProfiles.append(profile)
+            }
+        }
+
+        if !newProfiles.isEmpty {
+            healthProfiles.append(contentsOf: newProfiles)
+            healthProfiles.sort { $0.day < $1.day }
+        }
+    }
+
     /// Recompute SleepRecords and AnalysisResult from current episodes.
     func recompute() {
         let eps = loadEpisodesFromSwiftData() ?? sleepEpisodes
@@ -523,6 +544,7 @@ final class SpiralStore {
         let prevComposite = previousCompositeScore
         let currentStreak = streakHistory
         let currentEvents = events
+        let hp = healthProfiles
         Task.detached(priority: .userInitiated) { [weak self] in
             let newRecords = ManualDataConverter.convert(episodes: eps, numDays: n, startDate: sd)
             // Use context-aware analysis if blocks are enabled
@@ -551,10 +573,20 @@ final class SpiralStore {
                     streakHistory: currentStreak
                 )
             }
+            // Lomb-Scargle periodogram (requires ≥14 days)
+            let newPeriodograms: [LombScargle.PeriodogramResult]?
+            if newRecords.count >= 14 {
+                let dict = LombScargle.analyzeAll(newRecords, healthProfiles: hp)
+                newPeriodograms = Array(dict.values)
+            } else {
+                newPeriodograms = nil
+            }
+
             await MainActor.run { [weak self] in
                 guard let self else { return }
                 self.records = newRecords
                 self.analysis = newAnalysis
+                self.analysis.periodogramResults = newPeriodograms
                 self.scheduleConflicts = newConflicts
                 // Update enhanced coach state
                 if let enhanced = newAnalysis.enhancedCoach {

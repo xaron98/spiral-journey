@@ -13,9 +13,7 @@
 		<string>com.spiral-journey.dna-refresh</string>
 	</array>
 	<key>NSHealthShareUsageDescription</key>
-	<string>Spiral Journey reads your sleep analysis and heart rate variability from Apple Health to analyze your circadian rhythm and provide personalized insights. Data may be synced across your devices via your private iCloud account if you enable cloud sync. Your health data is never shared with third parties.</string>
-	<key>NSHealthUpdateUsageDescription</key>
-	<string>Spiral Journey does not write health data. This permission is required by the system but the app only reads your sleep and HRV information.</string>
+	<string>Spiral Journey reads your sleep, heart rate, HRV, activity, wrist temperature, daylight exposure, and menstrual cycle data from Apple Health to build a complete picture of your circadian rhythm. This transforms the app into a personal chronobiograph — combining sleep architecture with daytime physiology for deeper insights. All analysis runs on-device. Data may sync across your devices via iCloud if cloud sync is enabled. Your health data is never shared with third parties.</string>
 	<key>NSCalendarsFullAccessUsageDescription</key>
 	<string>Spiral Journey can import your calendar events as context blocks to detect conflicts between your sleep schedule and daily obligations. Calendar data may sync across your devices via iCloud if cloud sync is enabled.</string>
 	<key>NSCalendarsUsageDescription</key>
