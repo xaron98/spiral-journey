@@ -176,12 +176,31 @@
 - Crown moves cursor position along the spiral
 - No zoom on Watch — fixed 4-day window follows cursor
 
+### Cursor & Live Awake Extension
+- **Cursor starts at current time** (now), NOT at end of sleep data
+- **Live awake extension** — amber path from end of data to cursor, grows with time (same as iPhone)
+- `store.currentAbsoluteHour` gives the current wall-clock position
+
+### Backbone
+- **Backbone extends from turn 0 to midnight (00:00) of the cursor's current day** — NOT to cursor position, NOT to extentTurns
+- When cursor crosses to a new day, backbone grows to that day's midnight
+- Formula: `backboneTo = Double(Int(floor(cursorAbsHour / period)) + 1)`
+
+### Opacity & Fade
+- **Bidirectional fade** — data outside the 4-day window fades smoothly on BOTH sides (past AND future)
+- `geo.opacity(turns:)` returns 1.0 inside window, fades to 0 over 1.5 turns outside
+- **All draw functions must use `geo.opacity(turns:)`** — backbone, data arcs, events, caps
+- renderFrom/renderUpTo extend 1.5 turns beyond the window for fade margin
+
 ### Pitfalls to Avoid
 1. Never use perspective projection (Cam/focalLen/zStep) on Watch — always flat
-2. Never show all data at once — Watch screen too small, use windowed view (~4 days)
+2. Never show all data at once — Watch screen too small, use windowed view (~4 days) with fade
 3. Never allow negative radius — clamp with `max(0, ...)` or turns before window produce mirror spirals
 4. Never use thin line widths (<3pt) on Watch — illegible on small screen
 5. Never store Watch spiral settings (depthScale/spiralType) from iPhone sync — Watch is always flat archimedean
+6. Never hard-cut data at window edges — always fade smoothly (opacity gradient over 1.5 turns)
+7. Never position cursor at end of sleep data — always at current time (now)
+8. Never extend backbone past midnight of cursor's day — it should grow day-by-day, not continuously
 
 ## Code Quality Rules
 

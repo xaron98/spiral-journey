@@ -249,10 +249,11 @@ struct WatchSpiralView: View {
         guard bestAbsHour > 0 else {
             storeInitialised = false; return
         }
-        let endTurns = bestAbsHour / store.period
-        cursorAbsHour = bestAbsHour
-        store.cursorAbsoluteHour = bestAbsHour
-        maxReachedTurns = max(1.0, endTurns)
+        // Position cursor at current time (not end of data)
+        let now = store.currentAbsoluteHour
+        cursorAbsHour = now
+        store.cursorAbsoluteHour = now
+        maxReachedTurns = max(1.0, now / store.period)
         crownRaw = 0; lastCrownRaw = 0
         storeInitialised = true
         userHasMovedCrown = false
@@ -294,25 +295,47 @@ private struct WatchSpiralCanvas: View {
 
         let turnOffset: Double  // first visible turn maps to startRadius
 
+        let windowFrom: Double  // start of full-opacity window
+        let windowUpTo: Double  // end of full-opacity window
+        private let fade: Double = 1.5 // turns of fade on each side
+
         init(size: CGSize, cursorTurns: Double, span: Double, extentTurns: Double, period: Double) {
             self.cx = size.width / 2
             self.cy = size.height / 2
             self.period = period
 
-            // Window: span turns behind cursor, 0.5 ahead
-            let from = max(cursorTurns - span, 0)
-            let upTo = cursorTurns + 0.5
-            self.renderFrom = from
-            self.renderUpTo = upTo
-            self.maxTurns = max(upTo, extentTurns)
-            self.turnOffset = from
+            // Full-opacity window
+            let wFrom = max(cursorTurns - span, 0)
+            let wUpTo = cursorTurns + 0.5
+            self.windowFrom = wFrom
+            self.windowUpTo = wUpTo
 
-            // Scale: visible window [from, upTo] maps to [startRadius, outerR]
+            // Render with extra margin for fade on both sides
+            self.renderFrom = max(wFrom - 1.5, 0)
+            self.renderUpTo = min(wUpTo + 1.5, max(extentTurns + 1, cursorTurns + 2))
+            self.maxTurns = max(wUpTo, extentTurns)
+            self.turnOffset = wFrom
+
+            // Scale: visible window fills the screen
             let outerR = min(size.width, size.height) / 2 * 0.85
             let inner: Double = 8
             self.startRadius = inner
-            let visibleSpan = max(upTo - from, 1)
+            let visibleSpan = max(wUpTo - wFrom, 1)
             self.spacing = max(3.0, (outerR - inner) / visibleSpan)
+        }
+
+        /// Opacity: full inside window, fades smoothly on both edges.
+        func opacity(turns t: Double) -> Double {
+            // Inside window: full
+            if t >= windowFrom && t <= windowUpTo { return 1.0 }
+            // Before window: fade in
+            if t < windowFrom {
+                let dist = windowFrom - t
+                return max(0, 1.0 - dist / fade)
+            }
+            // After window: fade out
+            let dist = t - windowUpTo
+            return max(0, 1.0 - dist / fade)
         }
 
         func radius(turns t: Double) -> Double {
@@ -370,6 +393,7 @@ private struct WatchSpiralCanvas: View {
             drawDataPoints(context: context, geo: geo)
             drawEventMarkers(context: context, geo: geo)
             drawSleepArc(context: context, geo: geo)
+            drawLiveAwakeExtension(context: context, geo: geo)
             drawCursor(context: context, geo: geo)
             drawHourLabels(context: context, geo: geo, size: size)
         }
@@ -421,49 +445,42 @@ private struct WatchSpiralCanvas: View {
     // MARK: - Backbone
 
     private func drawSpiralPath(context: GraphicsContext, geo: FlatGeo) {
-        let backboneTo = geo.renderUpTo
-        guard backboneTo > 0 else { return }
-        let backboneFrom = max(geo.renderFrom - 0.5, 0)
+        // Backbone extends from turn 0 to midnight of the cursor's current day.
+        // When cursor crosses to a new day, backbone grows to that day's midnight.
+        let cursorDay = Int(floor(cursorAbsHour / period))
+        let backboneTo = Double(cursorDay + 1) // midnight = start of next day
+        let backboneFrom = max(geo.renderFrom, 0)
+        guard backboneTo > backboneFrom else { return }
 
-        // Skip backbone where data arcs are drawn (they cover it)
-        let dataEnd = dataEndTurns()
-        let skipFrom: Double
-        let skipTo: Double
-        if !records.isEmpty && dataEnd > 0 {
-            let firstDataDay = records.map(\.day).min() ?? 0
-            skipFrom = Double(firstDataDay)
-            skipTo = dataEnd
-        } else {
-            skipFrom = 0; skipTo = 0
-        }
-        let hasSkip = skipTo > skipFrom
-
-        let step = 0.015
-        var d = backboneFrom
-        var path = Path()
-        var first = true
-
-        let backboneColor = Color(hex: "2e3248").opacity(0.4)
+        let backboneColor = Color(hex: "2e3248")
         let backboneWidth: CGFloat = 6.0
+        let step = 0.015
 
-        func flush() {
-            guard !first else { return }
-            context.stroke(path, with: .color(backboneColor),
-                           style: StrokeStyle(lineWidth: backboneWidth, lineCap: .round, lineJoin: .round))
-            path = Path(); first = true
-        }
+        var path = Path()
+        var started = false
+        var t = backboneFrom
 
-        while d <= backboneTo {
-            let t = min(d, backboneTo)
-            if hasSkip && t >= skipFrom && t < skipTo {
-                flush(); if d >= backboneTo { break }; d += step; continue
+        while t <= backboneTo {
+            let alpha = geo.opacity(turns: t)
+            if alpha < 0.05 {
+                // Outside fade zone — flush current segment, skip
+                if started {
+                    context.stroke(path, with: .color(backboneColor.opacity(0.4)),
+                                   style: StrokeStyle(lineWidth: backboneWidth, lineCap: .round))
+                    path = Path(); started = false
+                }
+                t += step; continue
             }
             let pt = geo.point(turns: t)
-            if first { path.move(to: pt); first = false } else { path.addLine(to: pt) }
-            if d >= backboneTo { break }
-            d += step
+            if !started { path.move(to: pt); started = true }
+            else { path.addLine(to: pt) }
+            if t >= backboneTo { break }
+            t = min(t + step, backboneTo)
         }
-        flush()
+        if started {
+            context.stroke(path, with: .color(backboneColor.opacity(0.4)),
+                           style: StrokeStyle(lineWidth: backboneWidth, lineCap: .round))
+        }
     }
 
     // MARK: - Data arcs
@@ -482,16 +499,18 @@ private struct WatchSpiralCanvas: View {
 
         func drawRun(_ run: Run) {
             guard run.points.count >= 2 else { return }
-            let color = phaseColor(run.phase)
+            let baseColor = phaseColor(run.phase)
             let lw: CGFloat = 8.0
 
             for i in 0..<(run.points.count - 1) {
                 let p0 = run.points[i]
                 let p1 = run.points[i + 1]
+                let alpha = geo.opacity(turns: (p0.t + p1.t) / 2)
+                guard alpha > 0.01 else { continue }
                 var seg = Path()
                 seg.move(to: p0.pt)
                 seg.addLine(to: p1.pt)
-                context.stroke(seg, with: .color(color),
+                context.stroke(seg, with: .color(baseColor.opacity(alpha)),
                                style: StrokeStyle(lineWidth: lw, lineCap: .round))
             }
 
@@ -500,19 +519,19 @@ private struct WatchSpiralCanvas: View {
             let capStart = run.prevPhase == nil || !isSleep(run.prevPhase!)
             let capEnd   = run.nextPhase == nil || !isSleep(run.nextPhase!)
 
-            if capStart {
-                let pt = run.points[0].pt
+            if capStart, let first = run.points.first {
+                let a = geo.opacity(turns: first.t)
                 let r = lw * 0.5
-                context.fill(Circle().path(in: CGRect(x: pt.x - r, y: pt.y - r,
+                context.fill(Circle().path(in: CGRect(x: first.pt.x - r, y: first.pt.y - r,
                                                       width: lw, height: lw)),
-                             with: .color(color))
+                             with: .color(baseColor.opacity(a)))
             }
-            if capEnd {
-                let pt = run.points[run.points.count - 1].pt
+            if capEnd, let last = run.points.last {
+                let a = geo.opacity(turns: last.t)
                 let r = lw * 0.5
-                context.fill(Circle().path(in: CGRect(x: pt.x - r, y: pt.y - r,
+                context.fill(Circle().path(in: CGRect(x: last.pt.x - r, y: last.pt.y - r,
                                                       width: lw, height: lw)),
-                             with: .color(color))
+                             with: .color(baseColor.opacity(a)))
             }
         }
 
@@ -623,6 +642,39 @@ private struct WatchSpiralCanvas: View {
         if started {
             context.stroke(path, with: .color(arcColor), style: style)
             context.stroke(path, with: .color(glowColor), style: style)
+        }
+    }
+
+    // MARK: - Live Awake Extension
+
+    /// Draws the vigilia (awake) path from end of data to cursor position.
+    /// Grows progressively as time passes — same as iPhone's live awake extension.
+    private func drawLiveAwakeExtension(context: GraphicsContext, geo: FlatGeo) {
+        let dataEnd = dataEndTurns()
+        let cursorTurns = cursorAbsHour / period
+        guard cursorTurns > dataEnd + 0.01 else { return }
+
+        let startT = dataEnd
+        let endT = cursorTurns
+        let awakeColor = Color(hex: "fbbf24").opacity(0.7) // amber, same as iPhone
+        let lw: CGFloat = 6.0
+
+        var path = Path()
+        var started = false
+        let step = 0.02
+        var t = startT
+
+        while t <= endT {
+            let pt = geo.point(turns: t)
+            if !started { path.move(to: pt); started = true }
+            else { path.addLine(to: pt) }
+            if t >= endT { break }
+            t = min(t + step, endT)
+        }
+
+        if started {
+            context.stroke(path, with: .color(awakeColor),
+                           style: StrokeStyle(lineWidth: lw, lineCap: .round))
         }
     }
 

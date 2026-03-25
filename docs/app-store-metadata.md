@@ -60,6 +60,9 @@ Bring two iPhones close to compare sleep profiles side-by-side via Multipeer Con
 DISCOVERY TIMELINE
 Track your journey with 17 automatic milestones: first motif discovered, circadian rhythm confirmed, consistency records, and more.
 
+LEARN ABOUT SLEEP
+Five interactive articles cover sleep science — from architecture and circadian biology to why we sleep and how animals do it. Each includes a quiz to test your knowledge.
+
 EVERYTHING ON-DEVICE
 All analysis runs locally. No accounts, no cloud processing, no data sharing. Your sleep data is yours alone.
 
@@ -76,6 +79,7 @@ FEATURES
 • Dream journal with voice transcription
 • On-device AI (Apple Intelligence)
 • Discovery timeline (17 milestones)
+• Learn about sleep — 5 interactive articles with quizzes
 • Peer comparison (Multipeer Connectivity)
 • Morning summary + predictive alerts
 • Auto-import workouts, caffeine, HR alerts
@@ -118,6 +122,9 @@ Acerca dos iPhones para comparar perfiles de sueño lado a lado vía Multipeer C
 
 LÍNEA DE DESCUBRIMIENTOS
 Sigue tu viaje con 17 hitos automáticos: primer motivo descubierto, ritmo circadiano confirmado, récords de consistencia y más.
+
+APRENDE SOBRE EL SUEÑO
+Cinco artículos interactivos cubren la ciencia del sueño — desde la arquitectura y la biología circadiana hasta por qué dormimos y cómo lo hacen los animales. Cada uno incluye un quiz para poner a prueba tus conocimientos.
 
 TODO EN EL DISPOSITIVO
 Todo el análisis se ejecuta localmente. Sin cuentas, sin procesamiento en la nube, sin compartir datos. Tus datos de sueño son solo tuyos.
@@ -175,6 +182,7 @@ First release of Spiral Journey — your personal chronobiograph.
 • On-device AI interpretation (Apple Intelligence)
 • Peer sleep comparison (Multipeer Connectivity)
 • Discovery timeline with automatic milestones
+• Learn about sleep — 5 articles with quizzes
 • Morning summary + predictive alerts
 • 5 themes, widgets, 8 languages
 • 100% on-device — zero data collection
@@ -190,7 +198,7 @@ This app reads health data from Apple Health (HealthKit) to analyze circadian rh
 The app has four main tabs:
 1. Spiral — displays your sleep/wake cycle as a circadian spiral. Drag the cursor to explore days. Tap the DNA button for SleepDNA Insights. Tap + to log events or dreams.
 2. Analysis — trend charts, Lomb-Scargle periodogram, autocorrelation heatmap, discovery timeline.
-3. Coach — AI chat for personalized sleep insights. Uses Apple Foundation Models (iOS 26+) for on-device inference. No network required.
+3. Coach — AI chat for personalized sleep insights, plus "Learn about Sleep" section with 5 interactive articles and quizzes. Uses Apple Foundation Models (iOS 26+) for on-device inference. No network required.
 4. Settings — appearance, themes, data management, iCloud sync, comparison alias.
 
 Additional features:
@@ -250,6 +258,7 @@ No login required. No custom backend. All analysis on-device.
 3. Periodogram (Analysis tab, "Rhythms" toggle)
 4. Discovery Timeline (Analysis tab, "Timeline" toggle)
 5. Dream Journal (with voice transcription button)
-6. Coach tab (AI chat)
-7. Peer Comparison (side-by-side cards)
-8. Apple Watch (spiral or stats view)
+6. Learn about Sleep (article with quiz)
+7. Coach tab (AI chat)
+8. Peer Comparison (side-by-side cards)
+9. Apple Watch (flat spiral with thick paths)
