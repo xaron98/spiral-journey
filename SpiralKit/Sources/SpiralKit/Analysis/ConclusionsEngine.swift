@@ -97,7 +97,7 @@ public enum ConclusionsEngine {
         let durDetail: String
         if dur == 0 { durDetailKey = .noData; durDetail = "No sleep data recorded" }
         else if dur < 7 { durDetailKey = .belowRecommended; durDetail = "Below the recommended 7h" }
-        else if dur > 9 { durDetailKey = .excessive; durDetail = "Excessive duration (may indicate hypersomnia)" }
+        else if dur > 9 { durDetailKey = .excessive; durDetail = "Longer than typical — consider whether you feel rested" }
         else { durDetailKey = .healthy; durDetail = "Within healthy range (7-9h)" }
         categories.append(CategoryScore(
             id: "duration", label: "Duration",
@@ -113,7 +113,7 @@ public enum ConclusionsEngine {
         let sriDetail: String
         if sri >= 80 { sriDetailKey = .veryConsistent; sriDetail = "Very consistent day-to-day pattern" }
         else if sri >= 60 { sriDetailKey = .someVariability; sriDetail = "Some variability between days" }
-        else { sriDetailKey = .highVariability; sriDetail = "High variability — shifting schedules" }
+        else { sriDetailKey = .highVariability; sriDetail = "Variable pattern — a consistent wake time is the easiest first step" }
         categories.append(CategoryScore(
             id: "regularity", label: "Regularity",
             value: sri > 0 ? String(format: "%.0f%%", sri) : "--",
@@ -128,7 +128,7 @@ public enum ConclusionsEngine {
         let stabDetail: String
         if stabSc >= 70 { stabDetailKey = .strongRhythm; stabDetail = "Strong, well-defined circadian rhythm" }
         else if stabSc >= 40 { stabDetailKey = .moderateRhythm; stabDetail = "Moderate rhythm — room for improvement" }
-        else { stabDetailKey = .weakRhythm; stabDetail = "Weak or fragmented rhythm" }
+        else { stabDetailKey = .weakRhythm; stabDetail = "Rhythm building — consistent anchors (wake time, meals, light) strengthen it" }
         categories.append(CategoryScore(
             id: "rhythm", label: "Rhythm",
             value: String(format: "%.0f%%", stabSc),
@@ -148,7 +148,7 @@ public enum ConclusionsEngine {
             jlDetailKey = .jetlagNeedsBothSides; jlDetail = "Need both weekday and weekend data"
         } else if jl < 45 { jetlagSc = clamp(100 - jl, 0, 100); jlDetailKey = .minimalJetlag; jlDetail = "Minimal difference between weekdays and weekend" }
         else if jl < 90 { jetlagSc = clamp(100 - jl, 0, 100); jlDetailKey = .moderateJetlag; jlDetail = "Moderate difference — try to reduce it" }
-        else { jetlagSc = clamp(100 - jl, 0, 100); jlDetailKey = .highJetlag; jlDetail = "High social jetlag — metabolic risk" }
+        else { jetlagSc = clamp(100 - jl, 0, 100); jlDetailKey = .highJetlag; jlDetail = "Large weekday-weekend gap — aligning bedtimes reduces this" }
         categories.append(CategoryScore(
             id: "jetlag", label: "Social Jetlag",
             value: hasJetlagData ? formatMinutesAsHM(jl) : "--",
@@ -361,7 +361,7 @@ public enum ConclusionsEngine {
             case "iswrd":
                 recs.append(Recommendation(priority: 1,
                     title: "Structure daily routine",
-                    text: "Highly fragmented rhythm. Set fixed anchors: wake-up time, meals, and exercise at the same time each day. Social structure reinforces the biological clock.",
+                    text: "Your rhythm has room to grow. Setting fixed anchors — wake-up time, meals, and exercise at the same time each day — builds a stronger pattern. Most people see improvement within a week.",
                     key: .structureRoutine))
             default: break
             }

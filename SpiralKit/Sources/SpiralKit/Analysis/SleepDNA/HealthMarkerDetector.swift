@@ -94,28 +94,28 @@ public enum HealthMarkerDetector {
             alerts.append(HealthAlert(
                 type: .circadianAnarchy,
                 severity: .urgent,
-                message: "Circadian coherence is very low (\(String(format: "%.2f", coherence))). Your rhythm may be destabilized."
+                message: "Circadian coherence is low (\(String(format: "%.2f", coherence))). Consistent sleep and wake times over the next few days can improve this."
             ))
         }
         if fragmentation > 0.6 {
             alerts.append(HealthAlert(
                 type: .highFragmentation,
                 severity: .warning,
-                message: "Sleep fragmentation is high (\(String(format: "%.2f", fragmentation))). Frequent awakenings detected."
+                message: "Sleep fragmentation is elevated (\(String(format: "%.2f", fragmentation))). Room temperature, caffeine timing, and a wind-down routine can help."
             ))
         }
         if drift > 15 {
             alerts.append(HealthAlert(
                 type: .severeDrift,
                 severity: .warning,
-                message: "Circadian drift is severe (\(String(format: "%.1f", drift)) min/day). Schedule may be shifting rapidly."
+                message: "Circadian drift is \(String(format: "%.1f", drift)) min/day. Anchoring your wake time can stabilize this within a few days."
             ))
         }
         if hb > 0.3 {
             alerts.append(HealthAlert(
                 type: .highDesynchrony,
                 severity: .warning,
-                message: "Homeostatic-circadian desynchrony is elevated (\(String(format: "%.2f", hb)))."
+                message: "Sleep pressure and circadian rhythm are slightly misaligned (\(String(format: "%.2f", hb))). Regular light exposure in the morning helps resynchronize them."
             ))
         }
 

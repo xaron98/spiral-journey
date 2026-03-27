@@ -65,6 +65,8 @@ public struct ConsistencyBreakdown: Codable, Sendable {
     public var recoveryStability: Double
     /// Whether recoveryStability was computed from real physiological data.
     public var recoveryFromRealData: Bool
+    /// Torus micro-architecture consistency across nights (0-100). nil if no NeuroSpiral data.
+    public var torusConsistency: Double?
 
     public init(
         sleepOnsetRegularity: Double = 0,
@@ -72,7 +74,8 @@ public struct ConsistencyBreakdown: Codable, Sendable {
         fragmentationPatternSimilarity: Double = 0,
         sleepDurationStability: Double = 0,
         recoveryStability: Double = 0,
-        recoveryFromRealData: Bool = false
+        recoveryFromRealData: Bool = false,
+        torusConsistency: Double? = nil
     ) {
         self.sleepOnsetRegularity    = sleepOnsetRegularity
         self.wakeTimeRegularity      = wakeTimeRegularity
@@ -80,6 +83,7 @@ public struct ConsistencyBreakdown: Codable, Sendable {
         self.sleepDurationStability  = sleepDurationStability
         self.recoveryStability       = recoveryStability
         self.recoveryFromRealData    = recoveryFromRealData
+        self.torusConsistency        = torusConsistency
     }
 }
 
@@ -156,7 +160,7 @@ public enum ConsistencyLabel: String, Codable, Sendable, CaseIterable {
         case .veryStable:   return "Very Stable"
         case .stable:       return "Stable"
         case .variable:     return "Variable"
-        case .disorganized: return "Disorganized"
+        case .disorganized: return "Building"
         case .insufficient: return "No Data"
         }
     }

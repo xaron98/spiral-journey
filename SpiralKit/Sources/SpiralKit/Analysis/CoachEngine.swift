@@ -104,10 +104,10 @@ public enum CoachEngine {
                 let peakTime = SleepStatistics.formatHour(highRisk.peakSleepinessHour)
                 return CoachInsight(
                     issueKey: .sleepinessRiskDuringWork,
-                    title: "High sleepiness risk during work",
-                    reason: "Your sleep pressure is elevated during your \(label) block, peaking around \(peakTime).",
-                    action: "Consider a 15-min nap before your shift. Use bright light at the start of your shift to boost alertness.",
-                    expectedOutcome: "Goal: reduce accident and error risk during high-demand hours.",
+                    title: "Stay sharp during work",
+                    reason: "Your sleep pressure peaks around \(peakTime) during your \(label) block.",
+                    action: "A 15-min nap before your shift and bright light at the start can boost alertness significantly.",
+                    expectedOutcome: "Goal: feel more alert and focused during high-demand hours.",
                     severity: .moderate,
                     args: [highRisk.meanS],
                     stringArgs: [label, peakTime]
@@ -461,7 +461,7 @@ public enum CoachEngine {
             return CoachInsight(
                 issueKey: .irregularSchedule,
                 title: "Irregular schedule",
-                reason: "Your sleep and wake times vary by about \(stdMin) min day-to-day, which weakens your circadian rhythm.",
+                reason: "Your sleep and wake times vary by about \(stdMin) min day-to-day. A more consistent schedule helps your body's internal clock.",
                 action: "Fix your wake time first: aim for \(targetWake) every day, including weekends.",
                 expectedOutcome: "Goal: reduce variability to under 30 min.",
                 severity: .mild,
@@ -488,9 +488,9 @@ public enum CoachEngine {
             return CoachInsight(
                 issueKey: .fragmentedSleep,
                 title: "Fragmented sleep",
-                reason: "Your sleep has multiple wake-ups. This reduces deep sleep and recovery quality.",
-                action: "Limit fluids 2 h before bed, keep the room cool (18–20 °C), and avoid caffeine after 14:00.",
-                expectedOutcome: "Goal: consolidate sleep into a single uninterrupted block.",
+                reason: "Your sleep shows multiple wake-ups. Consolidating sleep can improve how rested you feel.",
+                action: "Try limiting fluids 2 h before bed, keeping the room cool (18–20 °C), and shifting your last coffee to before 14:00.",
+                expectedOutcome: "Goal: longer uninterrupted stretches of sleep.",
                 severity: .mild
             )
         }
@@ -735,7 +735,7 @@ public enum CoachEngine {
         return CoachInsight(
             issueKey: .splitSleep,
             title: "Split sleep pattern",
-            reason: "About \(minutes) min of your sleep is shifting to daytime. This can delay your nighttime rhythm.",
+            reason: "About \(minutes) min of your sleep is happening during the day. Consolidating to nighttime helps your body's rhythm.",
             action: "Today, avoid sleeping after 15:00. If very sleepy, limit naps to 20 min before 14:00.",
             expectedOutcome: "Goal: consolidate sleep into one main overnight block.",
             severity: .moderate,
