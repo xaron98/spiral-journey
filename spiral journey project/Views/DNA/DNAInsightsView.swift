@@ -15,6 +15,8 @@ struct DNAInsightsView: View {
     @State private var isInteractingWith3D = false
     @State private var showQuestionnaire = false
     @State private var questionnaireAvailable = false
+    @State private var showNeuroSpiral = false
+    @State private var showDNAInfo = false
 
     var body: some View {
         NavigationStack {
@@ -39,6 +41,28 @@ struct DNAInsightsView: View {
                             .foregroundStyle(SpiralColors.muted)
                     }
                 }
+                ToolbarItem(placement: .topBarTrailing) {
+                    HStack(spacing: 16) {
+                        Button { showDNAInfo = true } label: {
+                            Image(systemName: "info.circle")
+                                .font(.system(size: 17, weight: .medium))
+                                .foregroundStyle(SpiralColors.accent)
+                        }
+                        .accessibilityLabel(loc("dna.info.button.label"))
+                        Button { showNeuroSpiral = true } label: {
+                            Image(systemName: "cube.transparent")
+                                .font(.system(size: 17, weight: .medium))
+                                .foregroundStyle(SpiralColors.accent)
+                        }
+                        .accessibilityLabel(loc("neurospiral.button.label"))
+                    }
+                }
+            }
+            .sheet(isPresented: $showDNAInfo) {
+                DNAInfoSheetView()
+            }
+            .sheet(isPresented: $showNeuroSpiral) {
+                NeuroSpiralView()
             }
             .refreshable {
                 await dnaService.forceRefresh(store: store, context: modelContext)

@@ -70,6 +70,14 @@ final class WatchStore {
     /// True when there is no data at all (neither from iPhone nor locally logged).
     var isEmpty: Bool { records.isEmpty && episodes.isEmpty }
 
+    // MARK: - NeuroSpiral (last night's result, synced from iPhone)
+    var neuroSpiralStability: Double?
+    var neuroSpiralDominantIdx: Int?
+    var neuroSpiralDominantCode: String?
+    var neuroSpiralWinding: Double?
+    var neuroSpiralTransitions: Int?
+    var neuroSpiralDate: Date?
+
     /// The cursor position (absolute hours on the spiral timeline) as set by WatchSpiralView.
     /// WatchSpiralView writes this whenever the cursor moves or is initialised.
     /// WatchEventLogView reads it so events are placed at the cursor, not wall-clock time.
@@ -304,6 +312,17 @@ final class WatchStore {
         if let data = context["conflictsJSON"] as? Data,
            let decoded = try? JSONDecoder().decode([ScheduleConflict].self, from: data) {
             scheduleConflicts = decoded
+        }
+        if let nsData = context["neuroSpiralData"] as? [String: Any] {
+            neuroSpiralStability = nsData["stability"] as? Double
+            neuroSpiralDominantIdx = nsData["dominantIdx"] as? Int
+            neuroSpiralDominantCode = nsData["dominantCode"] as? String
+            let w = nsData["winding"] as? Double
+            neuroSpiralWinding = (w == -1.0) ? nil : w
+            neuroSpiralTransitions = nsData["transitions"] as? Int
+            if let ts = nsData["date"] as? TimeInterval {
+                neuroSpiralDate = Date(timeIntervalSince1970: ts)
+            }
         }
         saveToDefaults()
     }

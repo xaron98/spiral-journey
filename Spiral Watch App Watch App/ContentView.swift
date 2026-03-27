@@ -22,6 +22,8 @@ struct WatchContentView: View {
                 .tag(2)
             WatchEventLogView()
                 .tag(3)
+            WatchNeuroSpiralCard()
+                .tag(4)
         }
         .tabViewStyle(.page)
         .environment(\.colorScheme, colorScheme)

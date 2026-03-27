@@ -83,6 +83,16 @@ final class WatchConnectivityManager: NSObject, WCSessionDelegate {
             context["conflictsJSON"] = data
         }
 
+        if let nsData = UserDefaults(suiteName: "group.xaron.spiral-journey-project")?.dictionary(forKey: "neurospiral-last-night") {
+            context["neuroSpiralData"] = [
+                "stability": nsData["neurospiral_stability"] ?? 0,
+                "dominantIdx": nsData["neurospiral_dominant_idx"] ?? 0,
+                "dominantCode": nsData["neurospiral_dominant_code"] ?? "",
+                "winding": nsData["neurospiral_winding"] ?? -1.0,
+                "transitions": nsData["neurospiral_transitions"] ?? 0,
+                "date": nsData["neurospiral_date"] ?? 0,
+            ]
+        }
         try? WCSession.default.updateApplicationContext(context)
     }
 
@@ -115,6 +125,22 @@ final class WatchConnectivityManager: NSObject, WCSessionDelegate {
                 hourlyActivity: [], cosinor: .empty,
                 driftMinutes: driftMinutes
             )
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case day, date, isWeekend, bedtimeHour, wakeupHour, sleepDuration, phases, driftMinutes
+        }
+
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            day = try c.decode(Int.self, forKey: .day)
+            date = try c.decode(Date.self, forKey: .date)
+            isWeekend = try c.decode(Bool.self, forKey: .isWeekend)
+            bedtimeHour = try c.decode(Double.self, forKey: .bedtimeHour)
+            wakeupHour = try c.decode(Double.self, forKey: .wakeupHour)
+            sleepDuration = try c.decode(Double.self, forKey: .sleepDuration)
+            phases = try c.decode([PhaseInterval].self, forKey: .phases)
+            driftMinutes = try c.decodeIfPresent(Double.self, forKey: .driftMinutes) ?? 0
         }
     }
 

@@ -23,6 +23,47 @@
 - `spiral journey project/Views/Spiral/SpiralVisibilityEngine.swift` — per-day visibility/opacity
 - `spiral journey project/Views/Tabs/SpiralTab.swift` — cursor, zoom, gestures
 - `SpiralKit/` — geometry, models, shared logic
+- `SpiralGeometry/` — Clifford torus, tesseract, Bures-Wasserstein math (local SPM package)
+
+## NeuroSpiral 4D Rules (CRITICAL)
+
+### Architecture
+- **SpiralGeometry module name conflict** — `struct SpiralGeometry` exists in SpiralKit. ALL views must use specific imports: `import struct SpiralGeometry.WearableSleepSample`, `import enum SpiralGeometry.Tesseract`, etc. NEVER use bare `import SpiralGeometry`.
+- **Watch does NOT run SpiralGeometry** — iPhone computes, writes summary to App Group UserDefaults, sends via WatchConnectivity applicationContext. Watch only reads.
+- **Baseline persisted** — `WearableTo4DMapper.PersonalBaseline` stored in App Group key `"neurospiral-baseline"` as JSON.
+
+### NeuroSpiral Views (Views/DNA/)
+- `NeuroSpiralView.swift` — hub dashboard. Computes analysis + perNightAnalyses + retainedSamples in `.task`. Passes data to detail views via NavigationLink.
+- `NeuroSpiralTorusDetailView.swift` — toggle 2D (Canvas) / 3D (RealityKit). 2D shows θ/φ scatter, 3D shows stereographic projection.
+- `NeuroSpiralTrajectoryView.swift` — toggle 2D (Canvas animated) / 3D (RealityKit progressive reveal). Shared play/pause/speed controls.
+- `NeuroSpiralTorus3DView.swift` — RealityKit wrapper, `@available(iOS 18.0, *)`
+- `NeuroSpiralTrajectory3DView.swift` — RealityKit progressive reveal, entities pre-built invisible
+- `NeuroSpiralTorusInteractionManager.swift` — CADisplayLink 60fps, same pattern as HelixInteractionManager
+- `NeuroSpiralTorusSceneBuilder.swift` — builds wireframe + trajectory + 16 vertices. `project4Dto3D` is public static for reuse.
+- `NeuroSpiralHistoryView.swift` — sparklines + night list
+- `NeuroSpiralExportView.swift` — CSV export + ShareLink
+- `DNAInfoSheetView.swift` — SleepDNA educational info (11 sections + macro/micro bridge)
+
+### 3D Torus Performance Rules (same as DNA Helix)
+- **CADisplayLink at 60fps** — transform applied directly to entity, NOT via SwiftUI `update:` closure
+- **@ObservationIgnored** — `rotationX`, `rotationY`, `zoomScale`, `w4DAngle`, `dragStart`, `baseZoom`, `isInteracting` are all `@ObservationIgnored`. They MUST NOT trigger SwiftUI re-renders.
+- **Only `selectedEpochIndex` is @Observable** — the only property that needs SwiftUI updates
+- **Entities pre-built invisible** — trajectory 3D view creates all ~500 sphere entities in `make:`, sets `isEnabled = false`, then progressively enables them in `update:` based on `visibleCount`
+- **`project4Dto3D` is static** — stereographic projection with xw-plane rotation, reusable across builder and trajectory views
+
+### Comparison Integration
+- `ComparisonPayload` has 4 optional torus fields — `vertexDistribution`, `meanWindingRatio`, `torusStability`, `dominantVertex`
+- `torusSimilarity()` uses Jensen-Shannon divergence on 16-element vertex distributions
+- `SpiralConsistencyCalculator` accepts optional `torusDistributions` parameter — adds `torusConsistency` as 6th sub-metric (15% weight when available, redistributes other weights)
+- ALL new Codable fields are Optional with nil defaults — backward compatible
+
+### Nocebo/Reflexivity Rules
+- **No negative predictions** — coaching messages must predict positive actions, not negative outcomes
+- **No deterministic harm language** — "can help" not "will reduce", "consider" not "expect"
+- **Always include reversibility** — "this can improve within days" not "your rhythm is destabilized"
+- **Labels are growth-oriented** — "Building" not "Disorganized", "Room to grow" not "Weak rhythm"
+- **Health claims need context** — no unqualified "metabolic risk", always pair with actionable advice
+- See `docs/superpowers/specs/COACH_REVIEW.md` for the full audit guide
 
 ## Spiral Rendering Rules (CRITICAL)
 
@@ -149,6 +190,8 @@
 - **`startRadius: 1`** — nearly from center
 - **`contentMarginsDisabled()`** on the widget configuration — removes iOS system padding
 - **Size control via `scaleEffect`** — NOT via `maxDays`, `padding`, or geometry hacks
+- **`nowTurns` clips data to current time** — `SpiralEntry.nowTurns` calculated from `Date.now` in re-based coordinates. `drawDataPoints` clips phases past `nowTurns` so the last record doesn't fill to midnight. Live awake extension draws from data end to `nowTurns`.
+- **Live awake extension** — amber path from `dataEndTurns` to `nowTurns`, grows progressively as timeline refreshes (every 30 min)
 
 ### State Widget
 - Shows circadian state (Sincronizado/En transición/Desalineado) + prediction
@@ -161,6 +204,7 @@
 3. Never use `turnOffset` with re-indexed records — causes coordinate mismatch
 4. Never change widget size via `maxDays` — use `scaleEffect` instead
 5. Never pass records without re-basing timestamps — turns will be 60+ and project outside widget
+6. Never draw phases past `nowTurns` — clips to current time, prevents amber path extending to midnight
 
 ## Watch Spiral Rules (CRITICAL)
 
@@ -207,6 +251,13 @@
 ### Logging
 - **All print() statements MUST be wrapped in `#if DEBUG`** — production logs must not leak sleep data, dates, or personal info
 - Applies to: SpiralStore, HealthKitManager, WatchHealthKitManager, WatchConnectivityManager
+
+### Color Consistency
+- **Always use `SpiralColors` semantic colors** — `SpiralColors.good`, `.moderate`, `.poor`, `.muted` in View files
+- **Never hardcode hex** for good/moderate/poor in Views — `Color(hex: "5bffa8")` doesn't adapt to light mode, `SpiralColors.good` does (dark `#5bffa8`, light `#198752`)
+- **Sleep phase colors** — use `SpiralColors.deepSleep`, `.remSleep`, `.lightSleep`, `.awakeSleep` (theme-aware)
+- **Model `.hexColor` is OK** — `Color(hex: event.type.hexColor)` converting from model data is acceptable; these are data-driven, not semantic
+- **Watch exception** — `WatchColors.swift` has its own palette (no asset catalog on watchOS)
 
 ### Safety
 - **No force unwraps** on HealthKit types — use modern non-optional API: `HKCategoryType(.sleepAnalysis)` not `HKObjectType.categoryType(forIdentifier:)!`
