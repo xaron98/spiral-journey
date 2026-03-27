@@ -223,6 +223,17 @@ public struct AnalysisResult: Codable, Sendable {
     /// Optional to preserve backward-compatible Codable decoding.
     public var periodogramResults: [LombScargle.PeriodogramResult]?
 
+    // MARK: - NeuroSpiral torus aggregates (nil if no analysis run)
+
+    /// Vertex distribution across all analyzed nights (16 elements, sums to 1.0)
+    public var neuroSpiralVertexDistribution: [Double]?
+    /// Mean winding ratio ω₁/ω₂
+    public var neuroSpiralWindingRatio: Double?
+    /// Torus stability (fraction of time in dominant vertex, 0-1)
+    public var neuroSpiralStability: Double?
+    /// Dominant tesseract vertex index (0-15)
+    public var neuroSpiralDominantVertex: Int?
+
     public init(
         composite: Int = 0,
         label: String = "",
@@ -236,7 +247,11 @@ public struct AnalysisResult: Codable, Sendable {
         consistency: SpiralConsistencyScore? = nil,
         coachInsight: CoachInsight? = nil,
         enhancedCoach: EnhancedCoachResult? = nil,
-        periodogramResults: [LombScargle.PeriodogramResult]? = nil
+        periodogramResults: [LombScargle.PeriodogramResult]? = nil,
+        neuroSpiralVertexDistribution: [Double]? = nil,
+        neuroSpiralWindingRatio: Double? = nil,
+        neuroSpiralStability: Double? = nil,
+        neuroSpiralDominantVertex: Int? = nil
     ) {
         self.composite = composite
         self.label = label
@@ -251,5 +266,9 @@ public struct AnalysisResult: Codable, Sendable {
         self.coachInsight = coachInsight
         self.enhancedCoach = enhancedCoach
         self.periodogramResults = periodogramResults
+        self.neuroSpiralVertexDistribution = neuroSpiralVertexDistribution
+        self.neuroSpiralWindingRatio = neuroSpiralWindingRatio
+        self.neuroSpiralStability = neuroSpiralStability
+        self.neuroSpiralDominantVertex = neuroSpiralDominantVertex
     }
 }

@@ -19,7 +19,8 @@ public enum SpiralConsistencyCalculator {
     public static func compute(
         records: [SleepRecord],
         windowDays: Int = 7,
-        recoveryValues: [Double]? = nil   // optional per-night 0-1 physiological recovery
+        recoveryValues: [Double]? = nil,  // optional per-night 0-1 physiological recovery
+        torusDistributions: [[Double]]? = nil  // optional per-night 16-element vertex distributions
     ) -> SpiralConsistencyScore {
 
         guard records.count >= 2 else {
@@ -46,23 +47,28 @@ public enum SpiralConsistencyCalculator {
         let fragScore        = fragmentationSimilarity(window)
         let durationScore    = durationStability(window)
         let (recovScore, realData) = recoveryStabilityScore(window, external: recoveryValues)
+        let torusScore = Self.torusConsistencyScore(torusDistributions)
 
-        // ── Weight redistribution if recovery is absent ───────────────────
-        // Default: onset 30%, wake 25%, frag 25%, duration 10%, recovery 10%
+        // ── Weight redistribution ─────────────────────────────────────────
+        // Base: onset 30%, wake 25%, frag 25%, duration 10%, recovery 10%
+        // With torus: onset 25%, wake 20%, frag 20%, duration 10%, recovery 10%, torus 15%
         let hasRecovery = recovScore > 0 || realData
-        let w: (onset: Double, wake: Double, frag: Double, dur: Double, rec: Double)
-        if hasRecovery {
-            w = (0.30, 0.25, 0.25, 0.10, 0.10)
+        let hasTorus = torusScore != nil
+        let rawScore: Double
+        if hasTorus && hasRecovery {
+            rawScore = onsetScore * 0.25 + wakeScore * 0.20 + fragScore * 0.20
+                     + durationScore * 0.10 + recovScore * 0.10 + (torusScore ?? 0) * 0.15
+        } else if hasTorus {
+            rawScore = onsetScore * 0.28 + wakeScore * 0.22 + fragScore * 0.22
+                     + durationScore * 0.13 + (torusScore ?? 0) * 0.15
+        } else if hasRecovery {
+            rawScore = onsetScore * 0.30 + wakeScore * 0.25 + fragScore * 0.25
+                     + durationScore * 0.10 + recovScore * 0.10
         } else {
-            // redistribute recovery weight equally among the four main metrics
-            w = (0.3375, 0.28125, 0.28125, 0.1125, 0.0)
+            // Redistribute proportionally: 30/90, 25/90, 25/90, 10/90
+            rawScore = onsetScore * (30.0/90.0) + wakeScore * (25.0/90.0) + fragScore * (25.0/90.0)
+                     + durationScore * (10.0/90.0)
         }
-
-        let rawScore = onsetScore    * w.onset
-                     + wakeScore    * w.wake
-                     + fragScore    * w.frag
-                     + durationScore * w.dur
-                     + recovScore   * w.rec
 
         let finalScore = Int(clamp(rawScore, 0, 100).rounded())
 
@@ -72,7 +78,8 @@ public enum SpiralConsistencyCalculator {
             fragmentationPatternSimilarity: fragScore,
             sleepDurationStability:         durationScore,
             recoveryStability:              recovScore,
-            recoveryFromRealData:           realData
+            recoveryFromRealData:           realData,
+            torusConsistency:               torusScore
         )
 
         let confidence: ConfidenceLevel = n >= 7 ? .high : (n >= 4 ? .medium : .low)
@@ -90,8 +97,15 @@ public enum SpiralConsistencyCalculator {
                 let prevFrag     = fragmentationSimilarity(prev)
                 let prevDur      = durationStability(prev)
                 let (prevRec, _) = recoveryStabilityScore(prev, external: nil)
-                let prevRaw = prevOnset * w.onset + prevWake * w.wake
-                            + prevFrag * w.frag + prevDur * w.dur + prevRec * w.rec
+                let prevHasRec = prevRec > 0
+                let prevRaw: Double
+                if prevHasRec {
+                    prevRaw = prevOnset * 0.30 + prevWake * 0.25 + prevFrag * 0.25
+                            + prevDur * 0.10 + prevRec * 0.10
+                } else {
+                    prevRaw = prevOnset * (30.0/90.0) + prevWake * (25.0/90.0) + prevFrag * (25.0/90.0)
+                            + prevDur * (10.0/90.0)
+                }
                 delta = rawScore - clamp(prevRaw, 0, 100)
             }
         }
@@ -499,5 +513,38 @@ public enum SpiralConsistencyCalculator {
         }
         if !current.isEmpty { runs.append(current) }
         return runs
+    }
+
+    // MARK: - Torus Consistency
+
+    /// Measures vertex distribution stability across nights.
+    /// Returns 0-100 score (nil if fewer than 2 distributions).
+    /// High score = brain takes the same geometric path each night.
+    private static func torusConsistencyScore(_ distributions: [[Double]]?) -> Double? {
+        guard let dists = distributions, dists.count >= 2,
+              dists.allSatisfy({ $0.count == 16 }) else { return nil }
+
+        // Mean distribution across nights
+        var meanDist = [Double](repeating: 0, count: 16)
+        for d in dists {
+            for i in 0..<16 { meanDist[i] += d[i] }
+        }
+        for i in 0..<16 { meanDist[i] /= Double(dists.count) }
+
+        // Average cosine similarity of each night against the mean
+        var totalSim = 0.0
+        for d in dists {
+            var dot = 0.0, normA = 0.0, normB = 0.0
+            for i in 0..<16 {
+                dot   += d[i] * meanDist[i]
+                normA += d[i] * d[i]
+                normB += meanDist[i] * meanDist[i]
+            }
+            let denom = sqrt(normA) * sqrt(normB)
+            totalSim += denom > 1e-10 ? dot / denom : 0
+        }
+
+        let meanSimilarity = totalSim / Double(dists.count)
+        return clamp(meanSimilarity * 100, 0, 100)
     }
 }
