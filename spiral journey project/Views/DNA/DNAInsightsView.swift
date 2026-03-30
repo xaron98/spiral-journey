@@ -17,6 +17,7 @@ struct DNAInsightsView: View {
     @State private var questionnaireAvailable = false
     @State private var showNeuroSpiral = false
     @State private var showDNAInfo = false
+    @State private var showTriangle = false
 
     var body: some View {
         NavigationStack {
@@ -49,6 +50,12 @@ struct DNAInsightsView: View {
                                 .foregroundStyle(SpiralColors.accent)
                         }
                         .accessibilityLabel(loc("dna.info.button.label"))
+                        Button { showTriangle = true } label: {
+                            Image(systemName: "triangle")
+                                .font(.system(size: 17, weight: .medium))
+                                .foregroundStyle(SpiralColors.accent)
+                        }
+                        .accessibilityLabel(loc("triangle.button.label"))
                         Button { showNeuroSpiral = true } label: {
                             Image(systemName: "cube.transparent")
                                 .font(.system(size: 17, weight: .medium))
@@ -60,6 +67,9 @@ struct DNAInsightsView: View {
             }
             .sheet(isPresented: $showDNAInfo) {
                 DNAInfoSheetView()
+            }
+            .sheet(isPresented: $showTriangle) {
+                SleepTriangleView()
             }
             .sheet(isPresented: $showNeuroSpiral) {
                 NeuroSpiralView()

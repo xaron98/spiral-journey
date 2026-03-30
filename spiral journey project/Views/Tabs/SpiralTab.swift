@@ -587,7 +587,7 @@ struct SpiralTab: View {
         }
         .onChange(of: store.period) { _, _ in initCursor() }
         .onChange(of: store.flatMode) { _, _ in initCursor() }
-        .onChange(of: store.sleepEpisodes.count) { _, count in
+        .onChange(of: store.sleepEpisodes.count) { old, count in
             let minTurns = max(1.0, store.period / 24.0)
             if count == 0 {
                 let nowAbsHour = Date().timeIntervalSince(store.startDate) / 3600
@@ -597,15 +597,15 @@ struct SpiralTab: View {
             } else {
                 let nowAbsHour = Date().timeIntervalSince(store.startDate) / 3600
                 let needed = max(minTurns, nowAbsHour / store.period)
+                let wasEmpty = old == 0
                 if needed > maxReachedTurns {
                     maxReachedTurns = needed
-                    // Don't reset zoom to max — keep current zoom level.
-                    // Only expand if current zoom was already at max.
-                    if visibleDays >= maxReachedTurns * 0.95 {
-                        let initialZoom = min(needed, 7.0)
-                        visibleDays = initialZoom; liveVisibleDays = initialZoom
-                        pinchBaseVisibleDays = initialZoom
-                    }
+                }
+                // After reset+reimport (0→N), or if zoom was at max, set initial zoom
+                if wasEmpty || visibleDays >= maxReachedTurns * 0.95 {
+                    let initialZoom = min(maxReachedTurns, 7.0)
+                    visibleDays = initialZoom; liveVisibleDays = initialZoom
+                    pinchBaseVisibleDays = initialZoom
                 }
                 cursorAbsHour = nowAbsHour
             }
