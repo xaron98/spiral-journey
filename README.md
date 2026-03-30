@@ -67,4 +67,4 @@ Carlos Javier Perea Gallego
 
 ## License
 
-All rights reserved. Source code is private.
+GPL-3.0 — see [LICENSE](LICENSE)
