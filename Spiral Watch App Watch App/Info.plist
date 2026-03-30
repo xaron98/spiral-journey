@@ -5,6 +5,6 @@
 	<key>NSHealthShareUsageDescription</key>
 	<string>Spiral Journey reads your sleep data from Apple Health to analyze your circadian rhythm and show sleep statistics on your wrist. Your data stays on your device and is never shared.</string>
 	<key>NSHealthUpdateUsageDescription</key>
-	<string>Spiral Journey registra tus preferencias de sueño y eventos circadianos para ofrecerte un seguimiento personalizado de tu descanso.</string>
+	<string>Spiral Journey records your sleep preferences and circadian events to provide personalized tracking of your rest.</string>
 </dict>
 </plist>
