@@ -742,6 +742,10 @@ final class SpiralStore {
                 PredictionService.evaluatePastPredictions(store: self)
                 // Retrain ML model if enough ground truth has accumulated
                 ModelTrainingService.retrainIfNeeded(store: self)
+                // Reschedule weekly digest with fresh score
+                if self.notificationsEnabled {
+                    Task { await self.updateWeeklyDigest() }
+                }
                 // Update sleep prediction (no-op if flag is off)
                 PredictionService.generatePrediction(
                     store: self,

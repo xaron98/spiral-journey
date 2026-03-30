@@ -57833,6 +57833,18 @@
         }
       }
     },
+    "spiral.info.awake.brief": {
+      "localizations": {
+        "ar": { "stringUnit": { "state": "translated", "value": "\u0627\u0633\u062a\u064a\u0642\u0627\u0638 \u0642\u0635\u064a\u0631" } },
+        "ca": { "stringUnit": { "state": "translated", "value": "Despertar breu" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Kurzes Erwachen" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Brief awakening" } },
+        "es": { "stringUnit": { "state": "translated", "value": "Despertar breve" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "\u00c9veil bref" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "\u77ed\u3044\u899a\u9192" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "\u77ed\u6682\u6e05\u9192" } }
+      }
+    },
     "spiral.info.sleep": {
       "localizations": {
         "ar": {
@@ -57883,6 +57895,42 @@
             "value": "睡眠"
           }
         }
+      }
+    },
+    "spiral.info.sleep.deep": {
+      "localizations": {
+        "ar": { "stringUnit": { "state": "translated", "value": "\u0646\u0648\u0645 \u0639\u0645\u064a\u0642" } },
+        "ca": { "stringUnit": { "state": "translated", "value": "Son profund" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Tiefschlaf" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Deep sleep" } },
+        "es": { "stringUnit": { "state": "translated", "value": "Sue\u00f1o profundo" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Sommeil profond" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "\u6df1\u3044\u7761\u7720" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "\u6df1\u5ea6\u7761\u7720" } }
+      }
+    },
+    "spiral.info.sleep.light": {
+      "localizations": {
+        "ar": { "stringUnit": { "state": "translated", "value": "\u0646\u0648\u0645 \u062e\u0641\u064a\u0641" } },
+        "ca": { "stringUnit": { "state": "translated", "value": "Son lleuger" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Leichter Schlaf" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Light sleep" } },
+        "es": { "stringUnit": { "state": "translated", "value": "Sue\u00f1o ligero" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Sommeil l\u00e9ger" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "\u6d45\u3044\u7761\u7720" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "\u6d45\u7761\u7720" } }
+      }
+    },
+    "spiral.info.sleep.rem": {
+      "localizations": {
+        "ar": { "stringUnit": { "state": "translated", "value": "REM (\u0623\u062d\u0644\u0627\u0645)" } },
+        "ca": { "stringUnit": { "state": "translated", "value": "REM (somnis)" } },
+        "de": { "stringUnit": { "state": "translated", "value": "REM (Tr\u00e4ume)" } },
+        "en": { "stringUnit": { "state": "translated", "value": "REM (dreams)" } },
+        "es": { "stringUnit": { "state": "translated", "value": "REM (sue\u00f1os)" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "REM (r\u00eaves)" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "REM\uff08\u5922\uff09" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "REM\uff08\u68a6\u5883\uff09" } }
       }
     },
     "spiral.info.vigilia": {

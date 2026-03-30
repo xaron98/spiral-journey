@@ -1519,29 +1519,58 @@ struct SpiralTab: View {
             return
         }
 
-        // 3. Sleep (search current + adjacent days)
+        // 3. Sleep (search current day's record using absolute hours, not clock hours)
+        //    Uses cursorAbsHour directly to avoid day-boundary ambiguity.
+        let cursorAbs = cursorAbsHour
         for candidateDay in [dayIndex, dayIndex - 1, dayIndex + 1] {
             guard let record = store.records.first(where: { $0.day == candidateDay }) else { continue }
-            let phaseAtHour = record.phases.last(where: { $0.hour <= clockHour })
-            let isSleepPhase = phaseAtHour != nil && phaseAtHour!.phase != .awake
-            let bedH = record.bedtimeHour, wakeH = record.wakeupHour
-            let inSleepRange: Bool
-            if bedH > wakeH { inSleepRange = clockHour >= bedH || clockHour <= wakeH }
-            else if bedH < wakeH { inSleepRange = clockHour >= bedH && clockHour <= wakeH }
-            else { inSleepRange = false }
 
-            if isSleepPhase || inSleepRange {
+            // Convert record's bed/wake to absolute hours for unambiguous comparison
+            let bedAbs = Double(candidateDay) * period + record.bedtimeHour
+            let wakeAbs: Double = {
+                let w = Double(candidateDay) * period + record.wakeupHour
+                // If wake < bed (crosses midnight), wake is next day
+                return w <= bedAbs ? w + period : w
+            }()
+
+            // Cursor must be within this record's absolute time range
+            guard cursorAbs >= bedAbs && cursorAbs <= wakeAbs else { continue }
+
+            // Find the actual phase at cursor time
+            let phaseAtHour = record.phases.last(where: { $0.hour <= clockHour })
+
+            // If phase is .awake (brief awakening within sleep), show it as awakening
+            if let phase = phaseAtHour, phase.phase == .awake {
                 showElementInfo(SpiralElementInfo(
-                    label: loc("spiral.info.sleep"),
-                    timeRange: "\(formatClockHour(bedH)) – \(formatClockHour(wakeH))",
+                    label: loc("spiral.info.awake.brief"),
+                    timeRange: "\(formatClockHour(record.bedtimeHour)) – \(formatClockHour(record.wakeupHour))",
                     duration: formatDurationCompact(record.sleepDuration),
-                    color: Color(hex: "a855f7")
+                    color: SpiralColors.awakeSleep
                 ))
-                return
+            } else {
+                // Real sleep phase
+                let phaseLabel: String
+                if let phase = phaseAtHour {
+                    switch phase.phase {
+                    case .deep:  phaseLabel = loc("spiral.info.sleep.deep")
+                    case .rem:   phaseLabel = loc("spiral.info.sleep.rem")
+                    case .light: phaseLabel = loc("spiral.info.sleep.light")
+                    case .awake: phaseLabel = loc("spiral.info.sleep")
+                    }
+                } else {
+                    phaseLabel = loc("spiral.info.sleep")
+                }
+                showElementInfo(SpiralElementInfo(
+                    label: phaseLabel,
+                    timeRange: "\(formatClockHour(record.bedtimeHour)) – \(formatClockHour(record.wakeupHour))",
+                    duration: formatDurationCompact(record.sleepDuration),
+                    color: Color(hex: phaseAtHour?.phase.hexColor ?? "a855f7")
+                ))
             }
+            return
         }
 
-        // 4. Awake (record exists but not sleeping)
+        // 4. Awake (record exists but cursor is outside sleep range)
         if let record = store.records.first(where: { $0.day == dayIndex }) {
             showElementInfo(SpiralElementInfo(
                 label: loc("spiral.info.awake"),
