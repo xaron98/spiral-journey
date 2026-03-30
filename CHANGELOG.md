@@ -4,7 +4,7 @@ All notable changes to Spiral Journey will be documented in this file.
 
 ---
 
-## [1.1.0] — Unreleased
+## [1.1.0] — Partial Unreleased
 
 ### New Features
 - **Sleep Triangle**: Barycentric triangle visualization of sleep architecture. Three poles (Wake, Active, Deep) based on empirical data from 155+ subjects. Each epoch maps to a point inside the triangle — showing your brain's position between wakefulness, dreaming, and deep rest. Animated trajectory with playback controls. Accessible from DNA Insights (triangle icon).
