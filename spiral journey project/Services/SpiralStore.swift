@@ -130,7 +130,7 @@ final class SpiralStore {
             #endif
         }
     }
-    var depthScale: Double = 0.15 {
+    var depthScale: Double = 0 {
         didSet {
             settingsNeedCloudPush = true
             save()
@@ -1061,7 +1061,7 @@ final class SpiralStore {
         spiralType = .archimedean           // default: uniform arc spacing
         period = 24.0
         linkGrowthToTau = false
-        depthScale = 0.15
+        depthScale = 0              // default: flat 2D archimedean
         flatMode = false
         showGrid = true
         language = .systemMatch
