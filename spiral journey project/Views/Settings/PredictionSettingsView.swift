@@ -18,6 +18,7 @@ struct PredictionSettingsView: View {
                         Spacer()
                         Toggle("", isOn: $store.predictionEnabled)
                             .labelsHidden()
+                            .accessibilityLabel(String(localized: "accessibility.toggle.prediction", defaultValue: "Sleep prediction"))
                             .tint(SpiralColors.accent)
                     }
                     .padding(.vertical, 12)
@@ -32,6 +33,7 @@ struct PredictionSettingsView: View {
                             Spacer()
                             Toggle("", isOn: $store.predictionOverlayEnabled)
                                 .labelsHidden()
+                                .accessibilityLabel(String(localized: "accessibility.toggle.predictionOverlay", defaultValue: "Prediction overlay"))
                                 .tint(SpiralColors.accent)
                         }
                         .padding(.vertical, 12)
@@ -45,6 +47,7 @@ struct PredictionSettingsView: View {
                             Spacer()
                             Toggle("", isOn: $store.mlPredictionEnabled)
                                 .labelsHidden()
+                                .accessibilityLabel(String(localized: "accessibility.toggle.mlPrediction", defaultValue: "ML prediction"))
                                 .tint(SpiralColors.accent)
                         }
                         .padding(.vertical, 12)

@@ -7,6 +7,7 @@ struct WidgetSpiralCanvas: View {
     var spiralType: SpiralType = .archimedean
     var period: Double = 24.0
     var numDays: Int = 7
+    var nowTurns: Double = 0
     var showHourLabels: Bool = true
 
     private var spiralExtentTurns: Double {
@@ -30,6 +31,7 @@ struct WidgetSpiralCanvas: View {
 
             drawDayRings(context: context, geo: geo, upToTurns: turns)
             drawDataPoints(context: context, geo: geo)
+            drawLiveAwakeExtension(context: context, geo: geo)
         }
     }
 
@@ -136,6 +138,9 @@ struct WidgetSpiralCanvas: View {
             }
         }
 
+        // Clip phases past "now" so the last record doesn't extend to midnight
+        let clipT = nowTurns > 0 ? nowTurns : Double.greatestFiniteMagnitude
+
         for record in records {
             let phases = record.phases
             guard !phases.isEmpty else { continue }
@@ -154,6 +159,9 @@ struct WidgetSpiralCanvas: View {
             for (i, phase) in phases.enumerated() {
                 // Use timestamp for continuous t — no midnight wrapping
                 let t = phase.timestamp / geo.period
+                // Stop drawing past the current time
+                if t > clipT { flushRun(nextPhase: nil); break }
+
                 if phase.phase != runPhase {
                     let edgePt = project(turns: t, geo: geo)
                     runPts.append((t, edgePt))
@@ -165,7 +173,7 @@ struct WidgetSpiralCanvas: View {
                     runPts.append((t, project(turns: t, geo: geo)))
                 }
                 if i == phases.count - 1 {
-                    let tEnd = t + 0.25 / geo.period
+                    let tEnd = min(t + 0.25 / geo.period, clipT)
                     runPts.append((tEnd, project(turns: tEnd, geo: geo)))
                     flushRun(nextPhase: nil)
                 }
@@ -174,6 +182,39 @@ struct WidgetSpiralCanvas: View {
 
             for run in runs where !isSleep(run.phase) { drawRun(run) }
             for run in runs where  isSleep(run.phase) { drawRun(run) }
+        }
+    }
+
+    // MARK: - Live awake extension (amber path from data end to now)
+
+    private func drawLiveAwakeExtension(context: GraphicsContext, geo: SpiralGeometry) {
+        guard nowTurns > 0 else { return }
+        let endT = dataEndTurns(geo: geo)
+        guard nowTurns > endT else { return }
+
+        let steps = max(Int((nowTurns - endT) * 60), 2)
+        let maxLW = max(2.0, geo.spacing * 0.65)
+        let color = Color(hex: "fbbf24") // amber, same as awake phase
+
+        var path = Path()
+        for i in 0...steps {
+            let t  = endT + (nowTurns - endT) * Double(i) / Double(steps)
+            let pt = project(turns: t, geo: geo)
+            let opac = weekWindowOpacity(turns: t)
+            if i == 0 {
+                path.move(to: pt)
+            } else {
+                path.addLine(to: pt)
+            }
+            // Draw segment by segment for opacity variation
+            if i > 0 {
+                var seg = Path()
+                let prevT = endT + (nowTurns - endT) * Double(i - 1) / Double(steps)
+                seg.move(to: project(turns: prevT, geo: geo))
+                seg.addLine(to: pt)
+                context.stroke(seg, with: .color(color.opacity(opac)),
+                               style: StrokeStyle(lineWidth: maxLW, lineCap: .round))
+            }
         }
     }
 

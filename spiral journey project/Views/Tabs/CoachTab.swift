@@ -451,6 +451,8 @@ struct CoachTab: View {
                 RoundedRectangle(cornerRadius: 14).stroke(Color.yellow.opacity(0.25), lineWidth: 0.8)
             }
         )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(String(localized: "accessibility.celebration", defaultValue: "Achievement"))
     }
 
     // MARK: - Streak Card
@@ -492,6 +494,8 @@ struct CoachTab: View {
                 RoundedRectangle(cornerRadius: 14).stroke(Color.orange.opacity(0.18), lineWidth: 0.8)
             }
         )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(String(localized: "accessibility.streak", defaultValue: "Streak") + ", \(streak.currentStreak)")
     }
 
     // MARK: - Micro-Habit Card
@@ -975,5 +979,7 @@ private struct CoachSectionCard: View {
                 RoundedRectangle(cornerRadius: 16).stroke(accentColor.opacity(0.18), lineWidth: 0.8)
             }
         )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(eyebrow), \(title)")
     }
 }

@@ -102,6 +102,8 @@ struct DriftChartView: View {
             }
         }
         .glassPanel()
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(String(localized: "accessibility.chart.drift", defaultValue: "Sleep timing drift chart"))
     }
 
     private func legendItem(color: Color, label: String) -> some View {

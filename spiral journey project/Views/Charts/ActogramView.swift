@@ -68,5 +68,7 @@ struct ActogramView: View {
             }
         }
         .glassPanel()
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(String(localized: "accessibility.chart.actogram", defaultValue: "Actogram sleep pattern chart"))
     }
 }

@@ -214,6 +214,7 @@ struct SpiralControlsSettingsView: View {
                         Spacer()
                         Toggle("", isOn: $store.spiralRevealAnimation)
                             .labelsHidden()
+                            .accessibilityLabel(String(localized: "accessibility.toggle.reveal", defaultValue: "Reveal animation"))
                             .tint(SpiralColors.accent)
                     }
                     .padding(.vertical, 12)
@@ -228,6 +229,7 @@ struct SpiralControlsSettingsView: View {
                         Spacer()
                         Toggle("", isOn: $store.showGrid)
                             .labelsHidden()
+                            .accessibilityLabel(String(localized: "accessibility.toggle.grid", defaultValue: "Grid guides"))
                             .tint(SpiralColors.accent)
                     }
                     .padding(.vertical, 12)
@@ -242,6 +244,7 @@ struct SpiralControlsSettingsView: View {
                         Spacer()
                         Toggle("", isOn: $store.linkGrowthToTau)
                             .labelsHidden()
+                            .accessibilityLabel(String(localized: "accessibility.toggle.linkTau", defaultValue: "Link growth to period"))
                             .tint(SpiralColors.accent)
                     }
                     .padding(.vertical, 12)

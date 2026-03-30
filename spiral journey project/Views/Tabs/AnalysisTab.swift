@@ -219,7 +219,7 @@ struct AnalysisTab: View {
             valueUnit: "/100",
             description: consistencyDescription(label: label, delta: delta),
             trend: trendDirection(delta: delta),
-            accentColor: Color(hex: label.hexColor)
+            accentColor: consistencyColor(label: label)
         )
     }
 
@@ -241,6 +241,15 @@ struct AnalysisTab: View {
             }
         }
         return base
+    }
+
+    private func consistencyColor(label: ConsistencyLabel) -> Color {
+        switch label {
+        case .veryStable, .stable:   return SpiralColors.good
+        case .variable:              return SpiralColors.moderate
+        case .disorganized:          return SpiralColors.poor
+        case .insufficient:          return SpiralColors.muted
+        }
     }
 
     private var driftTrendCard: some View {
@@ -420,6 +429,8 @@ struct AnalysisTab: View {
         }
         .padding(20)
         .liquidGlass(cornerRadius: 20, tint: Color(hex: store.analysis.hexColor))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(String(localized: "accessibility.score.label", defaultValue: "Sleep score") + ", \(store.analysis.composite), \(localizedScoreLabel)")
     }
 
     // MARK: - Chart toggles
@@ -574,6 +585,8 @@ struct TrendDimensionCard: View {
         }
         .padding(20)
         .liquidGlass(cornerRadius: 16, tint: accentColor)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(title), \(value)\(valueUnit)")
     }
 }
 

@@ -60,7 +60,7 @@ final class WatchHealthKitManager {
         guard isAvailable, observerQuery == nil else { return }
         let query = HKObserverQuery(sampleType: sleepType, predicate: nil) { [weak self] _, completionHandler, error in
             guard error == nil else { completionHandler(); return }
-            DispatchQueue.main.async {
+            Task { @MainActor [weak self] in
                 self?.onNewSleepData?()
             }
             completionHandler()
@@ -86,7 +86,9 @@ final class WatchHealthKitManager {
             limit: HKObjectQueryNoLimit
         ) { [weak self] _, _, _, newAnchor, error in
             guard error == nil else { return }
-            self?.sleepAnchor = newAnchor
+            Task { @MainActor [weak self] in
+                self?.sleepAnchor = newAnchor
+            }
             // Initial fetch — don't trigger callback (loadData already ran)
         }
 
@@ -96,7 +98,7 @@ final class WatchHealthKitManager {
             #if DEBUG
             print("[WatchHK-Anchor] UPDATE: \(samples.count) new samples!")
             #endif
-            DispatchQueue.main.async {
+            Task { @MainActor [weak self] in
                 self?.sleepAnchor = newAnchor
                 self?.onNewSleepData?()
             }

@@ -7,7 +7,7 @@ import SpiralKit
 ///
 /// Privacy-first: only aggregated `ComparisonPayload` is transmitted — no raw records,
 /// no health data, no events. Data exists only while connected; cleared on disconnect.
-@Observable
+@MainActor @Observable
 final class PeerComparisonManager: NSObject {
 
     // MARK: - Types
@@ -117,7 +117,7 @@ final class PeerComparisonManager: NSObject {
 
 extension PeerComparisonManager: MCSessionDelegate {
 
-    func session(_ session: MCSession, peer peerID: MCPeerID, didChange newState: MCSessionState) {
+    nonisolated func session(_ session: MCSession, peer peerID: MCPeerID, didChange newState: MCSessionState) {
         Task { @MainActor in
             switch newState {
             case .connected:
@@ -137,7 +137,7 @@ extension PeerComparisonManager: MCSessionDelegate {
         }
     }
 
-    func session(_ session: MCSession, didReceive data: Data, fromPeer peerID: MCPeerID) {
+    nonisolated func session(_ session: MCSession, didReceive data: Data, fromPeer peerID: MCPeerID) {
         guard let payload = try? JSONDecoder().decode(ComparisonPayload.self, from: data) else { return }
         Task { @MainActor in
             peerPayload = payload
@@ -146,24 +146,26 @@ extension PeerComparisonManager: MCSessionDelegate {
         }
     }
 
-    func session(_ session: MCSession, didReceive stream: InputStream, withName streamName: String, fromPeer peerID: MCPeerID) {}
+    nonisolated func session(_ session: MCSession, didReceive stream: InputStream, withName streamName: String, fromPeer peerID: MCPeerID) {}
 
-    func session(_ session: MCSession, didStartReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, with progress: Progress) {}
+    nonisolated func session(_ session: MCSession, didStartReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, with progress: Progress) {}
 
-    func session(_ session: MCSession, didFinishReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, at localURL: URL?, withError error: Error?) {}
+    nonisolated func session(_ session: MCSession, didFinishReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, at localURL: URL?, withError error: Error?) {}
 }
 
 // MARK: - MCNearbyServiceBrowserDelegate
 
 extension PeerComparisonManager: MCNearbyServiceBrowserDelegate {
 
-    func browser(_ browser: MCNearbyServiceBrowser, foundPeer peerID: MCPeerID, withDiscoveryInfo info: [String: String]?) {
+    nonisolated func browser(_ browser: MCNearbyServiceBrowser, foundPeer peerID: MCPeerID, withDiscoveryInfo info: [String: String]?) {
         // Auto-invite — both devices are actively in the comparison screen
-        guard let session else { return }
-        browser.invitePeer(peerID, to: session, withContext: nil, timeout: 30)
+        Task { @MainActor in
+            guard let session = self.session else { return }
+            browser.invitePeer(peerID, to: session, withContext: nil, timeout: 30)
+        }
     }
 
-    func browser(_ browser: MCNearbyServiceBrowser, lostPeer peerID: MCPeerID) {
+    nonisolated func browser(_ browser: MCNearbyServiceBrowser, lostPeer peerID: MCPeerID) {
         // No action needed — session delegate handles disconnect
     }
 }
@@ -172,13 +174,15 @@ extension PeerComparisonManager: MCNearbyServiceBrowserDelegate {
 
 extension PeerComparisonManager: MCNearbyServiceAdvertiserDelegate {
 
-    func advertiser(
+    nonisolated func advertiser(
         _ advertiser: MCNearbyServiceAdvertiser,
         didReceiveInvitationFromPeer peerID: MCPeerID,
         withContext context: Data?,
         invitationHandler: @escaping (Bool, MCSession?) -> Void
     ) {
         // Auto-accept — both devices are actively searching
-        invitationHandler(true, session)
+        Task { @MainActor in
+            invitationHandler(true, self.session)
+        }
     }
 }

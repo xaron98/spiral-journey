@@ -28,6 +28,7 @@ struct ContextSettingsView: View {
                         Spacer()
                         Toggle("", isOn: $store.contextBlocksEnabled)
                             .labelsHidden()
+                            .accessibilityLabel(String(localized: "accessibility.toggle.context", defaultValue: "Daily context"))
                             .toggleStyle(SwitchToggleStyle(tint: SpiralColors.contextPrimary))
                     }
                     .padding(16)

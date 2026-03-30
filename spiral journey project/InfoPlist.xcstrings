@@ -29,10 +29,52 @@
       "comment" : "Privacy - Calendars Full Access Usage Description",
       "extractionState" : "extracted_with_value",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يمكن لـ Spiral Journey استيراد أحداث التقويم ككتل سياق لاكتشاف التعارضات بين جدول نومك والتزاماتك اليومية. قد تتم مزامنة بيانات التقويم عبر أجهزتك عبر iCloud إذا تم تمكين المزامنة السحابية."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey pot importar els teus esdeveniments de calendari com a blocs de context per detectar conflictes entre el teu horari de son i les teves obligacions diàries. Les dades del calendari es poden sincronitzar entre els teus dispositius via iCloud si la sincronització al núvol està activada."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey kann deine Kalendertermine als Kontextblöcke importieren, um Konflikte zwischen deinem Schlafplan und täglichen Verpflichtungen zu erkennen. Kalenderdaten können über iCloud zwischen deinen Geräten synchronisiert werden, wenn die Cloud-Synchronisierung aktiviert ist."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Spiral Journey can import your calendar events as context blocks to detect conflicts between your sleep schedule and daily obligations. Calendar data may sync across your devices via iCloud if cloud sync is enabled."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey puede importar tus eventos de calendario como bloques de contexto para detectar conflictos entre tu horario de sueño y tus obligaciones diarias. Los datos del calendario pueden sincronizarse entre tus dispositivos vía iCloud si la sincronización en la nube está activada."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey peut importer vos événements de calendrier comme blocs de contexte pour détecter les conflits entre votre horaire de sommeil et vos obligations quotidiennes. Les données du calendrier peuvent se synchroniser entre vos appareils via iCloud si la synchronisation cloud est activée."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journeyは、睡眠スケジュールと日常の予定との競合を検出するために、カレンダーイベントをコンテキストブロックとしてインポートできます。クラウド同期が有効な場合、カレンダーデータはiCloud経由でデバイス間で同期されることがあります。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey 可以将您的日历事件导入为上下文块，以检测睡眠计划与日常义务之间的冲突。如果启用了云同步，日历数据可能会通过 iCloud 在您的设备之间同步。"
           }
         }
       }
@@ -41,10 +83,52 @@
       "comment" : "Privacy - Calendars Usage Description",
       "extractionState" : "extracted_with_value",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يمكن لـ Spiral Journey استيراد أحداث التقويم ككتل سياق لاكتشاف التعارضات بين جدول نومك والتزاماتك اليومية. قد تتم مزامنة بيانات التقويم عبر أجهزتك عبر iCloud إذا تم تمكين المزامنة السحابية."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey pot importar els teus esdeveniments de calendari com a blocs de context per detectar conflictes entre el teu horari de son i les teves obligacions diàries. Les dades del calendari es poden sincronitzar entre els teus dispositius via iCloud si la sincronització al núvol està activada."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey kann deine Kalendertermine als Kontextblöcke importieren, um Konflikte zwischen deinem Schlafplan und täglichen Verpflichtungen zu erkennen. Kalenderdaten können über iCloud zwischen deinen Geräten synchronisiert werden, wenn die Cloud-Synchronisierung aktiviert ist."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Spiral Journey can import your calendar events as context blocks to detect conflicts between your sleep schedule and daily obligations. Calendar data may sync across your devices via iCloud if cloud sync is enabled."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey puede importar tus eventos de calendario como bloques de contexto para detectar conflictos entre tu horario de sueño y tus obligaciones diarias. Los datos del calendario pueden sincronizarse entre tus dispositivos vía iCloud si la sincronización en la nube está activada."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey peut importer vos événements de calendrier comme blocs de contexte pour détecter les conflits entre votre horaire de sommeil et vos obligations quotidiennes. Les données du calendrier peuvent se synchroniser entre vos appareils via iCloud si la synchronisation cloud est activée."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journeyは、睡眠スケジュールと日常の予定との競合を検出するために、カレンダーイベントをコンテキストブロックとしてインポートできます。クラウド同期が有効な場合、カレンダーデータはiCloud経由でデバイス間で同期されることがあります。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey 可以将您的日历事件导入为上下文块，以检测睡眠计划与日常义务之间的冲突。如果启用了云同步，日历数据可能会通过 iCloud 在您的设备之间同步。"
           }
         }
       }
@@ -98,6 +182,168 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Spiral Journey 从 Apple 健康读取您的睡眠数据和心率变异性，以分析您的昼夜节律、计算睡眠统计数据并提供个性化建议。您的数据绝不会与第三方共享，仅在应用内使用。"
+          }
+        }
+      }
+    },
+    "NSLocalNetworkUsageDescription" : {
+      "comment" : "Privacy - Local Network Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يستخدم Spiral Journey الشبكة المحلية لاكتشاف الأجهزة القريبة لمقارنة ملفات النوم المجهولة عبر Multipeer Connectivity. تتم مشاركة المقاييس المجمعة فقط — لا تغادر بيانات صحية خام جهازك."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey utilitza la xarxa local per descobrir dispositius propers per a la comparació anònima de perfils de son via Multipeer Connectivity. Només es comparteixen mètriques agregades — cap dada de salut en brut surt del teu dispositiu."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey verwendet das lokale Netzwerk, um Geräte in der Nähe für einen anonymen Schlafprofilvergleich über Multipeer Connectivity zu finden. Es werden nur aggregierte Metriken geteilt — keine Rohdaten verlassen dein Gerät."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Spiral Journey uses the local network to discover nearby devices for anonymous sleep profile comparison via Multipeer Connectivity. Only aggregated metrics are shared — no raw health data leaves your device."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey usa la red local para descubrir dispositivos cercanos para la comparación anónima de perfiles de sueño vía Multipeer Connectivity. Solo se comparten métricas agregadas — ningún dato de salud en bruto sale de tu dispositivo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey utilise le réseau local pour découvrir les appareils à proximité pour une comparaison anonyme de profils de sommeil via Multipeer Connectivity. Seules des métriques agrégées sont partagées — aucune donnée de santé brute ne quitte votre appareil."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journeyは、Multipeer Connectivity経由で匿名の睡眠プロファイル比較のために、ローカルネットワークを使用して近くのデバイスを検出します。共有されるのは集計メトリクスのみで、生の健康データがデバイスから出ることはありません。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey 使用本地网络通过 Multipeer Connectivity 发现附近设备，进行匿名睡眠档案比较。仅共享汇总指标——原始健康数据不会离开您的设备。"
+          }
+        }
+      }
+    },
+    "NSMicrophoneUsageDescription" : {
+      "comment" : "Privacy - Microphone Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يحتاج Spiral Journey إلى الوصول إلى الميكروفون لتحويل إدخالات دفتر أحلامك إلى نص بالصوت."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey necessita accés al micròfon per transcriure les entrades del teu diari de somnis per veu."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey benötigt Mikrofonzugriff, um deine Traumtagebucheinträge per Sprache zu transkribieren."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Spiral Journey needs microphone access to transcribe your dream journal entries by voice."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey necesita acceso al micrófono para transcribir las entradas de tu diario de sueños por voz."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey a besoin de l'accès au microphone pour transcrire vos entrées de journal de rêves par la voix."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journeyは、夢日記のエントリーを音声で文字起こしするためにマイクへのアクセスが必要です。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey 需要麦克风权限，以便通过语音转录您的梦境日记条目。"
+          }
+        }
+      }
+    },
+    "NSSpeechRecognitionUsageDescription" : {
+      "comment" : "Privacy - Speech Recognition Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يستخدم Spiral Journey التعرف على الكلام على الجهاز لتحويل إدخالات دفتر أحلامك إلى نص بالصوت. تتم معالجة الصوت بالكامل على جهازك ولا يُرسل أبدًا إلى خوادم خارجية."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey utilitza el reconeixement de veu al dispositiu per transcriure les entrades del teu diari de somnis per veu. L'àudio es processa completament al teu dispositiu i mai s'envia a servidors externs."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey verwendet die geräteinterne Spracherkennung, um deine Traumtagebucheinträge per Sprache zu transkribieren. Audio wird vollständig auf deinem Gerät verarbeitet und niemals an externe Server gesendet."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Spiral Journey uses on-device speech recognition to transcribe your dream journal entries by voice. Audio is processed entirely on your device and never sent to external servers."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey usa el reconocimiento de voz en el dispositivo para transcribir las entradas de tu diario de sueños por voz. El audio se procesa completamente en tu dispositivo y nunca se envía a servidores externos."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey utilise la reconnaissance vocale sur l'appareil pour transcrire vos entrées de journal de rêves par la voix. L'audio est traité entièrement sur votre appareil et n'est jamais envoyé à des serveurs externes."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journeyは、夢日記のエントリーを音声で文字起こしするために、デバイス上の音声認識を使用します。音声はデバイス上で完全に処理され、外部サーバーに送信されることはありません。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiral Journey 使用设备端语音识别来通过语音转录您的梦境日记条目。音频完全在您的设备上处理，绝不会发送到外部服务器。"
           }
         }
       }

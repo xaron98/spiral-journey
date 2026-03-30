@@ -1,0 +1,224 @@
+{
+  "articles": [
+    {
+      "id": "what-is-sleep",
+      "title": "Què és el son?",
+      "icon": "moon.stars.fill",
+      "sections": [
+        {
+          "header": "Una definició científica",
+          "body": "El son és un estat recurrent natural i reversible de consciència reduïda i desconnexió sensorial de l'entorn. A diferència del coma o l'anestèsia, el son és ràpidament reversible: un soroll fort o una sacsejada suau poden despertar-te. Està regulat per dos impulsos independents: un rellotge circadiari que indica al cos quan dormir, i una pressió homeostàtica que s'acumula com més temps estàs despert. Tots els animals amb sistema nerviós estudiats fins ara mostren alguna forma de son, cosa que suggereix que va sorgir molt aviat en l'evolució. Malgrat dècades de recerca, cap teoria individual explica completament per què passem aproximadament un terç de les nostres vides inconscients. El que sí sabem és que el son no és un temps d'inactivitat passiva—és un procés biològic actiu, altament orquestrat i essencial per a la supervivència.",
+          "funFact": "Ho sabies? El son REM va ser identificat per primera vegada el 1953 per Eugene Aserinsky i Nathaniel Kleitman a la Universitat de Chicago, quan van observar moviments oculars ràpids en nadons adormits."
+        },
+        {
+          "header": "Arquitectura del son",
+          "body": "Una nit de son no és un bloc uniforme—és una seqüència de fases acuradament estructurada. El son no-REM (NREM) té tres etapes: N1 és una fase transicional lleugera que dura aproximadament el 5% del son total; N2, l'etapa dominant, representa al voltant del 50% i presenta fusos del son i complexos K característics; N3, també anomenat son d'ones lentes (SWS), constitueix aproximadament el 18% i produeix les grans ones delta sincronitzades, crítiques per a la restauració física i la memòria. El son REM, on es produeixen els somnis més vívids, ocupa el ~23% restant. Aquestes etapes no es distribueixen uniformement—N3 es concentra a la primera meitat de la nit quan la pressió homeostàtica del son és més alta, mentre que els episodis REM es fan més llargs cap al matí a mesura que l'impuls circadiari desplaça l'equilibri.",
+          "funFact": "Ho sabies? Els nadons passen aproximadament el 50% del son en fase REM, comparat amb el 23% dels adults. Es creu que això dóna suport al massiu desenvolupament neuronal que es produeix en les primeres etapes de la vida."
+        },
+        {
+          "header": "Cicles ultradians",
+          "body": "Les fases del son es repeteixen en cicles durant la nit, anomenats cicles ultradians. La durada mediana d'un cicle és d'aproximadament 96 minuts, encara que els cicles individuals poden anar de 70 a 120 minuts. La majoria d'adults completen de 4 a 6 cicles complets per nit. Cada cicle típicament progressa a través de N1, N2, N3, i després REM, però la composició canvia a mesura que avança la nit. Els primers cicles són rics en son profund d'ones lentes—el cervell prioritza l'etapa més restauradora primer. Els cicles posteriors contenen períodes REM progressivament més llargs i menys N3. Per això, escurçar el son encara que sigui un sol cicle redueix desproporcionadament el temps de REM. El patró cíclic és notablement estable dins d'un individu però varia entre la població, influït per l'edat, el cronotip i l'historial de son previ.",
+          "funFact": "Ho sabies? Els fusos del son—breus ràfegues d'activitat cerebral oscil·latòria durant N2—en realitat t'ajuden a protegir-te de despertar-te. Les persones que produeixen més fusos tendeixen a dormir sense despertar-se amb el soroll més fàcilment."
+        },
+        {
+          "header": "Com es mesura el son",
+          "body": "L'estàndard d'or per a la mesura del son és la polisomniografia (PSG), una prova clínica que registra simultàniament ones cerebrals (EEG), moviments oculars (EOG), activitat muscular (EMG), ritme cardíac, respiració i oxigen en sang. La PSG pot identificar cada fase del son amb alta precisió, però requereix un entorn de laboratori i equipament especialitzat. Per al seguiment a llarg termini fora de la clínica, l'actigrafia utilitza un acceleròmetre de canell per estimar el son i la vigília basant-se en patrons de moviment—és convenient però no pot distingir les fases del son. Dispositius comercials com l'Apple Watch combinen accelerometria amb freqüència cardíaca i de vegades oxigen en sang per inferir les fases del son. Estudis mostren que l'Apple Watch aconsegueix aproximadament un 61–65% de concordança amb la PSG per a la classificació de fases—útil per detectar tendències al llarg de setmanes, encara que no és un substitut clínic.",
+          "funFact": "Ho sabies? El primer registre EEG del son humà va ser realitzat per Hans Berger a finals dels anys 1920, però van caldre 25 anys més perquè els investigadors s'adonessin que el son tenia fases diferenciades amb signatures d'ones cerebrals úniques."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Quina fase del son constitueix la proporció més gran del son adult?",
+          "options": ["N3 (son d'ones lentes)", "N2", "REM"],
+          "correct": 1
+        },
+        {
+          "question": "Quina és la durada mediana aproximada d'un cicle de son?",
+          "options": ["60 minuts", "96 minuts", "120 minuts"],
+          "correct": 1
+        },
+        {
+          "question": "Com de precís és l'Apple Watch classificant les fases del son comparat amb la PSG?",
+          "options": ["Aproximadament 85–90%", "Aproximadament 61–65%", "Aproximadament 40–45%"],
+          "correct": 1
+        }
+      ]
+    },
+    {
+      "id": "biological-clock",
+      "title": "El teu rellotge biològic",
+      "icon": "clock.fill",
+      "sections": [
+        {
+          "header": "El rellotge mestre",
+          "body": "Al fons del teu cervell, un petit grup d'aproximadament 20.000 neurones anomenat nucli supraciàsmatic (SCN) serveix com el teu rellotge biològic mestre. Situat a l'hipotàlem, just a sobre de l'encreuament dels nervis òptics, el SCN rep entrada directa de llum de cèl·lules retinianes especialitzades que contenen el fotopigment melanopsina. Aquestes cèl·lules ganglionars retinianes intrínsecament fotosensibles (ipRGCs) són més sensibles a la llum blava de longitud d'ona curta (~480 nm) i informen el SCN sobre la lluminositat ambiental. El SCN sincronitza llavors els rellotges de pràcticament cada cèl·lula del teu cos—fetge, cor, músculs, fins i tot pell—coordinant una vasta xarxa de ritmes fisiològics. Temperatura, secreció d'hormones, digestió i alerta segueixen aquest cicle d'aproximadament 24 hores. El dany al SCN en estudis amb animals aboleix completament els ritmes circadiaris coherents.",
+          "funFact": "Ho sabies? El SCN pot mantenir el temps sense cap senyal extern. En experiments d'aïllament, els humans continuen ciclant entre son i vigília en un horari d'aproximadament 24 hores fins i tot en foscor constant durant setmanes."
+        },
+        {
+          "header": "El model de dos processos",
+          "body": "El 1982, l'investigador del son Alexander Borbély va proposar el model de dos processos, que continua sent el marc dominant per entendre la regulació del son. El Procés S (pressió homeostàtica del son) s'acumula de manera constant durant la vigília—com més temps estàs despert, més fort és l'impuls per dormir. La molècula adenosina, un subproducte del consum d'energia neuronal, és un marcador molecular clau d'aquesta pressió. El Procés C (senyal d'alerta circadiari) oscil·la independentment en un cicle d'aproximadament 24 hores controlat pel SCN. T'adormes quan el Procés S supera el llindar circadiari i et despertes quan cau per sota. L'elegant interacció fa que fins i tot després d'un dia llarg, puguis sentir un segon aire a primera hora del vespre—és el teu senyal circadiari que contrarresta temporalment la pressió de son acumulada abans de cedir finalment a la teva nit biològica.",
+          "funFact": "Ho sabies? La cafeïna funciona bloquejant els receptors d'adenosina al cervell, emmascarant efectivament la pressió de son del Procés S sense reduir-la realment. L'adenosina encara hi és—simplement no la sents fins que la cafeïna s'esgota."
+        },
+        {
+          "header": "Melatonina i llum",
+          "body": "La melatonina, sovint anomenada «l'hormona de la foscor», és produïda per la glàndula pineal quan el SCN senyalitza que la nit ha arribat. No causa directament el son sinó que obre una «porta» fisiològica reduint la temperatura corporal central i disminuint l'alerta. El moment d'inici de la melatonina—anomenat inici de melatonina en llum tènue (DLMO)—és el biomarcador més fiable de la fase circadiària. L'exposició a la llum al vespre suprimeix potentment la producció de melatonina. La investigació mostra que l'ús de pantalles brillants (telèfons, tauletes, monitors) abans d'anar a dormir pot retardar el DLMO aproximadament 1,5 hores, desplaçant efectivament la teva nit biològica sense desplaçar el despertador. Fins i tot una il·luminació moderada (100–200 lux) pot atenuar la secreció de melatonina. L'exposició a la llum matutina té l'efecte oposat—avança el rellotge, reforçant un inici del son més primerenc la nit següent.",
+          "funFact": "Ho sabies? Moltes persones totalment cegues que no perceben la llum desenvolupen una condició anomenada Trastorn del Son-Vigília No-24-Hores, on el seu rellotge circadiari es desplaça una mica més tard cada dia perquè no es pot sincronitzar amb el cicle llum-foscor."
+        },
+        {
+          "header": "Cronotip",
+          "body": "El teu cronotip és la teva preferència innata per l'horari de son i activitat. Els tipus matutins («aloses») es desperten naturalment aviat i se senten més aguts a la primera meitat del dia; els tipus vespertins («mussols») arriben al pic d'alerta més tard i prefereixen quedar-se despert passada la mitjanit. Això no és peresa ni disciplina—està impulsat per la genètica, amb variants en gens del rellotge com PER2, PER3 i CRY1 que desplacen la fase de l'oscil·lador circadiari. El desajust entre el rellotge biològic d'una persona i el seu horari social (feina, escola) crea el que el cronobiòleg Till Roenneberg va anomenar «jetlag social»—la sensació de viure en zones horàries diferents sense volar mai. Grans enquestes mostren que la diferència mitjana entre els punts mitjans de son en dies lliures i dies laborables supera una hora per a la majoria d'adults, amb els cronotips vespertins acumulant més jetlag social i les seves conseqüències de salut associades.",
+          "funFact": "Ho sabies? El període intrínsec del rellotge circadiari humà (anomenat tau) és d'aproximadament 24,18 hores—lleugerament més llarg que un dia solar. Sense exposició diària a la llum per reiniciar-lo, el teu horari de son es desplaçaria uns 11 minuts més tard cada dia."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Què utilitza principalment el nucli supraciàsmatic (SCN) per sincronitzar el teu rellotge?",
+          "options": ["Canvis de temperatura", "Llum de l'entorn", "Horaris d'alimentació"],
+          "correct": 1
+        },
+        {
+          "question": "En el model de dos processos, què representa el Procés S?",
+          "options": ["Senyal d'alerta circadiari", "Pressió homeostàtica del son", "Impuls de son REM"],
+          "correct": 1
+        },
+        {
+          "question": "Quant pot retardar l'ús de pantalles al vespre l'inici de la melatonina?",
+          "options": ["Aproximadament 15 minuts", "Aproximadament 1,5 hores", "Aproximadament 4 hores"],
+          "correct": 1
+        }
+      ]
+    },
+    {
+      "id": "why-we-sleep",
+      "title": "Per què dormim?",
+      "icon": "brain.head.profile",
+      "sections": [
+        {
+          "header": "Homeòstasi sinàptica",
+          "body": "Durant les hores de vigília, el cervell aprèn constantment—enfortint les connexions sinàptiques cada vegada que experimentes alguna cosa nova. Però aquest procés no pot continuar indefinidament; les sinapsis acabarien saturant-se, consumint energia excessiva i perdent la capacitat de codificar nova informació. La hipòtesi de l'homeòstasi sinàptica, proposada per Giulio Tononi i Chiara Cirelli, argumenta que una funció essencial del son—particularment el son d'ones lentes—és reduir proporcionalment la força sinàptica a tot el cervell. Les oscil·lacions lentes del son profund essencialment «renormalitzen» les connexions: les sinapsis importants i ben reforçades sobreviuen la poda mentre que les febles i sorolloses s'esvaeixen. Aquesta recalibració nocturna restaura la capacitat del cervell per aprendre l'endemà. L'evidència de la hipòtesi prové d'estudis moleculars que mostren que les proteïnes sinàptiques són més altes després de la vigília i més baixes després del son.",
+          "funFact": "Ho sabies? En experiments de privació del son, les rates moren després d'aproximadament 11 a 32 dies sense dormir. La causa exacta de la mort encara es debat, però el col·lapse immunitari i la descomposició metabòlica semblen tenir un paper clau."
+        },
+        {
+          "header": "Consolidació de la memòria",
+          "body": "El son és quan els records es mouen de l'emmagatzematge temporal i fràgil a una forma estable a llarg termini—un procés anomenat consolidació. Diferents fases del son juguen papers diferents. El son d'ones lentes (N3) és crític per als records declaratius: fets, esdeveniments i coneixement espacial. Durant el SWS, l'hipocamp reprodueix experiències en forma comprimida mentre es coordina amb el neocòrtex mitjançant oscil·lacions lentes, fusos del son i ones agudes, sincronitzats amb precisió. El son REM, per altra banda, sembla especialment important per als records procedimentals i emocionals. Estudis mostren que les persones que aprenen una habilitat motora rendeixen significativament millor després d'una nit de son que després d'un període equivalent despert. Els records emocionals també es reforcen selectivament durant el REM, mentre que el to emocional associat es suavitza gradualment—recordes el que va passar però et sents menys angoixat amb el temps.",
+          "funFact": "Ho sabies? Estudis han demostrat que dormir després de rebre una vacuna pot potenciar la resposta immunitària. En un experiment, els participants que van dormir la nit posterior a una vacuna de l'hepatitis A van produir gairebé el doble d'anticossos quatre setmanes després comparat amb els que van romandre desperts."
+        },
+        {
+          "header": "Neteja cerebral: el sistema glimfàtic",
+          "body": "El 2012, investigadors liderats per Maiken Nedergaard van descobrir el sistema glimfàtic—una xarxa de neteja de residus al cervell que opera principalment durant el son. El líquid cefalorraquidi (LCR) flueix per canals que envolten les artèries, travessant el teixit cerebral i arrossegant productes de rebuig metabòlics, incloent la beta-amiloide i les proteïnes tau implicades en la malaltia d'Alzheimer. De manera crítica, aquesta neteja s'accelera durant el son perquè les cèl·lules glials s'encongeixen, expandint l'espai intersticial aproximadament un 60% i permetent que el LCR flueixi molt més eficientment. Durant la vigília, el sistema opera a un ritme molt reduït. Aquest descobriment proporciona una explicació biològica convincent de per què la interrupció crònica del son s'associa amb un major risc d'Alzheimer: el cervell literalment no pot netejar-se adequadament sense un son suficient. La troballa ha transformat la nostra comprensió del son de descans passiu a manteniment actiu.",
+          "funFact": "Ho sabies? Durant el son, les cèl·lules cerebrals s'encongeixen físicament aproximadament un 20%, creant canals més amples entre elles. Aquesta expansió de l'espai intersticial és el que permet al sistema glimfàtic eliminar residus molt més eficaçment que durant les hores de vigília."
+        },
+        {
+          "header": "Immunitat i reparació",
+          "body": "El son està profundament entrellaçat amb la funció immunitària. Durant el son, el cos augmenta la producció de citocines—proteïnes de senyalització que dirigeixen les respostes immunitàries—i redistribueix les cèl·lules immunitàries als teixits on més es necessiten. L'activitat de les cèl·lules assassines naturals, crítica per combatre infeccions virals i vigilar tumors, disminueix mesurablament després d'una sola nit de son curt. La restricció crònica del son eleva marcadors d'inflamació sistèmica, incloent la proteïna C reactiva i la interleucina-6, imitant un estat d'infecció crònica de baix grau. El son també ajuda a gestionar l'estrès oxidatiu: les espècies reactives d'oxigen (ROS) s'acumulen durant la vigília prolongada, i el son proporciona una finestra perquè les defenses antioxidants es recuperin. L'hormona del creixement, essencial per a la reparació de teixits i la recuperació muscular, s'allibera predominantment durant el primer episodi de son d'ones lentes. Per això atletes, entrenadors i metges emfatitzen cada vegada més el son com a pilar de la recuperació física.",
+          "funFact": "Ho sabies? Dormir després d'una vacuna augmenta significativament la producció d'anticossos. El sistema immunitari utilitza el son per consolidar «memòries» immunològiques de patògens, de manera similar a com el cervell consolida memòries cognitives."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Segons la hipòtesi de l'homeòstasi sinàptica, què passa amb les sinapsis durant el son?",
+          "options": ["Totes es reforcen", "Es redueixen proporcionalment", "S'eliminen completament"],
+          "correct": 1
+        },
+        {
+          "question": "Quina fase del son és més important per consolidar memòries factuals (declaratives)?",
+          "options": ["N1 (son lleuger)", "N3 (son d'ones lentes)", "N2"],
+          "correct": 1
+        },
+        {
+          "question": "Què fa el sistema glimfàtic durant el son?",
+          "options": ["Produeix noves neurones", "Elimina residus metabòlics com la beta-amiloide del cervell", "Genera fusos del son"],
+          "correct": 1
+        }
+      ]
+    },
+    {
+      "id": "animal-sleep",
+      "title": "El son en el regne animal",
+      "icon": "tortoise.fill",
+      "sections": [
+        {
+          "header": "Dormir sense cervell",
+          "body": "No necessites un cervell per dormir. El 2017, investigadors del Caltech van demostrar que la medusa invertida Cassiopea—que no té cap sistema nerviós central, només una xarxa nerviosa difusa—exhibeix totes les característiques conductuals del son. Durant la nit, Cassiopea polsa amb menys freqüència, respon més lentament als estímuls, i si es manté desperta ruixant-la amb aigua, mostra un rebot de quiescència la nit següent, igual que un humà privat de son que dorm més per recuperar-se. Això va ser un descobriment fita perquè va empènyer els orígens evolutius del son fins a abans que existissin els cervells—almenys 600 milions d'anys. Estats similars al son s'han documentat des de llavors en el nematode C. elegans (302 neurones) i fins i tot en Hydra. La implicació és sorprenent: el son podria ser una propietat fonamental de la vida multicel·lular, no un luxe inventat per cervells complexos.",
+          "funFact": "Ho sabies? Els koales dormen aproximadament 22 hores al dia, fent-los un dels mamífers que més dormen. La seva dieta d'eucaliptus és tan baixa en energia que el descans extrem és necessari per sobreviure."
+        },
+        {
+          "header": "Son unihemisfèric",
+          "body": "Alguns animals han resolt el problema de necessitar estar alerta mentre dormen apagant només la meitat del cervell a la vegada—una estratègia anomenada son d'ones lentes unihemisfèric (USWS). Els dofins mulars són els practicants més famosos: un hemisferi dorm mentre l'altre roman despert, permetent-los pujar a la superfície per respirar i vigilar depredadors. L'ull obert sempre és al costat oposat de l'hemisferi que dorm. Moltes espècies d'ocells també poden fer-ho, però el cas més extrem podria ser la fregata gran. Investigadors van equipar fregates amb registradors d'EEG durant vols transoceànics de 10 dies i van trobar que dormien una mitjana de només 42 minuts al dia mentre volaven—majoritàriament en breus episodis unihemisfèrics de segons—comparat amb més de 12 hores al dia a terra. Literalment podien dormir amb un ull escanejant obstacles mentre planejaven sobre corrents tèrmics.",
+          "funFact": "Ho sabies? Les girafes només tenen uns 30 minuts de son profund al dia, repartits en breus episodis d'1–2 minuts. La seva extrema vulnerabilitat als depredadors mentre estan estirades probablement va impulsar aquesta adaptació."
+        },
+        {
+          "header": "La sorpresa dels rèptils",
+          "body": "Durant dècades, els científics creien que només els mamífers i les aus experimentaven son REM veritable. Aquesta suposició va ser refutada el 2016 quan un equip liderat per Gilles Laurent va registrar l'activitat cerebral del dragó barbut australià (Pogona vitticeps) i va trobar una alternança clara entre dos estats de son diferenciats, notablement similars al son d'ones lentes i al REM dels mamífers. L'estat «similar al REM» dels rèptils incloïa moviments oculars ràpids, freqüència cardíaca irregular i activitat cerebral de baixa amplitud—totes les característiques del REM en mamífers. No obstant això, els cicles eren molt més curts (~80 segons cadascun, comparat amb ~96 minuts en humans) i s'originaven en una estructura cerebral diferent. Aquest descobriment va empènyer l'origen evolutiu del son de dos estats fins a almenys l'avantpassat comú de rèptils i mamífers, fa aproximadament 300 milions d'anys. També va plantejar una pregunta fascinant: somien els llangardaixos?",
+          "funFact": "Ho sabies? Els falciots alpins tenen el rècord del vol continu més llarg—fins a 200 dies sense aterrar. Com les fregates, es creu que dormen en breus migsonades mentre volen, encara que el mecanisme exacte encara s'està estudiant."
+        },
+        {
+          "header": "Somnis de pops",
+          "body": "El 2021, investigadors al Brasil van publicar un estudi notable que mostrava que els pops ciclen entre dos estats de son diferenciats: «son tranquil», durant el qual estan pàl·lids i immòbils, i «son actiu», durant el qual la seva pell esclata en canvis de color ràpids, els seus ulls es mouen i els seus braços tremolen. La fase activa s'assembla notablement al son REM dels mamífers, fins i tot les contraccions musculars. Cada cicle tranquil-actiu dura només uns 30–40 minuts, amb fases actives d'aproximadament 40 segons. Com que els pops estan separats dels mamífers per més de 500 milions d'anys d'evolució—el seu darrer avantpassat comú era una criatura simple semblant a un cuc—això suggereix que el son de dos estats podria haver evolucionat independentment almenys dues vegades. Alguns investigadors especulen que la fase activa implica la reproducció d'experiències visuals recents, donat que els patrons de color de vegades s'assemblen a seqüències vistes durant el comportament de caça en vigília. La possibilitat que els pops somien continua sent una de les qüestions obertes més fascinants en la ciència del son.",
+          "funFact": "Ho sabies? Durant el «son actiu», els pops ciclen per patrons de color en uns 40 segons que s'assemblen molt als seus patrons de camuflatge en vigília. Alguns investigadors creuen que podrien estar assajant estratègies de caça o camuflatge mentre dormen."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Quin organisme va demostrar que el son pot existir sense cervell?",
+          "options": ["Pop", "Medusa Cassiopea", "Dragó barbut"],
+          "correct": 1
+        },
+        {
+          "question": "Quant dormen les fregates al dia mentre volen sobre l'oceà?",
+          "options": ["Aproximadament 42 minuts", "Aproximadament 4 hores", "No dormen gens mentre volen"],
+          "correct": 0
+        },
+        {
+          "question": "Per què va ser significatiu l'estudi del dragó barbut de 2016?",
+          "options": ["Va demostrar que els rèptils no dormen", "Va trobar son similar al REM en un rèptil, empenyent el seu origen evolutiu 300 milions d'anys enrere", "Va demostrar que només els mamífers somien"],
+          "correct": 1
+        }
+      ]
+    },
+    {
+      "id": "rhythm-and-health",
+      "title": "El teu ritme, la teva salut",
+      "icon": "heart.text.square.fill",
+      "sections": [
+        {
+          "header": "El cost del deute de son",
+          "body": "En un estudi de referència de 2003, Hans Van Dongen i col·legues van demostrar que la restricció parcial crònica del son és acumulativament devastadora—i en gran part invisible per a qui la pateix. Els subjectes restringits a 6 hores de son per nit durant 14 dies consecutius van mostrar un deteriorament cognitiu equivalent al d'algú que havia estat totalment privat de son durant dues nits senceres (48 hores despert). De manera crítica, mentre que els subjectes totalment privats eren agudament conscients del seu deteriorament, el grup crònicament restringit va valorar la seva somnolència com només lleugerament elevada. Havien perdut la capacitat de percebre amb precisió el seu propi deteriorament. Aquesta troballa té implicacions profundes: milions de persones que funcionen amb 6 hores o menys creuen que rendeixen adequadament quan les proves objectives demostren el contrari. El deute de son s'acumula silenciosament, erosionant l'atenció, el temps de reacció, la presa de decisions i la regulació emocional sense activar les alarmes que la privació aguda sí activa.",
+          "funFact": "Ho sabies? Els treballadors per torns tenen taxes significativament més altes d'insomni, trastorns metabòlics i malalties cardiovasculars. L'Organització Mundial de la Salut va classificar el treball nocturn per torns com a probable carcinogen (Grup 2A) el 2007 basant-se en evidència de disrupció circadiària."
+        },
+        {
+          "header": "Jetlag social",
+          "body": "El 2006, Till Wittmann i col·legues van formalitzar el concepte de «jetlag social»—el desalineament crònic entre el teu rellotge biològic i el teu horari social. Es calcula com la diferència en el punt mitjà del son entre dies lliures (caps de setmana) i dies laborables. Si naturalment t'adormes a la 1 de la matinada i et despertes a les 9 els caps de setmana, però et forces a dormir a les 11 de la nit i a despertar-te a les 6:30 els dies laborables, experimentes unes 2 hores de jetlag social—equivalent a volar a través de dues zones horàries cada dilluns i tornar cada divendres. Grans estudis poblacionals revelen que més de dos terços dels adults experimenten almenys una hora de jetlag social. Les conseqüències no són trivials: el jetlag social es correlaciona amb un IMC més alt, més símptomes depressius, major risc cardiovascular, pitjor rendiment acadèmic i un major consum de cafeïna, alcohol i nicotina com a mecanismes d'adaptació.",
+          "funFact": "Ho sabies? Estudis de societats preindustrials sense electricitat (a Tanzània, Namíbia i Bolívia) mostren durades mitjanes de son de només 5,7 a 7,1 hores—menys de la recomanació de «8 hores». No obstant això, els seus horaris de son eren notablement consistents i alineats amb els cicles naturals de llum."
+        },
+        {
+          "header": "Llum artificial a la nit",
+          "body": "La llum artificial a la nit (ALAN) és un dels disruptors més generalitzats i subestimats de la salut circadiària humana. Abans de la il·luminació elèctrica, els humans experimentaven aproximadament 50 lux durant la llum del foc al vespre i gairebé zero lux després d'anar a dormir. Avui dia, un entorn interior típic proporciona 100–300 lux, amb pantalles de telèfons i tauletes que arriben a 40–80 lux a l'ull—suficient per suprimir significativament la producció de melatonina. La llum enriquida en blau (400–490 nm) de les pantalles LED és particularment potent perquè estimula al màxim el fotopigment melanopsina a les cèl·lules ganglionars retinianes que senyalitzen el SCN. Un estudi de 2014 va trobar que llegir amb un iPad durant quatre hores abans de dormir retardava l'inici de la melatonina, reduïa el son REM i deixava els subjectes amb més son l'endemà al matí comparat amb llegir un llibre imprès amb llum tènue. El problema s'estén més enllà de les pantalles: la ALAN exterior dels fanals es correlaciona amb horaris de son més tardans i menor durada del son a nivell poblacional.",
+          "funFact": "Ho sabies? Historiadors han documentat un patró de «primer son» i «segon son» a l'Europa medieval—la gent dormia unes quatre hores, es despertava durant una o dues hores d'activitat tranquil·la a mitjanit, i després tornava a dormir fins a l'alba. La il·luminació elèctrica podria haver comprimit això en el bloc únic consolidat que considerem normal avui."
+        },
+        {
+          "header": "Higiene del son: consells basats en l'evidència",
+          "body": "Les recomanacions d'higiene del son guanyen pes científic quan s'emmarquen al voltant de la corba de resposta de fase (PRC)—el gràfic que mostra com l'exposició a la llum en diferents moments desplaça el teu rellotge circadiari. La llum matutina (primeres 2 hores després de despertar-se) avança el rellotge, promovent un inici del son més primerenc la nit següent; això és especialment valuós per als cronotips vespertins que lluiten amb horaris matutins. La llum vespertina retarda el rellotge—així que reduir la il·luminació i utilitzar bombetes d'espectre càlid després de la posta de sol ajuda a protegir l'inici de la melatonina. Més enllà de la llum: mantén una hora de despertar consistent (fins i tot els caps de setmana) per minimitzar el jetlag social; reserva el llit per dormir per reforçar l'associació son-llit; evita la cafeïna dins de les 8–10 hores anteriors a l'hora d'anar a dormir, ja que la seva semivida és de 5–6 hores de mitjana; mantén el dormitori fresc (18–19°C / 65–67°F), ja que la baixada de la temperatura central és un prerequisit per iniciar el son. Això no és saviesa popular—cada recomanació s'associa directament amb un mecanisme fisiològic conegut.",
+          "funFact": "Ho sabies? La temperatura central del teu cos necessita baixar aproximadament 1°C (1,8°F) per iniciar el son. Un bany o dutxa calent 1–2 hores abans d'anar a dormir paradoxalment ajuda: porta la sang a la superfície, accelerant la pèrdua de calor i refredant el nucli més ràpidament un cop surts."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "En l'estudi de Van Dongen de 2003, 14 dies de 6 hores de son van igualar el deteriorament de quantes nits de privació total del son?",
+          "options": ["Mitja nit", "Una nit", "Dues nits senceres"],
+          "correct": 2
+        },
+        {
+          "question": "Què és el jetlag social?",
+          "options": ["Fatiga per viatjar entre zones horàries", "El desajust entre el rellotge biològic i l'horari social", "Dormir massa els caps de setmana"],
+          "correct": 1
+        },
+        {
+          "question": "Per què és beneficiosa l'exposició a la llum matutina per al son?",
+          "options": ["Augmenta la melatonina immediatament", "Avança el rellotge circadiari, promovent un inici del son més primerenc aquella nit", "Redueix els nivells de cortisol durant tot el dia"],
+          "correct": 1
+        }
+      ]
+    }
+  ]
+}

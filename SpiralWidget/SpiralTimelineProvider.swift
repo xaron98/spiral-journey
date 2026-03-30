@@ -11,6 +11,7 @@ struct SpiralEntry: TimelineEntry {
     let period: Double
     let depthScale: Double
     let numDays: Int
+    let nowTurns: Double
 }
 
 // MARK: - Shared Data Loader
@@ -37,7 +38,8 @@ private func loadEntry() -> SpiralEntry {
             spiralType: .logarithmic,
             period: 24.0,
             depthScale: 1.5,
-            numDays: 7
+            numDays: 7,
+            nowTurns: 0
         )
     }
 
@@ -62,13 +64,20 @@ private func loadEntry() -> SpiralEntry {
         return copy
     }
 
+    // "Now" in re-based widget coordinates
+    let period = snapshot.period ?? 24.0
+    let nowAbsoluteHour = Date.now.timeIntervalSince(snapshot.startDate) / 3600
+    let nowRebased = nowAbsoluteHour - baseTimestamp
+    let nowTurns = nowRebased / period
+
     return SpiralEntry(
         date: .now,
         records: widgetRecords,
         spiralType: snapshot.spiralType ?? .logarithmic,
-        period: snapshot.period ?? 24.0,
+        period: period,
         depthScale: snapshot.depthScale ?? 1.5,
-        numDays: min(n, 7)
+        numDays: min(n, 7),
+        nowTurns: nowTurns
     )
 }
 
@@ -76,7 +85,7 @@ private func loadEntry() -> SpiralEntry {
 
 struct SpiralTimelineProvider: TimelineProvider {
     func placeholder(in context: Context) -> SpiralEntry {
-        SpiralEntry(date: .now, records: [], spiralType: .logarithmic, period: 24.0, depthScale: 1.5, numDays: 7)
+        SpiralEntry(date: .now, records: [], spiralType: .logarithmic, period: 24.0, depthScale: 1.5, numDays: 7, nowTurns: 0)
     }
 
     func getSnapshot(in context: Context, completion: @escaping (SpiralEntry) -> Void) {

@@ -40,4 +40,26 @@ public struct SleepRecord: Codable, Identifiable, Sendable {
         self.cosinor = cosinor
         self.driftMinutes = driftMinutes
     }
+
+    // MARK: - Custom Codable (backward compatible)
+
+    private enum CodingKeys: String, CodingKey {
+        case id, day, date, isWeekend, bedtimeHour, wakeupHour
+        case sleepDuration, phases, hourlyActivity, cosinor, driftMinutes
+    }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id)
+        day = try c.decode(Int.self, forKey: .day)
+        date = try c.decode(Date.self, forKey: .date)
+        isWeekend = try c.decode(Bool.self, forKey: .isWeekend)
+        bedtimeHour = try c.decode(Double.self, forKey: .bedtimeHour)
+        wakeupHour = try c.decode(Double.self, forKey: .wakeupHour)
+        sleepDuration = try c.decode(Double.self, forKey: .sleepDuration)
+        phases = try c.decode([PhaseInterval].self, forKey: .phases)
+        hourlyActivity = try c.decode([HourlyActivity].self, forKey: .hourlyActivity)
+        cosinor = try c.decode(CosinorResult.self, forKey: .cosinor)
+        driftMinutes = try c.decodeIfPresent(Double.self, forKey: .driftMinutes) ?? 0
+    }
 }

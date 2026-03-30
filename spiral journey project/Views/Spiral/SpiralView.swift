@@ -101,6 +101,9 @@ struct SpiralView: View {
             }
             .onAppear { canvasSize = geo.size }
             .onChange(of: geo.size) { canvasSize = $1 }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(String(localized: "accessibility.spiral.label", defaultValue: "Sleep spiral chart"))
+            .accessibilityHint(String(localized: "accessibility.spiral.hint", defaultValue: "Tap to inspect a day"))
         }
     }
 

@@ -39,8 +39,7 @@ struct DNAAlignmentSection: View {
 
     @ViewBuilder
     private var alignmentContent: some View {
-        let best = profile.alignments.sorted { $0.similarity > $1.similarity }.first!
-
+        if let best = profile.alignments.max(by: { $0.similarity < $1.similarity }) {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(loc("dna.alignment.similarity"))
@@ -69,6 +68,7 @@ struct DNAAlignmentSection: View {
                         .foregroundStyle(SpiralColors.accent)
                 }
             }
+        }
         }
     }
 

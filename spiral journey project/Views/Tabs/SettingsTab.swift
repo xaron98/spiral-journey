@@ -188,6 +188,7 @@ struct SettingsTab: View {
                             Spacer()
                             Toggle("", isOn: $store.notificationsEnabled)
                                 .labelsHidden()
+                                .accessibilityLabel(String(localized: "accessibility.toggle.notifications", defaultValue: "Weekly notifications"))
                                 .toggleStyle(SwitchToggleStyle(tint: SpiralColors.accent))
                                 .onChange(of: store.notificationsEnabled) { _, newValue in
                                     if newValue {
@@ -215,6 +216,7 @@ struct SettingsTab: View {
                             Spacer()
                             Toggle("", isOn: $store.morningSummaryEnabled)
                                 .labelsHidden()
+                                .accessibilityLabel(String(localized: "accessibility.toggle.morning", defaultValue: "Morning summary"))
                                 .toggleStyle(SwitchToggleStyle(tint: SpiralColors.accent))
                                 .onChange(of: store.morningSummaryEnabled) { _, newValue in
                                     if newValue {
@@ -243,6 +245,7 @@ struct SettingsTab: View {
                             Spacer()
                             Toggle("", isOn: $store.predictiveAlertsEnabled)
                                 .labelsHidden()
+                                .accessibilityLabel(String(localized: "accessibility.toggle.predictive", defaultValue: "Predictive alerts"))
                                 .toggleStyle(SwitchToggleStyle(tint: SpiralColors.accent))
                                 .onChange(of: store.predictiveAlertsEnabled) { _, newValue in
                                     if newValue {
@@ -293,6 +296,7 @@ struct SettingsTab: View {
                             Spacer()
                             Toggle("", isOn: $store.contextBlocksEnabled)
                                 .labelsHidden()
+                                .accessibilityLabel(String(localized: "accessibility.toggle.context", defaultValue: "Daily context"))
                                 .toggleStyle(SwitchToggleStyle(tint: SpiralColors.contextPrimary))
                         }
 
@@ -555,6 +559,7 @@ struct SettingsTab: View {
                 Spacer()
                 Toggle("", isOn: $store.llmEnabled)
                     .labelsHidden()
+                    .accessibilityLabel(String(localized: "accessibility.toggle.aiCoach", defaultValue: "AI coach"))
                     .tint(SpiralColors.accent)
             }
 

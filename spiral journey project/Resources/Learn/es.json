@@ -1,0 +1,224 @@
+{
+  "articles": [
+    {
+      "id": "what-is-sleep",
+      "title": "¿Qué es el sueño?",
+      "icon": "moon.stars.fill",
+      "sections": [
+        {
+          "header": "Definición científica",
+          "body": "El sueño es un estado de quiescencia reversible caracterizado por una reducción de la respuesta a estímulos externos, una postura típica de reposo y regulación homeostática: cuanto más tiempo pasas despierto, mayor es la presión para dormir. A diferencia del coma, el sueño se interrumpe fácilmente con un estímulo suficiente. Y a diferencia de la hibernación, no implica una caída drástica de la temperatura corporal ni del metabolismo. Es un proceso activo del cerebro, no un simple «apagón». Durante el sueño, el cerebro reorganiza conexiones, consolida memorias y elimina productos de desecho metabólico. Esta definición funcional —quiescencia, reversibilidad, homeostasis— es tan universal que aplica desde medusas hasta humanos.",
+          "funFact": "¿Sabías que el sueño REM fue descubierto en 1953 por Aserinsky y Kleitman? Observaron movimientos oculares rápidos en un bebé dormido y cambiaron para siempre nuestra comprensión del sueño."
+        },
+        {
+          "header": "Arquitectura del sueño",
+          "body": "El sueño no es un bloque homogéneo: se divide en fases NREM y REM que se alternan en ciclos. El NREM tiene tres etapas: N1 es la transición vigilia-sueño y representa apenas un ~5% del tiempo total. N2 es el sueño ligero estable, con husos de sueño y complejos K, y ocupa aproximadamente el ~50%. N3, el sueño profundo o de ondas lentas, supone alrededor del ~18% y es crucial para la restauración física y la consolidación de memoria declarativa. El sueño REM, donde ocurren los sueños más vívidos, representa ~23% del total. En la primera mitad de la noche predomina el sueño profundo N3; en la segunda mitad, los episodios REM se alargan progresivamente. Esta distribución asimétrica tiene importantes implicaciones para la función de cada fase.",
+          "funFact": "¿Sabías que los husos de sueño en N2 podrían protegerte de despertares? Actúan como un filtro que bloquea estímulos externos, permitiendo que el cerebro siga durmiendo ante ruidos moderados."
+        },
+        {
+          "header": "Los ciclos ultradianos",
+          "body": "Cada noche completas entre 4 y 6 ciclos de sueño, cada uno con una duración mediana de unos 90 a 110 minutos (la mediana poblacional ronda los ~96 minutos). Un ciclo típico comienza en N1, desciende a N2 y N3, vuelve brevemente a N2 y culmina en un episodio REM. Pero no todos los ciclos son iguales: los primeros ciclos contienen los bloques más largos de sueño profundo N3, esencial para la restauración física. A medida que avanza la noche, N3 se acorta y los episodios REM se alargan, pasando de ~10 minutos en el primer ciclo a ~30-60 minutos en los últimos. Esta arquitectura cambiante explica por qué despertarte demasiado temprano te roba proporcionalmente más REM, y acostarte muy tarde te quita sueño profundo.",
+          "funFact": "¿Sabías que los bebés recién nacidos pasan aproximadamente el ~50% de su sueño en REM? Esta proporción disminuye progresivamente hasta estabilizarse en ~23% en la edad adulta."
+        },
+        {
+          "header": "Cómo se mide",
+          "body": "El estándar clínico es la polisomnografía (PSG), que combina electroencefalografía (EEG) para ondas cerebrales, electrooculografía (EOG) para movimientos oculares y electromiografía (EMG) para tono muscular. Es precisa pero incómoda: requiere una noche en laboratorio con electrodos pegados a la cabeza. La actigrafía de muñeca detecta movimiento y estima vigilia/sueño con buena precisión general, pero no distingue fases. Los relojes inteligentes como Apple Watch combinan acelerómetro y frecuencia cardíaca para estimar fases del sueño, pero su precisión para clasificar etapas individuales ronda el ~61-65% comparado con PSG. Son útiles para detectar tendencias generales y regularidad, pero no sustituyen un estudio clínico del sueño cuando hay sospecha de trastornos.",
+          "funFact": "¿Sabías que un estudio de PSG típico registra más de 800 páginas de datos de ondas cerebrales en una sola noche? Los técnicos del sueño los revisan visualmente en épocas de 30 segundos."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "¿Qué fase del sueño ocupa aproximadamente el 50% de la noche?",
+          "options": ["N1 (transición)", "N2 (sueño ligero)", "REM (sueño con movimientos oculares rápidos)"],
+          "correct": 1
+        },
+        {
+          "question": "¿Qué característica distingue al sueño del coma?",
+          "options": ["La reducción de temperatura corporal", "La reversibilidad fácil ante estímulos", "La ausencia total de actividad cerebral"],
+          "correct": 1
+        },
+        {
+          "question": "¿Cuál es la precisión aproximada de Apple Watch para clasificar fases del sueño?",
+          "options": ["~90-95%", "~61-65%", "~80-85%"],
+          "correct": 1
+        }
+      ]
+    },
+    {
+      "id": "biological-clock",
+      "title": "Tu reloj biológico",
+      "icon": "clock.fill",
+      "sections": [
+        {
+          "header": "El reloj maestro",
+          "body": "En el hipotálamo, justo encima del cruce de los nervios ópticos, se encuentra el núcleo supraquiasmático (NSQ): un par de diminutos núcleos con unas 20.000 neuronas que funcionan como el reloj maestro del cuerpo. Cada una de estas neuronas tiene su propio ciclo molecular de aproximadamente 24 horas, basado en bucles de retroalimentación de genes como CLOCK, BMAL1, PER y CRY. El NSQ se sincroniza principalmente con la luz ambiental: las células ganglionares retinianas intrínsecamente fotosensibles (ipRGCs) envían señales directas al NSQ a través del tracto retinohipotalámico. Desde ahí, el NSQ coordina los ritmos de temperatura corporal, secreción hormonal, metabolismo y, por supuesto, el ciclo sueño-vigilia de todo el organismo.",
+          "funFact": "¿Sabías que el NSQ sigue funcionando incluso sin señales externas? En experimentos de aislamiento temporal, las personas mantienen un ritmo propio cercano a las 24 horas, aunque se desincronicen del mundo exterior."
+        },
+        {
+          "header": "El modelo de dos procesos",
+          "body": "En 1982, Alexander Borbély propuso el modelo que sigue siendo la base de la cronobiología del sueño. Dos fuerzas interactúan: el Proceso S (homeostático) se acumula durante la vigilia como una presión creciente para dormir —mediada en parte por la adenosina— y se disipa durante el sueño. El Proceso C (circadiano) es una oscilación de ~24 horas generada por el NSQ que promueve la vigilia durante el día y facilita el sueño por la noche. Cuando ambos procesos están alineados (alta presión homeostática + fase circadiana nocturna), te duermes fácilmente y duermes de forma consolidada. Cuando están en conflicto —como ocurre en el jetlag o el trabajo nocturno—, el sueño es fragmentado y la vigilia deteriorada. La interacción S×C explica fenómenos contraintuitivos, como el «segundo aire» nocturno.",
+          "funFact": "¿Sabías que el periodo endógeno del reloj circadiano humano (tau) es de aproximadamente 24,18 horas? Sin luz solar, nos retrasaríamos unos 11 minutos cada día."
+        },
+        {
+          "header": "Melatonina y luz",
+          "body": "La glándula pineal produce melatonina —la «hormona de la oscuridad»— cuando el NSQ detecta que cae la luz ambiental. La melatonina no te «duerme» directamente, sino que señaliza al cuerpo que es de noche, facilitando la transición al sueño. La luz, especialmente la de longitud de onda corta azul (460-480 nm), suprime potentemente la secreción de melatonina. Las pantallas de dispositivos electrónicos emiten exactamente en este rango. El estudio de Chang et al. (2015) demostró que leer en un iPad antes de dormir retrasa el inicio de la secreción de melatonina (DLMO) aproximadamente 1,5 horas respecto a leer un libro impreso, con la consecuente reducción de somnolencia nocturna y de alerta matutina. Este retraso no se recupera en una sola noche.",
+          "funFact": "¿Sabías que las personas ciegas sin percepción de luz a menudo desarrollan el trastorno No-24, donde su ritmo circadiano se desplaza progresivamente cada día al no poder sincronizarse con la luz?"
+        },
+        {
+          "header": "Cronotipo",
+          "body": "Tu preferencia natural por acostarte temprano o tarde —tu cronotipo— tiene una base genética significativa. El estudio de Lane et al. (2016) identificó múltiples variantes genéticas asociadas con la preferencia matutina, incluyendo genes del reloj molecular como PER2 y RGS16. Pero el cronotipo también se modula con la edad: los adolescentes tienden a ser más vespertinos, y la preferencia se desplaza hacia la mañana con los años. El problema moderno es el «jetlag social» (Wittmann, 2006): la diferencia entre tu hora biológica y la hora que impone tu horario laboral o escolar. Si tu reloj biológico dice «duerme a la 1 AM» pero tu alarma suena a las 6:30, acumulas un desfase crónico con consecuencias para el metabolismo, el ánimo y el rendimiento cognitivo. El jetlag social promedio es de 1 a 2 horas.",
+          "funFact": "¿Sabías que las sociedades preindustriales mostraban una distribución de cronotipos mucho más estrecha? La exposición masiva a luz artificial ha ampliado el rango de preferencias horarias."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "¿Cuántas neuronas tiene aproximadamente el núcleo supraquiasmático (NSQ)?",
+          "options": ["~2.000", "~20.000", "~200.000"],
+          "correct": 1
+        },
+        {
+          "question": "Según el modelo de Borbély, ¿qué ocurre cuando el Proceso S (homeostático) es alto y el Proceso C (circadiano) está en fase nocturna?",
+          "options": ["Te despiertas alerta", "Te duermes fácilmente y el sueño es consolidado", "Experimentas insomnio"],
+          "correct": 1
+        },
+        {
+          "question": "¿Cuánto retrasa aproximadamente el uso de pantallas la secreción de melatonina?",
+          "options": ["~15 minutos", "~1,5 horas", "~4 horas"],
+          "correct": 1
+        }
+      ]
+    },
+    {
+      "id": "why-we-sleep",
+      "title": "¿Por qué dormimos?",
+      "icon": "brain.head.profile",
+      "sections": [
+        {
+          "header": "Hipótesis de homeostasis sináptica",
+          "body": "Giulio Tononi y Chiara Cirelli propusieron una de las teorías más influyentes sobre la función del sueño: durante la vigilia, el aprendizaje y la experiencia fortalecen progresivamente las conexiones sinápticas del cerebro, aumentando el consumo energético y saturando la capacidad de almacenamiento. El sueño, especialmente las ondas lentas del N3, serviría para renormalizar esas sinapsis a un nivel basal sostenible, preservando las conexiones más fuertes (recuerdos importantes) y debilitando las más débiles (ruido). Evidencia directa vino de estudios en larvas de pez cebra: se observó que el número de sinapsis aumentaba durante la vigilia y disminuía durante el sueño. Esta «poda sináptica» nocturna explicaría por qué después de dormir piensas con más claridad y aprendes mejor: el cerebro ha liberado capacidad.",
+          "funFact": "¿Sabías que las ratas privadas completamente de sueño mueren en un plazo de 11 a 32 días? La privación total de sueño es letal, aunque el mecanismo exacto de la muerte sigue debatiéndose."
+        },
+        {
+          "header": "Memoria y consolidación",
+          "body": "El sueño no es un tiempo perdido para la memoria: es cuando se consolida activamente. Durante el sueño de ondas lentas (N3), el hipocampo «reproduce» las experiencias del día, transfiriéndolas gradualmente a la corteza para almacenamiento a largo plazo. Este proceso de reactivación se ha demostrado con registros neuronales en roedores: las mismas secuencias de activación que ocurrieron durante el aprendizaje se repiten durante el sueño, a veces de forma acelerada. El sueño REM, por su parte, parece especializarse en la consolidación de memoria emocional y procedimental (habilidades motoras, patrones). Los sueños vívidos del REM podrían reflejar este proceso de integración. Estudios muestran que dormir entre dos sesiones de estudio mejora la retención significativamente más que el mismo intervalo despierto.",
+          "funFact": "¿Sabías que el sueño mejora la respuesta a vacunas? Estudios han demostrado que dormir bien la noche después de vacunarse produce una respuesta de anticuerpos significativamente mayor que pasar esa noche en vela."
+        },
+        {
+          "header": "Limpieza cerebral",
+          "body": "En 2013, el laboratorio de Maiken Nedergaard descubrió en ratones el sistema glinfático: una red de canales perivasculares que se activa durante el sueño para eliminar productos de desecho metabólico del cerebro. El hallazgo clave fue que el espacio intersticial cerebral se expande un ~60% durante el sueño, permitiendo que el líquido cefalorraquídeo fluya más eficientemente y arrastre sustancias como la proteína beta-amiloide, asociada con la enfermedad de Alzheimer. La eliminación de beta-amiloide fue dos veces más rápida durante el sueño que durante la vigilia en estos modelos animales. Aunque la investigación en humanos es más reciente y compleja, estudios de neuroimagen han confirmado que el flujo de LCR aumenta durante el sueño profundo humano, apoyando la hipótesis de limpieza cerebral.",
+          "funFact": "¿Sabías que tu cerebro encoge sus células durante el sueño? Las neuronas y glía se contraen, ampliando los canales intersticiales para facilitar el flujo de líquido limpiador. Es como si el cerebro se «comprimiera» para lavarse."
+        },
+        {
+          "header": "Inmunidad",
+          "body": "La relación entre sueño e inmunidad es bidireccional: las infecciones generan somnolencia (mediada por citoquinas como IL-1 y TNF-α), y la privación de sueño deteriora la respuesta inmune. Estudios muestran que dormir menos de 6 horas se asocia con mayor susceptibilidad a resfriados tras exposición viral. La privación crónica de sueño induce un estado de inflamación sistémica de bajo grado, con elevación de marcadores como proteína C reactiva e IL-6. Investigaciones en modelos de mosca y ratón han revelado un mecanismo sorprendente: la privación de sueño genera acumulación de especies reactivas de oxígeno (ROS) específicamente en el intestino, no en el cerebro, y esta oxidación intestinal podría mediar parte de la mortalidad por insomnio extremo. La salud intestinal y el sueño están más conectados de lo que imaginábamos.",
+          "funFact": "¿Sabías que una sola noche de sueño reducido puede disminuir la actividad de las células NK (asesinas naturales) hasta en un 70%? Estas células son tu primera línea de defensa contra infecciones virales y células tumorales."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Según la hipótesis de homeostasis sináptica, ¿qué ocurre con las sinapsis durante el sueño profundo?",
+          "options": ["Se fortalecen todas por igual", "Se renormalizan: las débiles se debilitan y las fuertes se preservan", "Se eliminan completamente para empezar de cero"],
+          "correct": 1
+        },
+        {
+          "question": "¿Qué sistema descubierto en 2013 limpia los desechos metabólicos del cerebro durante el sueño?",
+          "options": ["Sistema linfático", "Sistema glinfático", "Sistema simpático"],
+          "correct": 1
+        },
+        {
+          "question": "¿Qué tipo de memoria se consolida preferentemente durante el sueño de ondas lentas (N3)?",
+          "options": ["Memoria procedimental (habilidades motoras)", "Memoria declarativa (hechos y eventos)", "Memoria emocional"],
+          "correct": 1
+        }
+      ]
+    },
+    {
+      "id": "animal-sleep",
+      "title": "El sueño en el reino animal",
+      "icon": "tortoise.fill",
+      "sections": [
+        {
+          "header": "Sueño sin cerebro",
+          "body": "La medusa Cassiopea (la medusa invertida del manglar) no tiene cerebro centralizado: solo una red difusa de neuronas. Sin embargo, en 2017, investigadores de Caltech demostraron que cumple los tres criterios del sueño. Por la noche, reduce drásticamente su pulsación (quiescencia). Tarda más en responder a estímulos (reducción de responsividad). Y si se le impide dormir con pulsos de agua, al día siguiente muestra rebote: duerme más y más profundamente (regulación homeostática). Este descubrimiento fue revolucionario porque implica que el sueño precedió a la evolución de cerebros complejos. Si un animal con una red nerviosa difusa de hace 600 millones de años necesita dormir, el sueño podría ser una propiedad fundamental de las redes neuronales, no un lujo de cerebros sofisticados.",
+          "funFact": "¿Sabías que los koalas duermen hasta 22 horas al día? Su dieta de hojas de eucalipto es tan baja en calorías y tan difícil de digerir que necesitan conservar energía al máximo."
+        },
+        {
+          "header": "Sueño unihemisférico",
+          "body": "Los delfines resolvieron un problema aparentemente imposible: necesitan subir a la superficie para respirar, pero también necesitan dormir. Su solución es el sueño unihemisférico: duermen con un hemisferio cerebral a la vez mientras el otro permanece despierto, manteniendo un ojo abierto para vigilar depredadores y controlar la respiración. Algunas aves también lo practican: los patos en el borde de un grupo duermen con el ojo exterior abierto. Pero el caso más extremo son las fragatas: durante vuelos transoceánicos, un estudio con EEG registró que dormían apenas 42 minutos al día en vuelo, distribuidos en microsiestas de segundos, frente a las 12 horas que duermen en tierra. Este hallazgo sugiere que existe un mínimo irreducible de sueño, pero que es mucho menor de lo que creíamos.",
+          "funFact": "¿Sabías que las jirafas adultas duermen solo unos 30 minutos de sueño profundo al día? Como presas grandes en la sabana, no pueden permitirse estar inconscientes mucho tiempo."
+        },
+        {
+          "header": "Reptiles y la sorpresa del dragón",
+          "body": "Durante décadas se asumió que el sueño REM era exclusivo de mamíferos y aves. Pero en 2016, un estudio publicado en Science cambió esa visión: el dragón barbudo australiano (Pogona vitticeps) mostró dos estados electrofisiológicos de sueño alternantes que recuerdan al NREM y REM de los mamíferos. Uno con ondas lentas de alta amplitud y otro con ondas de baja amplitud y movimientos oculares. Los ciclos eran ultrarrápidos: ~80 segundos cada uno, frente a los 90 minutos humanos. Si estos estados son homólogos al NREM/REM de mamíferos, el origen de esta alternancia se remontaría al ancestro común de reptiles y mamíferos, hace unos 320 millones de años. El sueño con fases diferenciadas sería mucho más antiguo de lo que sospechábamos, posiblemente una innovación del Paleozoico.",
+          "funFact": "¿Sabías que los vencejos alpinos pueden volar ininterrumpidamente durante 200 días sin posarse? Se cree que duermen brevemente en vuelo, aunque los mecanismos exactos aún se investigan."
+        },
+        {
+          "header": "Pulpos y sus sueños",
+          "body": "Los pulpos representan un caso fascinante de evolución convergente del sueño. En 2021, investigadores brasileños documentaron que Octopus insularis alterna entre dos estados: un «sueño tranquilo» prolongado (varios minutos) con cuerpo pálido e inmóvil, y un «sueño activo» breve (~30 segundos) con cambios de color espectaculares, contracciones musculares y movimientos oculares bajo los párpados cerrados. Los ciclos se repiten cada ~30-40 minutos. Los cambios cromáticos durante el sueño activo sugieren que los cromatóforos reciben señales del sistema nervioso central, como si el pulpo estuviera «soñando» y su piel lo reflejara. Dado que los cefalópodos divergieron de los vertebrados hace más de 500 millones de años, si ambos tienen estados tipo NREM/REM, o bien el sueño bifásico tiene un origen extremadamente antiguo, o evolucionó independientemente al menos dos veces.",
+          "funFact": "¿Sabías que se han observado pulpos cambiando de color mientras duermen, pasando por patrones que recuerdan a los que usan durante la caza? Es como si revivieran sus experiencias del día en sueños."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "¿Qué demostró el estudio de la medusa Cassiopea sobre el sueño?",
+          "options": ["Que las medusas no duermen nunca", "Que el sueño puede existir sin cerebro centralizado", "Que las medusas solo duermen en cautividad"],
+          "correct": 1
+        },
+        {
+          "question": "¿Cuántos minutos al día dormían las fragatas durante vuelos transoceánicos?",
+          "options": ["42 minutos", "4 horas", "8 horas"],
+          "correct": 0
+        },
+        {
+          "question": "¿Qué reptil mostró estados de sueño similares a NREM/REM en un estudio de 2016?",
+          "options": ["La iguana marina", "El dragón barbudo (Pogona vitticeps)", "El cocodrilo del Nilo"],
+          "correct": 1
+        }
+      ]
+    },
+    {
+      "id": "rhythm-and-health",
+      "title": "Tu ritmo, tu salud",
+      "icon": "heart.text.square.fill",
+      "sections": [
+        {
+          "header": "Deuda de sueño",
+          "body": "El estudio clásico de Van Dongen et al. (2003) demostró algo perturbador: sujetos que durmieron solo 6 horas durante 14 noches consecutivas mostraron un deterioro cognitivo equivalente al de personas que habían pasado dos noches enteras sin dormir. Pero aquí viene lo revelador: mientras los sujetos con privación total sabían que estaban deteriorados, los del grupo de 6 horas eran «en gran medida inconscientes» de su propio deterioro. Creían funcionar razonablemente bien mientras su rendimiento se desplomaba. Esto tiene enormes implicaciones para nuestra sociedad de «dormiré cuando me muera»: no puedes confiar en tu percepción subjetiva para evaluar si duermes lo suficiente. La deuda de sueño se acumula de forma silenciosa, y tu cerebro pierde la capacidad de detectar su propio déficit.",
+          "funFact": "¿Sabías que los trabajadores por turnos tienen tasas significativamente más altas de insomnio, trastornos metabólicos y ciertos tipos de cáncer? La OMS clasificó el trabajo nocturno como «probablemente carcinógeno» en 2007."
+        },
+        {
+          "header": "Jetlag social",
+          "body": "El concepto de «jetlag social» fue acuñado por Till Roenneberg y Martha Wittmann en 2006 para describir el desfase crónico entre tu reloj biológico y tu horario social. Se calcula como la diferencia entre el punto medio de sueño en días libres (tu hora biológica) y en días laborales (tu hora social). El promedio poblacional es de 1 a 2 horas, pero en cronotipos vespertinos puede superar las 3 horas. Este desfase crónico —que es como volar constantemente entre dos zonas horarias sin llegar nunca a adaptarse— se correlaciona con mayor índice de masa corporal, mayor consumo de cafeína y tabaco, peor rendimiento académico y mayor riesgo de síntomas depresivos. No es solo «ser búho»: es vivir en un mundo diseñado para alondras cuando tu biología dice lo contrario.",
+          "funFact": "¿Sabías que las sociedades preindustriales dormían entre 5,7 y 7,1 horas por noche? Estudios con los Hadza, San y Tsimané mostraron que no dormían más que nosotros, pero su horario estaba perfectamente alineado con el ciclo solar."
+        },
+        {
+          "header": "Luz artificial",
+          "body": "La luz artificial nocturna (ALAN) es el disruptor circadiano más ubicuo de la vida moderna. La melatonina, señal biológica de oscuridad, se suprime proporcionalmente a la intensidad y la composición espectral de la luz. Las pantallas de móviles, tabletas y ordenadores emiten un pico de luz azul (460-480 nm) exactamente en el rango de máxima sensibilidad de las ipRGCs, las células retinianas que informan al reloj biológico. El estudio de Chang et al. (2015) encontró que leer en un iPad durante 4 horas antes de dormir, comparado con un libro en papel, retrasaba el DLMO (inicio de secreción de melatonina en penumbra) unas 1,5 horas, reducía la somnolencia subjetiva, aumentaba la latencia de sueño y disminuía la alerta a la mañana siguiente. Los filtros de luz azul ayudan parcialmente, pero la intensidad total de la luz también importa.",
+          "funFact": "¿Sabías que en la Europa medieval era común el patrón de «primer sueño» y «segundo sueño»? La gente dormía un bloque al anochecer, despertaba 1-2 horas a medianoche para rezar o socializar, y volvía a dormir hasta el alba."
+        },
+        {
+          "header": "Higiene del sueño",
+          "body": "La higiene del sueño no es una moda: está respaldada por la ciencia de la curva de respuesta de fase (PRC). La luz brillante por la mañana adelanta el reloj circadiano (te ayuda a dormirte antes), mientras que la luz nocturna lo retrasa. El ejercicio regular mejora la calidad del sueño, pero el ejercicio intenso menos de 2-3 horas antes de acostarse puede retrasarlo. La cafeína tiene una vida media de unas 5 horas, pero su efecto real sobre el sueño dura más: un estudio estimó que 107 mg de cafeína (un café estándar) necesita unas 8,8 horas para dejar de afectar significativamente al sueño. La recomendación más respaldada: mantener un horario regular de sueño, incluso los fines de semana. La regularidad refuerza los zeitgebers (sincronizadores) y minimiza el jetlag social. No necesitas dormir perfecto; necesitas dormir consistente.",
+          "funFact": "¿Sabías que la exposición a luz natural intensa durante el día te hace más resistente a los efectos disruptores de la luz artificial nocturna? Las personas que pasan más tiempo al aire libre tienen ritmos circadianos más robustos."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Según el estudio de Van Dongen (2003), ¿a qué equivale dormir 6 horas durante 14 noches?",
+          "options": ["A una noche normal de sueño", "A dos noches sin dormir en absoluto", "A una semana de sueño fragmentado"],
+          "correct": 1
+        },
+        {
+          "question": "¿Cuál es el jetlag social promedio de la población?",
+          "options": ["15-30 minutos", "1-2 horas", "4-5 horas"],
+          "correct": 1
+        },
+        {
+          "question": "¿Cuántas horas antes de dormir deberías dejar de tomar cafeína para evitar que afecte al sueño?",
+          "options": ["~3 horas", "~8,8 horas", "~12 horas"],
+          "correct": 1
+        }
+      ]
+    }
+  ]
+}

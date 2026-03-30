@@ -39,6 +39,8 @@ struct ScoreGaugeView: View {
         }
         .onAppear { animatedProgress = progress }
         .onChange(of: score) { animatedProgress = Double($1) / 100 }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(String(localized: "accessibility.gauge.label", defaultValue: "Score gauge") + ", \(score), \(label)")
     }
 }
 

@@ -138,7 +138,7 @@ enum CloudRecordConverter {
 
         let linkGrowthToTau = (record["linkGrowthToTau"] as? Int64 ?? 0) != 0
         let showGrid        = (record["showGrid"] as? Int64 ?? 0) != 0
-        let depthScale      = record["depthScale"] as? Double ?? 1.5
+        let depthScale      = record["depthScale"] as? Double ?? 0.15
 
         return CloudSettings(
             startDate: startDate,

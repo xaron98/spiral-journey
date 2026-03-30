@@ -37,7 +37,9 @@ enum DataExporter {
 
             return dir
         } catch {
+            #if DEBUG
             print("[DataExporter] Export failed: \(error)")
+            #endif
             return nil
         }
     }

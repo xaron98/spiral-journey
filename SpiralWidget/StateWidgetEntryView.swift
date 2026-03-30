@@ -59,7 +59,7 @@ struct StateWidgetEntryView: View {
 
                 // Right: prediction
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Esta noche")
+                    Text(String(localized: "widget.tonight", defaultValue: "Tonight"))
                         .font(.caption)
                         .foregroundStyle(.white.opacity(0.5))
 

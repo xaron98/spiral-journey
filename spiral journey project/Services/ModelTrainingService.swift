@@ -164,7 +164,7 @@ enum ModelTrainingService {
         }
 
         // 3. Compute pre-training MAE on validation set with current model
-        let preMae = computeValidationMAE(samples: valSamples)
+        let preMae = await computeValidationMAE(samples: valSamples)
 
         // 4. Build training batch (train split only)
         let batchProvider = try buildTrainingBatch(samples: trainSamples)
@@ -201,8 +201,8 @@ enum ModelTrainingService {
         }
 
         // 7. Reload model and compute post-training MAE on validation set
-        MLPredictionEngine.reloadModel()
-        let postMae = computeValidationMAE(samples: valSamples)
+        await MainActor.run { MLPredictionEngine.reloadModel() }
+        let postMae = await computeValidationMAE(samples: valSamples)
 
         // 8. Regression guard: reject if post-training is not better
         let accepted = postMae < preMae
@@ -210,7 +210,7 @@ enum ModelTrainingService {
         if !accepted {
             // Roll back: delete the personalised model and reload base model
             try? FileManager.default.removeItem(at: outputURL)
-            MLPredictionEngine.reloadModel()
+            await MainActor.run { MLPredictionEngine.reloadModel() }
             logger.warning(
                 "Regression guard triggered — rolling back personalised model (pre: \(preMae, format: .fixed(precision: 3)), post: \(postMae, format: .fixed(precision: 3)))"
             )
@@ -234,12 +234,12 @@ enum ModelTrainingService {
     /// bedtime hour against the target (both in continuous 18-30 space).
     private static func computeValidationMAE(
         samples: [(PredictionInput, Double)]
-    ) -> Double {
+    ) async -> Double {
         guard !samples.isEmpty else { return .infinity }
 
         var totalError = 0.0
         for (input, target) in samples {
-            let output = MLPredictionEngine.predict(from: input)
+            let output = await MainActor.run { MLPredictionEngine.predict(from: input) }
             // Convert predicted bedtime to continuous 18-30 space for comparison
             var predicted = output.predictedBedtimeHour
             if predicted < 12 { predicted += 24 }  // 0-6 AM → 24-30

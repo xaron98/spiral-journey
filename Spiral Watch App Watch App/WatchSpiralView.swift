@@ -408,8 +408,11 @@ private struct WatchSpiralCanvas: View {
         for day in firstDay...lastDay {
             let t = Double(day)
             guard geo.isVisible(turns: t) else { continue }
+            let alpha = geo.opacity(turns: t)
+            guard alpha > 0.01 else { continue }
             let isWeek = day % 7 == 0
-            let color = Color.white.opacity(isWeek ? 0.15 : 0.07)
+            let baseAlpha = isWeek ? 0.15 : 0.07
+            let color = Color.white.opacity(baseAlpha * alpha)
             let lw: CGFloat = isWeek ? 0.6 : 0.3
             var path = Path()
             for i in 0...60 {
@@ -588,8 +591,10 @@ private struct WatchSpiralCanvas: View {
         for event in events {
             let t = event.absoluteHour / period
             guard geo.isVisible(turns: t) else { continue }
+            let alpha = geo.opacity(turns: t)
+            guard alpha > 0.01 else { continue }
             let p = geo.point(turns: t)
-            let color = Color(hex: event.type.hexColor)
+            let color = Color(hex: event.type.hexColor).opacity(alpha)
             let r: CGFloat = 5.0
             let rect = CGRect(x: p.x - r, y: p.y - r, width: r * 2, height: r * 2)
             context.fill(Circle().path(in: rect), with: .color(color))
@@ -656,25 +661,28 @@ private struct WatchSpiralCanvas: View {
 
         let startT = dataEnd
         let endT = cursorTurns
-        let awakeColor = Color(hex: "fbbf24").opacity(0.7) // amber, same as iPhone
         let lw: CGFloat = 6.0
 
-        var path = Path()
-        var started = false
+        var prev: CGPoint?
         let step = 0.02
         var t = startT
 
         while t <= endT {
             let pt = geo.point(turns: t)
-            if !started { path.move(to: pt); started = true }
-            else { path.addLine(to: pt) }
+            if let p0 = prev {
+                let midT = t - step / 2
+                let alpha = geo.opacity(turns: midT) * 0.7
+                if alpha > 0.01 {
+                    var seg = Path()
+                    seg.move(to: p0)
+                    seg.addLine(to: pt)
+                    context.stroke(seg, with: .color(Color(hex: "fbbf24").opacity(alpha)),
+                                   style: StrokeStyle(lineWidth: lw, lineCap: .round))
+                }
+            }
+            prev = pt
             if t >= endT { break }
             t = min(t + step, endT)
-        }
-
-        if started {
-            context.stroke(path, with: .color(awakeColor),
-                           style: StrokeStyle(lineWidth: lw, lineCap: .round))
         }
     }
 

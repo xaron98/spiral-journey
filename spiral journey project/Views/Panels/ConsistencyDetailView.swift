@@ -80,7 +80,7 @@ struct ConsistencyDetailView: View {
                 Circle()
                     .trim(from: 0, to: CGFloat(consistency.score) / 100)
                     .stroke(
-                        Color(hex: consistency.label.hexColor),
+                        consistencyLabelColor(consistency.label),
                         style: StrokeStyle(lineWidth: 8, lineCap: .round)
                     )
                     .frame(width: 110, height: 110)
@@ -90,7 +90,7 @@ struct ConsistencyDetailView: View {
                 VStack(spacing: 2) {
                     Text("\(consistency.score)")
                         .font(.largeTitle.weight(.bold).monospaced())
-                        .foregroundStyle(Color(hex: consistency.label.hexColor))
+                        .foregroundStyle(consistencyLabelColor(consistency.label))
                     Text(String(localized: String.LocalizationValue(consistency.label.localizationKey)))
                         .font(.caption.weight(.medium))
                         .foregroundStyle(SpiralColors.muted)
@@ -112,9 +112,9 @@ struct ConsistencyDetailView: View {
 
     private var confidenceBadge: some View {
         let (label, color): (String, Color) = switch consistency.confidence {
-        case .high:   (String(localized: "consistency.confidence.high",   bundle: bundle), Color(hex: "5bffa8"))
-        case .medium: (String(localized: "consistency.confidence.medium", bundle: bundle), Color(hex: "f5c842"))
-        case .low:    (String(localized: "consistency.confidence.low",    bundle: bundle), Color(hex: "f05050"))
+        case .high:   (String(localized: "consistency.confidence.high",   bundle: bundle), SpiralColors.good)
+        case .medium: (String(localized: "consistency.confidence.medium", bundle: bundle), SpiralColors.moderate)
+        case .low:    (String(localized: "consistency.confidence.low",    bundle: bundle), SpiralColors.poor)
         }
         return Text(label)
             .font(.caption.weight(.medium))
@@ -231,10 +231,10 @@ struct ConsistencyDetailView: View {
                 VStack(spacing: 4) {
                     Image(systemName: delta >= 0 ? "arrow.up.right" : "arrow.down.right")
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(delta >= 0 ? Color(hex: "5bffa8") : Color(hex: "f05050"))
+                        .foregroundStyle(delta >= 0 ? SpiralColors.good : SpiralColors.poor)
                     Text(String(format: "%+.0f", delta))
                         .font(.footnote.weight(.bold).monospaced())
-                        .foregroundStyle(delta >= 0 ? Color(hex: "5bffa8") : Color(hex: "f05050"))
+                        .foregroundStyle(delta >= 0 ? SpiralColors.good : SpiralColors.poor)
                 }
                 .frame(maxWidth: .infinity)
 
@@ -252,7 +252,7 @@ struct ConsistencyDetailView: View {
         return VStack(spacing: 6) {
             Text("\(score)")
                 .font(.title.weight(.bold).monospaced())
-                .foregroundStyle(isCurrent ? Color(hex: consistency.label.hexColor) : SpiralColors.muted)
+                .foregroundStyle(isCurrent ? consistencyLabelColor(consistency.label) : SpiralColors.muted)
             Text(String(localized: String.LocalizationValue(scoreLabel.localizationKey)))
                 .font(.caption)
                 .foregroundStyle(SpiralColors.muted)
@@ -451,6 +451,15 @@ struct ConsistencyDetailView: View {
 
     // MARK: - Helpers
 
+    private func consistencyLabelColor(_ label: ConsistencyLabel) -> Color {
+        switch label {
+        case .veryStable, .stable:   return SpiralColors.good
+        case .variable:              return SpiralColors.moderate
+        case .disorganized:          return SpiralColors.poor
+        case .insufficient:          return SpiralColors.muted
+        }
+    }
+
     private func recentNights(count: Int) -> [SleepRecord] {
         records
             .filter { $0.sleepDuration >= 3.0 }
@@ -516,9 +525,9 @@ private struct BreakdownRow: View {
     }
 
     private func barColor(_ v: Double) -> Color {
-        if v >= 70 { return Color(hex: "5bffa8") }
-        if v >= 50 { return Color(hex: "f5c842") }
-        return Color(hex: "f05050")
+        if v >= 70 { return SpiralColors.good }
+        if v >= 50 { return SpiralColors.moderate }
+        return SpiralColors.poor
     }
 }
 
@@ -554,9 +563,9 @@ private struct WeeklyNightGrid: View {
 
             // Legend
             HStack(spacing: 12) {
-                LegendDot(color: Color(hex: "5bffa8"), label: String(localized: "consistency.legend.normal",          bundle: bundle))
-                LegendDot(color: Color(hex: "f5c842"), label: String(localized: "consistency.legend.localDisruption", bundle: bundle))
-                LegendDot(color: Color(hex: "f05050"), label: String(localized: "consistency.legend.globalShift",     bundle: bundle))
+                LegendDot(color: SpiralColors.good,     label: String(localized: "consistency.legend.normal",          bundle: bundle))
+                LegendDot(color: SpiralColors.moderate, label: String(localized: "consistency.legend.localDisruption", bundle: bundle))
+                LegendDot(color: SpiralColors.poor,     label: String(localized: "consistency.legend.globalShift",     bundle: bundle))
                 Spacer()
             }
             .padding(.top, 4)
@@ -577,9 +586,9 @@ private struct NightCell: View {
     let isGlobalShift: Bool
 
     private var cellColor: Color {
-        if isGlobalShift  { return Color(hex: "f05050") }
-        if isLocalDisruption { return Color(hex: "f5c842") }
-        return Color(hex: "5bffa8")
+        if isGlobalShift  { return SpiralColors.poor }
+        if isLocalDisruption { return SpiralColors.moderate }
+        return SpiralColors.good
     }
 
     private var hasBothIssues: Bool {
@@ -602,7 +611,7 @@ private struct NightCell: View {
                     // Yellow border when both global shift + local disruption
                     hasBothIssues ?
                         RoundedRectangle(cornerRadius: 3)
-                            .stroke(Color(hex: "f5c842"), lineWidth: 2)
+                            .stroke(SpiralColors.moderate, lineWidth: 2)
                         : nil
                 )
             Text(String(format: "%.1fh", record.sleepDuration))
@@ -642,10 +651,10 @@ private struct InsightDetailCard: View {
 
     private var accentColor: Color {
         switch insight.severity {
-        case 3:     return Color(hex: "f05050")
-        case 2:     return Color(hex: "f5c842")
-        case 1:     return Color(hex: "a78bfa")
-        default:    return Color(hex: "5bffa8")
+        case 3:     return SpiralColors.poor
+        case 2:     return SpiralColors.moderate
+        case 1:     return SpiralColors.accent
+        default:    return SpiralColors.good
         }
     }
 
@@ -696,17 +705,17 @@ private struct ConsistencyLegendSheet: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     legendItem(
-                        color: Color(hex: "5bffa8"),
+                        color: SpiralColors.good,
                         title: loc("consistency.help.normal.title"),
                         description: loc("consistency.help.normal.desc")
                     )
                     legendItem(
-                        color: Color(hex: "f5c842"),
+                        color: SpiralColors.moderate,
                         title: loc("consistency.help.local.title"),
                         description: loc("consistency.help.local.desc")
                     )
                     legendItem(
-                        color: Color(hex: "f05050"),
+                        color: SpiralColors.poor,
                         title: loc("consistency.help.global.title"),
                         description: loc("consistency.help.global.desc")
                     )

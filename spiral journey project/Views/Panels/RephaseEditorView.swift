@@ -281,6 +281,7 @@ struct RephaseEditorView: View {
                 set: { plan.targetSleepDuration = ($0 * 2).rounded() / 2 }
             ), in: 5...10, step: 0.5)
             .labelsHidden()
+            .accessibilityLabel(String(localized: "accessibility.stepper.duration", defaultValue: "Sleep duration"))
             .tint(SpiralColors.accent)
         }
     }
@@ -306,6 +307,7 @@ struct RephaseEditorView: View {
                     set: { plan.manualBedtimeEnabled = $0 }
                 ))
                 .labelsHidden()
+                .accessibilityLabel(String(localized: "accessibility.toggle.manualBedtime", defaultValue: "Manual bedtime"))
                 .tint(SpiralColors.accentDim)
             }
 

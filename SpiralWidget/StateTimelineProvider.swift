@@ -38,13 +38,13 @@ private func loadStateEntry() -> StateEntry {
     let label: String
     let colorHex: String
     if coherence > 0.7 {
-        label = "Sincronizado"
+        label = String(localized: "widget.state.synchronized", defaultValue: "Synchronized")
         colorHex = "5bffa8"
     } else if coherence >= 0.4 {
-        label = "En transición"
+        label = String(localized: "widget.state.transition", defaultValue: "In Transition")
         colorHex = "f5c842"
     } else {
-        label = "Desalineado"
+        label = String(localized: "widget.state.misaligned", defaultValue: "Misaligned")
         colorHex = "f05050"
     }
 
@@ -80,7 +80,7 @@ private func formatHour(_ h: Double) -> String {
 
 struct StateTimelineProvider: TimelineProvider {
     func placeholder(in context: Context) -> StateEntry {
-        StateEntry(date: .now, stateLabel: "Sincronizado", stateColorHex: "5bffa8",
+        StateEntry(date: .now, stateLabel: String(localized: "widget.state.synchronized", defaultValue: "Synchronized"), stateColorHex: "5bffa8",
                    predictedBed: "23:30", predictedWake: "07:15", duration: "7h 45m", hasData: true)
     }
 

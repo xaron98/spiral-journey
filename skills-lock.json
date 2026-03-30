@@ -6,10 +6,30 @@
       "sourceType": "github",
       "computedHash": "19c22d4931884eaa40610799f37a63dc10b1563728e42ed2ff47bd0ec29e4f10"
     },
+    "swift-actor-persistence": {
+      "source": "affaan-m/everything-claude-code",
+      "sourceType": "github",
+      "computedHash": "b6133e7df289f76de1c2c4a107d389cf8a4f015871e97007081aae3ac11eb4ea"
+    },
     "swift-best-practices": {
       "source": "secondsky/claude-skills",
       "sourceType": "github",
       "computedHash": "084dc29498a5085a85a711cf1f82d15376d950f3f7fba11bd1391dc8d1772956"
+    },
+    "swift-concurrency-6-2": {
+      "source": "affaan-m/everything-claude-code",
+      "sourceType": "github",
+      "computedHash": "494537bbbc803bd28b0a80bde5844fe82f4b334e7bcb8ba05a3b4a32b759b036"
+    },
+    "swift-protocol-di-testing": {
+      "source": "affaan-m/everything-claude-code",
+      "sourceType": "github",
+      "computedHash": "3d455b4d4950513eae02a556292812c8ad74fbb52f92ce09a5776d773aef0861"
+    },
+    "swiftui-patterns": {
+      "source": "affaan-m/everything-claude-code",
+      "sourceType": "github",
+      "computedHash": "86aa244015049fd70bbc4359d8e6aff6b901a38c09ebfc08cee02cbc46d407e5"
     }
   }
 }

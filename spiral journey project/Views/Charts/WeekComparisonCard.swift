@@ -393,10 +393,10 @@ struct WeekComparisonCard: View {
 
     private func phaseColor(_ phase: SleepPhase) -> Color {
         switch phase {
-        case .deep:  return Color(hex: "3a7bd5")
-        case .rem:   return Color(hex: "a855f7")
-        case .light: return Color(hex: "60a5fa")
-        case .awake: return Color(hex: "f5c842")
+        case .deep:  return SpiralColors.deepSleep
+        case .rem:   return SpiralColors.remSleep
+        case .light: return SpiralColors.lightSleep
+        case .awake: return SpiralColors.awakeSleep
         }
     }
 

@@ -18,8 +18,8 @@ struct SpiralWidget: Widget {
                 .containerBackground(Color(hex: "0c0e14"), for: .widget)
         }
         .contentMarginsDisabled()
-        .configurationDisplayName("Spiral")
-        .description("Your sleep spiral.")
+        .configurationDisplayName(String(localized: "widget.spiral.name", defaultValue: "Spiral"))
+        .description(String(localized: "widget.spiral.description", defaultValue: "Your sleep spiral."))
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }
 }

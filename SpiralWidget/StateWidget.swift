@@ -10,8 +10,8 @@ struct StateWidget: Widget {
             StateWidgetEntryView(entry: entry)
                 .containerBackground(Color(hex: "0c0e14"), for: .widget)
         }
-        .configurationDisplayName("Sleep Status")
-        .description("Circadian state and tonight's prediction.")
+        .configurationDisplayName(String(localized: "widget.state.name", defaultValue: "Sleep Status"))
+        .description(String(localized: "widget.state.description", defaultValue: "Circadian state and tonight's prediction."))
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }

@@ -13,6 +13,7 @@ struct SpiralWidgetEntryView: View {
                 spiralType: .archimedean,
                 period: entry.period,
                 numDays: entry.numDays,
+                nowTurns: entry.nowTurns,
                 showHourLabels: family != .systemSmall
             )
             .scaleEffect(0.9)

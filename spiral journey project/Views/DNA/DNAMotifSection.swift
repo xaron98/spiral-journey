@@ -39,8 +39,7 @@ struct DNAMotifSection: View {
 
     @ViewBuilder
     private var motifContent: some View {
-        let topMotif = profile.motifs.sorted { $0.instanceCount > $1.instanceCount }.first!
-
+        if let topMotif = profile.motifs.max(by: { $0.instanceCount < $1.instanceCount }) {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(localizedMotifName(topMotif.name))
@@ -72,6 +71,7 @@ struct DNAMotifSection: View {
                 }
                 .padding(.top, 4)
             }
+        }
         }
     }
 

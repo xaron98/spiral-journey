@@ -18,6 +18,8 @@ final class SDCircadianEvent {
     var note: String?
     /// Duration in hours for duration events (exercise, screen, etc.). Nil for instant events.
     var durationHours: Double?
+    /// Event source: "manual" or "healthKit". Nil (defaults to "manual") for backward compat.
+    var source: String?
 
     // MARK: Init
 
@@ -27,7 +29,8 @@ final class SDCircadianEvent {
         absoluteHour: Double,
         timestamp: Date = Date(),
         note: String? = nil,
-        durationHours: Double? = nil
+        durationHours: Double? = nil,
+        source: String? = nil
     ) {
         self.eventID = eventID
         self.type = type
@@ -35,6 +38,7 @@ final class SDCircadianEvent {
         self.timestamp = timestamp
         self.note = note
         self.durationHours = durationHours
+        self.source = source
     }
 
     // MARK: Converters
@@ -47,7 +51,8 @@ final class SDCircadianEvent {
             absoluteHour: event.absoluteHour,
             timestamp: event.timestamp,
             note: event.note,
-            durationHours: event.durationHours
+            durationHours: event.durationHours,
+            source: event.source.rawValue
         )
     }
 
@@ -59,7 +64,8 @@ final class SDCircadianEvent {
             absoluteHour: absoluteHour,
             timestamp: timestamp,
             note: note,
-            durationHours: durationHours
+            durationHours: durationHours,
+            source: source.flatMap { EventSource(rawValue: $0) } ?? .manual
         )
     }
 }

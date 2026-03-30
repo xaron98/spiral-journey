@@ -18,7 +18,7 @@ import SpiralKit
 /// 2. Bundle updatable NN  (SleepPredictorUpdatable.mlmodel)
 /// 3. Bundle GB fallback    (SleepPredictor.mlmodel)
 /// 4. HeuristicPredictionEngine (ultimate fallback)
-enum MLPredictionEngine {
+@MainActor enum MLPredictionEngine {
 
     // MARK: - Model Management
 

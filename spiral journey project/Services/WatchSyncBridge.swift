@@ -34,7 +34,9 @@ final class WatchSyncBridge {
             let data = try JSONEncoder().encode(spiralKitEpisodes)
             defaults.set(data, forKey: "episodes")
         } catch {
+            #if DEBUG
             print("[WatchSyncBridge] Failed: \(error)")
+            #endif
         }
     }
 }
