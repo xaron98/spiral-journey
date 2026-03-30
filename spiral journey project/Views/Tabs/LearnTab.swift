@@ -114,8 +114,7 @@ private struct CosinorExplainerCard: View {
             paramSlider("Amplitude", value: $demoAmplitude, range: 0.05...0.5, format: "%.2f")
             paramSlider("Acrophase", value: $demoAcrophase, range: 8...20,     format: "%.0fh")
 
-            if !records.isEmpty {
-                let last = records.last!
+            if let last = records.last {
                 Divider().background(SpiralColors.border)
                 Text(String(format: NSLocalizedString("Your latest: MESOR %@ · Amp %@ · Acrophase %@", bundle: bundle, comment: ""), String(format: "%.2f", last.cosinor.mesor), String(format: "%.2f", last.cosinor.amplitude), SleepStatistics.formatHour(last.cosinor.acrophase)))
                     .font(.caption2.monospaced())

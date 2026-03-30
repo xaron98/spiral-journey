@@ -40,12 +40,16 @@ struct spiral_journey_projectApp: App {
         do {
             return try ModelContainer(for: schema, configurations: [config])
         } catch {
+            #if DEBUG
             print("[SwiftData] Container failed: \(error). Retrying with fresh store…")
+            #endif
             try? FileManager.default.removeItem(at: config.url)
             do {
                 return try ModelContainer(for: schema, configurations: [config])
             } catch {
+                #if DEBUG
                 print("[SwiftData] Failed after reset: \(error). Falling back to in-memory store.")
+                #endif
                 let inMemoryConfig = ModelConfiguration(
                     schema: schema,
                     isStoredInMemoryOnly: true,
@@ -212,6 +216,7 @@ struct spiral_journey_projectApp: App {
                         #if !targetEnvironment(simulator)
                         if healthKit.isAuthorized {
                             // Fast path: incremental merge of last 3 days.
+                            store.isSyncingHealthKit = true
                             let knownIDs = Set(store.sleepEpisodes.compactMap(\.healthKitSampleID))
                             let newEpisodes = await healthKit.fetchRecentNewEpisodes(
                                 epoch: store.startDate, knownIDs: knownIDs)
@@ -221,16 +226,20 @@ struct spiral_journey_projectApp: App {
                             // Refresh health profiles + auto-import events
                             await store.refreshHealthProfiles()
 
-                            // Retry after 10s — Watch data may still be transferring via Bluetooth
+                            // Retry ladder: 5s, 15s, 30s — Watch Bluetooth transfer can be slow
                             if newEpisodes.isEmpty {
-                                try? await Task.sleep(for: .seconds(10))
-                                let retryIDs = Set(store.sleepEpisodes.compactMap(\.healthKitSampleID))
-                                let retryEpisodes = await healthKit.fetchRecentNewEpisodes(
-                                    epoch: store.startDate, knownIDs: retryIDs)
-                                if !retryEpisodes.isEmpty {
-                                    store.mergeHealthKitEpisodes(retryEpisodes)
+                                for delay in [5, 15, 30] {
+                                    try? await Task.sleep(for: .seconds(delay))
+                                    let retryIDs = Set(store.sleepEpisodes.compactMap(\.healthKitSampleID))
+                                    let retryEpisodes = await healthKit.fetchRecentNewEpisodes(
+                                        epoch: store.startDate, knownIDs: retryIDs)
+                                    if !retryEpisodes.isEmpty {
+                                        store.mergeHealthKitEpisodes(retryEpisodes)
+                                        break // got data, stop retrying
+                                    }
                                 }
                             }
+                            store.isSyncingHealthKit = false
                         }
                         #endif
                         await store.cloudSync?.fetchNow()

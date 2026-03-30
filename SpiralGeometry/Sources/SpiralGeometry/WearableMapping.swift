@@ -43,12 +43,21 @@ public struct WearableSleepSample: Sendable {
     }
 }
 
-/// Apple Watch sleep stages (from HealthKit)
+/// Natural sleep states derived from Clifford torus geometry.
+///
+/// The torus reveals 2 geometric poles, not 5 AASM stages:
+///   Active pole: Wake + REM + N1 (< 3.5° apart on torus)
+///   Deep pole:   N2 + N3 (~12-14° apart on torus)
+///
+/// HealthKit mapping:
+///   .awake       → .active
+///   .asleepREM   → .rem (active pole, muscles disconnected)
+///   .asleepCore  → .nrem (depth gradient 0.3-0.6)
+///   .asleepDeep  → .nrem (depth gradient 0.7-1.0)
 public enum SleepStage: Int, Codable, Sendable {
-    case awake = 0
-    case core = 1    // N1 + N2 equivalent
-    case deep = 2    // N3 equivalent (the glymphatic target)
-    case rem = 3
+    case active = 0  // Wake + N1 (geometrically identical to REM)
+    case nrem = 1    // NREM continuum — depth determined by ω₁
+    case rem = 2     // Active pole, muscles disconnected
 }
 
 // MARK: - 4D feature mapping

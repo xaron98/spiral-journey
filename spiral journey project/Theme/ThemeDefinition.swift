@@ -28,7 +28,9 @@ struct ThemeDefinition: Identifiable, Codable, Equatable {
     let darkFaintHex: String
     let lightFaintHex: String
 
-    // Sleep phases (constant across light/dark)
+    // Sleep phases — 2-pole natural geometry (constant across light/dark)
+    // Active pole: awake ≈ rem (< 3.5° apart on Clifford torus)
+    // Deep pole: light → deep (NREM continuum, ~12-14° apart)
     let deepSleepHex: String
     let remSleepHex: String
     let lightSleepHex: String
@@ -53,8 +55,8 @@ enum ThemeLibrary {
         darkMutedHex: "a0a0b0", lightMutedHex: "6b6b7b",
         darkSubtleHex: "6b6b7b", lightSubtleHex: "8e8e9e",
         darkFaintHex: "3a3a4e", lightFaintHex: "c0c0cc",
-        deepSleepHex: "7c3aed", remSleepHex: "a78bfa",
-        lightSleepHex: "c4b5fd", awakeHex: "fbbf24",
+        deepSleepHex: "3b1f8a", remSleepHex: "a78bfa",
+        lightSleepHex: "6d4fba", awakeHex: "d9a84a",
         weekendHex: "4a3a6a",
         contextPrimaryHex: "3B82F6", contextSecondaryHex: "60A5FA"
     )
@@ -69,8 +71,8 @@ enum ThemeLibrary {
         darkMutedHex: "86b89a", lightMutedHex: "4a7a5e",
         darkSubtleHex: "4a7a5e", lightSubtleHex: "6b9a7e",
         darkFaintHex: "1a3a2a", lightFaintHex: "bbf7d0",
-        deepSleepHex: "064e3b", remSleepHex: "2dd4bf",
-        lightSleepHex: "a7f3d0", awakeHex: "fbbf24",
+        deepSleepHex: "064e3b", remSleepHex: "7dd3a0",
+        lightSleepHex: "1a7a5a", awakeHex: "d4a848",
         weekendHex: "0d503d",
         contextPrimaryHex: "14b8a6", contextSecondaryHex: "5eead4"
     )
@@ -85,8 +87,8 @@ enum ThemeLibrary {
         darkMutedHex: "7dd3fc", lightMutedHex: "0369a1",
         darkSubtleHex: "38bdf8", lightSubtleHex: "0ea5e9",
         darkFaintHex: "1e3a5f", lightFaintHex: "bae6fd",
-        deepSleepHex: "0c1445", remSleepHex: "3b82f6",
-        lightSleepHex: "7dd3fc", awakeHex: "fb923c",
+        deepSleepHex: "0c1445", remSleepHex: "7ab8e0",
+        lightSleepHex: "2a4a8a", awakeHex: "c88f40",
         weekendHex: "1e3a5f",
         contextPrimaryHex: "06b6d4", contextSecondaryHex: "67e8f9"
     )
@@ -101,8 +103,8 @@ enum ThemeLibrary {
         darkMutedHex: "d4a060", lightMutedHex: "92400e",
         darkSubtleHex: "92400e", lightSubtleHex: "b45309",
         darkFaintHex: "4a2a10", lightFaintHex: "fde68a",
-        deepSleepHex: "78350f", remSleepHex: "f97316",
-        lightSleepHex: "fde68a", awakeHex: "ef4444",
+        deepSleepHex: "78350f", remSleepHex: "e8a0c0",
+        lightSleepHex: "b85c1a", awakeHex: "e88a40",
         weekendHex: "5a3510",
         contextPrimaryHex: "fb923c", contextSecondaryHex: "fdba74"
     )
@@ -117,8 +119,8 @@ enum ThemeLibrary {
         darkMutedHex: "a1a1aa", lightMutedHex: "52525b",
         darkSubtleHex: "71717a", lightSubtleHex: "71717a",
         darkFaintHex: "3f3f46", lightFaintHex: "d4d4d8",
-        deepSleepHex: "3f3f46", remSleepHex: "71717a",
-        lightSleepHex: "a1a1aa", awakeHex: "d4d4d8",
+        deepSleepHex: "3f3f46", remSleepHex: "8a8a9a",
+        lightSleepHex: "606068", awakeHex: "b0b0b8",
         weekendHex: "27272a",
         contextPrimaryHex: "71717a", contextSecondaryHex: "a1a1aa"
     )

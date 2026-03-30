@@ -279,3 +279,79 @@
 - New fields on `Codable` structs MUST be optional or use `decodeIfPresent` with fallback
 - Dictionary keys with enum types don't auto-synthesize Codable — use arrays instead
 - Test: decode JSON without new field → must not crash
+
+
+## Natural Sleep Model (Validated Research — March 2026)
+
+### Core Change: 3 Natural States, NOT 5 AASM Stages
+
+The app should represent sleep as the geometry reveals it, not as AASM conventions dictate.
+
+**AASM (artificial, convention-based):**
+```
+W → N1 → N2 → N3 → REM  (5 discrete categories)
+```
+
+**Natural (validated with 142 + 13 subjects across 2 datasets):**
+```
+Pole 1 (Active):  Wake, REM, N1  — geometrically identical (< 3.5° apart)
+Pole 2 (Deep):    N2, N3         — geometrically identical (~12-14° apart)
+Between poles:    continuous depth gradient (NOT discrete steps)
+```
+
+### What This Means for the App
+
+1. **3 colors, not 5** — Wake (one color), NREM depth gradient (continuous color ramp from light to deep), REM (distinct color)
+2. **Depth score instead of stages** — ω₁ (winding number) provides a continuous 0-1 depth metric. Lower ω₁ = deeper sleep. No arbitrary N1/N2/N3 boundaries.
+3. **REM is NOT "between" N2 and Wake** — REM is geometrically almost identical to Wake (< 3° apart). It's Wake with muscles disconnected. Display it near Wake, not between sleep stages.
+4. **N1 is NOT a sleep stage** — it's the transition from Wake to NREM. Display it as the beginning of the depth gradient, not as a separate category.
+
+### Validated Numbers (use for depth mapping)
+
+```
+ω₁ by stage (HMC, 142 subjects, 117K epochs):
+  N3:   lowest  (deepest sleep)
+  N2:   low
+  REM:  medium  (but geometrically at active pole)
+  N1:   high    (transition)
+  Wake: highest (most active)
+
+Two geometric poles confirmed in:
+  HMC (142 subjects, C4-M1 electrode):  W-REM = 2.6°, N2-N3 = 11.5°
+  Sleep-EDF (13 recordings, Fpz-Cz):    W-REM = 1.7°, N2-N3 = 13.7°
+  Structure is universal. Angle between poles varies by electrode location.
+```
+
+### HealthKit Mapping
+
+Apple HealthKit reports: `.asleepCore` (N1+N2), `.asleepDeep` (N3), `.asleepREM`, `.awake`
+
+Map to natural model:
+```swift
+// HealthKit → Natural Sleep Model
+.awake       → Wake (active pole)
+.asleepREM   → REM (active pole, muscles disconnected)
+.asleepCore  → NREM light-to-moderate (depth gradient 0.3-0.6)
+.asleepDeep  → NREM deep (depth gradient 0.7-1.0)
+```
+
+The depth gradient is continuous — `.asleepCore` and `.asleepDeep` are just Apple's coarse bins of the same continuum. If raw HR/HRV data is available, compute ω₁ for finer depth resolution.
+
+### Phase A Multimodal Findings (for future features)
+
+If Watch raw PPG/HR becomes available:
+- ECG raw torus works for sleep classification (κ=0.449 with 41 subjects)
+- Combined EEG+ECG gives κ=0.502 (better than EEG alone)
+- Heart and brain see REM differently: brain says "active", heart says "like N2"
+  This is statistically confirmed: Wilcoxon p = 8.68×10⁻¹⁵ with 135 subjects
+- REM has the HIGHEST brain-heart coupling (not lowest, contradicts prior assumptions)
+- EEG-EMG pair is most informative for sleep staging (κ=0.436)
+
+### What NOT to Do
+- Do NOT show N1, N2, N3 as separate colored bands
+- Do NOT treat REM as "between" NREM and Wake
+- Do NOT use 5-color schemes matching AASM conventions
+- Do NOT impose discrete boundaries on the depth gradient
+- DO show Wake and REM near each other visually
+- DO show NREM as a smooth color gradient from light to deep
+- DO use ω₁ or depth score as the primary metric, not stage labels

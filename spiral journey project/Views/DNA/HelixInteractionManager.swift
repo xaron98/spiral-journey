@@ -22,11 +22,13 @@ final class HelixInteractionManager {
 
     // MARK: - Zoom (NOT observed)
 
-    @ObservationIgnored var zoomScale: Float = 1.0
+    @ObservationIgnored var zoomScale: Float = 1.6
 
     // MARK: - Selection (observed — SwiftUI needs this for overlays)
 
     var selectedWeek: Int? = nil
+    /// Selected bar slot index for phase tooltip (observed — triggers overlay update).
+    var selectedSlot: Int? = nil
 
     // MARK: - Motif Toggle (observed — SwiftUI needs this for legend)
 
@@ -38,7 +40,7 @@ final class HelixInteractionManager {
     /// Accumulated drag translation — stored here to avoid @State re-renders.
     @ObservationIgnored var dragStart: CGSize = .zero
     /// Baseline zoom before current pinch gesture.
-    @ObservationIgnored var baseZoom: Float = 1.0
+    @ObservationIgnored var baseZoom: Float = 1.6
 
     // MARK: - Display Link
 

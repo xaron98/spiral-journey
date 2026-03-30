@@ -15,14 +15,15 @@ struct HelixRealityView: View {
     @Environment(\.languageBundle) private var bundle
     @Environment(\.scenePhase) private var scenePhase
     @State private var manager = HelixInteractionManager()
-
-    // manager.baseZoom and manager.dragStart stored in manager (@ObservationIgnored) to avoid @State re-renders
+    @State private var comparisonMode: HelixComparisonMode = .yesterday
 
     // ── Dirty-tracking: skip expensive ops when only transform changed ──
     private final class DirtyState {
         var selectedWeek: Int? = nil
+        var selectedSlot: Int? = nil
         var showPatterns: Bool = false
         var zoomBracket: Int = 1
+        var comparisonMode: HelixComparisonMode = .yesterday
     }
     @State private var dirty = DirtyState()
 
@@ -58,6 +59,9 @@ struct HelixRealityView: View {
             .accessibilityElement(children: .contain)
             .accessibilityLabel(loc("dna.3d.a11y.label"))
             .accessibilityHint(loc("dna.3d.a11y.hint"))
+
+            // Sleep phase legend
+            phaseLegend
         }
     }
 
@@ -67,7 +71,8 @@ struct HelixRealityView: View {
     private var realityContent: some View {
         RealityView { content in
             let anchor = AnchorEntity()
-            let root = HelixSceneBuilder.build(from: profile, records: records)
+            let (strand1, strand2) = strandRecords(mode: comparisonMode)
+            let root = HelixSceneBuilder.build(from: profile, strand1Records: strand1, strand2Records: strand2)
             anchor.addChild(root)
 
             // Directional light for glass material reflections
@@ -89,9 +94,18 @@ struct HelixRealityView: View {
             guard let root = manager.rootEntity else { return }
             let totalDays = profile.nucleotides.count
 
-            // ① Transform is handled by CADisplayLink at 60fps — NOT here.
-            // This update: closure only runs when observed state changes
-            // (selectedWeek, showPatterns).
+            // ⓪ Comparison mode changed — rebuild geometry
+            if comparisonMode != dirty.comparisonMode {
+                dirty.comparisonMode = comparisonMode
+                let (strand1, strand2) = strandRecords(mode: comparisonMode)
+                // Remove old children
+                let oldChildren = Array(root.children)
+                for child in oldChildren { child.removeFromParent() }
+                // Build new and snapshot children before transferring
+                let rebuilt = HelixSceneBuilder.build(from: profile, strand1Records: strand1, strand2Records: strand2)
+                let newChildren = Array(rebuilt.children)
+                for child in newChildren { root.addChild(child) }
+            }
 
             // ② LOD: only update materials when zoom crosses a bracket boundary
             let zoomBracket = manager.zoomScale > 1.5 ? 2 : (manager.zoomScale > 0.8 ? 1 : 0)
@@ -115,25 +129,15 @@ struct HelixRealityView: View {
                 )
             }
 
-            // ④ Week highlights: only when selection changed
-            if manager.selectedWeek != dirty.selectedWeek {
-                dirty.selectedWeek = manager.selectedWeek
-                if let week = manager.selectedWeek {
-                    HelixSceneBuilder.resetHighlights(root: root, totalDays: totalDays)
-                    HelixSceneBuilder.highlightSimilarWeeks(
-                        root: root,
-                        selectedWeek: week,
-                        alignments: profile.alignments,
-                        totalDays: totalDays
-                    )
-                } else {
-                    HelixSceneBuilder.resetHighlights(root: root, totalDays: totalDays)
-                }
+            // ④ Slot highlight: selected bar glows, others dim
+            if manager.selectedSlot != dirty.selectedSlot {
+                dirty.selectedSlot = manager.selectedSlot
+                HelixSceneBuilder.highlightSlot(root: root, selectedSlot: manager.selectedSlot)
             }
         }
         .gesture(dragGesture)
         .gesture(magnifyGesture)
-        .simultaneousGesture(tapGesture)
+        .gesture(tapGesture)
         .onAppear {
             manager.startDisplayLink()
         }
@@ -157,10 +161,40 @@ struct HelixRealityView: View {
     @ViewBuilder
     private var overlays: some View {
         VStack {
-            // Top-right: patterns toggle (only if motifs exist)
-            if !profile.motifs.isEmpty {
-                HStack {
-                    Spacer()
+            // Top: comparison mode selector + patterns toggle
+            HStack(spacing: 8) {
+                // Comparison mode picker
+                HStack(spacing: 0) {
+                    ForEach(HelixComparisonMode.allCases, id: \.self) { mode in
+                        Button {
+                            comparisonMode = mode
+                        } label: {
+                            Text(comparisonModeLabel(mode))
+                                .font(.caption2.weight(.medium))
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 5)
+                                .background(
+                                    comparisonMode == mode
+                                    ? SpiralColors.accent.opacity(0.3)
+                                    : Color.clear
+                                )
+                                .foregroundStyle(
+                                    comparisonMode == mode
+                                    ? SpiralColors.accent
+                                    : SpiralColors.muted
+                                )
+                        }
+                    }
+                }
+                .background(Capsule().fill(SpiralColors.surface.opacity(0.85)))
+                .clipShape(Capsule())
+                .padding(.leading, 12)
+                .padding(.top, 12)
+
+                Spacer()
+
+                // Patterns toggle
+                if !profile.motifs.isEmpty {
                     Button {
                         manager.showPatterns.toggle()
                     } label: {
@@ -198,59 +232,159 @@ struct HelixRealityView: View {
                     .padding(.bottom, 4)
             }
 
-            // Bottom: week info card
-            if let week = manager.selectedWeek {
-                weekInfoCard(week: week)
+            // Bottom: slot phase tooltip
+            if let slot = manager.selectedSlot {
+                slotTooltip(slot: slot)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                     .padding(.horizontal, 16)
                     .padding(.bottom, 12)
             }
         }
-        .animation(.easeInOut(duration: 0.25), value: manager.selectedWeek)
+        .animation(.easeInOut(duration: 0.25), value: manager.selectedSlot)
         .animation(.easeInOut(duration: 0.2), value: manager.showPatterns)
     }
 
-    // MARK: - Week Info Card
+    // MARK: - Slot Tooltip
 
     @ViewBuilder
-    private func weekInfoCard(week: Int) -> some View {
-        let similarity = profile.alignments
-            .first(where: { $0.weekIndex == week })?.similarity
+    private func slotTooltip(slot: Int) -> some View {
+        let (strand1, strand2) = strandRecords(mode: comparisonMode)
+        let barsPerTurn = 10
+        let dayIndex = (slot / barsPerTurn) * 7 / max(1, profile.nucleotides.count / max(1, profile.nucleotides.count / 7))
+        let slotInDay = slot % barsPerTurn
 
-        HStack(spacing: 12) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text("\(loc("dna.3d.week")) \(week + 1)")
-                    .font(.subheadline.weight(.semibold))
+        // Time range for this 30-min slot
+        let record1 = strand1.isEmpty ? nil : strand1[min(strand1.count - 1, max(0, dayIndex))]
+        let record2 = strand2.isEmpty ? nil : strand2[min(strand2.count - 1, max(0, dayIndex))]
+
+        let startHour = slotStartHour(record: record1 ?? record2, slotIndex: slotInDay, totalSlots: barsPerTurn)
+        let endHour = startHour + 0.5 // 30 min
+        let timeText = "\(formatClockHour(startHour)) - \(formatClockHour(endHour))"
+
+        let phase1 = phaseForSlot(record: record1, slotIndex: slotInDay, totalSlots: barsPerTurn)
+        let phase2 = phaseForSlot(record: record2, slotIndex: slotInDay, totalSlots: barsPerTurn)
+
+        let label1 = comparisonMode == .week ? loc("dna.3d.tooltip.this_week") : loc("dna.3d.tooltip.today")
+        let label2 = tooltipLabel2()
+
+        VStack(alignment: .leading, spacing: 6) {
+            Text(timeText)
+                .font(.subheadline.monospaced().weight(.semibold))
+                .foregroundStyle(SpiralColors.text)
+
+            HStack(spacing: 6) {
+                Text(label1)
+                    .font(.caption)
+                    .foregroundStyle(SpiralColors.muted)
+                    .frame(width: 60, alignment: .leading)
+                Text(phaseDisplayName(phase1))
+                    .font(.caption.weight(.medium))
                     .foregroundStyle(SpiralColors.text)
-
-                if let sim = similarity {
-                    Text("\(Int(sim * 100))% \(loc("dna.3d.similar"))")
-                        .font(.footnote)
-                        .foregroundStyle(SpiralColors.muted)
-                }
+                Circle()
+                    .fill(phaseDisplayColor(phase1))
+                    .frame(width: 8, height: 8)
             }
 
-            Spacer()
-
-            // Show motif name if this week belongs to one
-            if let motif = profile.motifs.first(where: {
-                $0.instanceWeekIndices.contains(week)
-            }) {
-                VStack(alignment: .trailing, spacing: 2) {
-                    Text(loc("dna.3d.pattern"))
-                        .font(.caption)
-                        .foregroundStyle(SpiralColors.subtle)
-                    Text(motif.name)
-                        .font(.footnote.weight(.medium))
-                        .foregroundStyle(SpiralColors.accent)
-                }
+            HStack(spacing: 6) {
+                Text(label2)
+                    .font(.caption)
+                    .foregroundStyle(SpiralColors.muted)
+                    .frame(width: 60, alignment: .leading)
+                Text(phaseDisplayName(phase2))
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(SpiralColors.text)
+                Circle()
+                    .fill(phaseDisplayColor(phase2))
+                    .frame(width: 8, height: 8)
             }
         }
         .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(SpiralColors.surface.opacity(0.9))
+                .fill(SpiralColors.surface.opacity(0.92))
         )
+    }
+
+    private func slotStartHour(record: SleepRecord?, slotIndex: Int, totalSlots: Int) -> Double {
+        guard let record = record, !record.phases.isEmpty else {
+            return 23.0 + Double(slotIndex) * 0.5 // default ~23:00 start
+        }
+        let bedtime = record.bedtimeHour
+        return bedtime + Double(slotIndex) * 0.5
+    }
+
+    private func phaseForSlot(record: SleepRecord?, slotIndex: Int, totalSlots: Int) -> SleepPhase? {
+        guard let record = record, !record.phases.isEmpty else { return nil }
+        let idx = min(Int(Float(slotIndex) / Float(totalSlots) * Float(record.phases.count)), record.phases.count - 1)
+        return record.phases[idx].phase
+    }
+
+    private func phaseDisplayName(_ phase: SleepPhase?) -> String {
+        guard let phase = phase else { return "—" }
+        switch phase {
+        case .deep:  return loc("dna.3d.tooltip.deep")
+        case .light: return loc("dna.3d.tooltip.light_nrem")
+        case .rem:   return loc("dna.3d.tooltip.rem")
+        case .awake: return loc("dna.3d.tooltip.wake")
+        }
+    }
+
+    private func phaseDisplayColor(_ phase: SleepPhase?) -> Color {
+        guard let phase = phase else { return .gray }
+        return Color(hex: phase.hexColor.replacingOccurrences(of: "#", with: ""))
+    }
+
+    private func tooltipLabel2() -> String {
+        switch comparisonMode {
+        case .yesterday: return loc("dna.3d.tooltip.yesterday")
+        case .week:      return loc("dna.3d.tooltip.last_week")
+        case .best:      return loc("dna.3d.tooltip.best")
+        }
+    }
+
+    private func formatClockHour(_ hour: Double) -> String {
+        let h = Int(hour) % 24
+        let m = Int((hour - Double(Int(hour))) * 60)
+        return String(format: "%02d:%02d", h, m)
+    }
+
+    // MARK: - Phase Legend
+
+    private var phaseLegend: some View {
+        VStack(spacing: 4) {
+            // Strand identity
+            HStack(spacing: 16) {
+                HStack(spacing: 4) {
+                    RoundedRectangle(cornerRadius: 2).fill(Color(hex: "ebae33")).frame(width: 14, height: 4)
+                    Text(comparisonMode == .week ? loc("dna.3d.tooltip.this_week") : loc("dna.3d.tooltip.today"))
+                        .font(.system(size: 10)).foregroundStyle(SpiralColors.muted)
+                }
+                HStack(spacing: 4) {
+                    RoundedRectangle(cornerRadius: 2).fill(Color(hex: "b8bcc7")).frame(width: 14, height: 4)
+                    Text(tooltipLabel2())
+                        .font(.system(size: 10)).foregroundStyle(SpiralColors.muted)
+                }
+            }
+            // Phase colors
+            HStack(spacing: 12) {
+                legendDot(loc("dna.3d.legend.wake"), color: Color(hex: "d4a860"))
+                legendDot(loc("dna.3d.legend.rem"), color: Color(hex: "a78bfa"))
+                HStack(spacing: 3) {
+                    Circle().fill(Color(hex: "4a7ab5")).frame(width: 6, height: 6)
+                    Text("→").font(.system(size: 7)).foregroundStyle(SpiralColors.muted)
+                    Circle().fill(Color(hex: "1a2a6e")).frame(width: 6, height: 6)
+                    Text(loc("dna.3d.legend.nrem")).font(.caption2).foregroundStyle(SpiralColors.muted)
+                }
+            }
+        }
+        .padding(.vertical, 4)
+    }
+
+    private func legendDot(_ label: String, color: Color) -> some View {
+        HStack(spacing: 4) {
+            Circle().fill(color).frame(width: 7, height: 7)
+            Text(label).font(.caption2).foregroundStyle(SpiralColors.muted)
+        }
     }
 
     // MARK: - Motif Legend
@@ -322,26 +456,100 @@ struct HelixRealityView: View {
 
     private var tapGesture: some Gesture {
         SpatialTapGesture()
+            .targetedToAnyEntity()
             .onEnded { value in
-                // Simplified: cycle through weeks based on tap Y position
-                let fraction = value.location.y / 400.0
-                let totalWeeks = max(1, profile.nucleotides.count / 7)
-                let tappedWeek = Int(fraction * CGFloat(totalWeeks))
-                let clampedWeek = max(0, min(totalWeeks - 1, tappedWeek))
+                let entity = value.entity
+                var name = entity.name
 
-                if manager.selectedWeek == clampedWeek {
+                // Walk up parent chain to find bar entity (in case child is hit)
+                var current: Entity? = entity
+                while let e = current {
+                    if e.name.hasPrefix("bar_") && !e.name.contains("_h") && !e.name.contains("_c") {
+                        name = e.name
+                        break
+                    }
+                    current = e.parent
+                }
+
+                guard name.hasPrefix("bar_") else {
+                    // Tapped non-bar entity = deselect
+                    manager.selectedSlot = nil
+                    manager.selectedWeek = nil
+                    return
+                }
+
+                // Parse index from "bar_42"
+                let parts = name.components(separatedBy: "_")
+                guard parts.count >= 2, let slotIndex = Int(parts[1]) else {
+                    manager.selectedSlot = nil
+                    manager.selectedWeek = nil
+                    return
+                }
+
+                if manager.selectedSlot == slotIndex {
+                    manager.selectedSlot = nil
                     manager.selectedWeek = nil
                 } else {
-                    manager.selectedWeek = clampedWeek
+                    manager.selectedSlot = slotIndex
+                    manager.selectedWeek = slotIndex / 10
                 }
             }
     }
 
     // Auto-rotation and transform handled by CADisplayLink in HelixInteractionManager
 
+    // MARK: - Comparison Mode
+
+    private func strandRecords(mode: HelixComparisonMode) -> (strand1: [SleepRecord], strand2: [SleepRecord]) {
+        guard records.count >= 2 else { return (records, records) }
+
+        switch mode {
+        case .yesterday:
+            // Strand 1 = last night, Strand 2 = night before
+            let last = Array(records.suffix(1))
+            let prev = Array(records.suffix(2).prefix(1))
+            return (last, prev)
+
+        case .week:
+            // Strand 1 = this week (last 7), Strand 2 = previous week (7 before that)
+            let thisWeek = Array(records.suffix(7))
+            let prevWeek = records.count >= 14
+                ? Array(records.suffix(14).prefix(7))
+                : Array(records.prefix(min(7, records.count)))
+            return (thisWeek, prevWeek)
+
+        case .best:
+            // Strand 1 = last night, Strand 2 = best night (highest sleep duration)
+            let last = Array(records.suffix(1))
+            let best: [SleepRecord]
+            if let bestRecord = records.max(by: { $0.sleepDuration < $1.sleepDuration }) {
+                best = [bestRecord]
+            } else {
+                best = last
+            }
+            return (last, best)
+        }
+    }
+
+    private func comparisonModeLabel(_ mode: HelixComparisonMode) -> String {
+        switch mode {
+        case .yesterday: return loc("dna.3d.mode.yesterday")
+        case .week:      return loc("dna.3d.mode.week")
+        case .best:      return loc("dna.3d.mode.best")
+        }
+    }
+
     // MARK: - Localization
 
     private func loc(_ key: String) -> String {
         NSLocalizedString(key, bundle: bundle, comment: "")
     }
+}
+
+// MARK: - Comparison Mode Enum
+
+enum HelixComparisonMode: String, CaseIterable {
+    case yesterday
+    case week
+    case best
 }

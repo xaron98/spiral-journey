@@ -17,41 +17,22 @@ struct SpiralTab: View {
     @State private var showTwoProcess = false
     @State private var showDNAInsights = false
 
+    // ── Interaction manager ──
+    // High-frequency cursor, camera, zoom, and gesture state lives here.
+    // Properties are @ObservationIgnored so changes don't trigger body re-evaluation.
+    // Only `needsCanvasRedraw` is observed to signal Canvas redraws.
+    @State private var interaction = SpiralInteractionManager()
+
     // Sleep logging
-    @State private var cursorAbsHour: Double = 0
     @State private var cachedHasDream: Bool = false
     @State private var cachedDreamDate: Date?
     @State private var sleepStartHour: Double? = nil
     // Duration event logging
     @State private var eventLoggingType: EventType? = nil
     @State private var eventStartHour: Double? = nil
-    /// True when the cursor tracks real-world time automatically.
-    /// Set to false when the user drags the cursor to a past hour.
-    @State private var isCursorLive: Bool = true
-    @State private var maxReachedTurns: Double = 1.0
-    @State private var visibleDays: Double = 1
-    @State private var liveVisibleDays: Double = 1
-    @State private var pinchBaseVisibleDays: Double = 1
     private let minVisibleDays: Double = 0.08
-    @State private var pinchStarted: Bool = false
-    // Zoom slider: normalised 0→1 in log-space. Derived from visibleDays when not dragging.
-    @State private var zoomNorm: Double = 1.0
     @State private var spiralType: SpiralType = .archimedean
     @State private var showEventSheet = false
-
-    // ── Smooth camera follow ──
-    // The camera center always tends toward the cursor via lerp.
-    // During gestures the lerp factor is reduced so the camera doesn't
-    // fight the user. After gesture ends the lerp ramps back up smoothly.
-    /// Smoothed camera center in turns — the value SpiralView actually uses.
-    @State private var smoothCameraCenterTurns: Double = 0
-    /// True while a drag or pinch gesture is physically active.
-    @State private var isUserInteracting: Bool = false
-    /// Interaction type for debug logging.
-    enum InteractionMode: String { case none, scrub, pinch }
-    @State private var interactionMode: InteractionMode = .none
-    /// Timestamp of the last gesture event — used for post-gesture decay.
-    @State private var lastInteractionTime: Date = .distantPast
 
     // Consistency detail navigation
     @State private var showConsistencyDetail = false
@@ -71,16 +52,76 @@ struct SpiralTab: View {
     @State private var selectedElementInfo: SpiralElementInfo? = nil
     @State private var elementInfoDismissTask: Task<Void, Never>? = nil
 
-    // Drag tracking — tangent-based cursor advancement (smooth, no jitter).
-    // On first touch: snap via nearestHour. Subsequent moves: tangent delta.
-    @State private var dragPrevLocation: CGPoint = .zero
-    @State private var dragIsNew: Bool = true
     #if os(macOS)
     // Frame of the spiral area in global coordinates — used to position the drag overlay.
     @State private var spiralFrameGlobal: CGRect = .zero
     #endif
 
+    // Convenience accessors for interaction manager properties.
+    // These read from the manager (no @State, no SwiftUI invalidation).
+    private var cursorAbsHour: Double {
+        get { interaction.cursorAbsHour }
+        nonmutating set { interaction.cursorAbsHour = newValue; interaction.markDirty() }
+    }
+    private var smoothCameraCenterTurns: Double {
+        get { interaction.smoothCameraCenterTurns }
+        nonmutating set { interaction.smoothCameraCenterTurns = newValue; interaction.markDirty() }
+    }
+    private var liveVisibleDays: Double {
+        get { interaction.liveVisibleDays }
+        nonmutating set { interaction.liveVisibleDays = newValue; interaction.markDirty() }
+    }
+    private var visibleDays: Double {
+        get { interaction.visibleDays }
+        nonmutating set { interaction.visibleDays = newValue }
+    }
+    private var maxReachedTurns: Double {
+        get { interaction.maxReachedTurns }
+        nonmutating set { interaction.maxReachedTurns = newValue }
+    }
+    private var isCursorLive: Bool {
+        get { interaction.isCursorLive }
+        nonmutating set { interaction.isCursorLive = newValue }
+    }
+    private var isUserInteracting: Bool {
+        get { interaction.isUserInteracting }
+        nonmutating set { interaction.isUserInteracting = newValue }
+    }
+    private var interactionMode: SpiralInteractionManager.InteractionMode {
+        get { interaction.interactionMode }
+        nonmutating set { interaction.interactionMode = newValue }
+    }
+    private var lastInteractionTime: Date {
+        get { interaction.lastInteractionTime }
+        nonmutating set { interaction.lastInteractionTime = newValue }
+    }
+    private var dragPrevLocation: CGPoint {
+        get { interaction.dragPrevLocation }
+        nonmutating set { interaction.dragPrevLocation = newValue }
+    }
+    private var dragIsNew: Bool {
+        get { interaction.dragIsNew }
+        nonmutating set { interaction.dragIsNew = newValue }
+    }
+    private var pinchStarted: Bool {
+        get { interaction.pinchStarted }
+        nonmutating set { interaction.pinchStarted = newValue }
+    }
+    private var pinchBaseVisibleDays: Double {
+        get { interaction.pinchBaseVisibleDays }
+        nonmutating set { interaction.pinchBaseVisibleDays = newValue }
+    }
+    private var zoomNorm: Double {
+        get { interaction.zoomNorm }
+        nonmutating set { interaction.zoomNorm = newValue }
+    }
+
     var body: some View {
+        // Read the redraw flag so SwiftUI re-evaluates when the interaction
+        // manager toggles it via markDirty(). The flag itself carries no data —
+        // its sole purpose is to poke the observation system.
+        let _ = interaction.needsCanvasRedraw
+
         @Bindable var store = store
         let maxDays = max(store.numDays, 1)
 
@@ -533,51 +574,19 @@ struct SpiralTab: View {
                     floatingElementsVisible = true
                 }
             }
+            // Start camera follow and cursor advance loops inside the interaction manager.
+            // These run at ~30fps and ~60s respectively but mutate @ObservationIgnored
+            // properties, so they do NOT trigger SwiftUI body re-evaluation.
+            let storePeriod = { [store] in store.period }
+            let storeStartDate = { [store] in store.startDate }
+            interaction.startCameraFollow(period: storePeriod)
+            interaction.startCursorAdvance(startDate: storeStartDate)
+        }
+        .onDisappear {
+            interaction.stopLoops()
         }
         .onChange(of: store.period) { _, _ in initCursor() }
         .onChange(of: store.flatMode) { _, _ in initCursor() }
-        .task {
-            // Smooth camera follow loop — runs at ~30fps.
-            // Lerps smoothCameraCenterTurns toward cursorTurns.
-            // During gestures the lerp is suppressed; after gesture ends
-            // it ramps up smoothly, preventing snaps.
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .milliseconds(33)) // ~30fps
-                let cursorTurns = cursorAbsHour / store.period
-
-                if isUserInteracting && interactionMode == .scrub {
-                    // During scrub: camera is set directly in gesture handler.
-                    // No lerp here — gesture handler owns the value.
-                } else {
-                    // Smooth follow: lerp toward cursor.
-                    // After gesture ends, ramp up lerp factor over ~0.5s.
-                    let timeSinceGesture = Date().timeIntervalSince(lastInteractionTime)
-                    let lerpFactor: Double
-                    if isUserInteracting && interactionMode == .pinch {
-                        // During pinch: gentle follow so camera doesn't fight zoom.
-                        lerpFactor = 0.08
-                    } else if timeSinceGesture < 0.5 {
-                        // Post-gesture ramp: 0.05 → 0.25 over 0.5s
-                        let t = timeSinceGesture / 0.5
-                        lerpFactor = 0.05 + t * 0.20
-                    } else {
-                        // Normal follow: responsive but not instant.
-                        lerpFactor = 0.25
-                    }
-                    let delta = cursorTurns - smoothCameraCenterTurns
-                    smoothCameraCenterTurns += delta * lerpFactor
-                }
-            }
-        }
-        .task {
-            // Advance the cursor every 60 seconds to track real-world time,
-            // but only when the cursor is live and the user isn't interacting.
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(60))
-                guard isCursorLive, !isUserInteracting else { continue }
-                cursorAbsHour = Date().timeIntervalSince(store.startDate) / 3600
-            }
-        }
         .onChange(of: store.sleepEpisodes.count) { _, count in
             let minTurns = max(1.0, store.period / 24.0)
             if count == 0 {
@@ -620,9 +629,21 @@ struct SpiralTab: View {
                 Text(currentDateString)
                     .font(.caption.monospaced())
                     .foregroundStyle(SpiralColors.subtle)
+                if store.isSyncingHealthKit {
+                    HStack(spacing: 4) {
+                        ProgressView()
+                            .controlSize(.mini)
+                            .tint(SpiralColors.accent)
+                        Text(String(localized: "sync.updating", bundle: bundle))
+                            .font(.caption2)
+                            .foregroundStyle(SpiralColors.muted)
+                    }
+                    .transition(.opacity)
+                }
             }
             Spacer()
         }
+        .animation(.easeInOut(duration: 0.3), value: store.isSyncingHealthKit)
     }
 
     private var greetingText: String {
@@ -1114,6 +1135,7 @@ struct SpiralTab: View {
                     .liquidGlass(circular: true)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(String(localized: "accessibility.stats.button", defaultValue: "Sleep statistics"))
 
             // Central sleep/wake/event button — original style with liquid glass
             Button {
@@ -1135,6 +1157,8 @@ struct SpiralTab: View {
                 .liquidGlass(circular: true)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(logButtonAccessibilityLabel)
+            .accessibilityHint(String(localized: "accessibility.log.hint", defaultValue: "Long press to cancel"))
             .simultaneousGesture(
                 LongPressGesture(minimumDuration: 0.5)
                     .onEnded { _ in
@@ -1162,6 +1186,7 @@ struct SpiralTab: View {
             }
             .buttonStyle(.plain)
             .disabled(store.analysis.coachInsight == nil)
+            .accessibilityLabel(String(localized: "accessibility.coach.button", defaultValue: "Coach tip"))
         }
     }
 
@@ -1184,6 +1209,16 @@ struct SpiralTab: View {
             return SpiralColors.awakeSleep
         } else {
             return Color(hex: "7c3aed")
+        }
+    }
+
+    private var logButtonAccessibilityLabel: String {
+        if eventLoggingType != nil {
+            return String(localized: "accessibility.log.event", defaultValue: "Log event")
+        } else if sleepStartHour != nil {
+            return String(localized: "accessibility.log.wake", defaultValue: "Log wake up")
+        } else {
+            return String(localized: "accessibility.log.sleep", defaultValue: "Log sleep")
         }
     }
 
@@ -1522,7 +1557,7 @@ struct SpiralTab: View {
         if dayIndex >= Int(nowAbsHour / period) - 1 {
             showElementInfo(SpiralElementInfo(
                 label: loc("spiral.info.vigilia"),
-                timeRange: "\(formatClockHour(clockHour)) → now",
+                timeRange: "\(formatClockHour(clockHour)) → \(loc("spiral.info.now"))",
                 duration: "",
                 color: SpiralColors.awakeSleep
             ))
@@ -1927,6 +1962,7 @@ struct EventGridView: View {
                                     .foregroundStyle(SpiralColors.muted)
                             }
                             .buttonStyle(.plain)
+                            .accessibilityLabel(String(localized: "accessibility.event.remove", defaultValue: "Remove event"))
                         }
                     }
                 }
@@ -1976,5 +2012,7 @@ private struct GlassEventButton: View {
             .scaleEffect(pressed ? 0.95 : 1.0)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(NSLocalizedString("event.type.\(type.rawValue)", bundle: bundle, comment: ""))
+        .accessibilityHint(String(localized: "accessibility.event.log.hint", defaultValue: "Log this event"))
     }
 }

@@ -131,11 +131,10 @@ struct NeuroSpiralExportView: View {
 
             let phase: String
             switch sample.sleepStage {
-            case .deep: phase = "deep"
-            case .rem: phase = "rem"
-            case .core: phase = "light"
-            case .awake: phase = "awake"
-            case .none: phase = "unknown"
+            case .nrem:   phase = "nrem"
+            case .rem:    phase = "rem"
+            case .active: phase = "active"
+            case .none:   phase = "unknown"
             }
 
             let code = formatCode(vertex.code)

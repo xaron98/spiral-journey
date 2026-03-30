@@ -1,6 +1,13 @@
 import Foundation
 
-/// Sleep phase types matching the web project's SLEEP_PHASES constant.
+/// Sleep phase types from HealthKit / manual entry.
+///
+/// Natural sleep geometry (validated with 142+13 subjects) shows 2 poles:
+///   Active pole: awake + rem (< 3.5° apart on Clifford torus)
+///   Deep pole:   light + deep (NREM continuum, ~12-14° apart)
+///
+/// Colors reflect this geometry: awake ≈ rem (both active pole),
+/// light → deep as continuous NREM gradient.
 public enum SleepPhase: String, Codable, CaseIterable, Sendable {
     case deep  = "deep"
     case rem   = "rem"
@@ -9,28 +16,34 @@ public enum SleepPhase: String, Codable, CaseIterable, Sendable {
 
     public var label: String {
         switch self {
-        case .deep:  return "Deep (N3)"
+        case .deep:  return "Deep Sleep"
         case .rem:   return "REM"
-        case .light: return "Light (N1/2)"
+        case .light: return "Light Sleep"
         case .awake: return "Awake"
         }
     }
 
+    /// Colors: 3 clear visual identities reflecting natural geometry.
+    /// Active pole shares brightness family but distinct hues:
+    ///   Wake = amber/gold (external consciousness)
+    ///   REM = soft violet (internal consciousness / dreams)
+    /// Deep pole = continuous blue gradient (NREM depth):
+    ///   Light = medium blue, Deep = deep indigo
     public var hexColor: String {
         switch self {
-        case .deep:  return "#1a1a6e"
-        case .rem:   return "#6e3fa0"
-        case .light: return "#5b8bd4"
-        case .awake: return "#f5c842"
+        case .deep:  return "#1a2a6e"   // deep indigo (NREM deep)
+        case .rem:   return "#a78bfa"   // soft violet (dreams / internal consciousness)
+        case .light: return "#4a7ab5"   // medium blue (NREM light)
+        case .awake: return "#d4a860"   // warm gold (wake / external consciousness)
         }
     }
 
     public var description: String {
         switch self {
         case .deep:  return "Restorative, memory consolidation"
-        case .rem:   return "Dreaming, emotional processing"
-        case .light: return "Transitional, easily woken"
-        case .awake: return "Wakefulness periods"
+        case .rem:   return "Active pole — dreaming, emotional processing"
+        case .light: return "NREM depth gradient — lighter restoration"
+        case .awake: return "Active pole — wakefulness"
         }
     }
 }

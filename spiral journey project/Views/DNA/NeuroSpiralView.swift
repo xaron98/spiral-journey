@@ -562,23 +562,23 @@ struct NeuroSpiralView: View {
         return samples
     }
 
-    /// Map SpiralKit SleepPhase → SpiralGeometry SleepStage.
+    /// Map SpiralKit SleepPhase → Natural SleepStage (3 states, not 5).
     private func mapPhase(_ phase: SleepPhase) -> SleepStage {
         switch phase {
-        case .deep:  return .deep
-        case .rem:   return .rem
-        case .light: return .core
-        case .awake: return .awake
+        case .deep:  return .nrem   // Deep pole (depth 0.7-1.0)
+        case .light: return .nrem   // Deep pole (depth 0.3-0.6)
+        case .rem:   return .rem    // Active pole, muscles disconnected
+        case .awake: return .active // Active pole
         }
     }
 
     /// Phase-dependent modulation factors for (HRV, HR, motion).
+    /// Uses the natural 3-state model: active (W+N1), nrem (continuous depth), rem.
     private func phaseModulation(_ stage: SleepStage) -> (Double, Double, Double) {
         switch stage {
-        case .deep:  return (1.4, 0.85, 0.01)   // High HRV, low HR, minimal motion
-        case .rem:   return (0.9, 0.95, 0.03)    // Moderate HRV, slight HR increase
-        case .core:  return (1.1, 0.90, 0.02)    // Slightly elevated HRV
-        case .awake: return (0.7, 1.10, 0.15)    // Low HRV, higher HR, motion
+        case .nrem:   return (1.25, 0.87, 0.015)  // Elevated HRV, low HR, minimal motion
+        case .rem:    return (0.9, 0.95, 0.03)     // Moderate HRV, slight HR increase
+        case .active: return (0.7, 1.10, 0.15)     // Low HRV, higher HR, motion
         }
     }
 

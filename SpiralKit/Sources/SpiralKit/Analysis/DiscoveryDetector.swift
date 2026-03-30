@@ -148,7 +148,8 @@ public enum DiscoveryDetector {
         // MARK: - Health milestones
 
         if !healthProfiles.isEmpty {
-            let firstDay = healthProfiles.first!.day
+            guard let firstProfile = healthProfiles.first else { return discoveries }
+            let firstDay = firstProfile.day
             discoveries.append(Discovery(
                 type: .firstHealthProfile, date: dateFor(day: firstDay), dayIndex: firstDay,
                 titleKey: "discovery.firstHealthProfile.title",

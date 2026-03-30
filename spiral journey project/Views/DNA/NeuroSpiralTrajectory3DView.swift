@@ -40,8 +40,7 @@ struct NeuroSpiralTrajectory3DView: View {
                 let p3 = NeuroSpiralTorusSceneBuilder.project4Dto3D(p4, w4DAngle: manager.w4DAngle)
 
                 let sphere = MeshResource.generateSphere(radius: 0.012)
-                let vertex = Tesseract.discretize(point)
-                let color = stageColor(for: vertex.index)
+                let color = depthColor(for: point)
                 var mat = PhysicallyBasedMaterial()
                 mat.baseColor = .init(tint: color)
                 mat.roughness = .init(floatLiteral: 0.3)
@@ -143,14 +142,15 @@ struct NeuroSpiralTrajectory3DView: View {
 
     // MARK: - Scene Building Helpers
 
-    private func stageColor(for vertexIndex: Int) -> UIColor {
-        let colors: [UIColor] = [
-            UIColor(red: 0.33, green: 0.29, blue: 0.72, alpha: 0.9),
-            UIColor(red: 0.22, green: 0.54, blue: 0.87, alpha: 0.9),
-            UIColor(red: 0.36, green: 0.79, blue: 0.65, alpha: 0.9),
-            UIColor(red: 0.83, green: 0.33, blue: 0.49, alpha: 0.9),
-        ]
-        return colors[abs(vertexIndex) % colors.count]
+    /// Depth color using the same natural model as TorusSceneBuilder.
+    private func depthColor(for point: SIMD4<Double>) -> UIColor {
+        let signSum = (point.x > 0 ? 1.0 : 0.0) + (point.y > 0 ? 1.0 : 0.0)
+                    + (point.z > 0 ? 1.0 : 0.0) + (point.w > 0 ? 1.0 : 0.0)
+        let depth = 1.0 - signSum / 4.0
+        let r = 0.36 - depth * 0.30
+        let g = 0.79 - depth * 0.50
+        let b = 0.65 + depth * 0.07
+        return UIColor(red: r, green: g, blue: b, alpha: 0.9)
     }
 
     private func addWireframe(to root: Entity, w4DAngle: Float) {

@@ -107,14 +107,26 @@ enum NeuroSpiralTorusSceneBuilder {
 
     // MARK: - Trajectory
 
-    /// Stage colors for the four quadrant families.
-    /// Deep sleep → purple, Light/transition → blue, Wake → teal, REM → pink.
-    private static let stageColors: [UIColor] = [
-        UIColor(red: 0.33, green: 0.29, blue: 0.72, alpha: 0.9),
-        UIColor(red: 0.22, green: 0.54, blue: 0.87, alpha: 0.9),
-        UIColor(red: 0.36, green: 0.79, blue: 0.65, alpha: 0.9),
-        UIColor(red: 0.83, green: 0.33, blue: 0.49, alpha: 0.9),
-    ]
+    /// Color by geometric depth on the torus (natural 3-state model).
+    /// Active pole (W/REM) → teal, Deep pole (NREM) → indigo, gradient between.
+    private static func depthColor(for point: SIMD4<Double>) -> UIColor {
+        // ω₁ proxy: angular velocity in xy-plane (Process S dimension)
+        // Higher absolute angle from positive x-axis = deeper sleep
+        let theta = atan2(point.y, point.x)
+        let phi = atan2(point.w, point.z)
+
+        // Depth: combine both angles into a 0-1 score
+        // Points near (+,+,+,+) are active; points near (-,-,-,-) are deep
+        let signSum = (point.x > 0 ? 1.0 : 0.0) + (point.y > 0 ? 1.0 : 0.0)
+                    + (point.z > 0 ? 1.0 : 0.0) + (point.w > 0 ? 1.0 : 0.0)
+        let depth = 1.0 - signSum / 4.0  // 0 = active pole, 1 = deep pole
+
+        // Continuous gradient: teal (active) → blue → indigo (deep)
+        let r = 0.36 - depth * 0.30   // 0.36 → 0.06
+        let g = 0.79 - depth * 0.50   // 0.79 → 0.29
+        let b = 0.65 + depth * 0.07   // 0.65 → 0.72
+        return UIColor(red: r, green: g, blue: b, alpha: 0.9)
+    }
 
     private static func addTrajectory(
         to root: Entity,
@@ -133,13 +145,13 @@ enum NeuroSpiralTorusSceneBuilder {
             let p3 = project4Dto3D(p4, w4DAngle: w4DAngle)
 
             let sphere = MeshResource.generateSphere(radius: 0.012)
-            let colorIdx = abs(Tesseract.discretize(point).index) % stageColors.count
+            let color = depthColor(for: point)
 
             var material = PhysicallyBasedMaterial()
-            material.baseColor = .init(tint: stageColors[colorIdx])
+            material.baseColor = .init(tint: color)
             material.roughness = .init(floatLiteral: 0.3)
             material.metallic = .init(floatLiteral: 0.1)
-            material.emissiveColor = .init(color: stageColors[colorIdx].withAlphaComponent(0.3))
+            material.emissiveColor = .init(color: color.withAlphaComponent(0.3))
 
             let entity = ModelEntity(mesh: sphere, materials: [material])
             entity.position = p3

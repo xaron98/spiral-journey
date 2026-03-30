@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Spiral Journey — Circadian Rhythm & Sleep DNA Tracker</title>
+  <title>Spiral Journey — Your day and sleep, visualized in spirals</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 800px; margin: 0 auto; padding: 48px 24px; color: #c8cdd8; line-height: 1.7; background: #0c0e14; }
-    h1 { font-size: 2.5rem; margin-bottom: 0.25rem; color: #5bffa8; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 800px; margin: 0 auto; padding: 0 24px; color: #c8cdd8; line-height: 1.7; background: #0c0e14; }
+    h1 { font-size: 2.8rem; margin-bottom: 0.25rem; color: #5bffa8; }
     h2 { font-size: 1.4rem; margin-top: 2.5rem; margin-bottom: 0.75rem; color: #e2e8f0; border-bottom: 1px solid #1e293b; padding-bottom: 0.5rem; }
     h3 { font-size: 1.1rem; margin-top: 1.5rem; margin-bottom: 0.5rem; color: #818cf8; }
     p, li { color: #8b9299; }
@@ -15,131 +15,153 @@
     a:hover { text-decoration: underline; }
     ul { padding-left: 1.5rem; }
     li { margin-bottom: 0.3rem; }
-    .subtitle { color: #5bffa8; opacity: 0.7; font-size: 0.9rem; letter-spacing: 0.1em; text-transform: uppercase; }
+    .hero { text-align: center; padding: 64px 0 40px; }
+    .tagline { color: #8b9299; font-size: 1.15rem; margin-top: 8px; }
+    .badges { margin-top: 16px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+    .pill { font-size: 0.75rem; padding: 4px 12px; border-radius: 20px; font-weight: 500; }
+    .pill-green { background: rgba(91,255,168,0.12); color: #5bffa8; }
+    .pill-purple { background: rgba(129,140,248,0.12); color: #818cf8; }
+    .pill-orange { background: rgba(249,115,22,0.12); color: #fb923c; }
     .badge { display: inline-block; font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; margin-left: 6px; vertical-align: middle; }
     .badge-new { background: rgba(91, 255, 168, 0.15); color: #5bffa8; }
     .badge-ai { background: rgba(129, 140, 248, 0.15); color: #818cf8; }
     .badge-3d { background: rgba(249, 115, 22, 0.15); color: #fb923c; }
+    .highlight { background: linear-gradient(135deg, rgba(129,140,248,0.08), rgba(91,255,168,0.05)); border: 1px solid #1e293b; border-radius: 16px; padding: 24px; margin-top: 16px; }
     .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
     .feature-card { background: #111827; border: 1px solid #1e293b; border-radius: 12px; padding: 20px; }
     .feature-card h3 { margin-top: 0; }
     .feature-card p { font-size: 0.9rem; }
-    .helix-icon { font-size: 1.5rem; margin-bottom: 8px; }
-    .section-highlight { background: linear-gradient(135deg, rgba(129,140,248,0.08), rgba(91,255,168,0.05)); border: 1px solid #1e293b; border-radius: 16px; padding: 24px; margin-top: 16px; }
-    @media (max-width: 600px) { .feature-grid { grid-template-columns: 1fr; } h1 { font-size: 2rem; } }
+    .icon { font-size: 1.5rem; margin-bottom: 8px; }
+    .science-stat { display: inline-block; background: #111827; border: 1px solid #1e293b; border-radius: 10px; padding: 8px 16px; margin: 4px; text-align: center; }
+    .science-stat .num { font-size: 1.3rem; font-weight: 700; color: #5bffa8; display: block; }
+    .science-stat .label { font-size: 0.7rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; }
+    .privacy-box { background: #111827; border: 1px solid #1e293b; border-radius: 12px; padding: 20px; margin-top: 16px; }
+    .privacy-box ul { list-style: none; padding: 0; }
+    .privacy-box li { padding: 4px 0; }
+    .privacy-box li::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #5bffa8; margin-right: 8px; }
+    footer { border-top: 1px solid #1e293b; margin-top: 3rem; padding: 1.5rem 0; text-align: center; }
+    footer p { font-size: 0.8rem; color: #475569; }
+    @media (max-width: 600px) { .feature-grid { grid-template-columns: 1fr; } h1 { font-size: 2rem; } .hero { padding: 40px 0 24px; } }
   </style>
 </head>
 <body>
-  <h1>Spiral Journey</h1>
-  <p class="subtitle">Circadian Rhythm & Sleep DNA Tracker</p>
 
-  <h2>About</h2>
-  <p>Spiral Journey is a circadian rhythm tracker for iPhone and Apple Watch. It goes beyond simple sleep tracking — it models your sleep as biological DNA, detecting invisible patterns, predicting your sleep using sequence alignment, and reflecting your circadian health through a narrative "biological mirror."</p>
-
-  <h2>Core Features</h2>
-  <ul>
-    <li>Circadian spiral visualization of your sleep/wake cycle (2D Canvas)</li>
-    <li>Cosinor analysis — acrophase, MESOR, amplitude, R²</li>
-    <li>Phase Response Curve (PRC) for light, melatonin, and exercise</li>
-    <li>Social jet lag detection</li>
-    <li>Rephase mode — gradually shift your circadian schedule</li>
-    <li>Apple Health integration</li>
-    <li>Apple Watch companion app with complications</li>
-    <li>8 languages: English, Español, Català, Deutsch, Français, 中文, 日本語, العربية</li>
-  </ul>
-
-  <h2>Sleep DNA Engine <span class="badge badge-new">New</span></h2>
-
-  <div class="section-highlight">
-    <p>Your sleep patterns are encoded as a double helix — like biological DNA. Two strands (sleep data + life context) intertwine, revealing patterns invisible to traditional analysis.</p>
+  <!-- Hero -->
+  <div class="hero">
+    <h1>Spiral Journey</h1>
+    <p class="tagline">Tu dia y sueno, visualizados en espirales</p>
+    <div class="badges">
+      <span class="pill pill-green">iOS + watchOS</span>
+      <span class="pill pill-purple">On-device AI</span>
+      <span class="pill pill-orange">3D RealityKit</span>
+    </div>
   </div>
 
+  <!-- What is it -->
+  <h2>What is Spiral Journey?</h2>
+  <p>An iOS and watchOS app that visualizes your complete 24-hour cycle — sleep and wakefulness — on a spiral. Not a simple sleep tracker: a chronobiological instrument based on circadian science.</p>
+
+  <div class="highlight">
+    <p><strong>Built on a new sleep model.</strong> Traditional apps divide sleep into 5 artificial stages (N1, N2, N3, REM, Wake). Research with 155+ subjects across 2 independent datasets reveals that sleep naturally has <strong>3 states</strong>: an active pole (Wake + REM), a continuous depth gradient (NREM), and REM as a distinct consciousness state geometrically close to wakefulness.</p>
+  </div>
+
+  <!-- Features -->
+  <h2>Features</h2>
   <div class="feature-grid">
     <div class="feature-card">
-      <div class="helix-icon">🧬</div>
-      <h3>Nucleotide Encoding</h3>
-      <p>Each day becomes a 16-feature vector — bedtime, wake, duration, Process S, circadian rhythm, caffeine, exercise, stress, and more. Days form weekly "sequences" for comparison.</p>
+      <div class="icon">🌀</div>
+      <h3>Circadian Spiral</h3>
+      <p>Your full day visualized as a spiral — sleep phases, waking hours, and circadian events. 2D flat or 3D perspective. Archimedean and logarithmic modes.</p>
     </div>
     <div class="feature-card">
-      <div class="helix-icon">🔬</div>
-      <h3>DTW Sequence Alignment</h3>
-      <p>Dynamic Time Warping finds weeks that resemble your current one — "your week looks like February 15th (87% similar)." Predicts what comes next based on historical patterns.</p>
+      <div class="icon">🧬</div>
+      <h3>DNA Insights</h3>
+      <p>Your sleep encoded as DNA. Discovers weekly patterns (motifs), detects mutations, predicts tonight's sleep by aligning with historical weeks. Interactive 3D double helix.</p>
     </div>
     <div class="feature-card">
-      <div class="helix-icon">🧪</div>
-      <h3>Motif Discovery</h3>
-      <p>Discovers your recurring "sleep genes" — patterns like "Monday-crash" or "Recovery-weekend." Classifies deviations as silent, missense, or nonsense mutations.</p>
+      <div class="icon">🔮</div>
+      <h3>NeuroSpiral 4D <span class="badge badge-new">New</span></h3>
+      <p>Sleep trajectory on a Clifford torus with 16 tesseract micro-states. Animated trajectory, per-night history, winding number analysis. Toggle 2D scatter / 3D RealityKit.</p>
     </div>
     <div class="feature-card">
-      <div class="helix-icon">⚡</div>
-      <h3>Adaptive SleepBLOSUM</h3>
-      <p>A personalized scoring matrix that learns which factors matter most for YOUR sleep. Uses mutual information to weight features — making pattern detection unique to each user.</p>
+      <div class="icon">🤖</div>
+      <h3>AI Coach <span class="badge badge-ai">AI</span></h3>
+      <p>100% on-device. Apple Foundation Models (iOS 26+) or Phi-3.5 GGUF fallback. Contextual coaching based on your DNA profile, motifs, and health markers.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">⌚</div>
+      <h3>Apple Watch</h3>
+      <p>Standalone watch app with flat spiral, stats, event log, and NeuroSpiral minicard. Crown navigation. Data syncs via WatchConnectivity.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">📊</div>
+      <h3>Widgets</h3>
+      <p>Spiral widget shows your last 7 nights at a glance. State widget shows circadian alignment status. Both update automatically.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">🔄</div>
+      <h3>Night Comparison</h3>
+      <p>3D double helix compares two periods side by side. Color-coded bars show sleep phases. Three modes: Yesterday, Week, My Best.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">🌍</div>
+      <h3>8 Languages</h3>
+      <p>English, Spanish, Catalan, German, French, Japanese, Chinese (Simplified), Arabic. Full localization including coaching messages.</p>
     </div>
   </div>
 
-  <h2>Health Markers <span class="badge badge-new">New</span></h2>
+  <!-- Science -->
+  <h2>The Science</h2>
+  <p>Spiral Journey is built on ongoing research applying Clifford torus geometry to sleep signals. The app uses the natural sleep model — not the conventional AASM staging system.</p>
+
+  <div style="text-align: center; margin: 20px 0;">
+    <div class="science-stat"><span class="num">155+</span><span class="label">Subjects</span></div>
+    <div class="science-stat"><span class="num">2</span><span class="label">Datasets</span></div>
+    <div class="science-stat"><span class="num">3</span><span class="label">Natural states</span></div>
+    <div class="science-stat"><span class="num">&lt; 3&deg;</span><span class="label">Wake-REM separation</span></div>
+  </div>
+
+  <h3>Key findings (based on ongoing research)</h3>
   <ul>
-    <li><strong>HB — Homeo-Circadian Balance:</strong> Measures the "fight" between your circadian clock and sleep pressure</li>
-    <li><strong>RDS — REM Drift Slope:</strong> Tracks how your REM phases shift across the night</li>
-    <li><strong>HCI — Helical Continuity Index:</strong> Geometric measure of sleep fragmentation</li>
-    <li><strong>RCE — REM Cluster Entropy:</strong> Coherence of your REM episode distribution</li>
-    <li><strong>Circadian Coherence:</strong> Overall rhythm stability (anarchy detection)</li>
-    <li><strong>Phase Drift Severity:</strong> How fast your bedtime is shifting</li>
+    <li><strong>3 natural states, not 5:</strong> Wake, NREM (continuous depth gradient), and REM — validated across 142 subjects (HMC dataset) and 13 recordings (Sleep-EDF).</li>
+    <li><strong>Two geometric poles:</strong> Active pole (Wake + REM, less than 3.5 degrees apart) and Deep pole (NREM continuum, 12-14 degrees apart). The structure is universal across electrode locations.</li>
+    <li><strong>NREM is continuous:</strong> Sleep depth is a gradient measured by the winding number, not discrete N1/N2/N3 categories.</li>
+    <li><strong>REM is not between NREM and Wake:</strong> Geometrically, REM is almost identical to Wake — it belongs to the active pole, with muscles disconnected.</li>
   </ul>
 
-  <h2>Hilbert Phase Synchrony <span class="badge badge-new">New</span></h2>
-  <p>Uses the Hilbert Transform (via Accelerate FFT) to compute Phase Locking Values between sleep features and life context — revealing which factors truly affect your sleep and with what lag. "Caffeine affects your bedtime with a 1-day delay."</p>
-
-  <h2>AI Coach <span class="badge badge-ai">AI</span></h2>
-  <ul>
-    <li><strong>Dual-path architecture:</strong> Foundation Models (iOS 26+) with Phi-3.5 GGUF fallback</li>
-    <li><strong>100% on-device:</strong> All inference runs locally — no data leaves your phone</li>
-    <li><strong>DNA-aware:</strong> Coach receives motif patterns, health markers, and alignment data for contextual responses</li>
-    <li><strong>Provider-aware prompts:</strong> Rich tier (Foundation Models) includes tonight's prediction and model accuracy</li>
-  </ul>
-
-  <h2>ML Prediction Pipeline <span class="badge badge-ai">AI</span></h2>
-  <ul>
-    <li><strong>Three engines:</strong> Neural Network (CoreML), Gradient Boosting, and Sequence Alignment</li>
-    <li><strong>On-device retraining:</strong> MLUpdateTask with 80/20 validation split and regression guard</li>
-    <li><strong>Continuous Process S:</strong> Sleep pressure tracked across days with debt memory</li>
-    <li><strong>Personalized models:</strong> Fine-tuned to your data after 60 evaluated predictions</li>
-  </ul>
-
+  <!-- 3D Helix -->
   <h2>3D Double Helix <span class="badge badge-3d">3D</span></h2>
-  <p>Interactive RealityKit visualization of your sleep DNA as a vertical double helix. Rotate, zoom, tap weeks to highlight similar patterns, and toggle motif regions — all inline in the DNA Insights view.</p>
+  <p>Interactive RealityKit visualization comparing two time periods as a molecular DNA model.</p>
   <ul>
-    <li><strong>Purple strand:</strong> Sleep data (bedtime, wake, duration, rhythm)</li>
-    <li><strong>Orange strand:</strong> Life context (caffeine, exercise, stress, weekends)</li>
-    <li><strong>Quality-colored nucleotides:</strong> Green (good) → Red (poor) per day</li>
-    <li><strong>Geometric encoding:</strong> Twist = phase synchrony, Radius = chronotype deviation, Thickness = deep sleep, Roughness = fragmentation</li>
+    <li><strong>Gold backbone:</strong> Current period (today / this week)</li>
+    <li><strong>Silver backbone:</strong> Comparison period (yesterday / last week / your best)</li>
+    <li><strong>Colored bars:</strong> Sleep phases in each 30-minute interval — amber (wake), violet (REM), blue gradient (NREM light to deep)</li>
+    <li><strong>Tap any bar:</strong> See the exact time and phase for both nights</li>
+    <li><strong>Drag to rotate, pinch to zoom</strong></li>
   </ul>
 
-  <h2>DNA Insights — Biological Mirror <span class="badge badge-new">New</span></h2>
-  <p>Not a dashboard — a narrative reflection of your circadian biology. Opens from the 🧬 icon in the spiral view.</p>
-  <ul>
-    <li><strong>"Tu ritmo hoy"</strong> — Synchronized / In transition / Misaligned (color-coded)</li>
-    <li><strong>"Tu código genético"</strong> — Active motif pattern + mutations</li>
-    <li><strong>"Déjà vu"</strong> — Similar weeks from your history + alignment prediction</li>
-    <li><strong>"Tu salud circadiana"</strong> — Health alerts (only when relevant)</li>
-    <li><strong>"Qué afecta tu sueño"</strong> — Top base pairs (PLV-ranked)</li>
-    <li>Three-tier degradation: basic (<4 weeks) → intermediate → full (8+ weeks)</li>
-  </ul>
-
-  <h2>Data Architecture</h2>
-  <ul>
-    <li><strong>SwiftData:</strong> Local-only persistence (CKSyncEngine handles CloudKit separately)</li>
-    <li><strong>Migration:</strong> Automatic one-shot JSON → SwiftData on first launch</li>
-    <li><strong>Background task:</strong> Daily DNA profile computation at 4 AM</li>
-    <li><strong>Watch sync:</strong> Observer-based bridge to App Group UserDefaults</li>
-    <li><strong>Data retention:</strong> Chat (100 messages), metrics (90 days), predictions (kept forever for ML)</li>
-  </ul>
-
+  <!-- Privacy -->
   <h2>Privacy</h2>
-  <p>All sleep analysis runs on your device. Optional iCloud sync uses your private CloudKit database — only your Apple ID can access it. The AI coach downloads a model once, then runs entirely on-device. No data is sent to third parties.</p>
-  <p><a href="privacy-policy.html">Privacy Policy</a></p>
+  <div class="privacy-box">
+    <ul>
+      <li>All analysis runs on your device</li>
+      <li>No accounts, no tracking, no ads</li>
+      <li>No data sent to third-party servers</li>
+      <li>Optional iCloud sync (your private CloudKit database)</li>
+      <li>AI coach runs 100% on-device</li>
+    </ul>
+    <p style="margin-top: 12px;"><a href="privacy-policy.html">Full Privacy Policy</a></p>
+  </div>
 
-  <hr style="border: none; border-top: 1px solid #1e293b; margin: 2.5rem 0;">
-  <p style="font-size: 0.8rem; color: #475569; text-align: center;">Spiral Journey — Built with Swift, SwiftUI, SpiralKit, CoreML, RealityKit, and Foundation Models</p>
+  <!-- Contact -->
+  <h2>Contact</h2>
+  <p>
+    <a href="mailto:xaron98@gmail.com">xaron98@gmail.com</a><br>
+    <a href="https://github.com/xaron98/spiral-journey">github.com/xaron98/spiral-journey</a>
+  </p>
+
+  <footer>
+    <p>Spiral Journey — Built with Swift, SwiftUI, SpiralKit, SpiralGeometry, CoreML, RealityKit, and Foundation Models</p>
+  </footer>
 </body>
 </html>

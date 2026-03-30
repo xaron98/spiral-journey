@@ -24861,6 +24861,186 @@
         }
       }
     },
+    "dna.3d.legend.nrem": {
+      "localizations": {
+        "ar": { "stringUnit": { "state": "translated", "value": "NREM" } },
+        "ca": { "stringUnit": { "state": "translated", "value": "NREM" } },
+        "de": { "stringUnit": { "state": "translated", "value": "NREM" } },
+        "en": { "stringUnit": { "state": "translated", "value": "NREM" } },
+        "es": { "stringUnit": { "state": "translated", "value": "NREM" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "NREM" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "NREM" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "NREM" } }
+      }
+    },
+    "dna.3d.legend.rem": {
+      "localizations": {
+        "ar": { "stringUnit": { "state": "translated", "value": "REM" } },
+        "ca": { "stringUnit": { "state": "translated", "value": "REM" } },
+        "de": { "stringUnit": { "state": "translated", "value": "REM" } },
+        "en": { "stringUnit": { "state": "translated", "value": "REM" } },
+        "es": { "stringUnit": { "state": "translated", "value": "REM" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "REM" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "REM" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "REM" } }
+      }
+    },
+    "dna.3d.legend.wake": {
+      "localizations": {
+        "ar": { "stringUnit": { "state": "translated", "value": "\u064a\u0642\u0638\u0629" } },
+        "ca": { "stringUnit": { "state": "translated", "value": "Despert" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Wach" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Wake" } },
+        "es": { "stringUnit": { "state": "translated", "value": "Despierto" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "\u00c9veil" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "\u899a\u9192" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "\u6e05\u9192" } }
+      }
+    },
+    "dna.3d.tooltip.today": {
+      "localizations": {
+        "ar": { "stringUnit": { "state": "translated", "value": "\u0627\u0644\u064a\u0648\u0645" } },
+        "ca": { "stringUnit": { "state": "translated", "value": "Avui" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Heute" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Today" } },
+        "es": { "stringUnit": { "state": "translated", "value": "Hoy" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Aujourd'hui" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "\u4eca\u65e5" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "\u4eca\u5929" } }
+      }
+    },
+    "dna.3d.tooltip.yesterday": {
+      "localizations": {
+        "ar": { "stringUnit": { "state": "translated", "value": "\u0627\u0644\u0628\u0627\u0631\u062d\u0629" } },
+        "ca": { "stringUnit": { "state": "translated", "value": "Ahir" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Gestern" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Yesterday" } },
+        "es": { "stringUnit": { "state": "translated", "value": "Ayer" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Hier" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "\u6628\u65e5" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "\u6628\u5929" } }
+      }
+    },
+    "dna.3d.tooltip.this_week": {
+      "localizations": {
+        "ar": { "stringUnit": { "state": "translated", "value": "\u0647\u0630\u0627 \u0627\u0644\u0623\u0633\u0628\u0648\u0639" } },
+        "ca": { "stringUnit": { "state": "translated", "value": "Aquesta setmana" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Diese Woche" } },
+        "en": { "stringUnit": { "state": "translated", "value": "This week" } },
+        "es": { "stringUnit": { "state": "translated", "value": "Esta semana" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Cette semaine" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "\u4eca\u9031" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "\u672c\u5468" } }
+      }
+    },
+    "dna.3d.tooltip.last_week": {
+      "localizations": {
+        "ar": { "stringUnit": { "state": "translated", "value": "\u0627\u0644\u0623\u0633\u0628\u0648\u0639 \u0627\u0644\u0645\u0627\u0636\u064a" } },
+        "ca": { "stringUnit": { "state": "translated", "value": "Setmana passada" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Letzte Woche" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Last week" } },
+        "es": { "stringUnit": { "state": "translated", "value": "Semana pasada" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Semaine derni\u00e8re" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "\u5148\u9031" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "\u4e0a\u5468" } }
+      }
+    },
+    "dna.3d.tooltip.best": {
+      "localizations": {
+        "ar": { "stringUnit": { "state": "translated", "value": "\u0627\u0644\u0623\u0641\u0636\u0644" } },
+        "ca": { "stringUnit": { "state": "translated", "value": "Millor" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Beste" } },
+        "en": { "stringUnit": { "state": "translated", "value": "My best" } },
+        "es": { "stringUnit": { "state": "translated", "value": "Mi mejor" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Mon meilleur" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "\u6700\u9ad8" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "\u6211\u7684\u6700\u4f73" } }
+      }
+    },
+    "dna.3d.tooltip.deep": {
+      "localizations": {
+        "ar": { "stringUnit": { "state": "translated", "value": "\u0646\u0648\u0645 \u0639\u0645\u064a\u0642" } },
+        "ca": { "stringUnit": { "state": "translated", "value": "Son profund" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Tiefschlaf" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Deep sleep" } },
+        "es": { "stringUnit": { "state": "translated", "value": "Sue\u00f1o profundo" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Sommeil profond" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "\u6df1\u3044\u7761\u7720" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "\u6df1\u5ea6\u7761\u7720" } }
+      }
+    },
+    "dna.3d.tooltip.light_nrem": {
+      "localizations": {
+        "ar": { "stringUnit": { "state": "translated", "value": "\u0646\u0648\u0645 \u062e\u0641\u064a\u0641" } },
+        "ca": { "stringUnit": { "state": "translated", "value": "Son lleuger" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Leichter Schlaf" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Light sleep" } },
+        "es": { "stringUnit": { "state": "translated", "value": "Sue\u00f1o ligero" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Sommeil l\u00e9ger" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "\u6d45\u3044\u7761\u7720" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "\u6d45\u7761\u7720" } }
+      }
+    },
+    "dna.3d.tooltip.rem": {
+      "localizations": {
+        "ar": { "stringUnit": { "state": "translated", "value": "REM (\u0623\u062d\u0644\u0627\u0645)" } },
+        "ca": { "stringUnit": { "state": "translated", "value": "REM (somnis)" } },
+        "de": { "stringUnit": { "state": "translated", "value": "REM (Tr\u00e4ume)" } },
+        "en": { "stringUnit": { "state": "translated", "value": "REM (dreams)" } },
+        "es": { "stringUnit": { "state": "translated", "value": "REM (sue\u00f1os)" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "REM (r\u00eaves)" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "REM\uff08\u5922\uff09" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "REM\uff08\u68a6\u5883\uff09" } }
+      }
+    },
+    "dna.3d.tooltip.wake": {
+      "localizations": {
+        "ar": { "stringUnit": { "state": "translated", "value": "\u0627\u0633\u062a\u064a\u0642\u0627\u0638 \u0642\u0635\u064a\u0631" } },
+        "ca": { "stringUnit": { "state": "translated", "value": "Despertar breu" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Kurzes Erwachen" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Brief awakening" } },
+        "es": { "stringUnit": { "state": "translated", "value": "Despertar breve" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "\u00c9veil bref" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "\u77ed\u3044\u899a\u9192" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "\u77ed\u6682\u6e05\u9192" } }
+      }
+    },
+    "dna.3d.mode.yesterday": {
+      "localizations": {
+        "ar": { "stringUnit": { "state": "translated", "value": "\u0627\u0644\u0628\u0627\u0631\u062d\u0629" } },
+        "ca": { "stringUnit": { "state": "translated", "value": "Ahir" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Gestern" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Yesterday" } },
+        "es": { "stringUnit": { "state": "translated", "value": "Ayer" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Hier" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "\u6628\u65e5" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "\u6628\u5929" } }
+      }
+    },
+    "dna.3d.mode.week": {
+      "localizations": {
+        "ar": { "stringUnit": { "state": "translated", "value": "\u0627\u0644\u0623\u0633\u0628\u0648\u0639" } },
+        "ca": { "stringUnit": { "state": "translated", "value": "Setmana" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Woche" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Week" } },
+        "es": { "stringUnit": { "state": "translated", "value": "Semana" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Semaine" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "\u9031\u9593" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "\u5468" } }
+      }
+    },
+    "dna.3d.mode.best": {
+      "localizations": {
+        "ar": { "stringUnit": { "state": "translated", "value": "\u0627\u0644\u0623\u0641\u0636\u0644" } },
+        "ca": { "stringUnit": { "state": "translated", "value": "Millor" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Beste" } },
+        "en": { "stringUnit": { "state": "translated", "value": "My best" } },
+        "es": { "stringUnit": { "state": "translated", "value": "Mi mejor" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Mon meilleur" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "\u6700\u9ad8" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "\u6211\u7684\u6700\u4f73" } }
+      }
+    },
     "dna.3d.patterns": {
       "localizations": {
         "ar": {
@@ -27830,49 +28010,49 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "الكودونات هي أنماط ثلاثية المراحل في مراحل نومك. تماماً كما تُشفّر الكودونات الجينية (ثلاثيات القواعد) الأحماض الأمينية، تُشفّر كودونات النوم البنية الدقيقة.\n\nكودون 'خفيف - عميق - REM' مُجدِّد — التطور الطبيعي. كودون 'عميق - صاحٍ - خفيف' يشير إلى اضطراب. يقيس درجة النزاهة عدد كودوناتك التي تتبع تسلسلات صحية.\n\nيتطلب Apple Watch لبيانات مراحل النوم."
+            "value": "الكودونات هي أنماط ثلاثية المراحل في بنية نومك. تماماً كما تُشفّر الكودونات الجينية (ثلاثيات القواعد) الأحماض الأمينية، تُشفّر كودونات النوم البنية الدقيقة.\n\nكودون 'NREM - عميق - REM' مُجدِّد — التعمق الطبيعي التدريجي. كودون 'عميق - صاحٍ - NREM' يشير إلى اضطراب. يقيس درجة النزاهة عدد كودوناتك التي تتبع تسلسلات صحية.\n\nيتطلب Apple Watch لبيانات النوم."
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "Els codons són patrons de tres fases en les teves etapes de son. Igual que els codons genètics (tripletes de bases) codifiquen aminoàcids, els codons del son codifiquen la microarquitectura.\n\nUn codó 'Lleuger - Profund - REM' és restaurador — la progressió natural. Un codó 'Profund - Despertat - Lleuger' indica pertorbació. La puntuació d'integritat mesura quants dels teus codons segueixen seqüències saludables.\n\nRequereix Apple Watch per a les dades d'etapes del son."
+            "value": "Els codons són patrons de tres fases en la teva arquitectura del son. Igual que els codons genètics (tripletes de bases) codifiquen aminoàcids, els codons del son codifiquen la microarquitectura.\n\nUn codó 'NREM - Profund - REM' és restaurador — l'aprofundiment natural progressiu. Un codó 'Profund - Despertat - NREM' indica pertorbació. La puntuació d'integritat mesura quants dels teus codons segueixen seqüències saludables.\n\nRequereix Apple Watch per a les dades del son."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Codons sind Drei-Phasen-Muster in deinen Schlafphasen. So wie genetische Codons (Basentripletts) Aminosäuren kodieren, kodieren Schlaf-Codons die Mikroarchitektur.\n\nEin 'Leicht - Tief - REM'-Codon ist erholsam — die natürliche Abfolge. Ein 'Tief - Wach - Leicht'-Codon weist auf Störung hin. Der Integritätswert misst, wie viele deiner Codons gesunden Sequenzen folgen.\n\nErfordert Apple Watch für Schlafphasendaten."
+            "value": "Codons sind Drei-Phasen-Muster in deiner Schlafarchitektur. So wie genetische Codons (Basentripletts) Aminosäuren kodieren, kodieren Schlaf-Codons die Mikroarchitektur.\n\nEin 'NREM - Tief - REM'-Codon ist erholsam — die natürliche Vertiefungsprogression. Ein 'Tief - Wach - NREM'-Codon weist auf Störung hin. Der Integritätswert misst, wie viele deiner Codons gesunden Sequenzen folgen.\n\nErfordert Apple Watch für Schlafdaten."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Codons are three-phase patterns in your sleep stages. Just as genetic codons (triplets of bases) encode amino acids, sleep codons encode micro-architecture.\n\nA 'Light - Deep - REM' codon is restorative — the natural progression. A 'Deep - Awake - Light' codon indicates disruption. The integrity score measures how many of your codons follow healthy sequences.\n\nRequires Apple Watch for sleep stage data."
+            "value": "Codons are three-phase patterns in your sleep architecture. Just as genetic codons (triplets of bases) encode amino acids, sleep codons encode micro-architecture.\n\nAn 'NREM - Deep - REM' codon is restorative — the natural deepening progression. A 'Deep - Awake - NREM' codon indicates disruption. The integrity score measures how many of your codons follow healthy sequences.\n\nRequires Apple Watch for sleep data."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Los codones son patrones de tres fases en tus etapas de sueño. Igual que los codones genéticos (tripletes de bases) codifican aminoácidos, los codones del sueño codifican la microarquitectura.\n\nUn codón 'Ligero - Profundo - REM' es restaurador — la progresión natural. Un codón 'Profundo - Despierto - Ligero' indica perturbación. La puntuación de integridad mide cuántos de tus codones siguen secuencias saludables.\n\nRequiere Apple Watch para datos de fases del sueño."
+            "value": "Los codones son patrones de tres fases en tu arquitectura del sueño. Igual que los codones genéticos (tripletes de bases) codifican aminoácidos, los codones del sueño codifican la microarquitectura.\n\nUn codón 'NREM - Profundo - REM' es restaurador — la progresión natural de profundización. Un codón 'Profundo - Despierto - NREM' indica perturbación. La puntuación de integridad mide cuántos de tus codones siguen secuencias saludables.\n\nRequiere Apple Watch para datos del sueño."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les codons sont des motifs à trois phases dans tes stades de sommeil. Tout comme les codons génétiques (triplets de bases) encodent des acides aminés, les codons de sommeil encodent la micro-architecture.\n\nUn codon 'Léger - Profond - REM' est réparateur — la progression naturelle. Un codon 'Profond - Éveillé - Léger' indique une perturbation. Le score d'intégrité mesure combien de tes codons suivent des séquences saines.\n\nNécessite Apple Watch pour les données des stades de sommeil."
+            "value": "Les codons sont des motifs à trois phases dans ton architecture du sommeil. Tout comme les codons génétiques (triplets de bases) encodent des acides aminés, les codons de sommeil encodent la micro-architecture.\n\nUn codon 'NREM - Profond - REM' est réparateur — la progression naturelle d'approfondissement. Un codon 'Profond - Éveillé - NREM' indique une perturbation. Le score d'intégrité mesure combien de tes codons suivent des séquences saines.\n\nNécessite Apple Watch pour les données de sommeil."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "コドンは睡眠段階における3相パターンです。遺伝的コドン（塩基のトリプレット）がアミノ酸をエンコードするように、睡眠コドンはマイクロアーキテクチャをエンコードします。\n\n「浅い睡眠 - 深い睡眠 - REM」コドンは回復的で、自然な進行です。「深い睡眠 - 覚醒 - 浅い睡眠」コドンは乱れを示します。完全性スコアは、健康的なシーケンスに従うコドンの数を測定します。\n\n睡眠段階データにはApple Watchが必要です。"
+            "value": "コドンは睡眠アーキテクチャにおける3相パターンです。遺伝的コドン（塩基のトリプレット）がアミノ酸をエンコードするように、睡眠コドンはマイクロアーキテクチャをエンコードします。\n\n「NREM - 深い睡眠 - REM」コドンは回復的で、自然な深化の進行です。「深い睡眠 - 覚醒 - NREM」コドンは乱れを示します。完全性スコアは、健康的なシーケンスに従うコドンの数を測定します。\n\n睡眠データにはApple Watchが必要です。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "密码子是睡眠阶段中的三相模式。就像遗传密码子（碱基三联体）编码氨基酸一样，睡眠密码子编码微观结构。\n\n'浅睡 - 深睡 - REM'密码子是恢复性的——自然的进程。'深睡 - 清醒 - 浅睡'密码子表示中断。完整性评分衡量你有多少密码子遵循健康序列。\n\n需要Apple Watch提供睡眠阶段数据。"
+            "value": "密码子是睡眠结构中的三相模式。就像遗传密码子（碱基三联体）编码氨基酸一样，睡眠密码子编码微观结构。\n\n'NREM - 深睡 - REM'密码子是恢复性的——自然的深化进程。'深睡 - 清醒 - NREM'密码子表示中断。完整性评分衡量你有多少密码子遵循健康序列。\n\n需要Apple Watch提供睡眠数据。"
           }
         }
       }
@@ -28261,6 +28441,70 @@
           "stringUnit": {
             "state": "translated",
             "value": "3D螺旋"
+          }
+        }
+      }
+    },
+    "dna.info.helix3d.title": {
+      "localizations": {
+        "ar": { "stringUnit": { "state": "translated", "value": "قراءة الحلزون المزدوج" } },
+        "ca": { "stringUnit": { "state": "translated", "value": "Llegir la doble h\u00e8lix" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Die Doppelhelix lesen" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Reading the double helix" } },
+        "es": { "stringUnit": { "state": "translated", "value": "Leer la doble h\u00e9lice" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Lire la double h\u00e9lice" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "\u4e8c\u91cd\u3089\u305b\u3093\u306e\u8aad\u307f\u65b9" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "\u8bfb\u61c2\u53cc\u87ba\u65cb" } }
+      }
+    },
+    "dna.info.helix3d.body": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الحلزون المزدوج ثلاثي الأبعاد يقارن فترتين زمنيتين جنباً إلى جنب. كل شريط ملون بين العمودين يمثل فترة 30 دقيقة من النوم:\n\n\u2022 ذهبي/عنبري = يقظة (كنت مستيقظاً)\n\u2022 بنفسجي ناعم = REM (الأحلام)\n\u2022 تدرج أزرق = NREM (من النوم الخفيف إلى العميق)\n\nكل شريط له نصفان — واحد لكل فترة تتم مقارنتها. عندما يتطابق النصفان في اللون، كان نومك متشابهاً في كلتا الفترتين.\n\nاستخدم المحدد في الأعلى لاختيار ما تريد مقارنته:\n\u2022 الأمس: الليلة الماضية مقابل الليلة التي قبلها\n\u2022 الأسبوع: هذا الأسبوع مقابل الأسبوع السابق\n\u2022 أفضل نتيجة: الليلة الماضية مقابل أفضل ليلة مسجلة لديك"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La doble hèlix 3D compara dos períodes de temps un al costat de l'altre. Cada barra de color entre les columnes vertebrals representa un interval de 30 minuts de son:\n\n\u2022 Or/ambre = Vigília (estaves despert)\n\u2022 Violeta suau = REM (somiant)\n\u2022 Gradient blau = NREM (de son lleuger a profund)\n\nCada barra té dues meitats — una per a cada període que es compara. Quan ambdues meitats coincideixen en color, el teu son era similar en ambdós períodes.\n\nUsa el selector a dalt per triar què comparar:\n\u2022 Ahir: la nit passada vs. l'anterior\n\u2022 Setmana: aquesta setmana vs. la setmana anterior\n\u2022 El meu millor: la nit passada vs. la teva millor nit registrada"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die 3D-Doppelhelix vergleicht zwei Zeiträume nebeneinander. Jeder farbige Balken zwischen den Rückgraten repräsentiert ein 30-Minuten-Intervall des Schlafs:\n\n\u2022 Gold/Bernstein = Wach (du warst wach)\n\u2022 Weiches Violett = REM (träumend)\n\u2022 Blauer Gradient = NREM (von leichtem bis tiefem Schlaf)\n\nJeder Balken hat zwei Hälften — eine für jeden verglichenen Zeitraum. Wenn beide Hälften in der Farbe übereinstimmen, war dein Schlaf in beiden Zeiträumen ähnlich.\n\nVerwende die Auswahl oben, um zu wählen, was verglichen werden soll:\n\u2022 Gestern: letzte Nacht vs. die Nacht davor\n\u2022 Woche: diese Woche vs. letzte Woche\n\u2022 Mein Bestes: letzte Nacht vs. deine beste aufgezeichnete Nacht"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The 3D double helix compares two time periods side by side. Each colored bar between the backbones represents a 30-minute interval of sleep:\n\n\u2022 Gold/amber = Wake (you were awake)\n\u2022 Soft violet = REM (dreaming)\n\u2022 Blue gradient = NREM (lighter to deeper sleep)\n\nEach bar has two halves — one for each period being compared. When both halves match in color, your sleep was similar in both periods.\n\nUse the selector at the top to choose what to compare:\n\u2022 Yesterday: last night vs. the night before\n\u2022 Week: this week vs. previous week\n\u2022 My best: last night vs. your best recorded night"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La doble hélice 3D compara dos períodos de tiempo uno al lado del otro. Cada barra de color entre los ejes representa un intervalo de 30 minutos de sueño:\n\n\u2022 Dorado/ámbar = Vigilia (estabas despierto)\n\u2022 Violeta suave = REM (soñando)\n\u2022 Gradiente azul = NREM (de sueño ligero a profundo)\n\nCada barra tiene dos mitades — una para cada período comparado. Cuando ambas mitades coinciden en color, tu sueño fue similar en ambos períodos.\n\nUsa el selector en la parte superior para elegir qué comparar:\n\u2022 Ayer: anoche vs. la noche anterior\n\u2022 Semana: esta semana vs. la semana anterior\n\u2022 Mi mejor: anoche vs. tu mejor noche registrada"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La double hélice 3D compare deux périodes côte à côte. Chaque barre colorée entre les colonnes vertébrales représente un intervalle de 30 minutes de sommeil:\n\n\u2022 Or/ambre = Éveil (vous étiez éveillé)\n\u2022 Violet doux = REM (en rêvant)\n\u2022 Gradient bleu = NREM (du sommeil léger au profond)\n\nChaque barre a deux moitiés — une pour chaque période comparée. Quand les deux moitiés correspondent en couleur, votre sommeil était similaire dans les deux périodes.\n\nUtilisez le sélecteur en haut pour choisir quoi comparer:\n\u2022 Hier: la nuit dernière vs. la nuit précédente\n\u2022 Semaine: cette semaine vs. la semaine précédente\n\u2022 Mon meilleur: la nuit dernière vs. votre meilleure nuit enregistrée"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3D二重らせんは2つの期間を並べて比較します。バックボーン間の各カラーバーは30分間の睡眠インターバルを表します：\n\n\u2022 ゴールド/アンバー = 覚醒（起きていました）\n\u2022 ソフトバイオレット = REM（夢を見ている）\n\u2022 ブルーグラデーション = NREM（浅い睡眠から深い睡眠へ）\n\n各バーには2つの半分があります — 比較される各期間に1つ。両半分の色が一致する場合、両期間の睡眠が類似していました。\n\n上部のセレクターを使って比較対象を選択します：\n\u2022 昨日：昨夜 vs. 一昨夜\n\u2022 週：今週 vs. 先週\n\u2022 マイベスト：昨夜 vs. 記録した最良の夜"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3D双螺旋并排比较两个时间段。骨架之间的每个彩色条代表30分钟的睡眠间隔：\n\n\u2022 金色/琥珀色 = 清醒（你处于清醒状态）\n\u2022 柔和紫色 = REM（做梦中）\n\u2022 蓝色渐变 = NREM（从浅睡到深睡）\n\n每个条有两半 — 每个比较周期各一半。当两半颜色匹配时，说明你在两个周期的睡眠相似。\n\n使用顶部的选择器选择比较内容：\n\u2022 昨天：昨晚 vs. 前晚\n\u2022 周：本周 vs. 上周\n\u2022 我的最佳：昨晚 vs. 你记录的最佳夜晚"
           }
         }
       }
@@ -38914,49 +39158,49 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "تخيّل أن جسمك كل ليلة يسافر عبر منظر طبيعي غير مرئي. يبدأ مستيقظاً، ينزلق إلى النوم الخفيف، يغوص في النوم العميق حيث يُرمَّم الجسم، يرتفع إلى نوم الأحلام REM، ويتكرر.\n\nهذه الرحلة ليست عشوائية — يحكمها ساعتان بيولوجيتان تعملان معاً. NeuroSpiral 4D يحوّل هذا المسار غير المرئي إلى شكل هندسي يمكنك رؤيته وفهمه."
+            "value": "تخيّل أن جسمك كل ليلة يسافر عبر منظر طبيعي غير مرئي. يبدأ مستيقظاً، يتعمق تدريجياً عبر نوم NREM حيث يُرمَّم الجسم، يرتفع إلى نوم الأحلام REM، ويتكرر.\n\nهذه الرحلة ليست عشوائية — يحكمها ساعتان بيولوجيتان تعملان معاً. NeuroSpiral 4D يحوّل هذا المسار غير المرئي إلى شكل هندسي يمكنك رؤيته وفهمه."
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "Imagina que cada nit el teu cos viatja per un paisatge invisible. Comença despert, llisca cap al son lleuger, s'enfonsa en el son profund on el cos es repara, puja al son REM dels somnis, i es repeteix.\n\nAquest viatge no és aleatori — el governen dos rellotges biològics treballant junts. NeuroSpiral 4D converteix aquest camí invisible en una forma geomètrica que pots veure i entendre."
+            "value": "Imagina que cada nit el teu cos viatja per un paisatge invisible. Comença despert, s'aprofundeix gradualment a través del son NREM on el cos es repara, puja al son REM dels somnis, i es repeteix.\n\nAquest viatge no és aleatori — el governen dos rellotges biològics treballant junts. NeuroSpiral 4D converteix aquest camí invisible en una forma geomètrica que pots veure i entendre."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stell dir vor, dein Körper reist jede Nacht durch eine unsichtbare Landschaft. Er beginnt wach, gleitet in den Leichtschlaf, taucht in den Tiefschlaf ab, wo der Körper sich repariert, steigt in den REM-Traumschlaf auf, und wiederholt sich.\n\nDiese Reise ist nicht zufällig — sie wird von zwei biologischen Uhren gesteuert, die zusammenarbeiten. NeuroSpiral 4D verwandelt diesen unsichtbaren Pfad in eine geometrische Form, die du sehen und verstehen kannst."
+            "value": "Stell dir vor, dein Körper reist jede Nacht durch eine unsichtbare Landschaft. Er beginnt wach, vertieft sich allmählich durch den NREM-Schlaf, wo der Körper sich repariert, steigt in den REM-Traumschlaf auf, und wiederholt sich.\n\nDiese Reise ist nicht zufällig — sie wird von zwei biologischen Uhren gesteuert, die zusammenarbeiten. NeuroSpiral 4D verwandelt diesen unsichtbaren Pfad in eine geometrische Form, die du sehen und verstehen kannst."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Imagine that every night your body travels through an invisible landscape. It starts awake, slides into light sleep, dives into deep sleep where your body repairs itself, rises into REM dream sleep, and repeats.\n\nThis journey isn't random — it's governed by two biological clocks working together. NeuroSpiral 4D transforms this invisible path into a geometric shape you can see and understand."
+            "value": "Imagine that every night your body travels through an invisible landscape. It starts awake, gradually deepens through NREM sleep where your body repairs itself, rises into REM dream sleep, and repeats.\n\nThis journey isn't random — it's governed by two biological clocks working together. NeuroSpiral 4D transforms this invisible path into a geometric shape you can see and understand."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Imagina que cada noche tu cuerpo viaja por un paisaje invisible. Empieza despierto, se desliza al sueño ligero, se sumerge en el sueño profundo donde el cuerpo se repara, asciende al sueño REM de los sueños, y se repite.\n\nEste viaje no es aleatorio — lo gobiernan dos relojes biológicos trabajando juntos. NeuroSpiral 4D transforma ese camino invisible en una forma geométrica que puedes ver y comprender."
+            "value": "Imagina que cada noche tu cuerpo viaja por un paisaje invisible. Empieza despierto, se profundiza gradualmente a través del sueño NREM donde el cuerpo se repara, asciende al sueño REM de los sueños, y se repite.\n\nEste viaje no es aleatorio — lo gobiernan dos relojes biológicos trabajando juntos. NeuroSpiral 4D transforma ese camino invisible en una forma geométrica que puedes ver y comprender."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Imaginez que chaque nuit votre corps voyage à travers un paysage invisible. Il commence éveillé, glisse dans le sommeil léger, plonge dans le sommeil profond où le corps se répare, remonte dans le sommeil REM des rêves, et recommence.\n\nCe voyage n'est pas aléatoire — il est gouverné par deux horloges biologiques travaillant ensemble. NeuroSpiral 4D transforme ce chemin invisible en une forme géométrique que vous pouvez voir et comprendre."
+            "value": "Imaginez que chaque nuit votre corps voyage à travers un paysage invisible. Il commence éveillé, s'approfondit progressivement à travers le sommeil NREM où le corps se répare, remonte dans le sommeil REM des rêves, et recommence.\n\nCe voyage n'est pas aléatoire — il est gouverné par deux horloges biologiques travaillant ensemble. NeuroSpiral 4D transforme ce chemin invisible en une forme géométrique que vous pouvez voir et comprendre."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "毎晩、あなたの体は目に見えない風景を旅しています。覚醒から始まり、浅い眠りに滑り込み、体が修復される深い眠りに沈み、夢を見るレム睡眠に上昇し、これを繰り返します。\n\nこの旅はランダムではありません。2つの生体時計が協力して制御しています。NeuroSpiral 4Dは、この見えない経路を、見て理解できる幾何学的形状に変換します。"
+            "value": "毎晩、あなたの体は目に見えない風景を旅しています。覚醒から始まり、体が修復されるNREM睡眠を通じて徐々に深まり、夢を見るレム睡眠に上昇し、これを繰り返します。\n\nこの旅はランダムではありません。2つの生体時計が協力して制御しています。NeuroSpiral 4Dは、この見えない経路を、見て理解できる幾何学的形状に変換します。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "想象每晚你的身体都在穿越一片看不见的风景。从清醒开始，滑入浅睡眠，潜入身体自我修复的深睡眠，上升到做梦的REM睡眠，然后循环往复。\n\n这段旅程并非随机——它由两个协同工作的生物钟控制。NeuroSpiral 4D将这条看不见的路径转化为你可以看到和理解的几何形状。"
+            "value": "想象每晚你的身体都在穿越一片看不见的风景。从清醒开始，通过身体自我修复的NREM睡眠逐渐加深，上升到做梦的REM睡眠，然后循环往复。\n\n这段旅程并非随机——它由两个协同工作的生物钟控制。NeuroSpiral 4D将这条看不见的路径转化为你可以看到和理解的几何形状。"
           }
         }
       }

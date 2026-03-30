@@ -30,7 +30,7 @@ public enum PredictionFeatureBuilder {
 
         let sorted = records.sorted { $0.day < $1.day }
         let recent = Array(sorted.suffix(7))
-        let latest = recent.last!
+        guard let latest = recent.last else { return nil }
 
         // -- Temporal encoding --
         let clockHour = currentAbsHour.truncatingRemainder(dividingBy: 24)
@@ -157,7 +157,7 @@ public enum PredictionFeatureBuilder {
         }
 
         // Ultimate fallback: stateless
-        let latest = recent.last!
+        guard let latest = recent.last else { return 0.5 }
         let hoursSinceWake = max(0, Double(currentHour) - latest.wakeupHour)
         return TwoProcessModel.processS(hoursSinceTransition: hoursSinceWake, isAwake: true, s0: 0.2)
     }

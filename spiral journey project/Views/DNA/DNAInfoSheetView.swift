@@ -33,6 +33,13 @@ struct DNAInfoSheetView: View {
                         body: loc("dna.info.helix.body")
                     )
 
+                    // 3b. Reading the 3D helix bars
+                    infoSection(
+                        icon: "cylinder.split.1x2", iconColor: .blue,
+                        title: loc("dna.info.helix3d.title"),
+                        body: loc("dna.info.helix3d.body")
+                    )
+
                     // 4. Motifs & mutations
                     infoSection(
                         icon: "waveform.badge.magnifyingglass", iconColor: .orange,

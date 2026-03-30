@@ -70,6 +70,11 @@ enum AppAppearance: String, Codable, CaseIterable {
 @Observable
 final class SpiralStore {
 
+    // MARK: - Sync State
+
+    /// True while fetching new HealthKit data on foreground return.
+    var isSyncingHealthKit = false
+
     // MARK: - Persisted State (UserDefaults)
 
     var sleepEpisodes: [SleepEpisode] = [] {

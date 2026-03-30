@@ -10,7 +10,7 @@ public struct DayHelixParams: Codable, Sendable {
     public let twistAngle: Double
     /// Helix radius: deviation of midSleep from chronotype ideal.
     public let helixRadius: Double
-    /// Strand thickness: proportion of deep (N3) sleep phases [0,1].
+    /// Strand thickness: proportion of deep sleep phases [0,1].
     public let strandThickness: Double
     /// Surface roughness: fragmentation measure [0,1].
     public let surfaceRoughness: Double
