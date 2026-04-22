@@ -341,10 +341,15 @@ struct SpiralModeView: View {
                         .padding(.horizontal, 16)
                         .reportFrame(\.cursorBar)
                         .opacity(floatingElementsVisible ? 1 : 0)
+                        // Sit closer to the action bar below — previously
+                        // 140 pt left a dead zone between the cursor pill
+                        // and the log/stats buttons. 115 pt keeps a small
+                        // gap but drops the pill visually into the action
+                        // cluster.
                         #if os(macOS)
-                        .padding(.bottom, 100)
+                        .padding(.bottom, 80)
                         #else
-                        .padding(.bottom, 140)
+                        .padding(.bottom, 115)
                         #endif
                 }
 
