@@ -8,12 +8,22 @@ struct DNACardView<Content: View>: View {
     let title: String
     let icon: String
     let isLarge: Bool
+    /// Optional action for a small help (`?`) button rendered at the top
+    /// right of the card. Tap events on the button are isolated from the
+    /// outer card tap gesture so the help sheet can open without also
+    /// pushing the card's primary destination.
+    let onHelpTap: (() -> Void)?
     let content: Content
 
-    init(_ title: String, icon: String, isLarge: Bool = false, @ViewBuilder content: () -> Content) {
+    init(_ title: String,
+         icon: String,
+         isLarge: Bool = false,
+         onHelpTap: (() -> Void)? = nil,
+         @ViewBuilder content: () -> Content) {
         self.title = title
         self.icon = icon
         self.isLarge = isLarge
+        self.onHelpTap = onHelpTap
         self.content = content()
     }
 
@@ -27,6 +37,16 @@ struct DNACardView<Content: View>: View {
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(SpiralColors.text)
                 Spacer()
+                if let onHelpTap {
+                    Button(action: onHelpTap) {
+                        Image(systemName: "questionmark.circle")
+                            .font(.footnote)
+                            .foregroundStyle(SpiralColors.muted)
+                            .padding(6)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                }
                 if !isLarge {
                     Image(systemName: "chevron.right")
                         .font(.caption2)

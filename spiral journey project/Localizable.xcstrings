@@ -78424,6 +78424,1566 @@
           }
         }
       }
+    },
+    "dna.patterns.help.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pattern legend"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leyenda de patrones"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Llegenda de patrons"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Légende des motifs"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Muster-Legende"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "パターン凡例"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模式图例"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "وسيلة إيضاح الأنماط"
+          }
+        }
+      }
+    },
+    "dna.patterns.help.intro": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Each pattern describes what makes a group of your weeks stand out from your personal average. Names are automatic — they pick the single factor that deviates the most."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada patrón describe qué hace que un grupo de tus semanas destaque frente a tu media habitual. Los nombres se asignan automáticamente — el algoritmo elige el único factor que más se desvía."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada patró descriu què fa que un grup de les teves setmanes destaqui respecte a la teva mitjana habitual. Els noms són automàtics — s'escull el factor que més es desvia."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chaque motif décrit ce qui distingue un groupe de vos semaines de votre moyenne habituelle. Les noms sont automatiques — le facteur le plus écarté est choisi."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jedes Muster beschreibt, was eine Gruppe Ihrer Wochen von Ihrem persönlichen Durchschnitt unterscheidet. Namen werden automatisch vergeben — der am stärksten abweichende Faktor."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "各パターンは、あなたの週のグループが個人的な平均からどのように際立っているかを表します。名前は自動で、最も逸脱した要因が選ばれます。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每个模式描述是什么让您的一组周脱颖而出于您的个人平均水平。名称是自动的——选择偏差最大的单一因素。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "كل نمط يصف ما يجعل مجموعة من أسابيعك تبرز مقارنة بمتوسطك الشخصي. الأسماء تلقائية — يتم اختيار العامل الأكثر انحرافًا."
+          }
+        }
+      }
+    },
+    "dna.motif.desc.early-bird": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weeks where you went to bed earlier than your personal average."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semanas donde te acostaste antes de lo habitual en tu promedio."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setmanes on et vas ficar al llit abans del teu hàbit habitual."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semaines où vous vous êtes couché plus tôt que votre moyenne."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wochen, in denen Sie früher ins Bett gingen als Ihr Durchschnitt."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通常より早く就寝した週。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "您比个人平均时间更早上床的几周。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أسابيع ذهبت فيها إلى السرير أبكر من متوسطك."
+          }
+        }
+      }
+    },
+    "dna.motif.desc.late-night": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weeks where you went to bed later than usual."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semanas donde te acostaste más tarde de lo habitual."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setmanes on et vas ficar al llit més tard del que és habitual."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semaines où vous vous êtes couché plus tard que d'habitude."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wochen, in denen Sie später als üblich ins Bett gingen."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通常より遅く就寝した週。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "您比平时更晚上床的几周。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أسابيع ذهبت فيها إلى السرير متأخرًا عن المعتاد."
+          }
+        }
+      }
+    },
+    "dna.motif.desc.early-wakeup": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weeks where you consistently woke up earlier than your baseline."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semanas donde te despertaste antes de tu hora habitual de forma consistente."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setmanes on et vas despertar abans de la teva hora habitual de forma consistent."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semaines où vous vous êtes réveillé plus tôt que d'habitude."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wochen, in denen Sie konstant früher aufgewacht sind als sonst."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "普段より早く起床した週。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "您一直比平时更早醒来的几周。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أسابيع استيقظت فيها أبكر من المعتاد باستمرار."
+          }
+        }
+      }
+    },
+    "dna.motif.desc.late-wakeup": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weeks where you slept in noticeably past your usual wake time."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semanas donde te despertaste claramente más tarde de lo habitual."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setmanes on et vas despertar clarament més tard del normal."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semaines où vous vous êtes réveillé nettement plus tard que d'habitude."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wochen, in denen Sie deutlich länger schliefen als üblich."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通常より明らかに遅く起床した週。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "您明显比平时晚起的几周。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أسابيع استيقظت فيها متأخرًا بشكل واضح عن المعتاد."
+          }
+        }
+      }
+    },
+    "dna.motif.desc.short-sleep": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weeks where you slept noticeably fewer hours than you normally do."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semanas donde dormiste claramente menos horas de lo que sueles dormir."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setmanes on vas dormir clarament menys hores del que acostumes."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semaines où vous avez dormi sensiblement moins d'heures que d'habitude."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wochen, in denen Sie deutlich weniger Stunden schliefen als gewöhnlich."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "いつもよりはっきりと少ない時間しか眠らなかった週。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "您睡眠时间明显比平时少的几周。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أسابيع نمت فيها ساعات أقل بشكل ملحوظ من المعتاد."
+          }
+        }
+      }
+    },
+    "dna.motif.desc.long-sleep": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weeks where you slept noticeably more hours than normal."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semanas donde dormiste más horas de lo normal."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setmanes on vas dormir més hores del normal."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semaines où vous avez dormi sensiblement plus d'heures que d'habitude."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wochen, in denen Sie deutlich mehr Stunden schliefen als sonst."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "いつもよりはっきりと多くの時間眠った週。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "您睡眠时间比平时长的几周。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أسابيع نمت فيها ساعات أكثر من المعتاد بشكل ملحوظ."
+          }
+        }
+      }
+    },
+    "dna.motif.desc.good-sleep": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weeks where the perceived sleep quality was above your usual."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semanas donde la calidad percibida del sueño fue mejor que la habitual."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setmanes on la qualitat percebuda del son va ser superior a l'habitual."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semaines où la qualité perçue du sommeil était supérieure à la moyenne."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wochen, in denen die wahrgenommene Schlafqualität besser war als sonst."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "睡眠の主観的な質がいつもより高かった週。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "感知睡眠质量高于平常的几周。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أسابيع كانت جودة النوم المُدركة أفضل من المعتاد."
+          }
+        }
+      }
+    },
+    "dna.motif.desc.poor-sleep": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weeks where the perceived sleep quality was below your baseline."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semanas donde la calidad percibida del sueño fue peor de lo normal."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setmanes on la qualitat percebuda del son va ser pitjor del normal."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semaines où la qualité perçue du sommeil était inférieure à votre moyenne."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wochen, in denen die wahrgenommene Schlafqualität schlechter war als sonst."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "睡眠の主観的な質がいつもより低かった週。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "感知睡眠质量低于平常的几周。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أسابيع كانت جودة النوم المُدركة أسوأ من المعتاد."
+          }
+        }
+      }
+    },
+    "dna.motif.desc.active-week": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weeks with more physical activity — more workouts, more steps, or longer exercise time than usual."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semanas con más actividad física — más entrenamientos, más pasos o más tiempo de ejercicio del habitual."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setmanes amb més activitat física — més entrenaments, més passos o més temps d'exercici del normal."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semaines avec plus d'activité physique — plus d'entraînements, plus de pas ou d'exercice que d'habitude."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wochen mit mehr körperlicher Aktivität — mehr Training, Schritte oder Bewegungszeit als üblich."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "いつもより身体活動が多かった週(トレーニング、歩数、運動時間)。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "身体活动增多的几周 — 更多锻炼、步数或运动时间。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أسابيع بنشاط بدني أكبر — تدريبات أو خطوات أو وقت تمرين أكثر من المعتاد."
+          }
+        }
+      }
+    },
+    "dna.motif.desc.sedentary-week": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weeks with less movement than your average — fewer steps and less exercise."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semanas con menos movimiento que tu media — menos pasos y menos ejercicio."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setmanes amb menys moviment del que és habitual — menys passos i menys exercici."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semaines avec moins de mouvement que votre moyenne — moins de pas, moins d'exercice."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wochen mit weniger Bewegung als im Durchschnitt — weniger Schritte und weniger Training."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "平均より動きが少なかった週(歩数・運動ともに減少)。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动比平均水平少的几周 — 步数更少,锻炼更少。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أسابيع بحركة أقل من متوسطك — خطوات وتمارين أقل."
+          }
+        }
+      }
+    },
+    "dna.motif.desc.weekend-mode": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weeks dominated by a weekend-style rhythm — later bedtimes and later wake-ups across more days than usual."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semanas dominadas por un ritmo de fin de semana — acostadas y despertares más tardíos en más días de lo normal."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setmanes dominades per un ritme de cap de setmana — anar al llit i despertar-se més tard en més dies del normal."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semaines dominées par un rythme de week-end — couchers et réveils plus tardifs sur davantage de jours que d'habitude."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wochen mit Wochenend-Rhythmus — spätere Bettzeiten und spätere Aufwachzeiten an mehr Tagen als üblich."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "週末型リズムが支配的な週(通常より多くの日で就寝と起床が遅い)。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "周末模式占主导的几周 — 比平时更多天晚睡晚起。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أسابيع يسيطر فيها نمط عطلة نهاية الأسبوع — نوم واستيقاظ متأخران أكثر من المعتاد."
+          }
+        }
+      }
+    },
+    "dna.motif.desc.weekday-mode": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weeks with a very consistent weekday rhythm throughout — little variation on Saturday or Sunday."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semanas con un ritmo muy consistente entre semana — poca variación en sábado o domingo."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setmanes amb un ritme molt consistent entre setmana — poca variació el dissabte o diumenge."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semaines avec un rythme de semaine très constant — peu de variation le week-end."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wochen mit sehr konstantem Wochenrhythmus — kaum Unterschied am Wochenende."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "平日のリズムが非常に一定した週(週末もあまり変化しない)。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "整周保持一致工作日节奏的几周 — 周末变化不大。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أسابيع بإيقاع أيام الأسبوع ثابت جدًا — تغيّر ضئيل يومَي السبت والأحد."
+          }
+        }
+      }
+    },
+    "dna.motif.desc.caffeine-heavy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weeks where you logged more caffeine than usual (or your health app tracked it)."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semanas donde registraste más cafeína de lo habitual (o la app de salud la detectó)."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setmanes on vas registrar més cafeïna del normal (o l'app de salut la va detectar)."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semaines avec plus de caféine enregistrée que d'habitude."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wochen mit mehr erfasstem Koffein als üblich."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "いつもより多くのカフェイン摂取が記録された週。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录的咖啡因比平时多的几周。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أسابيع سُجّل فيها كافيين أكثر من المعتاد."
+          }
+        }
+      }
+    },
+    "dna.motif.desc.low-caffeine": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weeks with little caffeine recorded compared to your average."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semanas con poca cafeína registrada respecto a tu media."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setmanes amb poca cafeïna registrada respecte a la mitjana."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semaines avec peu de caféine par rapport à votre moyenne."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wochen mit wenig Koffein im Vergleich zum Durchschnitt."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "平均に比べてカフェインの記録が少ない週。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "相对于平均水平咖啡因摄入较少的几周。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أسابيع بكافيين مسجّل أقل من متوسطك."
+          }
+        }
+      }
+    },
+    "dna.motif.desc.high-alcohol": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weeks where you logged more alcohol intake than usual."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semanas donde registraste más consumo de alcohol de lo habitual."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setmanes on vas registrar més consum d'alcohol del normal."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semaines avec plus de consommation d'alcool enregistrée que d'habitude."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wochen mit höherem Alkoholkonsum als üblich."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "いつもより多くのアルコール摂取を記録した週。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录的酒精摄入比平时多的几周。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أسابيع سُجّل فيها استهلاك كحول أكثر من المعتاد."
+          }
+        }
+      }
+    },
+    "dna.motif.desc.low-alcohol": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weeks with little or no alcohol intake compared to your baseline."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semanas con poco o ningún consumo de alcohol comparado con tu media."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setmanes amb poc o cap consum d'alcohol respecte a la mitjana."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semaines avec peu ou pas d'alcool par rapport à votre moyenne."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wochen mit wenig oder keinem Alkohol im Vergleich zu Ihrem Durchschnitt."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "平均に比べてアルコール摂取が少ない、またはない週。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "相对于基线酒精摄入很少或没有的几周。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أسابيع باستهلاك كحول قليل أو معدوم مقارنة بمتوسطك."
+          }
+        }
+      }
+    },
+    "dna.motif.desc.high-stress": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weeks with higher stress levels logged or inferred from your data."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semanas con niveles de estrés más altos registrados o inferidos de tus datos."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setmanes amb nivells d'estrès més alts registrats o inferits de les dades."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semaines avec des niveaux de stress plus élevés enregistrés ou déduits."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wochen mit höherem gemessenem oder abgeleitetem Stress."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ストレスレベルが高いと記録または推測された週。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录或推断的压力水平较高的几周。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أسابيع بمستويات إجهاد أعلى سجّلت أو استُنتجت من بياناتك."
+          }
+        }
+      }
+    },
+    "dna.motif.desc.low-stress": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weeks with below-average stress — more relaxed overall than your usual."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semanas con estrés por debajo de tu media — más relajadas de lo habitual."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setmanes amb estrès per sota de la mitjana — més relaxades del normal."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semaines avec un stress inférieur à la moyenne — plus détendues que d'habitude."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wochen mit unterdurchschnittlichem Stress — insgesamt entspannter als sonst."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ストレスが平均より低い、普段より落ち着いた週。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "压力低于平均的几周 — 整体比平时更放松。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أسابيع بإجهاد أقل من المعتاد — أكثر استرخاءً من متوسطك."
+          }
+        }
+      }
+    },
+    "dna.motif.desc.melatonin-use": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weeks where melatonin intake was recorded more often than usual."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semanas donde registraste uso de melatonina con más frecuencia de lo habitual."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setmanes on vas registrar ús de melatonina més sovint del normal."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semaines avec plus de prises de mélatonine enregistrées que d'habitude."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wochen mit häufigerem Melatonin-Einsatz als üblich."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "メラトニン摂取がいつもより多く記録された週。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "褪黑素摄入比平时多的几周。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أسابيع سُجّل فيها تناول الميلاتونين أكثر من المعتاد."
+          }
+        }
+      }
+    },
+    "dna.motif.desc.no-melatonin": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weeks with little or no melatonin logged compared to your baseline."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semanas con poco o ningún registro de melatonina respecto a tu media."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setmanes amb poc o cap registre de melatonina respecte a la mitjana."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semaines avec peu ou pas de mélatonine enregistrée par rapport à votre moyenne."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wochen mit wenig oder keinem Melatonin im Vergleich zum Durchschnitt."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "平均に比べてメラトニンの記録が少ない、またはない週。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "相对于基线褪黑素记录很少或没有的几周。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أسابيع بميلاتونين مسجّل قليل أو معدوم مقارنة بمتوسطك."
+          }
+        }
+      }
+    },
+    "dna.motif.desc.high-pressure": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weeks where sleep pressure — the body's buildup of tiredness — was higher than usual."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semanas donde la presión de sueño — el cansancio acumulado por el cuerpo — fue mayor de lo habitual."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setmanes amb pressió de son — el cansament acumulat pel cos — més alta del normal."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semaines où la pression de sommeil — la fatigue accumulée — était plus élevée que d'habitude."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wochen mit höherem Schlafdruck — die körperliche Müdigkeitsansammlung — als üblich."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "睡眠圧(身体の疲労蓄積)がいつもより高かった週。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "睡眠压力 — 身体累积的疲倦 — 高于平时的几周。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أسابيع كان فيها ضغط النوم — الإرهاق المتراكم في الجسم — أعلى من المعتاد."
+          }
+        }
+      }
+    },
+    "dna.motif.desc.low-pressure": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weeks where you felt well-rested — low accumulated tiredness carrying day to day."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semanas donde estuviste bien descansado — poco cansancio acumulado de un día a otro."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setmanes on vas estar ben descansat — poc cansament acumulat d'un dia a l'altre."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semaines où vous étiez bien reposé — peu de fatigue accumulée au fil des jours."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wochen, in denen Sie gut erholt waren — wenig angesammelte Müdigkeit von Tag zu Tag."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "よく休めていた週(日々の疲労の蓄積が少ない)。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "您感到充分休息的几周 — 日常累积的疲倦很少。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أسابيع شعرت فيها بالراحة — تراكم قليل للإرهاق يومًا بعد يوم."
+          }
+        }
+      }
+    },
+    "dna.motif.desc.early-drift": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weeks where your schedule drifted earlier each day — bedtime and wake time inching forward."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semanas donde tu horario se desplazó cada día hacia más temprano — acostadas y despertares adelantándose."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setmanes on l'horari es va desplaçar cada dia cap a més d'hora — anar al llit i despertar-se s'anaven avançant."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semaines où votre rythme s'est décalé chaque jour vers plus tôt — couchers et réveils avancés."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wochen, in denen sich Ihr Rhythmus jeden Tag nach vorne verschob — Bett- und Aufstehzeit früher."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "毎日スケジュールが徐々に早くずれていった週(就寝と起床が前倒し)。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "您的作息每天向前推的几周 — 就寝和起床时间逐渐提前。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أسابيع تحرك فيها جدولك مبكرًا يومًا بعد يوم — النوم والاستيقاظ يتقدمان."
+          }
+        }
+      }
+    },
+    "dna.motif.desc.late-drift": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weeks where your schedule drifted later each day — bedtime and wake time creeping back."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semanas donde tu horario se desplazó cada día hacia más tarde — acostadas y despertares retrasándose."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setmanes on l'horari es va desplaçar cada dia cap a més tard — anar al llit i despertar-se s'anaven retrasant."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semaines où votre rythme s'est décalé chaque jour vers plus tard — couchers et réveils reportés."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wochen, in denen sich Ihr Rhythmus jeden Tag nach hinten verschob — Bett- und Aufstehzeit später."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "毎日スケジュールが徐々に遅くずれていった週(就寝と起床が後ろ倒し)。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "您的作息每天向后推的几周 — 就寝和起床时间逐渐延后。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أسابيع تحرك فيها جدولك متأخرًا يومًا بعد يوم — النوم والاستيقاظ يتأخران."
+          }
+        }
+      }
+    },
+    "dna.motif.desc.early-acrophase": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weeks where your circadian peak (your most active hour of the day) fell earlier than usual."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semanas donde tu pico circadiano (tu hora más activa del día) cayó antes de lo habitual."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setmanes on el teu pic circadiari (l'hora més activa del dia) va caure abans del normal."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semaines où votre pic circadien (l'heure la plus active) est tombé plus tôt que d'habitude."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wochen, in denen Ihr zirkadianes Maximum (Ihre aktivste Stunde) früher lag als sonst."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "概日ピーク(1日で最も活動的な時間)が通常より早かった週。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "您的昼夜节律峰值(一天中最活跃的时段)比平时更早的几周。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أسابيع كانت فيها ذروتك اليومية (أنشط ساعة) أبكر من المعتاد."
+          }
+        }
+      }
+    },
+    "dna.motif.desc.late-acrophase": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weeks where your circadian peak landed later in the day than your baseline."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semanas donde tu pico circadiano cayó más tarde en el día respecto a tu media."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setmanes on el teu pic circadiari va caure més tard al dia respecte a la mitjana."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semaines où votre pic circadien est arrivé plus tard dans la journée qu'habituellement."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wochen, in denen Ihr zirkadianes Maximum später am Tag lag als gewöhnlich."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "概日ピークが通常より遅い時間帯にあった週。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "您的昼夜节律峰值比基线更晚出现的几周。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أسابيع كانت فيها ذروتك اليومية متأخرة عن المعتاد."
+          }
+        }
+      }
+    },
+    "dna.motif.desc.high-rhythm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weeks with a strong, regular circadian rhythm — your body clock was behaving consistently."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semanas con un ritmo circadiano fuerte y regular — tu reloj biológico actuó de forma consistente."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setmanes amb un ritme circadiari fort i regular — el teu rellotge biològic va actuar amb consistència."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semaines avec un rythme circadien fort et régulier — votre horloge biologique a été stable."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wochen mit starkem, regelmäßigem zirkadianem Rhythmus — Ihre innere Uhr war stabil."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "概日リズムが強く規則的で、体内時計が安定していた週。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "昼夜节律强而规律的几周 — 您的生物钟保持稳定。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أسابيع بإيقاع يومي قوي ومنتظم — ساعتك الحيوية كانت ثابتة."
+          }
+        }
+      }
+    },
+    "dna.motif.desc.low-rhythm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weeks with a weaker or more erratic circadian rhythm — the day/night pattern was less clear."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semanas con un ritmo circadiano más débil o errático — el patrón día/noche fue menos claro."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setmanes amb un ritme circadiari més feble o erràtic — el patró dia/nit va ser menys clar."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semaines avec un rythme circadien plus faible ou irrégulier — alternance jour/nuit moins marquée."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wochen mit schwächerem oder unregelmäßigerem zirkadianem Rhythmus — Tag/Nacht weniger klar."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "概日リズムが弱い、または不規則な週で、昼夜のパターンが不明瞭。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "昼夜节律较弱或不稳定的几周 — 昼夜模式不那么清晰。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أسابيع بإيقاع يومي أضعف أو أكثر اضطرابًا — نمط النهار/الليل أقل وضوحًا."
+          }
+        }
+      }
     }
   },
   "version": "1.1"

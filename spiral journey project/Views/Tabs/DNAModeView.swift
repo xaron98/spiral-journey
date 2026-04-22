@@ -24,6 +24,7 @@ struct DNAModeView: View {
     @State private var showHelix = false
     @State private var showPrediction = false
     @State private var showExport = false
+    @State private var showPatternsHelp = false
 
     // MARK: - Action bar states
 
@@ -99,6 +100,9 @@ struct DNAModeView: View {
         .sheet(isPresented: $showExport) {
             exportSheet
         }
+        .sheet(isPresented: $showPatternsHelp) {
+            patternsHelpSheet
+        }
         // The Insights sub-sheet was the only caller of `refreshIfNeeded`,
         // so users who only opened this main tab were stuck with whatever
         // snapshot was cached by the previous app launch. Trigger a refresh
@@ -113,7 +117,11 @@ struct DNAModeView: View {
     // MARK: - Cards
 
     private var patternsCard: some View {
-        DNACardView(loc("dna.card.patterns"), icon: "link") {
+        DNACardView(
+            loc("dna.card.patterns"),
+            icon: "link",
+            onHelpTap: { showPatternsHelp = true }
+        ) {
             if let profile = dnaProfile, !profile.motifs.isEmpty {
                 HStack(spacing: 8) {
                     let topMotifs = Array(profile.motifs.prefix(3))
@@ -579,6 +587,75 @@ struct DNAModeView: View {
             return loc("dna.sheet.diag.hint.tooVaried")
         }
         return loc("dna.sheet.diag.hint.borderline")
+    }
+
+    private var patternsHelpSheet: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    Text(loc("dna.patterns.help.intro"))
+                        .font(.callout)
+                        .foregroundStyle(SpiralColors.text)
+                        .padding(.bottom, 4)
+
+                    ForEach(motifNameCatalog, id: \.key) { entry in
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(loc(entry.nameKey))
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(SpiralColors.accent)
+                            Text(loc(entry.descKey))
+                                .font(.footnote)
+                                .foregroundStyle(SpiralColors.muted)
+                        }
+                        .padding(.vertical, 4)
+                    }
+                }
+                .padding(16)
+            }
+            .background(SpiralColors.bg.ignoresSafeArea())
+            .navigationTitle(loc("dna.patterns.help.title"))
+            #if !os(macOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar { sheetCloseButton { showPatternsHelp = false } }
+        }
+    }
+
+    /// Catalog of motif-name keys with their matching description keys.
+    /// Order is pedagogical — timing first, then metabolic factors, then
+    /// circadian rhythm metrics. Each entry renders as a titled paragraph
+    /// in the help sheet.
+    private var motifNameCatalog: [(key: String, nameKey: String, descKey: String)] {
+        [
+            ("early-bird",      "dna.motif.name.early-bird",       "dna.motif.desc.early-bird"),
+            ("late-night",      "dna.motif.name.late-night",       "dna.motif.desc.late-night"),
+            ("early-wakeup",    "dna.motif.name.early-wakeup",     "dna.motif.desc.early-wakeup"),
+            ("late-wakeup",     "dna.motif.name.late-wakeup",      "dna.motif.desc.late-wakeup"),
+            ("short-sleep",     "dna.motif.name.short-sleep",      "dna.motif.desc.short-sleep"),
+            ("long-sleep",      "dna.motif.name.long-sleep",       "dna.motif.desc.long-sleep"),
+            ("good-sleep",      "dna.motif.name.good-sleep",       "dna.motif.desc.good-sleep"),
+            ("poor-sleep",      "dna.motif.name.poor-sleep",       "dna.motif.desc.poor-sleep"),
+            ("active-week",     "dna.motif.name.active-week",      "dna.motif.desc.active-week"),
+            ("sedentary-week",  "dna.motif.name.sedentary-week",   "dna.motif.desc.sedentary-week"),
+            ("weekend-mode",    "dna.motif.name.weekend-mode",     "dna.motif.desc.weekend-mode"),
+            ("weekday-mode",    "dna.motif.name.weekday-mode",     "dna.motif.desc.weekday-mode"),
+            ("caffeine-heavy",  "dna.motif.name.caffeine-heavy",   "dna.motif.desc.caffeine-heavy"),
+            ("low-caffeine",    "dna.motif.name.low-caffeine",     "dna.motif.desc.low-caffeine"),
+            ("high-alcohol",    "dna.motif.name.high-alcohol",     "dna.motif.desc.high-alcohol"),
+            ("low-alcohol",     "dna.motif.name.low-alcohol",      "dna.motif.desc.low-alcohol"),
+            ("high-stress",     "dna.motif.name.high-stress",      "dna.motif.desc.high-stress"),
+            ("low-stress",      "dna.motif.name.low-stress",       "dna.motif.desc.low-stress"),
+            ("melatonin-use",   "dna.motif.name.melatonin-use",    "dna.motif.desc.melatonin-use"),
+            ("no-melatonin",    "dna.motif.name.no-melatonin",     "dna.motif.desc.no-melatonin"),
+            ("high-pressure",   "dna.motif.name.high-pressure",    "dna.motif.desc.high-pressure"),
+            ("low-pressure",    "dna.motif.name.low-pressure",     "dna.motif.desc.low-pressure"),
+            ("early-drift",     "dna.motif.name.early-drift",      "dna.motif.desc.early-drift"),
+            ("late-drift",      "dna.motif.name.late-drift",       "dna.motif.desc.late-drift"),
+            ("early-acrophase", "dna.motif.name.early-acrophase",  "dna.motif.desc.early-acrophase"),
+            ("late-acrophase",  "dna.motif.name.late-acrophase",   "dna.motif.desc.late-acrophase"),
+            ("high-rhythm",     "dna.motif.name.high-rhythm",      "dna.motif.desc.high-rhythm"),
+            ("low-rhythm",      "dna.motif.name.low-rhythm",       "dna.motif.desc.low-rhythm"),
+        ]
     }
 
     private func patternRow(motif: SleepMotif) -> some View {
