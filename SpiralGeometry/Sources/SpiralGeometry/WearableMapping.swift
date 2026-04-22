@@ -194,6 +194,19 @@ public struct SleepTrajectoryAnalysis: Sendable {
 
     /// Time-resolved vertex sequence with timestamps
     public let stateSequence: [(vertex: Int, startIndex: Int, duration: Int)]
+
+    // Extended toroidal features (experimental — ClaudiaApp validation)
+
+    /// arctan2(ω₁, ω₂) — balance between torus dimensions
+    public let omegaRatio: Double
+    /// Circular dispersion in θ (0=focused, 1=uniform spread)
+    public let thetaDispersion: Double
+    /// Circular dispersion in φ (0=focused, 1=uniform spread)
+    public let phiDispersion: Double
+    /// Fraction of time at dominant vertex (0-1)
+    public let residenceFraction: Double
+    /// Mean distance from ideal Clifford torus surface (‖p‖ vs R√2)
+    public let torusDeviation: Double
 }
 
 extension WearableTo4DMapper {
@@ -251,6 +264,39 @@ extension WearableTo4DMapper {
             stateSeq.append((currentVertex, startIdx, assignments.count - startIdx))
         }
 
+        // --- Extended toroidal features (experimental) ---
+
+        // Omega ratio: balance between torus dimensions
+        let omegaRatio = atan2(omega1, omega2)
+
+        // Circular dispersion = 1 - |mean(e^{iθ})| (0 = all same angle, 1 = uniform spread)
+        let sampleCount = Double(max(1, trajectory.count))
+
+        let thetaAngles = trajectory.map { CliffordTorus.angles(of: $0).theta }
+        let thetaCosSum = thetaAngles.map { cos($0) }.reduce(0, +) / sampleCount
+        let thetaSinSum = thetaAngles.map { sin($0) }.reduce(0, +) / sampleCount
+        let thetaDispersion = 1.0 - sqrt(thetaCosSum * thetaCosSum + thetaSinSum * thetaSinSum)
+
+        let phiAngles = trajectory.map { CliffordTorus.angles(of: $0).phi }
+        let phiCosSum = phiAngles.map { cos($0) }.reduce(0, +) / sampleCount
+        let phiSinSum = phiAngles.map { sin($0) }.reduce(0, +) / sampleCount
+        let phiDispersion = 1.0 - sqrt(phiCosSum * phiCosSum + phiSinSum * phiSinSum)
+
+        // Residence fraction: time at dominant vertex (from VertexResidence)
+        let resFraction = residence.residenceFraction
+
+        // Torus deviation: mean |‖p‖ - R√2| where R√2 is ideal Clifford torus radius
+        let idealRadius = sqrt(2.0)
+        let deviationSum = trajectory.reduce(0.0) { acc, p in
+            let norm = sqrt(p.x * p.x + p.y * p.y + p.z * p.z + p.w * p.w)
+            return acc + abs(norm - idealRadius)
+        }
+        let torusDeviation = deviationSum / sampleCount
+
+        #if DEBUG
+        print("[NeuroSpiral] 8 features: ω₁=\(String(format: "%.3f", omega1)) ω₂=\(String(format: "%.3f", omega2)) ratio=\(String(format: "%.3f", omegaRatio)) θ-disp=\(String(format: "%.3f", thetaDispersion)) φ-disp=\(String(format: "%.3f", phiDispersion)) res=\(String(format: "%.3f", resFraction)) stab=\(String(format: "%.3f", residence.stabilityScore)) dev=\(String(format: "%.3f", torusDeviation))")
+        #endif
+
         return SleepTrajectoryAnalysis(
             trajectory: trajectory,
             residence: residence,
@@ -259,7 +305,12 @@ extension WearableTo4DMapper {
             omega1Mean: omega1,
             omega2Mean: omega2,
             edgeTraversals: edges,
-            stateSequence: stateSeq
+            stateSequence: stateSeq,
+            omegaRatio: omegaRatio,
+            thetaDispersion: thetaDispersion,
+            phiDispersion: phiDispersion,
+            residenceFraction: resFraction,
+            torusDeviation: torusDeviation
         )
     }
 }
