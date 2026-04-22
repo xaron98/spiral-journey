@@ -368,7 +368,8 @@ struct SleepTriangleView: View {
         var prevBary: (Double, Double, Double)?
 
         for record in recent {
-            // Detect sleep window: first non-awake phase after 20:00 → last non-awake before 12:00
+            // Schedule-agnostic: longest continuous non-awake block.
+            // See `extractSleepWindow(from:)` — does NOT filter by clock hour.
             let sleepPhases = extractSleepWindow(from: record)
 
             #if DEBUG

@@ -470,9 +470,13 @@ struct DNAModeView: View {
                             patternRow(motif: motif)
                         }
                     } else {
+                        // Show real progress toward the 8-week threshold instead of
+                        // a static "need more data" message — the pipeline only
+                        // computes motifs at tier `.full` (dataWeeks >= 8).
+                        let weeks = dnaProfile?.dataWeeks ?? 0
                         sheetEmptyState(
                             icon: "link",
-                            text: loc("dna.sheet.patterns.empty"))
+                            text: String(format: loc("dna.sheet.patterns.empty"), weeks))
                     }
                 }
                 .padding(16)
@@ -537,9 +541,10 @@ struct DNAModeView: View {
                             mutationRow(mutation: mutation)
                         }
                     } else {
+                        let weeks = dnaProfile?.dataWeeks ?? 0
                         sheetEmptyState(
                             icon: "bolt.trianglebadge.exclamationmark",
-                            text: loc("dna.sheet.mutations.empty"))
+                            text: String(format: loc("dna.sheet.mutations.empty"), weeks))
                     }
                 }
                 .padding(16)
