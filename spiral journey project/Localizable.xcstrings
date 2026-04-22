@@ -77800,6 +77800,110 @@
           }
         }
       }
+    },
+    "dna.sheet.patterns.noClusters": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your weeks are too similar — no distinct patterns yet. This usually means your habits are very regular."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tus semanas son muy parecidas entre sí — aún no hay patrones distintos. Suele significar que tus hábitos son muy regulares."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les teves setmanes són molt semblants — encara no hi ha patrons distints. Sol significar que els teus hàbits són molt regulars."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vos semaines se ressemblent trop — aucun motif distinct pour l'instant. Cela signifie généralement que vos habitudes sont très régulières."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ihre Wochen sind sich zu ähnlich — noch keine unterschiedlichen Muster. Das bedeutet meist, dass Ihre Gewohnheiten sehr regelmäßig sind."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "あなたの週は似すぎています — まだ明確なパターンはありません。習慣が非常に規則的な場合によく見られます。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "您的几周太相似 — 尚无明显模式。这通常意味着您的习惯非常规律。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أسابيعك متشابهة جدًا — لا توجد أنماط مميزة بعد. يعني هذا عادةً أن عاداتك منتظمة جدًا."
+          }
+        }
+      }
+    },
+    "dna.sheet.mutations.noClusters": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No mutations yet — mutations are measured relative to your dominant pattern, which hasn't emerged distinctly in your data."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aún no hay mutaciones — las mutaciones se miden relativas a tu patrón dominante, que todavía no ha emergido de forma clara."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encara no hi ha mutacions — es mesuren respecte al teu patró dominant, que encara no ha emergit clarament."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune mutation pour l'instant — elles sont mesurées par rapport à votre motif dominant, qui n'est pas encore clairement émergé."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch keine Mutationen — sie werden relativ zu Ihrem dominanten Muster gemessen, das noch nicht klar hervortritt."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "まだ変異はありません — 変異は支配的なパターンに対して測定されますが、まだ明確に現れていません。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚无突变 — 突变是相对于您的主导模式测量的，该模式尚未明显出现。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا توجد طفرات بعد — تُقاس الطفرات نسبةً إلى نمطك المهيمن، الذي لم يظهر بوضوح بعد."
+          }
+        }
+      }
     }
   },
   "version": "1.1"

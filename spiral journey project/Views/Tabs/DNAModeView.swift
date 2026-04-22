@@ -470,13 +470,17 @@ struct DNAModeView: View {
                             patternRow(motif: motif)
                         }
                     } else {
-                        // Show real progress toward the 8-week threshold instead of
-                        // a static "need more data" message — the pipeline only
-                        // computes motifs at tier `.full` (dataWeeks >= 8).
+                        // Two empty states: "not enough data yet" vs "analyzed
+                        // but no clusters formed" (latter happens when the user
+                        // has very regular habits — all weeks look the same and
+                        // agglomerative clustering can't find distinct motifs).
                         let weeks = dnaProfile?.dataWeeks ?? 0
+                        let pastThreshold = weeks >= 2
                         sheetEmptyState(
                             icon: "link",
-                            text: String(format: loc("dna.sheet.patterns.empty"), weeks))
+                            text: pastThreshold
+                                ? loc("dna.sheet.patterns.noClusters")
+                                : String(format: loc("dna.sheet.patterns.empty"), weeks))
                     }
                 }
                 .padding(16)
@@ -542,9 +546,12 @@ struct DNAModeView: View {
                         }
                     } else {
                         let weeks = dnaProfile?.dataWeeks ?? 0
+                        let pastThreshold = weeks >= 2
                         sheetEmptyState(
                             icon: "bolt.trianglebadge.exclamationmark",
-                            text: String(format: loc("dna.sheet.mutations.empty"), weeks))
+                            text: pastThreshold
+                                ? loc("dna.sheet.mutations.noClusters")
+                                : String(format: loc("dna.sheet.mutations.empty"), weeks))
                     }
                 }
                 .padding(16)
