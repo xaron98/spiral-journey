@@ -68620,6 +68620,422 @@
           }
         }
       }
+    },
+    "coach.plan.cta.reminderActive": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Reminder active"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Reminder active"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Reminder active"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reminder active"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recordatorio activo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Reminder active"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Reminder active"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Reminder active"
+          }
+        }
+      }
+    },
+    "coach.plan.reminder.title": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Time for bed"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Time for bed"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Time for bed"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time for bed"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hora de acostarse"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Time for bed"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Time for bed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Time for bed"
+          }
+        }
+      }
+    },
+    "coach.plan.reminder.body": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Your optimal window is at %@. Give your body a minute."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Your optimal window is at %@. Give your body a minute."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Your optimal window is at %@. Give your body a minute."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your optimal window is at %@. Give your body a minute."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu ventana óptima está en %@. Dale un minuto al cuerpo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Your optimal window is at %@. Give your body a minute."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Your optimal window is at %@. Give your body a minute."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Your optimal window is at %@. Give your body a minute."
+          }
+        }
+      }
+    },
+    "coach.plan.reminder.denied": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "I need notification permission to remind you."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "I need notification permission to remind you."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "I need notification permission to remind you."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I need notification permission to remind you."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Necesito permiso de notificaciones para avisarte."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "I need notification permission to remind you."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "I need notification permission to remind you."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "I need notification permission to remind you."
+          }
+        }
+      }
+    },
+    "coach.plan.reminder.failed": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Couldn't schedule the reminder. Try again."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Couldn't schedule the reminder. Try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Couldn't schedule the reminder. Try again."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't schedule the reminder. Try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No pude programar el recordatorio. Inténtalo de nuevo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Couldn't schedule the reminder. Try again."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Couldn't schedule the reminder. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Couldn't schedule the reminder. Try again."
+          }
+        }
+      }
+    },
+    "coach.plan.reminder.unsupported": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Reminders aren't available on this device."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Reminders aren't available on this device."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Reminders aren't available on this device."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reminders aren't available on this device."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recordatorios no disponibles en este dispositivo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Reminders aren't available on this device."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Reminders aren't available on this device."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Reminders aren't available on this device."
+          }
+        }
+      }
+    },
+    "coach.learn.dismiss": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cerrar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Close"
+          }
+        }
+      }
+    },
+    "coach.learn.jetlag.body": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "On Monday you sleep too little. You \"catch up\" on Friday and Saturday by sleeping more and later. Sunday rolls around and your body no longer knows when bedtime was: you end the weekend as if you had flown three time zones west. But you didn't fly.\n\nThat recurring mismatch between your Monday-to-Friday schedule and your weekend schedule is what chronobiology calls **social jet lag**. And although you don't feel it Saturday morning, it does catch up: Tuesday it's harder to focus, coffee works less well, and your mood is flatter than it should be.\n\n**Why it happens.** Your internal clock takes 24 to 72 hours to readjust to a big schedule change. If on Sunday night you try to fall asleep at 11 PM but your body thinks it's 01:30 AM, you'll toss and turn. Monday you wake up with sleep \"debt\"; Tuesday the bill arrives.\n\n**What you can do.**\n- On Saturday and Sunday, try not to go to bed more than an hour later than on weekdays.\n- Wake up at the same time all 7 days. That's the strongest anchor for your circadian rhythm.\n- If you've had a late weekend, recover by exposing yourself to bright light on Sunday morning — not by sleeping more.\n- A short nap (20 min) early on Sunday afternoon compensates without ruining the night.\n\nYou don't need to be a monk. A 30-45 minute difference between weekend and weekday is reasonable. But if you go to bed at 00:30 during the week and 03:00 on Saturday, you're asking your body to take a flight it doesn't deserve."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "On Monday you sleep too little. You \"catch up\" on Friday and Saturday by sleeping more and later. Sunday rolls around and your body no longer knows when bedtime was: you end the weekend as if you had flown three time zones west. But you didn't fly.\n\nThat recurring mismatch between your Monday-to-Friday schedule and your weekend schedule is what chronobiology calls **social jet lag**. And although you don't feel it Saturday morning, it does catch up: Tuesday it's harder to focus, coffee works less well, and your mood is flatter than it should be.\n\n**Why it happens.** Your internal clock takes 24 to 72 hours to readjust to a big schedule change. If on Sunday night you try to fall asleep at 11 PM but your body thinks it's 01:30 AM, you'll toss and turn. Monday you wake up with sleep \"debt\"; Tuesday the bill arrives.\n\n**What you can do.**\n- On Saturday and Sunday, try not to go to bed more than an hour later than on weekdays.\n- Wake up at the same time all 7 days. That's the strongest anchor for your circadian rhythm.\n- If you've had a late weekend, recover by exposing yourself to bright light on Sunday morning — not by sleeping more.\n- A short nap (20 min) early on Sunday afternoon compensates without ruining the night.\n\nYou don't need to be a monk. A 30-45 minute difference between weekend and weekday is reasonable. But if you go to bed at 00:30 during the week and 03:00 on Saturday, you're asking your body to take a flight it doesn't deserve."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "On Monday you sleep too little. You \"catch up\" on Friday and Saturday by sleeping more and later. Sunday rolls around and your body no longer knows when bedtime was: you end the weekend as if you had flown three time zones west. But you didn't fly.\n\nThat recurring mismatch between your Monday-to-Friday schedule and your weekend schedule is what chronobiology calls **social jet lag**. And although you don't feel it Saturday morning, it does catch up: Tuesday it's harder to focus, coffee works less well, and your mood is flatter than it should be.\n\n**Why it happens.** Your internal clock takes 24 to 72 hours to readjust to a big schedule change. If on Sunday night you try to fall asleep at 11 PM but your body thinks it's 01:30 AM, you'll toss and turn. Monday you wake up with sleep \"debt\"; Tuesday the bill arrives.\n\n**What you can do.**\n- On Saturday and Sunday, try not to go to bed more than an hour later than on weekdays.\n- Wake up at the same time all 7 days. That's the strongest anchor for your circadian rhythm.\n- If you've had a late weekend, recover by exposing yourself to bright light on Sunday morning — not by sleeping more.\n- A short nap (20 min) early on Sunday afternoon compensates without ruining the night.\n\nYou don't need to be a monk. A 30-45 minute difference between weekend and weekday is reasonable. But if you go to bed at 00:30 during the week and 03:00 on Saturday, you're asking your body to take a flight it doesn't deserve."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On Monday you sleep too little. You \"catch up\" on Friday and Saturday by sleeping more and later. Sunday rolls around and your body no longer knows when bedtime was: you end the weekend as if you had flown three time zones west. But you didn't fly.\n\nThat recurring mismatch between your Monday-to-Friday schedule and your weekend schedule is what chronobiology calls **social jet lag**. And although you don't feel it Saturday morning, it does catch up: Tuesday it's harder to focus, coffee works less well, and your mood is flatter than it should be.\n\n**Why it happens.** Your internal clock takes 24 to 72 hours to readjust to a big schedule change. If on Sunday night you try to fall asleep at 11 PM but your body thinks it's 01:30 AM, you'll toss and turn. Monday you wake up with sleep \"debt\"; Tuesday the bill arrives.\n\n**What you can do.**\n- On Saturday and Sunday, try not to go to bed more than an hour later than on weekdays.\n- Wake up at the same time all 7 days. That's the strongest anchor for your circadian rhythm.\n- If you've had a late weekend, recover by exposing yourself to bright light on Sunday morning — not by sleeping more.\n- A short nap (20 min) early on Sunday afternoon compensates without ruining the night.\n\nYou don't need to be a monk. A 30-45 minute difference between weekend and weekday is reasonable. But if you go to bed at 00:30 during the week and 03:00 on Saturday, you're asking your body to take a flight it doesn't deserve."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El lunes duermes poco. Te «recuperas» el viernes y el sábado durmiendo más y más tarde. Llega el domingo y tu cuerpo no entiende cuándo tocaba dormir: acabas el fin de semana como si hubieras volado tres husos horarios al oeste. Pero no has volado.\n\nEse desfase recurrente entre tu horario de lunes a viernes y el de fin de semana es lo que la cronobiología llama **jet lag social**. Y aunque no lo notas el sábado por la mañana, sí pasa factura: el martes cuesta concentrarse, el café rinde menos, y el humor es más plano de lo que debería.\n\n**Por qué ocurre.** Tu reloj interno tarda entre 24 y 72 horas en reajustarse a un cambio grande de horario. Si el domingo por la noche intentas dormirte a las 23:00 pero tu cuerpo cree que son las 01:30, te darás vueltas. El lunes te levantas con «deuda» de sueño; el martes llega la factura.\n\n**Qué puedes hacer.**\n- Sábado y domingo, intenta no acostarte más de una hora más tarde que entre semana.\n- Despiértate a la misma hora los 7 días. Es lo más ancla a tu ritmo circadiano.\n- Si has tenido un fin de semana tardío, recupera exponiéndote a luz brillante por la mañana del domingo — no durmiendo más.\n- Una siesta corta (20 min) el domingo a primera hora de la tarde compensa sin arruinar la noche.\n\nNo necesitas ser monje. Una diferencia de 30-45 minutos entre finde y semana es razonable. Pero si te acuestas a las 00:30 entre semana y a las 03:00 el sábado, estás pidiéndole al cuerpo un vuelo que no merece."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "On Monday you sleep too little. You \"catch up\" on Friday and Saturday by sleeping more and later. Sunday rolls around and your body no longer knows when bedtime was: you end the weekend as if you had flown three time zones west. But you didn't fly.\n\nThat recurring mismatch between your Monday-to-Friday schedule and your weekend schedule is what chronobiology calls **social jet lag**. And although you don't feel it Saturday morning, it does catch up: Tuesday it's harder to focus, coffee works less well, and your mood is flatter than it should be.\n\n**Why it happens.** Your internal clock takes 24 to 72 hours to readjust to a big schedule change. If on Sunday night you try to fall asleep at 11 PM but your body thinks it's 01:30 AM, you'll toss and turn. Monday you wake up with sleep \"debt\"; Tuesday the bill arrives.\n\n**What you can do.**\n- On Saturday and Sunday, try not to go to bed more than an hour later than on weekdays.\n- Wake up at the same time all 7 days. That's the strongest anchor for your circadian rhythm.\n- If you've had a late weekend, recover by exposing yourself to bright light on Sunday morning — not by sleeping more.\n- A short nap (20 min) early on Sunday afternoon compensates without ruining the night.\n\nYou don't need to be a monk. A 30-45 minute difference between weekend and weekday is reasonable. But if you go to bed at 00:30 during the week and 03:00 on Saturday, you're asking your body to take a flight it doesn't deserve."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "On Monday you sleep too little. You \"catch up\" on Friday and Saturday by sleeping more and later. Sunday rolls around and your body no longer knows when bedtime was: you end the weekend as if you had flown three time zones west. But you didn't fly.\n\nThat recurring mismatch between your Monday-to-Friday schedule and your weekend schedule is what chronobiology calls **social jet lag**. And although you don't feel it Saturday morning, it does catch up: Tuesday it's harder to focus, coffee works less well, and your mood is flatter than it should be.\n\n**Why it happens.** Your internal clock takes 24 to 72 hours to readjust to a big schedule change. If on Sunday night you try to fall asleep at 11 PM but your body thinks it's 01:30 AM, you'll toss and turn. Monday you wake up with sleep \"debt\"; Tuesday the bill arrives.\n\n**What you can do.**\n- On Saturday and Sunday, try not to go to bed more than an hour later than on weekdays.\n- Wake up at the same time all 7 days. That's the strongest anchor for your circadian rhythm.\n- If you've had a late weekend, recover by exposing yourself to bright light on Sunday morning — not by sleeping more.\n- A short nap (20 min) early on Sunday afternoon compensates without ruining the night.\n\nYou don't need to be a monk. A 30-45 minute difference between weekend and weekday is reasonable. But if you go to bed at 00:30 during the week and 03:00 on Saturday, you're asking your body to take a flight it doesn't deserve."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "On Monday you sleep too little. You \"catch up\" on Friday and Saturday by sleeping more and later. Sunday rolls around and your body no longer knows when bedtime was: you end the weekend as if you had flown three time zones west. But you didn't fly.\n\nThat recurring mismatch between your Monday-to-Friday schedule and your weekend schedule is what chronobiology calls **social jet lag**. And although you don't feel it Saturday morning, it does catch up: Tuesday it's harder to focus, coffee works less well, and your mood is flatter than it should be.\n\n**Why it happens.** Your internal clock takes 24 to 72 hours to readjust to a big schedule change. If on Sunday night you try to fall asleep at 11 PM but your body thinks it's 01:30 AM, you'll toss and turn. Monday you wake up with sleep \"debt\"; Tuesday the bill arrives.\n\n**What you can do.**\n- On Saturday and Sunday, try not to go to bed more than an hour later than on weekdays.\n- Wake up at the same time all 7 days. That's the strongest anchor for your circadian rhythm.\n- If you've had a late weekend, recover by exposing yourself to bright light on Sunday morning — not by sleeping more.\n- A short nap (20 min) early on Sunday afternoon compensates without ruining the night.\n\nYou don't need to be a monk. A 30-45 minute difference between weekend and weekday is reasonable. But if you go to bed at 00:30 during the week and 03:00 on Saturday, you're asking your body to take a flight it doesn't deserve."
+          }
+        }
+      }
     }
   },
   "version": "1.1"
