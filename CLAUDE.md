@@ -46,14 +46,22 @@
 - `SleepTriangleView.swift` — barycentric sleep triangle with empirical centers from 155+ subjects. Schedule-agnostic sleep window detection.
 - `DNAInfoSheetView.swift` — SleepDNA educational info (12 sections + macro/micro bridge + helix reading guide)
 
-### Sleep Triangle Rules
+### Sleep Triangle Rules (UPDATED 2026-04 — W/REM/N3 framework)
+- **Layout** — Bottom-left: Wake (dorado). Top: REM (lila, cúspide de la conciencia). Bottom-right: Deep/N3 (azul #7B68EE). One AASM phase per vertex.
 - **Schedule-agnostic** — `extractSleepWindow()` finds longest continuous non-awake block, NOT by clock hour. Works for night workers, siestas, split sleep.
-- **Empirical centers** — `.deep=(0.059, 0.282, 0.659)`, `.light=(0.145, 0.577, 0.278)`, `.rem=(0.205, 0.598, 0.197)`, `.awake=(0.593, 0.273, 0.135)`. Validated with 155+ subjects.
-- **Deep epochs skip blend** — go straight to empirical center. Other phases use 95/5 blend.
-- **Two triangle frameworks exist** — Paper uses W/REM/N3 vertices (3 archetypes). App uses Wake/Active(REM+N2)/Deep(N3) poles (3 natural states). Both valid, different perspectives. NOT an error — documented design decision.
+- **Barycentric centers** in `(wake, rem, deep)` space:
+  - `.awake = (0.85, 0.10, 0.05)` — near Wake vertex
+  - `.rem   = (0.20, 0.75, 0.05)` — near REM vertex with noticeable Wake
+  - `.light = (0.10, 0.40, 0.50)` — INTERIOR, between REM and Deep (N2 has features of both)
+  - `.deep  = (0.05, 0.10, 0.85)` — near Deep vertex
+- **N2/light is ALWAYS an interior point** — no dedicated vertex. This is the paper's archetype decomposition; do not re-introduce a 4th vertex.
+- **Pill metrics show REAL phase time percentages** (count epochs per phase / total), NOT barycentric averages. Users expect "30% Deep" to mean "30% of the night was N3", not "axis projection 30%".
+- **Legend = 4 colored dots** (one per AASM phase) + info note explaining light sits in interior.
+- **Summary text** — "Tu noche: X% despierto, Y% REM, Z% sueño ligero, W% profundo". NEVER use "soñando" for the Active pole — it's wrong for N2.
 - **Deep points visual** — color `#7B68EE`, radius 5px (vs 2.5px), white border, drawn on top (z-order).
-- **Zone tints** — soft colored triangles near each pole (6% opacity).
+- **Zone tints** — soft colored triangles near each vertex (6% opacity).
 - **No trail lines** — removed for clarity. Temporal opacity shows direction (earlier=transparent, later=opaque).
+- **Prev framework** (Wake/Active(REM+N2)/Deep) was replaced 2026-04 because lumping REM with N2 contradicted "each vertex = one phase" and confused users.
 
 ### 3D Torus Rules
 - **Donut embedding** (NOT stereographic) — `(R + r·cos(φ))·cos(θ)` with R=0.35, r=0.15
@@ -117,6 +125,17 @@
 - **Live awake extension** — drawn OUTSIDE the record loop, always extends from data end to cursor position. Not gated by day visibility. This is the vigilia path that grows with the cursor.
 - Live awake extension starts from `max(dataEndTurns, tWakeRaw)`, never from wakeupHour alone
 - **Backbone** — covers `0` to `max(cursor, extentTurns)`, always visible
+
+### Sleep Path Gradient (CRITICAL — physiological direction)
+- **Fade IN at start, SHARP cut at end**. Falling asleep is gradual (we don't notice). Waking up is abrupt. Visual must match.
+- Per-segment blend: first 20% of each sleep run mixes `prevColor → baseColor`. Remaining 80% stays solid `baseColor`.
+- `capStart` color = `prevColor` (so the start circle matches the fade-in). `capEnd` color = `baseColor` (sharp — the amber live-awake extension takes over cleanly).
+- The opposite direction (fade at end toward `nextColor`) was removed 2026-04 — it contradicted the physiology metaphor.
+
+### Cursor Movement (verified 2026-04)
+- **No forward cap** — `cursorAbsHour` must NEVER be clamped to `Double(maxDays) * period`. The spiral extends dynamically via `maxReachedTurns`.
+- Three gesture handlers in `SpiralModeView.swift` previously had `min(maxHours, ...)` — all removed. Only the lower bound `max(0, ...)` stays.
+- `nearestHour(totalHours:)` uses `max(maxReachedTurns + 1, numDays) * period` as search bound — enough to catch future arm taps without re-introducing a hard cap.
 
 ### Data Points (drawDataPoints)
 - **No isLastRecord exceptions** — all records treated equally
@@ -219,9 +238,50 @@
 4. Never apply transform in `update:` closure — it runs on SwiftUI's schedule, not render schedule
 5. Never use `highPriorityGesture` or `contentShape` — adds gesture resolution overhead
 
-## Motif Discovery
+## SleepDNA Pipeline Rules (CRITICAL — updated 2026-04)
+
+### Tier Thresholds (LOWERED from 4/8 to 2/4 weeks)
+- `basic`        — `dataWeeks < 2`  (records.count < 14). Encoding only, no motifs, no mutations, no predictions.
+- `intermediate` — `dataWeeks in 2..<4`. **Motifs + mutations + predictions + Poisson run here.**
+- `full`         — `dataWeeks >= 4`. Adds BLOSUM learning, Hawkes, persistent homology, linking number, mutual info spectrum.
+
+### Motif / Mutation Gates
+- Motifs run when `tier != .basic` (i.e. >= 2 weeks). NOT gated to `.full` anymore.
+- Mutations run when `tier != .basic && !motifs.isEmpty`.
+- **`MotifDiscovery.minimumSequences = 4`** (10 records). This is the real algorithmic floor. The tier gate MUST NOT be stricter than this.
 - Default DTW threshold: **2.0** (not 8.0). With normalized [0,1] features, 8.0 merges everything into one cluster.
-- Motif patterns visualized via colored base pair connectors + SwiftUI legend (not 3D cylinders/text)
+
+### Schema Version Invalidation (CRITICAL)
+- `SleepDNAService.schemaVersion: Int` is persisted in `UserDefaults.standard` key `"dna.schema.version"`.
+- **BUMP the version whenever the pipeline semantics change** (tier gates, motif thresholds, new fields on `SleepDNAProfile`). Otherwise users keep seeing stale cached snapshots indefinitely.
+- History: `v1` original 8-week gate · `v2` lowered to 2 weeks · `v3` added `motifDiagnostics` field.
+- `refreshIfNeeded` short-circuits on "today already computed" ONLY when the stored schema version matches. A mismatch forces a recompute regardless.
+
+### DNAModeView must trigger refreshIfNeeded
+- **Bug that hit us**: `DNAInsightsView` was the only caller of `refreshIfNeeded`. Users on the main DNA tab never got their cache invalidated after schema bumps.
+- Fix: DNAModeView has `.task(id: isActive) { await dnaService.refreshIfNeeded(store:context:) }`. Any new tab that surfaces DNA content must do the same.
+
+### MotifDiagnostics (empty-state UX)
+- `MotifDiscovery.discoverWithDiagnostics` returns motifs + `MotifDiagnostics` (sequencesAnalyzed, clustersFormed, multiMemberClusters, min/med/max DTW distance, threshold).
+- Populated on every run regardless of motifs outcome. Exposed via `profile.motifDiagnostics` (Optional, Codable-backward-compat).
+- UI (Patterns empty sheet) shows the collapsible "Diagnóstico" panel with these numbers + human hint:
+  - `sequencesAnalyzed < 4` → "not enough data"
+  - `multiMemberClusters == 0 && maxDistance < threshold * 0.5` → "too similar"
+  - `multiMemberClusters == 0 && minDistance > threshold` → "too varied"
+  - else → "borderline"
+- Also `[MOTIF]` DEBUG print for Xcode console.
+
+### Motif Name Localization
+- Engine produces English names ("Early-bird", "Late-wakeup", etc). **ALWAYS** pipe through `localizedMotifName(_:)` which looks up `dna.motif.name.<lower-name>` in xcstrings.
+- If you add a new code site that shows a motif name — card chips, timeline lanes, etc — verify it uses the helper, not raw `motif.name`.
+- Pattern legend sheet (`patternsHelpSheet`) documents what each of the 28 motif names means; update its `motifNameCatalog` when adding a new auto-name pair.
+
+### Pitfalls to Avoid
+1. Never re-gate motifs behind `tier == .full`. The floor is `tier != .basic`.
+2. Never skip the schema version bump when changing pipeline semantics.
+3. Never call `Text(motif.name)` directly in UI — always `localizedMotifName(motif.name)`.
+4. Never expect `refreshIfNeeded` to fire from sheets alone — the tab that displays DNA cards must trigger it.
+5. Never remove `motifDiagnostics` from `SleepDNAProfile` — UI depends on it for the empty state.
 
 ## Widget Rules (CRITICAL)
 
@@ -315,28 +375,24 @@
 3. Never use `minimumDistance: 0` on drag gesture — blocks TabView page swiping
 4. Never attach drag gesture unconditionally — use `allowsHitTesting(isPaused)` overlay
 
-## Coach Tab Honeycomb Rules
+## Coach Tab Rules (REDESIGNED 2026-04 — editorial bento)
+
+The honeycomb hexagonal grid is gone. Coach tab is now an editorial scroll with
+hero bento cards (`CoachHomeView`, `CoachBentoGrid`, `CoachDataAdapter`).
 
 ### Architecture
-- **Honeycomb grid** — `CoachBubbleEngine.swift` (data + layout + physics) + `CoachBubbleViews.swift` (views)
-- **`HoneycombLayout.positions()`** — diamond hex grid 3-4-5-4-3 = 19 slots, centered at (0,0)
-- **`CoachHoneycombEngine`** — @Observable, icons array, spring physics at 60fps, slot-based reordering
+- `CoachDataAdapter` — pure read-only struct that derives display data from `SpiralStore`.
+  Internal helpers are `internal` for testability (`lastNBedtimeLatenessNorm`, `normalizeBars`,
+  `sriLabel`, `formatHour`, `chronotypeLabelEs`). Tests in `spiral journey projectTests/CoachDataAdapterFormattingTests.swift`.
+- `CoachHomeView` renders the hero bento + proposal + change story + learn CTA.
+- Coach tab never renders hexagonal bubbles. DO NOT re-introduce `CoachBubbleEngine` or
+  `HoneycombLayout` — those files are obsolete.
 
-### Icons
-- Circular with gradient + glass overlay + subtle ring border
-- Each icon: SF Symbol + label + optional badge (score number, streak count)
-- Dynamic: only created for available data (via `computeActiveKinds()`)
-
-### Interactions
-- **Tap** → opens detail sheet (coach recommendation, digest, patterns, etc.) or action (chat, jet lag, micro-habit toggle)
-- **Drag** → icon follows finger, enters another's home zone → `remove + insert` reorder → springs animate all icons to new homes
-- **Spring physics** — `vel += (home - pos) * 0.15`, damping `0.68`, snap when `dist < 0.3pt`
-- **Order persisted** in UserDefaults by icon ID
-
-### Pitfalls to Avoid
-1. Never use collision physics AND springs together — they fight each other. Use slot-based reorder with springs only.
-2. Never swap icons — use `remove(at:) + insert(at:)` for proper cascade reflow
-3. Never change `dragAnchor` after reorder — translation stays relative to original touch point
+### Insight Title Localization
+- `CoachEngine.coachInsight` emits English fallback titles + stable `issueKey`.
+- `CoachDataAdapter.localizedInsightTitle()` resolves `coach.issue.<issueKey>.title` via
+  `Bundle.main.localizedString`. Falls back to the English title if the key is missing.
+- Never surface `insight.title` raw in the UI — always pipe through the adapter.
 
 ## macOS Compatibility Rules (CRITICAL)
 
@@ -470,3 +526,45 @@ If Watch raw PPG/HR becomes available:
 - DO show Wake and REM near each other visually
 - DO show NREM as a smooth color gradient from light to deep
 - DO use ω₁ or depth score as the primary metric, not stage labels
+
+## Simulator & Mock Data Rules (CRITICAL — updated 2026-04)
+
+- `SpiralStore.init` has two `#if targetEnvironment(simulator)` blocks. Both are
+  gated behind **`ENABLE_MOCK_DATA=1`** environment variable (Xcode → Scheme →
+  Run → Environment Variables).
+- **Default simulator behavior is now real-device-like**: persistent
+  UserDefaults + empty `sleepEpisodes` on first launch. Onboarding flow runs,
+  welcome screen shows, chronotype questionnaire appears, tutorial works.
+- **Enable mock data only for App Store screenshots**. The mock flow wipes
+  UserDefaults on every launch, injects 10 weeks of episodes from
+  `MockDataGenerator`, and marks `hasCompletedOnboarding = true`.
+- **Never flip the semantics back to opt-out** (the previous `SKIP_MOCK_DATA=1`
+  approach). Opt-in is the correct default because the common case for a
+  developer running the simulator is "test the actual flow".
+
+## Chronotype Icon Rules
+
+- **Use `Chronotype.sfSymbol`, NOT `.emoji`, in UI**.
+  Mapping: `sunrise.fill` / `sun.max.fill` / `cloud.sun.fill` / `moon.fill` / `moon.stars.fill`.
+- Rendered via `Image(systemName:)` with `.symbolRenderingMode(.hierarchical)` and
+  `.foregroundStyle(SpiralColors.accent)`.
+- The `.emoji` property still exists (with `\u{FE0F}` VS16 on dual-use code points)
+  for places that genuinely need a text glyph, but prefer SF Symbols everywhere
+  — emojis can render as "tofu boxes" depending on font context (particularly
+  `U+26C5` cloud-sun).
+
+## Tutorial / Onboarding Rules
+
+- `OnboardingFrames` carries `CGRect`s for each target (spiralArea, moonButton,
+  eventsBtn, tabBar, cursorBar). Views attach `.reportFrame(\.targetName)` to
+  publish their real geometry.
+- **If you move a button, update its `.reportFrame` call at the new location**
+  AND update the matching fallback coordinates in
+  `OnboardingOverlayView.highlight(for:screenSize:)`. The fallback only kicks
+  in when no frame has been reported yet (first frame of the overlay).
+- Current anchors:
+  - `.moonButton` = bottom-center log button (64 pt) in SpiralModeView action bar.
+  - `.eventsBtn`  = top-right `+`/moon/eye button in SpiralModeView floating header.
+- Tooltip direction: `tooltipBelow: true` + `arrowDirection: .up` when the
+  tooltip sits BELOW the highlight; `tooltipBelow: false` + `arrowDirection: .down`
+  when it sits ABOVE. Get these in sync or the arrow points away from the target.
