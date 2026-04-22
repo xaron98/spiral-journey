@@ -293,6 +293,20 @@ struct SleepTriangleView: View {
             Text(loc("triangle.legend.explanation"))
                 .font(.caption2)
                 .foregroundStyle(SpiralColors.muted)
+
+            Divider().overlay(SpiralColors.border)
+
+            // Clarifying note so users don't read "REM + light together" as
+            // a bug. The 2-pole geometry (Active = REM + light, Deep = N3)
+            // was validated with 155+ subjects across HMC + Sleep-EDF.
+            HStack(alignment: .top, spacing: 6) {
+                Image(systemName: "info.circle")
+                    .font(.caption2)
+                    .foregroundStyle(SpiralColors.subtle)
+                Text(loc("triangle.legend.note"))
+                    .font(.caption2)
+                    .foregroundStyle(SpiralColors.subtle)
+            }
         }
         .padding()
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
