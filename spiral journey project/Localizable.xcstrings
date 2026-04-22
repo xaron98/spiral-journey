@@ -1654,49 +1654,49 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "لا توجد بيانات نوم بعد"
+            "value": "لا توجد بيانات كافية بعد"
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sense dades de son"
+            "value": "Encara no hi ha dades suficients"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Noch keine Schlafdaten"
+            "value": "Noch nicht genug Daten"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No sleep data yet"
+            "value": "Not enough data yet"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sin datos de sueño"
+            "value": "Aún no hay datos suficientes"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aucune donnée de sommeil"
+            "value": "Pas encore assez de données"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "まだ睡眠データがありません"
+            "value": "データがまだ不足しています"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无睡眠数据"
+            "value": "数据尚不足"
           }
         }
       }
@@ -8805,6 +8805,58 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在下载模型…"
+          }
+        }
+      }
+    },
+    "coach.chat.error": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حدث خطأ. حاول مرة أخرى."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "S'ha produït un error. Torna-ho a provar."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Fehler ist aufgetreten. Bitte erneut versuchen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Something went wrong. Please try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ha ocurrido un error. Inténtalo de nuevo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une erreur s'est produite. Réessaie."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "エラーが発生しました。もう一度お試しください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "出错了。请重试。"
           }
         }
       }
@@ -30633,6 +30685,110 @@
         }
       }
     },
+    "dna.3d.a11y.hint": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اسحب للتدوير، اضغط للتكبير"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrossega per rotar, pessiga per fer zoom"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ziehen zum Drehen, Zwei-Finger-Geste zum Zoomen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drag to rotate, pinch to zoom"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrastra para rotar, pellizca para ampliar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Faire glisser pour pivoter, pincer pour zoomer"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ドラッグで回転、ピンチでズーム"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拖动旋转，捏合缩放"
+          }
+        }
+      }
+    },
+    "dna.3d.a11y.label": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "عرض ثلاثي الأبعاد للحمض النووي للنوم"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vista 3D d'ADN del son"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3D-Ansicht der Schlaf-DNA"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sleep DNA 3D view"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vista 3D de ADN del sueño"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vue 3D de l'ADN du sommeil"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "睡眠DNAの3Dビュー"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "睡眠DNA的3D视图"
+          }
+        }
+      }
+    },
     "dna.3d.legend.nrem": {
       "localizations": {
         "ar": {
@@ -33184,6 +33340,786 @@
         }
       }
     },
+    "dna.card.circadian": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الإيقاع اليومي"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ritme circadià"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zirkadianer Rhythmus"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Circadian rhythm"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ritmo circadiano"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rythme circadien"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "概日リズム"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "昼夜节律"
+          }
+        }
+      }
+    },
+    "dna.card.circadian.description": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ساعتك الداخلية في الأسابيع الماضية"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El teu rellotge intern en les darreres setmanes"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine innere Uhr der letzten Wochen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your internal clock over the past weeks"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu reloj interno en las últimas semanas"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ton horloge interne au cours des dernières semaines"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "過去数週間の体内時計"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "过去几周内的生物钟"
+          }
+        }
+      }
+    },
+    "dna.card.export": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تصدير"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exporta"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exporter"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "エクスポート"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出"
+          }
+        }
+      }
+    },
+    "dna.card.export.description": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "شارك بياناتك أو صورة"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comparteix les teves dades o una imatge"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teile deine Daten oder ein Bild"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share your data or an image"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comparte tus datos o una imagen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partage tes données ou une image"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "データや画像を共有"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分享数据或图像"
+          }
+        }
+      }
+    },
+    "dna.card.helix": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اللولب المزدوج"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Doble hèlix"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Doppelhelix"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Double helix"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Doble hélice"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Double hélice"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "二重らせん"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "双螺旋"
+          }
+        }
+      }
+    },
+    "dna.card.history": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "السجل"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historial"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verlauf"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "History"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historial"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historique"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "履歴"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "历史"
+          }
+        }
+      }
+    },
+    "dna.card.history.description": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تطور جودة نومك ليلة بليلة"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Evolució de la teva qualitat nit a nit"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entwicklung deiner Schlafqualität Nacht für Nacht"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How your sleep quality evolves night by night"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Evolución de tu calidad noche a noche"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Évolution de ta qualité de sommeil nuit après nuit"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "夜ごとの睡眠の質の変化"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每晚睡眠质量的变化"
+          }
+        }
+      }
+    },
+    "dna.card.mutations": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الطفرات"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mutacions"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mutationen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mutations"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mutaciones"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mutations"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "変異"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "变异"
+          }
+        }
+      }
+    },
+    "dna.card.mutations.description": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تغييرات ملحوظة عن خط الأساس"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Canvis notables respecte a la teva base"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auffällige Abweichungen von deiner Basislinie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notable changes from your baseline"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambios notables respecto a tu base"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changements notables par rapport à ta ligne de base"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ベースラインからの顕著な変化"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "与基线相比的显著变化"
+          }
+        }
+      }
+    },
+    "dna.card.patterns": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الأنماط"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Patrons"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Muster"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Patterns"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Patrones"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Motifs"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "パターン"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模式"
+          }
+        }
+      }
+    },
+    "dna.card.patterns.description": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الأنماط المتكررة في نومك"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Motius recurrents en el teu son"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wiederkehrende Muster in deinem Schlaf"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recurring motifs in your sleep"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Motivos recurrentes en tu sueño"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Motifs récurrents dans ton sommeil"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "睡眠に繰り返し現れるパターン"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "睡眠中反复出现的模式"
+          }
+        }
+      }
+    },
+    "dna.card.prediction": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "التنبؤ"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Predicció"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorhersage"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prediction"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Predicción"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prédiction"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "予測"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预测"
+          }
+        }
+      }
+    },
+    "dna.card.prediction.description": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ما يمكن توقعه الليلة"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Què esperar aquesta nit"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Was für heute Nacht zu erwarten ist"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What to expect tonight"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qué esperar esta noche"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce à quoi s'attendre ce soir"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今夜の予想"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今晚的预期"
+          }
+        }
+      }
+    },
+    "dna.card.triangle": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مثلث النوم"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Triangle de son"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schlafdreieck"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sleep triangle"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Triángulo de sueño"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Triangle du sommeil"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "睡眠トライアングル"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "睡眠三角"
+          }
+        }
+      }
+    },
+    "dna.card.triangle.description": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "التوزيع بين اليقظة ونوم الحركة السريعة للعين والنوم العميق"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Distribució entre vigília, REM i son profund"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verteilung zwischen Wach, REM und Tiefschlaf"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Balance between wake, REM, and deep sleep"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Distribución entre vigilia, REM y sueño profundo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Répartition entre éveil, REM et sommeil profond"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "覚醒、REM、深い睡眠のバランス"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清醒、REM和深度睡眠的分布"
+          }
+        }
+      }
+    },
     "dna.codon.disruption": {
       "localizations": {
         "ar": {
@@ -34220,6 +35156,838 @@
           "stringUnit": {
             "state": "translated",
             "value": "稳定"
+          }
+        }
+      }
+    },
+    "dna.helix.needs_data": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مطلوب 3 ليالٍ على الأقل لبناء اللولب"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Necessites almenys 3 nits per generar l'hèlix"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mindestens 3 Nächte nötig, um die Helix zu bauen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "At least 3 nights needed to build the helix"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Necesitas al menos 3 noches para generar la hélice"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Au moins 3 nuits nécessaires pour construire l'hélice"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "らせんの生成には少なくとも3晩必要"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生成螺旋至少需要3晚数据"
+          }
+        }
+      }
+    },
+    "dna.help.data.body": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يمكن بناء لولب أساسي من 7 ليالٍ متتالية. يُوصى بـ 14 ليلة أو أكثر لاكتشاف أنماط موثوقة."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A partir de 7 nits consecutives es pot construir una hèlix bàsica. Per detectar patrons fiables es recomanen 14 o més."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine grundlegende Helix benötigt 7 aufeinanderfolgende Nächte. Für zuverlässige Mustererkennung werden 14 oder mehr empfohlen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A basic helix needs 7 consecutive nights. For reliable pattern detection, 14 nights or more are recommended."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A partir de 7 noches consecutivas se puede construir una hélice básica. Para detectar patrones fiables se recomiendan 14 o más."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une hélice basique nécessite 7 nuits consécutives. Pour une détection fiable des motifs, 14 nuits ou plus sont recommandées."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "基本的ならせんには連続7晩必要。信頼性の高いパターン検出には14晩以上を推奨。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "基本螺旋需要连续7晚。可靠的模式检测建议14晚或更多。"
+          }
+        }
+      }
+    },
+    "dna.help.data.title": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "البيانات المطلوبة"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dades requerides"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Benötigte Daten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data needed"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datos requeridos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Données nécessaires"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "必要なデータ"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所需数据"
+          }
+        }
+      }
+    },
+    "dna.help.detects.body": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الأنماط المتكررة، والطفرات عن خط الأساس، والأنماط المرتبطة بتغيرات السياق (السفر، التدريب، التوتر)."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Patrons recurrents, mutacions respecte a la teva base i motius associats a canvis de context (viatge, entrenament, estrès)."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wiederkehrende Muster, Abweichungen von deiner Basislinie und Motive im Zusammenhang mit Kontextwechseln (Reisen, Training, Stress)."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recurring patterns, mutations from your baseline, and motifs tied to context changes (travel, training, stress)."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Patrones recurrentes, mutaciones respecto a tu base y motivos asociados a cambios de contexto (viaje, entreno, estrés)."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Motifs récurrents, mutations par rapport à ta ligne de base et motifs liés aux changements de contexte (voyage, entraînement, stress)."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "繰り返しのパターン、ベースラインからの変異、コンテキスト変化（旅行、トレーニング、ストレス）に関連する動機。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "反复出现的模式、与基线的变异，以及与情境变化（旅行、训练、压力）相关的主题。"
+          }
+        }
+      }
+    },
+    "dna.help.detects.title": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ما يكتشفه"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Què detecta"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Was es erkennt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What it detects"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qué detecta"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce qu'il détecte"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "検出するもの"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "它能发现什么"
+          }
+        }
+      }
+    },
+    "dna.help.disclaimer": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "للاستخدام الإعلامي. استشر متخصصًا إذا كانت لديك مخاوف بشأن نومك."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ús informatiu. Consulta un professional si tens preocupacions sobre el teu son."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur zu Informationszwecken. Bei Schlafsorgen wende dich an eine Fachkraft."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For informational use. Consult a professional if you have sleep concerns."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uso informativo. Consulta a un profesional si tienes preocupaciones sobre tu sueño."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "À titre informatif. Consulte un professionnel si tu as des préoccupations concernant ton sommeil."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "情報提供目的のみ。睡眠に懸念がある場合は専門家に相談してください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅供参考。如有睡眠疑虑，请咨询专业人士。"
+          }
+        }
+      }
+    },
+    "dna.help.experimental.body": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "هذه استعارة حاسوبية مستوحاة من علم الوراثة. لا تحل محل التقييم السريري لمختص النوم."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "És una metàfora computacional inspirada en genètica. No substitueix la valoració clínica d'un professional del son."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dies ist eine computergestützte Metapher, inspiriert von der Genetik. Sie ersetzt keine klinische Bewertung durch eine Schlafexpertin."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is a computational metaphor inspired by genetics. It doesn't replace a sleep professional's clinical assessment."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Es una metáfora computacional inspirada en genética. No sustituye la valoración clínica de un profesional del sueño."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "C'est une métaphore computationnelle inspirée de la génétique. Elle ne remplace pas l'évaluation clinique d'un spécialiste du sommeil."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "これは遺伝学にインスパイアされた計算メタファー。睡眠専門家の臨床評価に代わるものではない。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是受遗传学启发的计算比喻。不能替代睡眠专业人士的临床评估。"
+          }
+        }
+      }
+    },
+    "dna.help.experimental.title": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تفسير وليس تشخيصًا"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Interpretació, no diagnòstic"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Interpretation, keine Diagnose"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Interpretation, not diagnosis"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Interpretación, no diagnóstico"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Interprétation, pas un diagnostic"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解釈であって診断ではない"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅为解读，非诊断"
+          }
+        }
+      }
+    },
+    "dna.help.helix.body": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "سلسلتان مرتبطتان تعرضان ليلتين (أو أسبوعين) جنبًا إلى جنب. اسحب للاستكشاف، اضغط للتكبير."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dues cadenes enllaçades mostren dues nits (o setmanes) en paral·lel. Arrossega-la per explorar-la, pessiga-la per apropar-te."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zwei verknüpfte Stränge zeigen zwei Nächte (oder Wochen) nebeneinander. Ziehen zum Erkunden, Zwei-Finger zum Zoomen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Two linked strands show two nights (or weeks) side by side. Drag to explore, pinch to zoom."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dos cadenas enlazadas muestran dos noches (o semanas) en paralelo. Arrástrala para explorarla, pellízcala para acercarte."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deux brins liés montrent deux nuits (ou semaines) côte à côte. Fais-le glisser pour explorer, pince pour zoomer."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "連結された2本の鎖が2つの夜（または週）を並べて表示。ドラッグして探索、ピンチでズーム。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "两条连接的链并排显示两个夜晚（或两周）。拖动探索，捏合缩放。"
+          }
+        }
+      }
+    },
+    "dna.help.helix.title": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اللولب ثلاثي الأبعاد"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'hèlix 3D"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die 3D-Helix"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The 3D helix"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La hélice 3D"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'hélice 3D"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3Dらせん"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3D螺旋"
+          }
+        }
+      }
+    },
+    "dna.help.how.body": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "القضبان الذهبية تمثل الليلة الحالية؛ الفضية للمقارنة. الألوان تشير إلى المراحل (اليقظة، حركة العين السريعة، النوم غير الحالم)."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les barres daurades representen la nit actual; les platejades, la comparació. Els colors indiquen les fases (vigília, REM, NREM)."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Goldene Balken zeigen die aktuelle Nacht, silberne den Vergleich. Die Farben zeigen die Phasen (Wach, REM, NREM)."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gold bars represent the current night; silver bars the comparison. Colors show the phases (wake, REM, NREM)."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las barras doradas representan tu noche actual; las plateadas, la comparación. Los colores indican las fases (vigilia, REM, NREM)."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les barres dorées représentent la nuit actuelle ; les argentées, la comparaison. Les couleurs indiquent les phases (éveil, REM, NREM)."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "金色のバーは現在の夜、銀色は比較対象。色は各段階（覚醒、REM、NREM）を表します。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "金色条代表当前夜晚，银色代表对比。颜色表示各阶段（清醒、REM、NREM）。"
+          }
+        }
+      }
+    },
+    "dna.help.how.title": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "كيفية قراءته"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Com llegir-ho"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wie man es liest"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How to read it"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cómo leerlo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comment le lire"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "読み方"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "如何解读"
+          }
+        }
+      }
+    },
+    "dna.help.subtitle": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "قراءة مجازية لإيقاعك"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una lectura metafòrica del teu ritme"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine metaphorische Lesart deines Rhythmus"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A metaphorical reading of your rhythm"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una lectura metafórica de tu ritmo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une lecture métaphorique de ton rythme"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リズムの比喩的な読み方"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对节律的隐喻性解读"
+          }
+        }
+      }
+    },
+    "dna.help.title": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الحمض النووي للنوم"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ADN del son"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schlaf-DNA"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sleep DNA"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ADN del sueño"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ADN du sommeil"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "睡眠DNA"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "睡眠DNA"
+          }
+        }
+      }
+    },
+    "dna.help.what.body": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تمثيل لنمط نومك كتسلسل جيني: كل ليلة قاعدة، وكل أسبوع لفة من اللولب."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una representació del teu patró de son com una seqüència genètica: cada nit és una base, cada setmana una volta d'hèlix."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine Darstellung deines Schlafmusters als genetische Sequenz: Jede Nacht ist eine Base, jede Woche eine Helix-Windung."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A representation of your sleep pattern as a genetic sequence: each night is a base, each week a helix turn."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una representación de tu patrón de sueño como una secuencia genética: cada noche es una base, cada semana una vuelta de hélice."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une représentation de ton schéma de sommeil comme une séquence génétique : chaque nuit est une base, chaque semaine un tour d'hélice."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "睡眠パターンを遺伝配列として表現。各夜は塩基、各週はらせんの一回転。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将睡眠模式表示为遗传序列：每晚是一个碱基，每周是一圈螺旋。"
+          }
+        }
+      }
+    },
+    "dna.help.what.title": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ما هو"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Què és"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Was ist es"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What is it"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qué es"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qu'est-ce que c'est"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "これは何"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是什么"
           }
         }
       }
@@ -37576,6 +39344,266 @@
           "stringUnit": {
             "state": "translated",
             "value": "你的睡眠DNA"
+          }
+        }
+      }
+    },
+    "dna.sheet.export.placeholder": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "جارٍ إعداد بياناتك للتصدير"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparant les dades per exportar"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bereite deine Daten für den Export vor"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing your data to export"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparando los datos listos para exportar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Préparation des données à exporter"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "エクスポート用のデータを準備中"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在准备要导出的数据"
+          }
+        }
+      }
+    },
+    "dna.sheet.helix.placeholder": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يتم إعداد عرض اللولب التفصيلي"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La vista detallada de l'hèlix s'està preparant"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detailansicht der Helix wird vorbereitet"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detailed helix view is being prepared"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La vista detallada de la hélice se está preparando"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La vue détaillée de l'hélice est en préparation"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "詳細ならせんビューを準備中"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在准备详细螺旋视图"
+          }
+        }
+      }
+    },
+    "dna.sheet.mutations.placeholder": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "البحث عن تغييرات ملحوظة عن نمطك الأساسي"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscant canvis notables respecte al teu patró base"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suche nach auffälligen Änderungen gegenüber deinem Grundmuster"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Looking for notable changes from your baseline pattern"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscando cambios notables respecto a tu patrón base"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recherche de changements notables par rapport à ton motif de base"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ベースパターンからの顕著な変化を探索中"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查找与基础模式的显著变化"
+          }
+        }
+      }
+    },
+    "dna.sheet.patterns.placeholder": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تحليل أنماط نومك الأكثر تكرارًا"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analitzant els patrons més recurrents del teu son"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analysiere deine häufigsten Schlafmuster"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analyzing your most recurring sleep patterns"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analizando los patrones más recurrentes de tu sueño"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analyse des motifs les plus récurrents de ton sommeil"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最も頻繁な睡眠パターンを分析中"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分析您最常见的睡眠模式"
+          }
+        }
+      }
+    },
+    "dna.sheet.prediction.placeholder": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "بناء تنبؤ ليلتك القادمة"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Construint la predicció de la teva pròxima nit"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erstelle die Vorhersage für deine nächste Nacht"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Building the prediction for your next night"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Construyendo la predicción de tu próxima noche"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Construction de la prédiction pour ta prochaine nuit"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "次の夜の予測を構築中"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在构建下一晚的预测"
           }
         }
       }
@@ -41228,6 +43256,112 @@
           "stringUnit": {
             "state": "translated",
             "value": "时长：%.1fh"
+          }
+        }
+      }
+    },
+    "input.empty.desc": {
+      "extractionState": "stale",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أضف ليلة يدويًا أو اسمح للوصول إلى Apple Health للبدء."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afegeix una nit manualment o dona accés a Apple Health per començar."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Füge manuell eine Nacht hinzu oder erlaube den Zugriff auf Apple Health, um zu beginnen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a night manually or grant Apple Health access to get started."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añade una noche manualmente o concede acceso a Apple Salud para empezar."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajoute une nuit manuellement ou autorise l'accès à Apple Santé pour commencer."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手動で夜を追加するか、Apple Healthへのアクセスを許可して開始してください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手动添加一晚或授权访问 Apple 健康以开始。"
+          }
+        }
+      }
+    },
+    "input.empty.title": {
+      "extractionState": "stale",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا توجد بيانات نوم بعد"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encara no hi ha dades de son"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch keine Schlafdaten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No sleep data yet"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aún no hay datos de sueño"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pas encore de données de sommeil"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "睡眠データがありません"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚无睡眠数据"
           }
         }
       }
@@ -46498,6 +48632,110 @@
           "stringUnit": {
             "state": "translated",
             "value": "睡眠如旅程"
+          }
+        }
+      }
+    },
+    "neurospiral.info.datasource.body": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تأتي القراءات من HealthKit (Apple Watch). يلزم ما لا يقل عن 7 ليالٍ لبناء الطارة."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les lectures venen de HealthKit (Apple Watch). Calen almenys 7 nits per construir el tor."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Messwerte stammen aus HealthKit (Apple Watch). Mindestens 7 Nächte sind erforderlich, um den Torus zu erstellen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Readings come from HealthKit (Apple Watch). A minimum of 7 nights is needed to build the torus."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las lecturas vienen de HealthKit (Apple Watch). Se requieren al menos 7 noches para construir el toroide."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les lectures proviennent de HealthKit (Apple Watch). Au moins 7 nuits sont nécessaires pour construire le tore."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "測定値はHealthKit（Apple Watch）から取得。トーラスの構築には最低7晩必要。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数据来自HealthKit（Apple Watch）。构建环面至少需要7晚。"
+          }
+        }
+      }
+    },
+    "neurospiral.info.datasource.title": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مصدر البيانات"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Font de les dades"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datenquelle"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data source"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fuente de los datos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source des données"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "データソース"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数据来源"
           }
         }
       }
@@ -64826,6 +67064,58 @@
         }
       }
     },
+    "spiral.a11y.hint": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اسحب للتنقل عبر الأيام. اضغط لتقريب المشهد."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Llisca per moure't entre dies. Pessiga per apropar la vista."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Streiche, um zwischen Tagen zu navigieren. Zwei-Finger-Geste zum Zoomen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Swipe to move across days. Pinch to zoom in."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desliza para moverte entre días. Pellizca para acercar la vista."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Balaye pour te déplacer entre les jours. Pince pour zoomer."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スワイプで日を移動。ピンチでズーム。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "滑动以在不同日期间移动。捏合缩放。"
+          }
+        }
+      }
+    },
     "spiral.a11y.label": {
       "comment": "A voice-over label that announces the current day of the spiral. The first argument is the total number of days in the spiral. The second argument is the current day number.",
       "isCommentAutoGenerated": true,
@@ -71710,6 +74000,430 @@
         }
       }
     },
+    "widget.spiral.description": {
+      "extractionState": "stale",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يعرض آخر 7 ليالٍ كحلزون مدمج."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostra les darreres 7 nits com una espiral compacta."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeigt die letzten 7 Nächte als kompakte Spirale."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shows your last 7 nights as a compact spiral."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Muestra tus últimas 7 noches como una espiral compacta."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Affiche tes 7 dernières nuits sous forme de spirale compacte."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "直近7晩をコンパクトならせんで表示。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将最近7晚以紧凑螺旋形式显示。"
+          }
+        }
+      }
+    },
+    "widget.spiral.name": {
+      "extractionState": "stale",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حلزون النوم"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Espiral de son"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schlafspirale"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sleep Spiral"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Espiral de sueño"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spirale du sommeil"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スリープスパイラル"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "睡眠螺旋"
+          }
+        }
+      }
+    },
+    "widget.state.description": {
+      "extractionState": "stale",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "نظرة سريعة على مدى انسجام ساعتك الداخلية."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una ullada ràpida a com s'alinea el teu rellotge intern."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein schneller Blick darauf, wie deine innere Uhr ausgerichtet ist."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A quick look at how aligned your internal clock is."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un vistazo rápido a cómo está alineado tu reloj interno."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un aperçu rapide de l'alignement de ton horloge interne."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "体内時計の同期状態を一目で確認。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "快速了解您的生物钟同步情况。"
+          }
+        }
+      }
+    },
+    "widget.state.misaligned": {
+      "extractionState": "stale",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "غير متوافق"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desalineat"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht ausgerichtet"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Misaligned"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desalineado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Désaligné"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ずれている"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不对齐"
+          }
+        }
+      }
+    },
+    "widget.state.name": {
+      "extractionState": "stale",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حالة الإيقاع اليومي"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estat del ritme circadià"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status des zirkadianen Rhythmus"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Circadian state"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estado circadiano"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "État circadien"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "概日状態"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "昼夜节律状态"
+          }
+        }
+      }
+    },
+    "widget.state.synchronized": {
+      "extractionState": "stale",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "متزامن"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sincronitzat"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronisiert"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synced"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sincronizado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronisé"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同期"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已同步"
+          }
+        }
+      }
+    },
+    "widget.state.transition": {
+      "extractionState": "stale",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "في الانتقال"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En transició"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Im Übergang"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In transition"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En transición"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En transition"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移行中"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "过渡中"
+          }
+        }
+      }
+    },
+    "widget.tonight": {
+      "extractionState": "stale",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الليلة"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aquesta nit"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heute Nacht"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tonight"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta noche"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce soir"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今夜"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今晚"
+          }
+        }
+      }
+    },
     "Your latest: MESOR %@ · Amp %@ · Acrophase %@": {
       "localizations": {
         "ar": {
@@ -71820,2706 +74534,1614 @@
       "comment": "A label describing the trend of the ratio of the first and second frequency bands in the user's neurospiral data.",
       "isCommentAutoGenerated": true
     },
-    "dna.3d.a11y.label": {
+    "analysis.header.weekNumber": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "عرض ثلاثي الأبعاد للحمض النووي للنوم"
+            "value": "الأسبوع %d"
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vista 3D d'ADN del son"
+            "value": "Setmana %d"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "3D-Ansicht der Schlaf-DNA"
+            "value": "Woche %d"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sleep DNA 3D view"
+            "value": "Week %d"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vista 3D de ADN del sueño"
+            "value": "Semana %d"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vue 3D de l'ADN du sommeil"
+            "value": "Semaine %d"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "睡眠DNAの3Dビュー"
+            "value": "第%d週"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "睡眠DNA的3D视图"
+            "value": "第%d周"
           }
         }
       }
     },
-    "dna.3d.a11y.hint": {
+    "analysis.header.thisWeek": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "اسحب للتدوير، اضغط للتكبير"
+            "value": "هذا الأسبوع"
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "Arrossega per rotar, pessiga per fer zoom"
+            "value": "Aquesta setmana"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ziehen zum Drehen, Zwei-Finger-Geste zum Zoomen"
+            "value": "Diese Woche"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Drag to rotate, pinch to zoom"
+            "value": "This week"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Arrastra para rotar, pellizca para ampliar"
+            "value": "Esta semana"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Faire glisser pour pivoter, pincer pour zoomer"
+            "value": "Cette semaine"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ドラッグで回転、ピンチでズーム"
+            "value": "今週"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "拖动旋转，捏合缩放"
+            "value": "本周"
           }
         }
       }
     },
-    "dna.card.patterns": {
+    "analysis.share.pdf": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "الأنماط"
+            "value": "مشاركة تقرير PDF"
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "Patrons"
+            "value": "Compartir informe PDF"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Muster"
+            "value": "PDF-Bericht teilen"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Patterns"
+            "value": "Share PDF report"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Patrones"
+            "value": "Compartir informe PDF"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Motifs"
+            "value": "Partager le rapport PDF"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "パターン"
+            "value": "PDFレポートを共有"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "模式"
+            "value": "分享 PDF 报告"
           }
         }
       }
     },
-    "dna.card.patterns.description": {
+    "analysis.hero.kicker": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "الأنماط المتكررة في نومك"
+            "value": "الأسبوع مقابل الأسبوع"
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "Motius recurrents en el teu son"
+            "value": "SETMANA VS SETMANA"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wiederkehrende Muster in deinem Schlaf"
+            "value": "WOCHE VS WOCHE"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recurring motifs in your sleep"
+            "value": "WEEK VS WEEK"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Motivos recurrentes en tu sueño"
+            "value": "SEMANA VS SEMANA"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Motifs récurrents dans ton sommeil"
+            "value": "SEMAINE VS SEMAINE"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "睡眠に繰り返し現れるパターン"
+            "value": "週ごとの比較"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "睡眠中反复出现的模式"
+            "value": "周对周对比"
           }
         }
       }
     },
-    "dna.card.mutations": {
+    "analysis.dim.consistency": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "الطفرات"
+            "value": "الاتساق"
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mutacions"
+            "value": "CONSISTÈNCIA"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mutationen"
+            "value": "KONSISTENZ"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mutations"
+            "value": "CONSISTENCY"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mutaciones"
+            "value": "CONSISTENCIA"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mutations"
+            "value": "CONSTANCE"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "変異"
+            "value": "一貫性"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "变异"
+            "value": "一致性"
           }
         }
       }
     },
-    "dna.card.mutations.description": {
+    "analysis.dim.drift": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "تغييرات ملحوظة عن خط الأساس"
+            "value": "الانحراف"
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "Canvis notables respecte a la teva base"
+            "value": "DRIFT"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Auffällige Abweichungen von deiner Basislinie"
+            "value": "DRIFT"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Notable changes from your baseline"
+            "value": "DRIFT"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cambios notables respecto a tu base"
+            "value": "DRIFT"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Changements notables par rapport à ta ligne de base"
+            "value": "DÉRIVE"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ベースラインからの顕著な変化"
+            "value": "ドリフト"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "与基线相比的显著变化"
+            "value": "偏移"
           }
         }
       }
     },
-    "dna.card.triangle": {
+    "analysis.dim.duration": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "مثلث النوم"
+            "value": "المدة"
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "Triangle de son"
+            "value": "DURADA"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Schlafdreieck"
+            "value": "DAUER"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sleep triangle"
+            "value": "DURATION"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Triángulo de sueño"
+            "value": "DURACIÓN"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Triangle du sommeil"
+            "value": "DURÉE"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "睡眠トライアングル"
+            "value": "時間"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "睡眠三角"
+            "value": "时长"
           }
         }
       }
     },
-    "dna.card.triangle.description": {
+    "analysis.insight.kicker": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "التوزيع بين اليقظة ونوم الحركة السريعة للعين والنوم العميق"
+            "value": "رؤية أساسية"
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "Distribució entre vigília, REM i son profund"
+            "value": "INSIGHT CLAU"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verteilung zwischen Wach, REM und Tiefschlaf"
+            "value": "SCHLÜSSELEINBLICK"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Balance between wake, REM, and deep sleep"
+            "value": "KEY INSIGHT"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Distribución entre vigilia, REM y sueño profundo"
+            "value": "INSIGHT CLAVE"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Répartition entre éveil, REM et sommeil profond"
+            "value": "POINT CLÉ"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "覚醒、REM、深い睡眠のバランス"
+            "value": "重要な洞察"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "清醒、REM和深度睡眠的分布"
+            "value": "关键洞察"
           }
         }
       }
     },
-    "dna.card.history": {
+    "analysis.insight.goodKicker": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "السجل"
+            "value": "أحسنت"
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "Historial"
+            "value": "BEN FET"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verlauf"
+            "value": "GUT GEMACHT"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "History"
+            "value": "WELL DONE"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Historial"
+            "value": "BIEN HECHO"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Historique"
+            "value": "BIEN JOUÉ"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "履歴"
+            "value": "よくできました"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "历史"
+            "value": "做得好"
           }
         }
       }
     },
-    "dna.card.history.description": {
+    "analysis.insight.socialJetlag": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "تطور جودة نومك ليلة بليلة"
+            "value": "تأخير اجتماعي حوالي %@"
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "Evolució de la teva qualitat nit a nit"
+            "value": "El teu jet lag social ronda les %@"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Entwicklung deiner Schlafqualität Nacht für Nacht"
+            "value": "Dein sozialer Jet-Lag beträgt etwa %@"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "How your sleep quality evolves night by night"
+            "value": "Your social jet lag is around %@"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Evolución de tu calidad noche a noche"
+            "value": "Tu jet lag social ronda las %@"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Évolution de ta qualité de sommeil nuit après nuit"
+            "value": "Ton jet lag social est d'environ %@"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "夜ごとの睡眠の質の変化"
+            "value": "社会的時差は約%@"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "每晚睡眠质量的变化"
+            "value": "社交时差约为 %@"
           }
         }
       }
     },
-    "dna.card.circadian": {
+    "analysis.insight.socialJetlagConsequence": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "الإيقاع اليومي"
+            "value": "يوم الاثنين تحمل اختلال نهاية الأسبوع."
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ritme circadià"
+            "value": "El dilluns arrossegues el desajust del cap de setmana."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zirkadianer Rhythmus"
+            "value": "Am Montag trägst du die Wochenend-Fehlstellung mit dir."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Circadian rhythm"
+            "value": "Monday carries the weekend's misalignment."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ritmo circadiano"
+            "value": "El lunes arrastras el desfase del fin de semana."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rythme circadien"
+            "value": "Lundi tu traînes le décalage du week-end."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "概日リズム"
+            "value": "月曜日は週末のズレを引きずります。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "昼夜节律"
+            "value": "周一你还在承受周末的错位。"
           }
         }
       }
     },
-    "dna.card.circadian.description": {
+    "analysis.insight.weekendDrift": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "ساعتك الداخلية في الأسابيع الماضية"
+            "value": "في عطلة نهاية الأسبوع تنام %@ في وقت متأخر"
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "El teu rellotge intern en les darreres setmanes"
+            "value": "Els caps de setmana et vas a dormir %@ més tard"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Deine innere Uhr der letzten Wochen"
+            "value": "Am Wochenende gehst du %@ später ins Bett"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your internal clock over the past weeks"
+            "value": "On weekends you go to bed %@ later"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tu reloj interno en las últimas semanas"
+            "value": "Los fines de semana te acuestas %@ más tarde"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ton horloge interne au cours des dernières semaines"
+            "value": "Le week-end tu te couches %@ plus tard"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "過去数週間の体内時計"
+            "value": "週末は%@遅く就寝"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "过去几周内的生物钟"
+            "value": "周末你晚睡 %@"
           }
         }
       }
     },
-    "dna.card.prediction": {
+    "analysis.insight.weekendDriftConsequence": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "التنبؤ"
+            "value": "يستغرق التعافي من هذا التحول يومين إلى ثلاثة أيام."
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "Predicció"
+            "value": "Costa 2–3 dies recuperar un desajust així."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vorhersage"
+            "value": "Es dauert 2–3 Tage, sich von so einer Verschiebung zu erholen."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Prediction"
+            "value": "It takes 2–3 days to recover from a shift like this."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Predicción"
+            "value": "Cuesta 2–3 días recuperar un desfase así."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Prédiction"
+            "value": "Il faut 2–3 jours pour récupérer d'un décalage comme ça."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "予測"
+            "value": "このずれから回復するには2〜3日かかります。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "预测"
+            "value": "这种偏移需要 2–3 天才能恢复。"
           }
         }
       }
     },
-    "dna.card.prediction.description": {
+    "analysis.insight.consistencyDrop": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "ما يمكن توقعه الليلة"
+            "value": "تراجع الاتساق %@ نقطة هذا الأسبوع"
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "Què esperar aquesta nit"
+            "value": "La teva consistència va baixar %@ punts aquesta setmana"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Was für heute Nacht zu erwarten ist"
+            "value": "Deine Konsistenz fiel diese Woche um %@ Punkte"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "What to expect tonight"
+            "value": "Consistency dropped %@ points this week"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Qué esperar esta noche"
+            "value": "Tu consistencia bajó %@ puntos esta semana"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ce à quoi s'attendre ce soir"
+            "value": "Ta constance a baissé de %@ points cette semaine"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "今夜の予想"
+            "value": "今週の一貫性は%@ポイント低下"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "今晚的预期"
+            "value": "本周一致性下降 %@ 点"
           }
         }
       }
     },
-    "dna.card.export": {
+    "analysis.insight.consistencyDropConsequence": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "تصدير"
+            "value": "روتين ثابت هذه الليلة يوقف السلسلة."
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "Exporta"
+            "value": "Una rutina estable aquesta nit trenca la ratxa."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Exportieren"
+            "value": "Eine stabile Routine heute Nacht bricht die Serie."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Export"
+            "value": "A steady routine tonight breaks the streak."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Exportar"
+            "value": "Una rutina estable esta noche corta la racha."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Exporter"
+            "value": "Une routine stable ce soir casse la série."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "エクスポート"
+            "value": "今夜安定したルーティンで連鎖を断ち切れます。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "导出"
+            "value": "今晚保持稳定作息即可打破下滑趋势。"
           }
         }
       }
     },
-    "dna.card.export.description": {
+    "analysis.insight.durationLoss": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "شارك بياناتك أو صورة"
+            "value": "تنام %@ في المتوسط — تفتقد %@"
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "Comparteix les teves dades o una imatge"
+            "value": "Dorms %@ de mitjana — et falten %@"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Teile deine Daten oder ein Bild"
+            "value": "Du schläfst durchschnittlich %@ — es fehlen %@"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Share your data or an image"
+            "value": "You sleep %@ on average — missing %@"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Comparte tus datos o una imagen"
+            "value": "Duermes %@ de media — te faltan %@"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Partage tes données ou une image"
+            "value": "Tu dors %@ en moyenne — il manque %@"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "データや画像を共有"
+            "value": "平均%@睡眠 — %@不足"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "分享数据或图像"
+            "value": "平均睡眠 %@ — 缺少 %@"
           }
         }
       }
     },
-    "dna.card.helix": {
+    "analysis.insight.goodStreak": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "اللولب المزدوج"
+            "value": "أسبوع بـ %@ نقطة في الاتساق"
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "Doble hèlix"
+            "value": "Setmana amb %@ punts de consistència"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Doppelhelix"
+            "value": "Woche mit %@ Konsistenzpunkten"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Double helix"
+            "value": "Week with %@ consistency points"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Doble hélice"
+            "value": "Semana con %@ puntos de consistencia"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Double hélice"
+            "value": "Semaine avec %@ points de constance"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "二重らせん"
+            "value": "一貫性%@ポイントの週"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "双螺旋"
+            "value": "一致性 %@ 分的一周"
           }
         }
       }
     },
-    "dna.helix.needs_data": {
+    "analysis.nightByNight.title": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "مطلوب 3 ليالٍ على الأقل لبناء اللولب"
+            "value": "ليلة بليلة"
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "Necessites almenys 3 nits per generar l'hèlix"
+            "value": "NIT A NIT"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mindestens 3 Nächte nötig, um die Helix zu bauen"
+            "value": "NACHT FÜR NACHT"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "At least 3 nights needed to build the helix"
+            "value": "NIGHT BY NIGHT"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Necesitas al menos 3 noches para generar la hélice"
+            "value": "NOCHE POR NOCHE"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Au moins 3 nuits nécessaires pour construire l'hélice"
+            "value": "NUIT PAR NUIT"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "らせんの生成には少なくとも3晩必要"
+            "value": "夜ごと"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "生成螺旋至少需要3晚数据"
+            "value": "每晚"
           }
         }
       }
     },
-    "dna.help.title": {
+    "analysis.advanced.title": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "الحمض النووي للنوم"
+            "value": "تحليل متقدم"
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "ADN del son"
+            "value": "ANÀLISI AVANÇADA"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Schlaf-DNA"
+            "value": "ERWEITERTE ANALYSE"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sleep DNA"
+            "value": "ADVANCED ANALYSIS"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "ADN del sueño"
+            "value": "ANÁLISIS AVANZADO"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "ADN du sommeil"
+            "value": "ANALYSE AVANCÉE"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "睡眠DNA"
+            "value": "高度な分析"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "睡眠DNA"
+            "value": "高级分析"
           }
         }
       }
     },
-    "dna.help.subtitle": {
+    "analysis.advanced.cosinor.title": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "قراءة مجازية لإيقاعك"
+            "value": "مقياس الكوسينور المنزلق"
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "Una lectura metafòrica del teu ritme"
+            "value": "Cosinor lliscant"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Eine metaphorische Lesart deines Rhythmus"
+            "value": "Gleitender Cosinor"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A metaphorical reading of your rhythm"
+            "value": "Sliding Cosinor"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Una lectura metafórica de tu ritmo"
+            "value": "Cosinor deslizante"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Une lecture métaphorique de ton rythme"
+            "value": "Cosinor glissant"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "リズムの比喩的な読み方"
+            "value": "スライディングコサイナー"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "对节律的隐喻性解读"
+            "value": "滑动余弦拟合"
           }
         }
       }
     },
-    "dna.help.what.title": {
+    "analysis.advanced.drift.title": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "ما هو"
+            "value": "الانحراف"
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "Què és"
+            "value": "Drift"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Was ist es"
+            "value": "Drift"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "What is it"
+            "value": "Drift"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Qué es"
+            "value": "Drift"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Qu'est-ce que c'est"
+            "value": "Dérive"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "これは何"
+            "value": "ドリフト"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这是什么"
+            "value": "偏移"
           }
         }
       }
     },
-    "dna.help.what.body": {
+    "analysis.advanced.actogram.title": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "تمثيل لنمط نومك كتسلسل جيني: كل ليلة قاعدة، وكل أسبوع لفة من اللولب."
+            "value": "مخطط النشاط"
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "Una representació del teu patró de son com una seqüència genètica: cada nit és una base, cada setmana una volta d'hèlix."
+            "value": "Actograma"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Eine Darstellung deines Schlafmusters als genetische Sequenz: Jede Nacht ist eine Base, jede Woche eine Helix-Windung."
+            "value": "Aktogramm"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A representation of your sleep pattern as a genetic sequence: each night is a base, each week a helix turn."
+            "value": "Actogram"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Una representación de tu patrón de sueño como una secuencia genética: cada noche es una base, cada semana una vuelta de hélice."
+            "value": "Actograma"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Une représentation de ton schéma de sommeil comme une séquence génétique : chaque nuit est une base, chaque semaine un tour d'hélice."
+            "value": "Actogramme"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "睡眠パターンを遺伝配列として表現。各夜は塩基、各週はらせんの一回転。"
+            "value": "アクトグラム"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "将睡眠模式表示为遗传序列：每晚是一个碱基，每周是一圈螺旋。"
+            "value": "活动图"
           }
         }
       }
     },
-    "dna.help.how.title": {
+    "analysis.advanced.prc.title": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "كيفية قراءته"
+            "value": "منحنى استجابة الطور"
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "Com llegir-ho"
+            "value": "PRC"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wie man es liest"
+            "value": "PRC"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "How to read it"
+            "value": "PRC"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cómo leerlo"
+            "value": "PRC"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Comment le lire"
+            "value": "PRC"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "読み方"
+            "value": "PRC"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "如何解读"
+            "value": "PRC"
           }
         }
       }
     },
-    "dna.help.how.body": {
+    "analysis.advanced.hrv.title": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "القضبان الذهبية تمثل الليلة الحالية؛ الفضية للمقارنة. الألوان تشير إلى المراحل (اليقظة، حركة العين السريعة، النوم غير الحالم)."
+            "value": "تقلب معدل ضربات القلب"
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les barres daurades representen la nit actual; les platejades, la comparació. Els colors indiquen les fases (vigília, REM, NREM)."
+            "value": "HRV"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Goldene Balken zeigen die aktuelle Nacht, silberne den Vergleich. Die Farben zeigen die Phasen (Wach, REM, NREM)."
+            "value": "HRV"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gold bars represent the current night; silver bars the comparison. Colors show the phases (wake, REM, NREM)."
+            "value": "HRV"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Las barras doradas representan tu noche actual; las plateadas, la comparación. Los colores indican las fases (vigilia, REM, NREM)."
+            "value": "HRV"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les barres dorées représentent la nuit actuelle ; les argentées, la comparaison. Les couleurs indiquent les phases (éveil, REM, NREM)."
+            "value": "HRV"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "金色のバーは現在の夜、銀色は比較対象。色は各段階（覚醒、REM、NREM）を表します。"
+            "value": "心拍変動"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "金色条代表当前夜晚，银色代表对比。颜色表示各阶段（清醒、REM、NREM）。"
+            "value": "心率变异"
           }
         }
       }
     },
-    "dna.help.detects.title": {
+    "analysis.advanced.periodogram.title": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "ما يكتشفه"
+            "value": "مخطط الدوري"
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "Què detecta"
+            "value": "Periodograma"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Was es erkennt"
+            "value": "Periodogramm"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "What it detects"
+            "value": "Periodogram"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Qué detecta"
+            "value": "Periodograma"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ce qu'il détecte"
+            "value": "Périodogramme"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "検出するもの"
+            "value": "ペリオドグラム"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "它能发现什么"
+            "value": "周期图"
           }
         }
       }
     },
-    "dna.help.detects.body": {
+    "analysis.advanced.timeline.title": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "الأنماط المتكررة، والطفرات عن خط الأساس، والأنماط المرتبطة بتغيرات السياق (السفر، التدريب، التوتر)."
+            "value": "الخط الزمني"
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "Patrons recurrents, mutacions respecte a la teva base i motius associats a canvis de context (viatge, entrenament, estrès)."
+            "value": "Línia de temps"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wiederkehrende Muster, Abweichungen von deiner Basislinie und Motive im Zusammenhang mit Kontextwechseln (Reisen, Training, Stress)."
+            "value": "Zeitstrahl"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recurring patterns, mutations from your baseline, and motifs tied to context changes (travel, training, stress)."
+            "value": "Timeline"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Patrones recurrentes, mutaciones respecto a tu base y motivos asociados a cambios de contexto (viaje, entreno, estrés)."
+            "value": "Línea de tiempo"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Motifs récurrents, mutations par rapport à ta ligne de base et motifs liés aux changements de contexte (voyage, entraînement, stress)."
+            "value": "Chronologie"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "繰り返しのパターン、ベースラインからの変異、コンテキスト変化（旅行、トレーニング、ストレス）に関連する動機。"
+            "value": "タイムライン"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "反复出现的模式、与基线的变异，以及与情境变化（旅行、训练、压力）相关的主题。"
+            "value": "时间线"
           }
         }
       }
     },
-    "dna.help.helix.title": {
+    "analysis.advanced.autocorrelation.title": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "اللولب ثلاثي الأبعاد"
+            "value": "الارتباط الذاتي"
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "L'hèlix 3D"
+            "value": "Autocorrelació"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Die 3D-Helix"
+            "value": "Autokorrelation"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The 3D helix"
+            "value": "Autocorrelation"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La hélice 3D"
+            "value": "Autocorrelación"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "L'hélice 3D"
+            "value": "Autocorrélation"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "3Dらせん"
+            "value": "自己相関"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "3D螺旋"
+            "value": "自相关"
           }
         }
       }
     },
-    "dna.help.helix.body": {
+    "analysis.advanced.sectorQuality.title": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "سلسلتان مرتبطتان تعرضان ليلتين (أو أسبوعين) جنبًا إلى جنب. اسحب للاستكشاف، اضغط للتكبير."
+            "value": "الجودة حسب القطاع"
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dues cadenes enllaçades mostren dues nits (o setmanes) en paral·lel. Arrossega-la per explorar-la, pessiga-la per apropar-te."
+            "value": "Qualitat per sector"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zwei verknüpfte Stränge zeigen zwei Nächte (oder Wochen) nebeneinander. Ziehen zum Erkunden, Zwei-Finger zum Zoomen."
+            "value": "Qualität pro Sektor"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Two linked strands show two nights (or weeks) side by side. Drag to explore, pinch to zoom."
+            "value": "Sector quality"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dos cadenas enlazadas muestran dos noches (o semanas) en paralelo. Arrástrala para explorarla, pellízcala para acercarte."
+            "value": "Calidad por sector"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Deux brins liés montrent deux nuits (ou semaines) côte à côte. Fais-le glisser pour explorer, pince pour zoomer."
+            "value": "Qualité par secteur"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "連結された2本の鎖が2つの夜（または週）を並べて表示。ドラッグして探索、ピンチでズーム。"
+            "value": "セクター別の質"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "两条连接的链并排显示两个夜晚（或两周）。拖动探索，捏合缩放。"
+            "value": "分区质量"
           }
         }
       }
     },
-    "dna.help.data.title": {
+    "analysis.empty.body": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "البيانات المطلوبة"
+            "value": "أضف ليالي أو اربط Apple Health لرؤية اتجاهاتك."
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dades requerides"
+            "value": "Afegeix nits o connecta Apple Health per veure les teves tendències."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Benötigte Daten"
+            "value": "Nächte hinzufügen oder Apple Health verbinden, um deine Trends zu sehen."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Data needed"
+            "value": "Add nights or connect Apple Health to see your trends."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Datos requeridos"
+            "value": "Añade noches o conecta Apple Salud para ver tus tendencias."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Données nécessaires"
+            "value": "Ajoute des nuits ou connecte Apple Santé pour voir tes tendances."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "必要なデータ"
+            "value": "夜を追加するかApple Healthを接続してトレンドを表示。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "所需数据"
+            "value": "添加夜晚数据或连接 Apple 健康以查看趋势。"
           }
         }
       }
     },
-    "dna.help.data.body": {
+    "analysis.empty.week": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "يمكن بناء لولب أساسي من 7 ليالٍ متتالية. يُوصى بـ 14 ليلة أو أكثر لاكتشاف أنماط موثوقة."
+            "value": "تحتاج أسبوعين للمقارنة"
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "A partir de 7 nits consecutives es pot construir una hèlix bàsica. Per detectar patrons fiables es recomanen 14 o més."
+            "value": "Necessites 2 setmanes per comparar"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Eine grundlegende Helix benötigt 7 aufeinanderfolgende Nächte. Für zuverlässige Mustererkennung werden 14 oder mehr empfohlen."
+            "value": "Du brauchst 2 Wochen zum Vergleichen"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A basic helix needs 7 consecutive nights. For reliable pattern detection, 14 nights or more are recommended."
+            "value": "You need 2 weeks to compare"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "A partir de 7 noches consecutivas se puede construir una hélice básica. Para detectar patrones fiables se recomiendan 14 o más."
+            "value": "Necesitas 2 semanas para comparar"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Une hélice basique nécessite 7 nuits consécutives. Pour une détection fiable des motifs, 14 nuits ou plus sont recommandées."
+            "value": "Il te faut 2 semaines pour comparer"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "基本的ならせんには連続7晩必要。信頼性の高いパターン検出には14晩以上を推奨。"
+            "value": "比較には2週間必要です"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "基本螺旋需要连续7晚。可靠的模式检测建议14晚或更多。"
+            "value": "需要 2 周数据才能对比"
           }
         }
       }
     },
-    "dna.help.experimental.title": {
+    "common.done": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "تفسير وليس تشخيصًا"
+            "value": "تم"
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "Interpretació, no diagnòstic"
+            "value": "Fet"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Interpretation, keine Diagnose"
+            "value": "Fertig"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Interpretation, not diagnosis"
+            "value": "Done"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Interpretación, no diagnóstico"
+            "value": "Hecho"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Interprétation, pas un diagnostic"
+            "value": "Terminé"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "解釈であって診断ではない"
+            "value": "完了"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅为解读，非诊断"
-          }
-        }
-      }
-    },
-    "dna.help.experimental.body": {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "هذه استعارة حاسوبية مستوحاة من علم الوراثة. لا تحل محل التقييم السريري لمختص النوم."
-          }
-        },
-        "ca": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "És una metàfora computacional inspirada en genètica. No substitueix la valoració clínica d'un professional del son."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dies ist eine computergestützte Metapher, inspiriert von der Genetik. Sie ersetzt keine klinische Bewertung durch eine Schlafexpertin."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This is a computational metaphor inspired by genetics. It doesn't replace a sleep professional's clinical assessment."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Es una metáfora computacional inspirada en genética. No sustituye la valoración clínica de un profesional del sueño."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "C'est une métaphore computationnelle inspirée de la génétique. Elle ne remplace pas l'évaluation clinique d'un spécialiste du sommeil."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "これは遺伝学にインスパイアされた計算メタファー。睡眠専門家の臨床評価に代わるものではない。"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "这是受遗传学启发的计算比喻。不能替代睡眠专业人士的临床评估。"
-          }
-        }
-      }
-    },
-    "dna.help.disclaimer": {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "للاستخدام الإعلامي. استشر متخصصًا إذا كانت لديك مخاوف بشأن نومك."
-          }
-        },
-        "ca": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ús informatiu. Consulta un professional si tens preocupacions sobre el teu son."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nur zu Informationszwecken. Bei Schlafsorgen wende dich an eine Fachkraft."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "For informational use. Consult a professional if you have sleep concerns."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Uso informativo. Consulta a un profesional si tienes preocupaciones sobre tu sueño."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "À titre informatif. Consulte un professionnel si tu as des préoccupations concernant ton sommeil."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "情報提供目的のみ。睡眠に懸念がある場合は専門家に相談してください。"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "仅供参考。如有睡眠疑虑，请咨询专业人士。"
-          }
-        }
-      }
-    },
-    "dna.sheet.helix.placeholder": {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "يتم إعداد عرض اللولب التفصيلي"
-          }
-        },
-        "ca": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La vista detallada de l'hèlix s'està preparant"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Detailansicht der Helix wird vorbereitet"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Detailed helix view is being prepared"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La vista detallada de la hélice se está preparando"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La vue détaillée de l'hélice est en préparation"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "詳細ならせんビューを準備中"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在准备详细螺旋视图"
-          }
-        }
-      }
-    },
-    "dna.sheet.patterns.placeholder": {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "تحليل أنماط نومك الأكثر تكرارًا"
-          }
-        },
-        "ca": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Analitzant els patrons més recurrents del teu son"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Analysiere deine häufigsten Schlafmuster"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Analyzing your most recurring sleep patterns"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Analizando los patrones más recurrentes de tu sueño"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Analyse des motifs les plus récurrents de ton sommeil"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "最も頻繁な睡眠パターンを分析中"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "分析您最常见的睡眠模式"
-          }
-        }
-      }
-    },
-    "dna.sheet.mutations.placeholder": {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "البحث عن تغييرات ملحوظة عن نمطك الأساسي"
-          }
-        },
-        "ca": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Buscant canvis notables respecte al teu patró base"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Suche nach auffälligen Änderungen gegenüber deinem Grundmuster"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Looking for notable changes from your baseline pattern"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Buscando cambios notables respecto a tu patrón base"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Recherche de changements notables par rapport à ton motif de base"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ベースパターンからの顕著な変化を探索中"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "查找与基础模式的显著变化"
-          }
-        }
-      }
-    },
-    "dna.sheet.prediction.placeholder": {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "بناء تنبؤ ليلتك القادمة"
-          }
-        },
-        "ca": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Construint la predicció de la teva pròxima nit"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Erstelle die Vorhersage für deine nächste Nacht"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Building the prediction for your next night"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Construyendo la predicción de tu próxima noche"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Construction de la prédiction pour ta prochaine nuit"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "次の夜の予測を構築中"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在构建下一晚的预测"
-          }
-        }
-      }
-    },
-    "dna.sheet.export.placeholder": {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "جارٍ إعداد بياناتك للتصدير"
-          }
-        },
-        "ca": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Preparant les dades per exportar"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bereite deine Daten für den Export vor"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Preparing your data to export"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Preparando los datos listos para exportar"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Préparation des données à exporter"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "エクスポート用のデータを準備中"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在准备要导出的数据"
-          }
-        }
-      }
-    },
-    "neurospiral.info.datasource.title": {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "مصدر البيانات"
-          }
-        },
-        "ca": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Font de les dades"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Datenquelle"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Data source"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fuente de los datos"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Source des données"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "データソース"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "数据来源"
-          }
-        }
-      }
-    },
-    "neurospiral.info.datasource.body": {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "تأتي القراءات من HealthKit (Apple Watch). يلزم ما لا يقل عن 7 ليالٍ لبناء الطارة."
-          }
-        },
-        "ca": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Les lectures venen de HealthKit (Apple Watch). Calen almenys 7 nits per construir el tor."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Die Messwerte stammen aus HealthKit (Apple Watch). Mindestens 7 Nächte sind erforderlich, um den Torus zu erstellen."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Readings come from HealthKit (Apple Watch). A minimum of 7 nights is needed to build the torus."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Las lecturas vienen de HealthKit (Apple Watch). Se requieren al menos 7 noches para construir el toroide."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Les lectures proviennent de HealthKit (Apple Watch). Au moins 7 nuits sont nécessaires pour construire le tore."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "測定値はHealthKit（Apple Watch）から取得。トーラスの構築には最低7晩必要。"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "数据来自HealthKit（Apple Watch）。构建环面至少需要7晚。"
-          }
-        }
-      }
-    },
-    "coach.chat.error": {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "حدث خطأ. حاول مرة أخرى."
-          }
-        },
-        "ca": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "S'ha produït un error. Torna-ho a provar."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ein Fehler ist aufgetreten. Bitte erneut versuchen."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Something went wrong. Please try again."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ha ocurrido un error. Inténtalo de nuevo."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Une erreur s'est produite. Réessaie."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "エラーが発生しました。もう一度お試しください。"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "出错了。请重试。"
-          }
-        }
-      }
-    },
-    "input.empty.title": {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "لا توجد بيانات نوم بعد"
-          }
-        },
-        "ca": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Encara no hi ha dades de son"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Noch keine Schlafdaten"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No sleep data yet"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aún no hay datos de sueño"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pas encore de données de sommeil"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "睡眠データがありません"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "尚无睡眠数据"
-          }
-        }
-      }
-    },
-    "input.empty.desc": {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "أضف ليلة يدويًا أو اسمح للوصول إلى Apple Health للبدء."
-          }
-        },
-        "ca": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Afegeix una nit manualment o dona accés a Apple Health per començar."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Füge manuell eine Nacht hinzu oder erlaube den Zugriff auf Apple Health, um zu beginnen."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Add a night manually or grant Apple Health access to get started."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Añade una noche manualmente o concede acceso a Apple Salud para empezar."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ajoute une nuit manuellement ou autorise l'accès à Apple Santé pour commencer."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "手動で夜を追加するか、Apple Healthへのアクセスを許可して開始してください。"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "手动添加一晚或授权访问 Apple 健康以开始。"
-          }
-        }
-      }
-    },
-    "spiral.a11y.hint": {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "اسحب للتنقل عبر الأيام. اضغط لتقريب المشهد."
-          }
-        },
-        "ca": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Llisca per moure't entre dies. Pessiga per apropar la vista."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Streiche, um zwischen Tagen zu navigieren. Zwei-Finger-Geste zum Zoomen."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Swipe to move across days. Pinch to zoom in."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Desliza para moverte entre días. Pellizca para acercar la vista."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Balaye pour te déplacer entre les jours. Pince pour zoomer."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "スワイプで日を移動。ピンチでズーム。"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "滑动以在不同日期间移动。捏合缩放。"
-          }
-        }
-      }
-    },
-    "widget.spiral.name": {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "حلزون النوم"
-          }
-        },
-        "ca": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Espiral de son"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Schlafspirale"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sleep Spiral"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Espiral de sueño"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Spirale du sommeil"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "スリープスパイラル"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "睡眠螺旋"
-          }
-        }
-      }
-    },
-    "widget.spiral.description": {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "يعرض آخر 7 ليالٍ كحلزون مدمج."
-          }
-        },
-        "ca": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostra les darreres 7 nits com una espiral compacta."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zeigt die letzten 7 Nächte als kompakte Spirale."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Shows your last 7 nights as a compact spiral."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Muestra tus últimas 7 noches como una espiral compacta."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Affiche tes 7 dernières nuits sous forme de spirale compacte."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "直近7晩をコンパクトならせんで表示。"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "将最近7晚以紧凑螺旋形式显示。"
-          }
-        }
-      }
-    },
-    "widget.state.name": {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "حالة الإيقاع اليومي"
-          }
-        },
-        "ca": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Estat del ritme circadià"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Status des zirkadianen Rhythmus"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Circadian state"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Estado circadiano"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "État circadien"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "概日状態"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "昼夜节律状态"
-          }
-        }
-      }
-    },
-    "widget.state.description": {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "نظرة سريعة على مدى انسجام ساعتك الداخلية."
-          }
-        },
-        "ca": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Una ullada ràpida a com s'alinea el teu rellotge intern."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ein schneller Blick darauf, wie deine innere Uhr ausgerichtet ist."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "A quick look at how aligned your internal clock is."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Un vistazo rápido a cómo está alineado tu reloj interno."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Un aperçu rapide de l'alignement de ton horloge interne."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "体内時計の同期状態を一目で確認。"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "快速了解您的生物钟同步情况。"
-          }
-        }
-      }
-    },
-    "widget.state.synchronized": {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "متزامن"
-          }
-        },
-        "ca": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sincronitzat"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Synchronisiert"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Synced"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sincronizado"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Synchronisé"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "同期"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已同步"
-          }
-        }
-      }
-    },
-    "widget.state.transition": {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "في الانتقال"
-          }
-        },
-        "ca": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "En transició"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Im Übergang"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "In transition"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "En transición"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "En transition"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "移行中"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "过渡中"
-          }
-        }
-      }
-    },
-    "widget.state.misaligned": {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "غير متوافق"
-          }
-        },
-        "ca": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Desalineat"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nicht ausgerichtet"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Misaligned"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Desalineado"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Désaligné"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ずれている"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "不对齐"
-          }
-        }
-      }
-    },
-    "widget.tonight": {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "الليلة"
-          }
-        },
-        "ca": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aquesta nit"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Heute Nacht"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tonight"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Esta noche"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ce soir"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "今夜"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "今晚"
+            "value": "完成"
           }
         }
       }
