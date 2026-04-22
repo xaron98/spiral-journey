@@ -19,3 +19,14 @@ Icon Exports 2/
 # macOS
 .DS_Store
 .claude/
+
+# Claude Code plugins (local tooling, not app code)
+.agents/
+.superpowers/
+skills-lock.json
+
+# Python research scratch (virtualenvs, caches, notebooks checkpoints)
+research/.venv/
+research/__pycache__/
+research/**/__pycache__/
+research/.ipynb_checkpoints/
