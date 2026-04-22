@@ -2,6 +2,11 @@ import RealityKit
 import SwiftUI
 import SpiralKit
 
+#if os(macOS)
+import AppKit
+typealias UIColor = NSColor
+#endif
+
 /// Builds a RealityKit double-helix modeled after classic molecular DNA:
 /// two thick smooth cylindrical backbone tubes spiraling around each other
 /// with chunky colored bar connectors between them.

@@ -23,11 +23,11 @@ final class NeuroSpiralTorusInteractionManager {
 
     // MARK: - Zoom (NOT observed)
 
-    @ObservationIgnored var zoomScale: Float = 1.0
+    @ObservationIgnored var zoomScale: Float = 1.5
 
-    // MARK: - 4D Angle (NOT observed — slider updates directly)
+    // MARK: - 4D Angle (observed — triggers geometry rebuild via update: closure)
 
-    @ObservationIgnored var w4DAngle: Float = 0.8
+    var w4DAngle: Float = 0.8
 
     // MARK: - Interaction State (NOT observed)
 
@@ -35,7 +35,7 @@ final class NeuroSpiralTorusInteractionManager {
     /// Accumulated drag translation — stored here to avoid @State re-renders.
     @ObservationIgnored var dragStart: CGSize = .zero
     /// Baseline zoom before current pinch gesture.
-    @ObservationIgnored var baseZoom: Float = 1.0
+    @ObservationIgnored var baseZoom: Float = 1.5
 
     // MARK: - Selection (observed — SwiftUI needs this for overlays)
 
@@ -43,30 +43,48 @@ final class NeuroSpiralTorusInteractionManager {
 
     // MARK: - Display Link
 
+    #if os(macOS)
+    @ObservationIgnored private var displayTimer: Timer?
+    #else
     @ObservationIgnored private var displayLink: CADisplayLink?
+    #endif
     private let autoRotationSpeed: Float = 0.002
 
     func startDisplayLink() {
+        #if os(macOS)
+        guard displayTimer == nil else { return }
+        displayTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 60.0, repeats: true) { [weak self] _ in
+            self?.tick()
+        }
+        #else
         guard displayLink == nil else { return }
         let link = CADisplayLink(target: self, selector: #selector(displayLinkTick))
         link.preferredFrameRateRange = CAFrameRateRange(minimum: 30, maximum: 60, preferred: 60)
         link.add(to: .main, forMode: .common)
         displayLink = link
+        #endif
     }
 
     func stopDisplayLink() {
+        #if os(macOS)
+        displayTimer?.invalidate()
+        displayTimer = nil
+        #else
         displayLink?.invalidate()
         displayLink = nil
+        #endif
     }
 
-    @objc private func displayLinkTick() {
-        // Auto-rotate when idle
+    private func tick() {
         if !isInteracting {
             rotationY += autoRotationSpeed
         }
-        // Apply transform directly to entity — no SwiftUI involved
         rootEntity?.transform = sceneTransform
     }
+
+    #if !os(macOS)
+    @objc private func displayLinkTick() { tick() }
+    #endif
 
     // MARK: - Computed Transform
 
@@ -89,6 +107,10 @@ final class NeuroSpiralTorusInteractionManager {
     }
 
     deinit {
+        #if os(macOS)
+        displayTimer?.invalidate()
+        #else
         displayLink?.invalidate()
+        #endif
     }
 }

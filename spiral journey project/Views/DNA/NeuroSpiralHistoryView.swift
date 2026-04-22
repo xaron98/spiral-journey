@@ -20,7 +20,9 @@ struct NeuroSpiralHistoryView: View {
         }
         .background(SpiralColors.bg.ignoresSafeArea())
         .navigationTitle(loc("neurospiral.history.title"))
+        #if !os(macOS)
         .navigationBarTitleDisplayMode(.inline)
+        #endif
     }
 
     // MARK: - Stability Sparkline

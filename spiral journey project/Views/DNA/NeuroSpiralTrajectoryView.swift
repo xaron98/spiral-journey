@@ -33,9 +33,11 @@ struct NeuroSpiralTrajectoryView: View {
         .padding(.top, 8)
         .background(SpiralColors.bg.ignoresSafeArea())
         .navigationTitle(loc("neurospiral.trajectory.title"))
+        #if !os(macOS)
         .navigationBarTitleDisplayMode(.inline)
+        #endif
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: .confirmationAction) {
                 Picker("", selection: $show3D) {
                     Image(systemName: "square.grid.2x2").tag(false)
                     Image(systemName: "cube").tag(true)
@@ -64,21 +66,11 @@ struct NeuroSpiralTrajectoryView: View {
 
     @ViewBuilder
     private var torus3DContent: some View {
-        if #available(iOS 18.0, *) {
-            NeuroSpiralTrajectory3DView(
-                analysis: analysis,
-                visibleCount: $visibleCount,
-                isPlaying: $isPlaying,
-                speed: speed
-            )
-        } else {
-            Text(loc("neurospiral.trajectory.3d_unavailable"))
-                .font(.caption)
-                .foregroundStyle(SpiralColors.muted)
-                .frame(height: 320)
-                .frame(maxWidth: .infinity)
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
-        }
+        NeuroSpiralSceneKitTorusView(
+            analysis: analysis,
+            animated: true,
+            visibleCount: $visibleCount
+        )
     }
 
     // MARK: - Shared Controls

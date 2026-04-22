@@ -1,5 +1,9 @@
 import Foundation
+#if canImport(UIKit)
 import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
 import RealityKit
 import simd
 import struct SpiralGeometry.SleepTrajectoryAnalysis
@@ -15,10 +19,23 @@ enum NeuroSpiralTorusSceneBuilder {
 
     // MARK: - 4D → 3D Projection
 
-    /// Stereographic projection from the Clifford torus in R4 to R3.
-    /// The w4DAngle parameter rotates in the xw-plane before projecting,
-    /// revealing different cross-sections of the 4D structure.
+    /// Major and minor radii for the 3D torus embedding.
+    private static let majorRadius: Float = 0.35
+    private static let minorRadius: Float = 0.15
+
+    /// Torus embedding: maps Clifford torus angles (θ, φ) to a standard 3D donut.
+    ///
+    ///   x = (R + r·cos(φ)) · cos(θ)
+    ///   y = r · sin(φ)
+    ///   z = (R + r·cos(φ)) · sin(θ)
+    ///
+    /// θ = atan2(y4, x4) — angle in the xy-plane of ℝ⁴
+    /// φ = atan2(w4, z4) — angle in the zw-plane of ℝ⁴
+    ///
+    /// The w4DAngle parameter rotates in the xw-plane before extracting angles,
+    /// twisting the pattern on the donut surface.
     static func project4Dto3D(_ p: SIMD4<Float>, w4DAngle: Float) -> SIMD3<Float> {
+        // Rotate in xw-plane to reveal different cross-sections
         let cosW = cos(w4DAngle), sinW = sin(w4DAngle)
         let rotated = SIMD4<Float>(
             p.x * cosW - p.w * sinW,
@@ -26,9 +43,19 @@ enum NeuroSpiralTorusSceneBuilder {
             p.z,
             p.x * sinW + p.w * cosW
         )
-        let denom: Float = max(0.1, 2.0 - rotated.w * 0.3)
-        let scale: Float = 2.0 / denom
-        return SIMD3<Float>(rotated.x * scale, rotated.y * scale, rotated.z * scale)
+
+        // Extract torus angles from the 4D point
+        let theta = atan2(rotated.y, rotated.x) // major angle (around the donut)
+        let phi = atan2(rotated.w, rotated.z)     // minor angle (around the tube)
+
+        // Standard 3D torus embedding
+        let R = majorRadius
+        let r = minorRadius
+        let x = (R + r * cos(phi)) * cos(theta)
+        let y = r * sin(phi)
+        let z = (R + r * cos(phi)) * sin(theta)
+
+        return SIMD3<Float>(x, y, z)
     }
 
     // MARK: - Build Scene
@@ -64,42 +91,33 @@ enum NeuroSpiralTorusSceneBuilder {
     // MARK: - Wireframe
 
     private static func addWireframe(to root: Entity, w4DAngle: Float) {
-        let uSteps = 32
-        let vSteps = 16
-        let R: Float = sqrt(2.0)  // Clifford torus radius (matches tesseract vertices)
+        let R: Float = sqrt(2.0)
+        let ringPoints = 48  // smooth circles
 
-        // Major circles (rings along u parameter)
-        for i in 0..<uSteps {
-            let u = Float(i) / Float(uSteps) * .pi * 2
+        // 8 rings around the tube (major circles, fixed u, sweep v)
+        for i in 0..<8 {
+            let u = Float(i) / 8.0 * .pi * 2
             var points: [SIMD3<Float>] = []
-            for j in 0...vSteps {
-                let v = Float(j) / Float(vSteps) * .pi * 2
+            for j in 0...ringPoints {
+                let v = Float(j) / Float(ringPoints) * .pi * 2
                 let p4 = SIMD4<Float>(R * cos(u), R * sin(u), R * cos(v), R * sin(v))
                 points.append(project4Dto3D(p4, w4DAngle: w4DAngle))
             }
-            if let entity = lineEntity(
-                points: points,
-                color: .gray.withAlphaComponent(0.06),
-                radius: 0.003
-            ) {
+            if let entity = lineEntity(points: points, color: .gray.withAlphaComponent(0.04), radius: 0.001) {
                 root.addChild(entity)
             }
         }
 
-        // Minor circles (rings along v parameter) — fewer for visual clarity
-        for j in stride(from: 0, to: vSteps, by: 2) {
-            let v = Float(j) / Float(vSteps) * .pi * 2
+        // 4 rings around the donut (minor circles, fixed v, sweep u)
+        for j in 0..<4 {
+            let v = Float(j) / 4.0 * .pi * 2
             var points: [SIMD3<Float>] = []
-            for i in 0...uSteps {
-                let u = Float(i) / Float(uSteps) * .pi * 2
+            for i in 0...ringPoints {
+                let u = Float(i) / Float(ringPoints) * .pi * 2
                 let p4 = SIMD4<Float>(R * cos(u), R * sin(u), R * cos(v), R * sin(v))
                 points.append(project4Dto3D(p4, w4DAngle: w4DAngle))
             }
-            if let entity = lineEntity(
-                points: points,
-                color: .gray.withAlphaComponent(0.04),
-                radius: 0.002
-            ) {
+            if let entity = lineEntity(points: points, color: .gray.withAlphaComponent(0.03), radius: 0.001) {
                 root.addChild(entity)
             }
         }
@@ -188,7 +206,7 @@ enum NeuroSpiralTorusSceneBuilder {
             let p3 = project4Dto3D(p4, w4DAngle: w4DAngle)
 
             let isDominant = vertex.index == dominantIndex
-            let radius: Float = isDominant ? 0.035 : 0.02
+            let radius: Float = isDominant ? 0.02 : 0.008
             let sphere = MeshResource.generateSphere(radius: radius)
 
             var mat = PhysicallyBasedMaterial()

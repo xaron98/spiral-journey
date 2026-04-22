@@ -31,11 +31,38 @@ struct NeuroSpiralTorus3DView: View {
 
             // 4D rotation angle slider
             w4DSlider
+
+            // Legend
+            torusLegend
         }
         .onDisappear {
             manager.stopDisplayLink()
         }
     }
+
+    private var torusLegend: some View {
+        VStack(spacing: 4) {
+            HStack(spacing: 14) {
+                legendDot(String(localized: "neurospiral.3d.legend.trajectory", defaultValue: "Your sleep journey", bundle: bundle), color: Color(hex: "4a7ab5"))
+                legendDot(String(localized: "neurospiral.3d.legend.position", defaultValue: "Most visited", bundle: bundle), color: Color(red: 0.35, green: 1.0, blue: 0.65))
+                legendDot(String(localized: "neurospiral.3d.legend.reference", defaultValue: "Reference", bundle: bundle), color: .orange.opacity(0.6))
+            }
+            Text(String(localized: "neurospiral.3d.legend.explanation", defaultValue: "Each dot is a moment of your night on the sleep surface. Drag to rotate, pinch to zoom.", bundle: bundle))
+                .font(.system(size: 9))
+                .foregroundStyle(SpiralColors.muted)
+                .multilineTextAlignment(.center)
+        }
+        .padding(.horizontal)
+    }
+
+    private func legendDot(_ label: String, color: Color) -> some View {
+        HStack(spacing: 3) {
+            Circle().fill(color).frame(width: 6, height: 6)
+            Text(label).font(.system(size: 10)).foregroundStyle(SpiralColors.muted)
+        }
+    }
+
+    @Environment(\.languageBundle) private var bundle
 
     // MARK: - RealityView
 
@@ -61,8 +88,16 @@ struct NeuroSpiralTorus3DView: View {
             manager.rootEntity = root
             manager.startDisplayLink()
         } update: { _ in
-            // Transform handled by CADisplayLink at 60fps — nothing to do here.
-            // This closure only runs when observed state (selectedEpochIndex) changes.
+            // Rebuild geometry when w4DAngle changes (slider interaction)
+            guard let root = manager.rootEntity else { return }
+            let oldChildren = Array(root.children)
+            for child in oldChildren { child.removeFromParent() }
+            let rebuilt = NeuroSpiralTorusSceneBuilder.build(
+                analysis: analysis,
+                w4DAngle: manager.w4DAngle
+            )
+            let newChildren = Array(rebuilt.children)
+            for child in newChildren { root.addChild(child) }
         }
     }
 
@@ -116,7 +151,7 @@ struct NeuroSpiralTorus3DView: View {
                     manager.isInteracting = true
                     manager.baseZoom = manager.zoomScale
                 }
-                manager.zoomScale = max(0.3, min(3.0, manager.baseZoom * Float(value.magnification)))
+                manager.zoomScale = max(0.15, min(4.0, manager.baseZoom * Float(value.magnification)))
             }
             .onEnded { _ in
                 manager.isInteracting = false

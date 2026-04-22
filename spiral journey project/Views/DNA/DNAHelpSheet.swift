@@ -79,7 +79,9 @@ struct DNAHelpSheet: View {
                 .padding(20)
             }
             .background(SpiralColors.bg.ignoresSafeArea())
+            #if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button { dismiss() } label: {

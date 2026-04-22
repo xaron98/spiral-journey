@@ -48,7 +48,9 @@ struct NeuroSpiralView: View {
                 }
             }
             .navigationTitle(loc("neurospiral.title"))
+            #if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button { dismiss() } label: {
@@ -57,7 +59,7 @@ struct NeuroSpiralView: View {
                             .foregroundStyle(SpiralColors.muted)
                     }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .confirmationAction) {
                     Button { showingInfo = true } label: {
                         Image(systemName: "info.circle")
                             .foregroundStyle(SpiralColors.accent)
@@ -384,7 +386,14 @@ struct NeuroSpiralView: View {
                         body: loc("neurospiral.info.practical.body")
                     )
 
-                    // 11. Limitations
+                    // 11. Data source & methodology
+                    infoSection(
+                        icon: "applewatch", iconColor: .teal,
+                        title: loc("neurospiral.info.datasource.title"),
+                        body: loc("neurospiral.info.datasource.body")
+                    )
+
+                    // 12. Limitations
                     infoSection(
                         icon: "exclamationmark.triangle", iconColor: SpiralColors.muted,
                         title: loc("neurospiral.info.limits.title"),
@@ -402,9 +411,11 @@ struct NeuroSpiralView: View {
             }
             .background(SpiralColors.bg.ignoresSafeArea())
             .navigationTitle(loc("neurospiral.info.nav"))
+            #if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .confirmationAction) {
                     Button("OK") { showingInfo = false }
                 }
             }
@@ -505,57 +516,104 @@ struct NeuroSpiralView: View {
 
     /// Build WearableSleepSample from SleepRecord phases + NightlyHRV.
     ///
-    /// Uses real phase data (15-min intervals) to generate epoch-level samples
-    /// with phase-modulated HRV and HR values.
+    /// Uses a physiological random walk driven by the real phase sequence.
+    /// Within each phase, features drift smoothly (90% previous + 10% target + noise).
+    /// Transitions between phases interpolate over 3-4 epochs for continuity.
     private func buildSamplesFromRecords(
         _ records: [SleepRecord],
         hrvData: [NightlyHRV]
     ) -> [WearableSleepSample] {
-        // Use last 7 records
         let recentRecords = records.suffix(7)
         let calendar = Calendar.current
         let isoFmt = ISO8601DateFormatter()
         var samples: [WearableSleepSample] = []
 
-        // Build date→HRV lookup
         var hrvByDate: [String: Double] = [:]
         for hrv in hrvData {
-            let key = isoFmt.string(from: calendar.startOfDay(for: hrv.date))
-            hrvByDate[key] = hrv.meanSDNN
+            hrvByDate[isoFmt.string(from: calendar.startOfDay(for: hrv.date))] = hrv.meanSDNN
         }
 
+        // Phase-specific targets: (hrvMod, hrMod, motionMod)
+        let phaseTargets: [SleepPhase: (Double, Double, Double)] = [
+            .deep:  (1.40, 0.82, 0.008),  // strongest HRV, slowest HR, stillest
+            .light: (1.15, 0.90, 0.020),   // moderate
+            .rem:   (0.85, 0.97, 0.035),   // lower HRV, slightly faster HR
+            .awake: (0.65, 1.12, 0.18),    // lowest HRV, fastest HR, most motion
+        ]
+
+        // Phase-specific dispersions (std of the random walk noise)
+        let phaseStd: [SleepPhase: Double] = [
+            .awake: 0.147, .light: 0.192, .deep: 0.152, .rem: 0.185
+        ]
+
         for record in recentRecords {
-            let dateKey = isoFmt.string(from: calendar.startOfDay(for: record.date))
-            let nightHRV = hrvByDate[dateKey] ?? 50.0
+            let nightHRV = hrvByDate[isoFmt.string(from: calendar.startOfDay(for: record.date))] ?? 50.0
 
-            // Each phase is a 15-min interval — generate 30 sub-epochs (30s each)
+            // Running state for the random walk
+            var currentHRV = nightHRV * 0.65   // start near Wake
+            var currentHR  = 65.0 * 1.12
+            var currentMotion = 0.18
+            var prevPhase: SleepPhase? = nil
+            var transitionProgress = 0  // counts epochs during a transition
+
             for phase in record.phases {
-                let phaseDate = record.date
-                let baseHour = phase.hour
-                let sleepPhase = mapPhase(phase.phase)
+                let target = phaseTargets[phase.phase] ?? (1.0, 1.0, 0.05)
+                let std = phaseStd[phase.phase] ?? 0.15
+                let sleepStage = mapPhase(phase.phase)
 
-                // Phase-dependent modulation
-                let (hrvMod, hrMod, motionMod) = phaseModulation(sleepPhase)
+                // Detect phase transition
+                let isTransition = prevPhase != nil && prevPhase != phase.phase
+                if isTransition { transitionProgress = 0 }
+                let transitionEpochs = 4  // interpolate over 4 epochs
 
                 // Generate 30 epochs of 30s within this 15-min interval
                 for epoch in 0..<30 {
-                    let secondsOffset = baseHour * 3600 + Double(epoch) * 30
-                    let timestamp = calendar.startOfDay(for: phaseDate)
+                    let secondsOffset = phase.hour * 3600 + Double(epoch) * 30
+                    let timestamp = calendar.startOfDay(for: record.date)
                         .addingTimeInterval(secondsOffset)
 
-                    let jitter = Double.random(in: -0.1...0.1)
-                    let hrv = max(5, nightHRV * hrvMod + jitter * 10)
-                    let hr = max(40, 65 * hrMod + jitter * 5)
-                    let motion = max(0, motionMod + Double.random(in: -0.02...0.02))
+                    // Target values for this phase
+                    let targetHRV = nightHRV * target.0
+                    let targetHR  = 65.0 * target.1
+                    let targetMotion = target.2
+
+                    // Random walk: 90% previous + 10% target + gaussian noise
+                    let drift = 0.10  // attraction toward target
+                    let momentum = 0.90  // carry-over from previous epoch
+
+                    // Gaussian-ish noise (Box-Muller approximation via uniform sum)
+                    let noise = (Double.random(in: -1...1) + Double.random(in: -1...1)) / 2.0 * std
+
+                    // Transition interpolation: during first 4 epochs of a new phase,
+                    // blend more strongly toward target
+                    let transitionBlend: Double
+                    if transitionProgress < transitionEpochs {
+                        transitionBlend = Double(transitionProgress + 1) / Double(transitionEpochs)
+                        transitionProgress += 1
+                    } else {
+                        transitionBlend = 1.0
+                    }
+
+                    let effectiveDrift = drift + (1.0 - transitionBlend) * 0.3  // stronger pull during transition
+
+                    currentHRV = currentHRV * (1.0 - effectiveDrift) + targetHRV * effectiveDrift + noise * nightHRV * 0.1
+                    currentHR  = currentHR  * (1.0 - effectiveDrift) + targetHR  * effectiveDrift + noise * 5.0
+                    currentMotion = currentMotion * (1.0 - effectiveDrift) + targetMotion * effectiveDrift + abs(noise) * 0.03
+
+                    // Clamp to physiological ranges
+                    let hrv = max(5, min(120, currentHRV))
+                    let hr  = max(40, min(100, currentHR))
+                    let motion = max(0, min(1.0, currentMotion))
 
                     samples.append(WearableSleepSample(
                         hrv: hrv,
                         heartRate: hr,
                         motionIntensity: motion,
-                        sleepStage: sleepPhase,
+                        sleepStage: sleepStage,
                         timestamp: timestamp
                     ))
                 }
+                prevPhase = phase.phase
             }
         }
 
@@ -627,38 +685,8 @@ struct NeuroSpiralView: View {
         _ record: SleepRecord,
         hrvData: [NightlyHRV]
     ) -> [WearableSleepSample] {
-        let calendar = Calendar.current
-        let isoFmt = ISO8601DateFormatter()
-        var hrvByDate: [String: Double] = [:]
-        for hrv in hrvData {
-            let key = isoFmt.string(from: calendar.startOfDay(for: hrv.date))
-            hrvByDate[key] = hrv.meanSDNN
-        }
-
-        let dateKey = isoFmt.string(from: calendar.startOfDay(for: record.date))
-        let nightHRV = hrvByDate[dateKey] ?? 50.0
-        var samples: [WearableSleepSample] = []
-
-        for phase in record.phases {
-            let sleepPhase = mapPhase(phase.phase)
-            let (hrvMod, hrMod, motionMod) = phaseModulation(sleepPhase)
-
-            for epoch in 0..<30 {
-                let secondsOffset = phase.hour * 3600 + Double(epoch) * 30
-                let timestamp = calendar.startOfDay(for: record.date)
-                    .addingTimeInterval(secondsOffset)
-
-                let jitter = Double.random(in: -0.1...0.1)
-                samples.append(WearableSleepSample(
-                    hrv: max(5, nightHRV * hrvMod + jitter * 10),
-                    heartRate: max(40, 65 * hrMod + jitter * 5),
-                    motionIntensity: max(0, motionMod + Double.random(in: -0.02...0.02)),
-                    sleepStage: sleepPhase,
-                    timestamp: timestamp
-                ))
-            }
-        }
-        return samples
+        // Delegate to the main builder with a single-record array
+        return buildSamplesFromRecords([record], hrvData: hrvData)
     }
 
     private func writeWatchData(analysis: SleepTrajectoryAnalysis, defaults: UserDefaults?) {

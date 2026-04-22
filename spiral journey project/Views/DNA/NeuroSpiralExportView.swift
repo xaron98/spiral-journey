@@ -25,7 +25,9 @@ struct NeuroSpiralExportView: View {
         }
         .background(SpiralColors.bg.ignoresSafeArea())
         .navigationTitle(loc("neurospiral.export.title"))
+        #if !os(macOS)
         .navigationBarTitleDisplayMode(.inline)
+        #endif
         .task { generateCSV() }
     }
 

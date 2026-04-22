@@ -51,7 +51,9 @@ struct SleepTriangleView: View {
                 }
             }
             .navigationTitle(loc("triangle.title"))
+            #if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button { dismiss() } label: {
@@ -110,36 +112,78 @@ struct SleepTriangleView: View {
             drawLabel(context: context, text: loc("triangle.pole.active"), at: CGPoint(x: active.x + 4, y: active.y + 12), color: Color(hex: "a78bfa"))
             drawLabel(context: context, text: loc("triangle.pole.deep"), at: CGPoint(x: deep.x - 4, y: deep.y + 12), color: Color(hex: "1a2a6e"))
 
-            // Epoch points + trajectory
+            // Zone tints: soft colored gradient near each pole
+            let zoneAlpha: CGFloat = 0.06
+            // Wake zone (top third)
+            var wakePath = Path()
+            wakePath.move(to: wake)
+            wakePath.addLine(to: lerp(wake, active, t: 0.4))
+            wakePath.addLine(to: lerp(wake, deep, t: 0.4))
+            wakePath.closeSubpath()
+            context.fill(wakePath, with: .color(Color(hex: "d4a860").opacity(zoneAlpha)))
+
+            // Active zone (bottom-right third)
+            var activePath = Path()
+            activePath.move(to: active)
+            activePath.addLine(to: lerp(active, wake, t: 0.4))
+            activePath.addLine(to: lerp(active, deep, t: 0.4))
+            activePath.closeSubpath()
+            context.fill(activePath, with: .color(Color(hex: "a78bfa").opacity(zoneAlpha)))
+
+            // Deep zone (bottom-left third)
+            var deepPath = Path()
+            deepPath.move(to: deep)
+            deepPath.addLine(to: lerp(deep, wake, t: 0.4))
+            deepPath.addLine(to: lerp(deep, active, t: 0.4))
+            deepPath.closeSubpath()
+            context.fill(deepPath, with: .color(Color(hex: "7B68EE").opacity(zoneAlpha)))
+
+            // Epoch points (no trail lines — playback button shows trajectory)
             let count = visibleCount > 0 ? min(visibleCount, epochs.count) : epochs.count
             guard count > 0 else { return }
 
-            // Trail lines
-            if count >= 2 {
-                for i in 1..<count {
-                    let from = baryToScreen(epochs[i - 1].bary, wake: wake, active: active, deep: deep)
-                    let to = baryToScreen(epochs[i].bary, wake: wake, active: active, deep: deep)
-                    let opacity = visibleCount > 0 ? (i > count - 30 ? Double(i - (count - 30)) / 30.0 : 0.05) : 0.08
-                    var linePath = Path()
-                    linePath.move(to: from)
-                    linePath.addLine(to: to)
-                    context.stroke(linePath, with: .color(.white.opacity(opacity * 0.5)), lineWidth: 1)
-                }
-            }
+            // Points: draw non-deep first, then deep on top (z-order)
+            for pass in 0...1 {
+                let isDeepPass = pass == 1
+                for i in 0..<count {
+                    let epoch = epochs[i]
+                    let epochIsDeep = epoch.phase == .deep
+                    guard epochIsDeep == isDeepPass else { continue }
 
-            // Points
-            for i in 0..<count {
-                let epoch = epochs[i]
-                let pt = baryToScreen(epoch.bary, wake: wake, active: active, deep: deep)
-                let isHead = visibleCount > 0 && i == count - 1
-                let radius: CGFloat = isHead ? 5 : 2.5
-                let alpha: CGFloat = isHead ? 1.0 : (visibleCount > 0 ? 0.3 : 0.5)
-                let rect = CGRect(x: pt.x - radius, y: pt.y - radius, width: radius * 2, height: radius * 2)
-                context.fill(Path(ellipseIn: rect), with: .color(epoch.color.opacity(alpha)))
+                    let pt = baryToScreen(epoch.bary, wake: wake, active: active, deep: deep)
+                    let isHead = visibleCount > 0 && i == count - 1
 
-                if isHead {
-                    let glowRect = CGRect(x: pt.x - 8, y: pt.y - 8, width: 16, height: 16)
-                    context.fill(Path(ellipseIn: glowRect), with: .color(epoch.color.opacity(0.2)))
+                    // Temporal opacity: earlier epochs more transparent, later more opaque
+                    let timeFraction = Double(i) / Double(max(1, count - 1))
+                    let baseAlpha: CGFloat
+                    if isHead {
+                        baseAlpha = 1.0
+                    } else if visibleCount > 0 {
+                        baseAlpha = 0.15 + timeFraction * 0.5
+                    } else {
+                        baseAlpha = 0.2 + timeFraction * 0.5
+                    }
+
+                    // Deep points: larger (5px), others: normal (2.5px), head: 6px
+                    let baseRadius: CGFloat = epochIsDeep ? 5 : 2.5
+                    let radius: CGFloat = isHead ? 6 : baseRadius
+
+                    let color = epochIsDeep ? Color(hex: "7B68EE") : epoch.color
+
+                    // White border for deep points
+                    if epochIsDeep {
+                        let borderRect = CGRect(x: pt.x - radius - 1, y: pt.y - radius - 1,
+                                                width: (radius + 1) * 2, height: (radius + 1) * 2)
+                        context.fill(Path(ellipseIn: borderRect), with: .color(.white.opacity(baseAlpha * 0.7)))
+                    }
+
+                    let rect = CGRect(x: pt.x - radius, y: pt.y - radius, width: radius * 2, height: radius * 2)
+                    context.fill(Path(ellipseIn: rect), with: .color(color.opacity(baseAlpha)))
+
+                    if isHead {
+                        let glowRect = CGRect(x: pt.x - 9, y: pt.y - 9, width: 18, height: 18)
+                        context.fill(Path(ellipseIn: glowRect), with: .color(color.opacity(0.2)))
+                    }
                 }
             }
         }
@@ -324,15 +368,30 @@ struct SleepTriangleView: View {
         var prevBary: (Double, Double, Double)?
 
         for record in recent {
-            for phase in record.phases {
+            // Detect sleep window: first non-awake phase after 20:00 → last non-awake before 12:00
+            let sleepPhases = extractSleepWindow(from: record)
+
+            #if DEBUG
+            let totalInRecord = record.phases.count
+            var counts: [SleepPhase: Int] = [.deep: 0, .light: 0, .rem: 0, .awake: 0]
+            for p in sleepPhases { counts[p.phase, default: 0] += 1 }
+            let n = max(1, sleepPhases.count)
+            let bedStr = sleepPhases.first.map { String(format: "%02d:%02d", Int($0.hour), Int($0.hour.truncatingRemainder(dividingBy: 1) * 60)) } ?? "--:--"
+            let wakeStr = sleepPhases.last.map { String(format: "%02d:%02d", Int($0.hour), Int($0.hour.truncatingRemainder(dividingBy: 1) * 60)) } ?? "--:--"
+            let durH = Double(sleepPhases.count) * 0.25
+            print("[TRIANGLE] Night \(record.day): \(totalInRecord) total → \(sleepPhases.count) sleep-only (\(String(format: "%.1f", durH))h, \(bedStr)→\(wakeStr)). deep=\(counts[.deep]!) (\(counts[.deep]! * 100 / n)%) light=\(counts[.light]!) (\(counts[.light]! * 100 / n)%) rem=\(counts[.rem]!) (\(counts[.rem]! * 100 / n)%) awake=\(counts[.awake]!) (\(counts[.awake]! * 100 / n)%)")
+            #endif
+
+            for phase in sleepPhases {
                 // Empirical barycentric center for this phase (validated with 155+ subjects)
                 let center = BarycentricCalculator.empiricalCenter(for: phase.phase)
                 let std = BarycentricCalculator.empiricalStd(for: phase.phase)
 
-                // Gaussian noise with phase-specific std
-                let noiseW = Double.random(in: -1...1) * std
-                let noiseA = Double.random(in: -1...1) * std
-                let noiseD = Double.random(in: -1...1) * std
+                // Gaussian noise with phase-specific std (scaled to 60% for tighter clusters)
+                let scale = 0.6
+                let noiseW = Double.random(in: -1...1) * std * scale
+                let noiseA = Double.random(in: -1...1) * std * scale
+                let noiseD = Double.random(in: -1...1) * std * scale
 
                 var rawW = center.0 + noiseW
                 var rawA = center.1 + noiseA
@@ -343,9 +402,10 @@ struct SleepTriangleView: View {
                 let total = rawW + rawA + rawD
                 var bary = total > 0 ? (rawW / total, rawA / total, rawD / total) : (0.33, 0.33, 0.34)
 
-                // Gradual transition: interpolate with previous epoch over 2-3 epochs
-                if let prev = prevBary {
-                    let blend = 0.6  // 60% new, 40% previous = smooth transition
+                // Blend: deep epochs go unblended (reach their pole).
+                // Other phases use light 95/5 blend for smooth transitions.
+                if phase.phase != .deep, let prev = prevBary {
+                    let blend = 0.95
                     bary = (
                         bary.0 * blend + prev.0 * (1 - blend),
                         bary.1 * blend + prev.1 * (1 - blend),
@@ -354,6 +414,11 @@ struct SleepTriangleView: View {
                 }
                 prevBary = bary
 
+                #if DEBUG
+                if phase.phase == .deep && result.count < 5 {
+                    print("[TRIANGLE] N3 epoch: center=(\(String(format: "%.2f", center.0)), \(String(format: "%.2f", center.1)), \(String(format: "%.2f", center.2))) noise=(\(String(format: "%.2f", noiseW)), \(String(format: "%.2f", noiseA)), \(String(format: "%.2f", noiseD))) → bary=(\(String(format: "%.2f", bary.0)), \(String(format: "%.2f", bary.1)), \(String(format: "%.2f", bary.2)))")
+                }
+                #endif
                 let color = phaseColor(phase.phase)
                 let timestamp = calendar.startOfDay(for: record.date)
                     .addingTimeInterval(phase.hour * 3600)
@@ -364,6 +429,45 @@ struct SleepTriangleView: View {
 
         epochs = result
         isLoading = false
+    }
+
+    /// Extract the main sleep block from a record — schedule-agnostic.
+    ///
+    /// Finds the longest continuous block of non-awake phases (allowing up to
+    /// 1 isolated awake interval of 15 min inside the block). Works for any
+    /// schedule: night workers, siestas, split sleep.
+    private func extractSleepWindow(from record: SleepRecord) -> [PhaseInterval] {
+        let phases = record.phases
+        guard !phases.isEmpty else { return [] }
+
+        // Build runs of consecutive sleep (non-awake) phases.
+        // A single .awake between two non-awake phases is absorbed into the block
+        // (nocturnal awakening). Two or more consecutive .awake phases break the block.
+        var blocks: [[PhaseInterval]] = []
+        var current: [PhaseInterval] = []
+
+        for (i, phase) in phases.enumerated() {
+            if phase.phase != .awake {
+                current.append(phase)
+            } else {
+                // Check if this awake is isolated (next phase is non-awake)
+                let nextIsSleep = i + 1 < phases.count && phases[i + 1].phase != .awake
+                if nextIsSleep && !current.isEmpty {
+                    // Absorb this single awake as a brief nocturnal awakening
+                    current.append(phase)
+                } else if !current.isEmpty {
+                    // Two+ consecutive awakes → end this block
+                    blocks.append(current)
+                    current = []
+                }
+                // Else: leading awakes before any sleep → skip
+            }
+        }
+        if !current.isEmpty { blocks.append(current) }
+
+        // Return the longest block (main sleep period)
+        guard let longest = blocks.max(by: { $0.count < $1.count }) else { return [] }
+        return longest
     }
 
     private func phaseColor(_ phase: SleepPhase) -> Color {

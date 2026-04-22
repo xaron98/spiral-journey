@@ -44,30 +44,46 @@ final class HelixInteractionManager {
 
     // MARK: - Display Link
 
+    #if os(macOS)
+    @ObservationIgnored private var displayTimer: Timer?
+    #else
     @ObservationIgnored private var displayLink: CADisplayLink?
+    #endif
     private let autoRotationSpeed: Float = 0.003
 
     func startDisplayLink() {
+        #if os(macOS)
+        guard displayTimer == nil else { return }
+        displayTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 60.0, repeats: true) { [weak self] _ in
+            self?.tick()
+        }
+        #else
         guard displayLink == nil else { return }
         let link = CADisplayLink(target: self, selector: #selector(displayLinkTick))
         link.preferredFrameRateRange = CAFrameRateRange(minimum: 30, maximum: 60, preferred: 60)
         link.add(to: .main, forMode: .common)
         displayLink = link
+        #endif
     }
 
     func stopDisplayLink() {
+        #if os(macOS)
+        displayTimer?.invalidate()
+        displayTimer = nil
+        #else
         displayLink?.invalidate()
         displayLink = nil
+        #endif
     }
 
-    @objc private func displayLinkTick() {
-        // Auto-rotate when idle
-        if !isInteracting {
-            rotationY += autoRotationSpeed
-        }
-        // Apply transform directly to entity — no SwiftUI involved
+    private func tick() {
+        if !isInteracting { rotationY += autoRotationSpeed }
         rootEntity?.transform = sceneTransform
     }
+
+    #if !os(macOS)
+    @objc private func displayLinkTick() { tick() }
+    #endif
 
     // MARK: - Computed Transform
 

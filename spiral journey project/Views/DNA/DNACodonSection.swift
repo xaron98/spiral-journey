@@ -191,7 +191,9 @@ private struct CodonHelpSheet: View {
             }
             .background(SpiralColors.bg.ignoresSafeArea())
             .navigationTitle(loc("codon.help.title"))
+            #if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button { dismiss() } label: {

@@ -131,7 +131,9 @@ struct WeeklyQuestionnaireView: View {
                 .padding(.bottom, 40)
             }
             .background(SpiralColors.bg.ignoresSafeArea())
+            #if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button {

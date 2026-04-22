@@ -107,9 +107,11 @@ struct DNAInfoSheetView: View {
             }
             .background(SpiralColors.bg.ignoresSafeArea())
             .navigationTitle(loc("dna.info.nav"))
+            #if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .confirmationAction) {
                     Button("OK") { dismiss() }
                 }
             }

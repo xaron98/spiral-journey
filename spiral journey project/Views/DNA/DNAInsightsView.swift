@@ -33,7 +33,9 @@ struct DNAInsightsView: View {
                 }
             }
             .navigationTitle(loc("dna.nav.title"))
+            #if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button { dismiss() } label: {
@@ -42,7 +44,7 @@ struct DNAInsightsView: View {
                             .foregroundStyle(SpiralColors.muted)
                     }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .confirmationAction) {
                     HStack(spacing: 16) {
                         Button { showDNAInfo = true } label: {
                             Image(systemName: "info.circle")

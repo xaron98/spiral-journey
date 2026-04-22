@@ -30,9 +30,11 @@ struct NeuroSpiralTorusDetailView: View {
         }
         .background(SpiralColors.bg.ignoresSafeArea())
         .navigationTitle(loc("neurospiral.torus.title"))
+        #if !os(macOS)
         .navigationBarTitleDisplayMode(.inline)
+        #endif
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: .confirmationAction) {
                 Picker("", selection: $show3D) {
                     Image(systemName: "square.grid.2x2").tag(false)
                     Image(systemName: "cube").tag(true)
@@ -47,22 +49,7 @@ struct NeuroSpiralTorusDetailView: View {
 
     @ViewBuilder
     private var torus3DContent: some View {
-        if #available(iOS 18.0, *) {
-            NeuroSpiralTorus3DView(analysis: analysis)
-        } else {
-            VStack(spacing: 8) {
-                Image(systemName: "cube.transparent")
-                    .font(.title)
-                    .foregroundStyle(SpiralColors.muted)
-                Text(loc("neurospiral.torus.requires_ios18"))
-                    .font(.footnote)
-                    .foregroundStyle(SpiralColors.muted)
-                    .multilineTextAlignment(.center)
-            }
-            .frame(height: 280)
-            .frame(maxWidth: .infinity)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
-        }
+        NeuroSpiralSceneKitTorusView(analysis: analysis, animated: false)
     }
 
     // MARK: - Torus Projection

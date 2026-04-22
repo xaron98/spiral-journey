@@ -1,6 +1,10 @@
 import SwiftUI
 import RealityKit
+#if canImport(UIKit)
 import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
 import SpiralKit
 import struct SpiralGeometry.SleepTrajectoryAnalysis
 import enum SpiralGeometry.Tesseract
