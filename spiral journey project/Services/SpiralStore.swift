@@ -809,6 +809,12 @@ final class SpiralStore {
                 if self.notificationsEnabled {
                     Task { await self.updateWeeklyDigest() }
                 }
+                // Refresh nightly HRV in the background — previously this
+                // was never called, so hrvData stayed empty forever even
+                // when the user had weeks of Apple Watch HRV samples in
+                // HealthKit. Pulls the last `numDays` worth each time
+                // records change.
+                Task { await self.refreshHRV() }
                 // Update sleep prediction (no-op if flag is off)
                 PredictionService.generatePrediction(
                     store: self,
