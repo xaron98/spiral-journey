@@ -269,11 +269,18 @@ final class NeuroSpiralSceneKitScene {
             self.currentIndex = (self.currentIndex + 1) % self.trajectoryPoints.count
             self.updateDotPosition()
         }
+        // Resume the SCNAction rotation on the torus parent. Without this
+        // the donut keeps spinning offscreen even after stopAnimation().
+        torusParent.isPaused = false
     }
 
     func stopAnimation() {
         animationTimer?.invalidate()
         animationTimer = nil
+        // Pause the SCNAction rotation as well — not just the Timer-driven
+        // trajectory scrubber. Prevents CPU drain when the view is not
+        // visible (e.g. inside a dismissed sheet or offscreen pager child).
+        torusParent.isPaused = true
     }
 
     var isAnimating: Bool { animationTimer?.isValid ?? false }
