@@ -127,15 +127,9 @@ struct SpiralModeView: View {
         nonmutating set { interaction.zoomNorm = newValue }
     }
 
-    @ViewBuilder
     var body: some View {
-        if isActive {
+        LazyModeView(isActive: isActive) {
             activeBody
-        } else {
-            // Inactive — render a placeholder so @State and the interaction
-            // manager persist, but skip the expensive Canvas + stats + store
-            // observations that would otherwise fire on every store mutation.
-            SpiralColors.bg.ignoresSafeArea()
         }
     }
 

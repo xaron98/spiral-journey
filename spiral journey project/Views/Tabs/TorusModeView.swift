@@ -42,6 +42,12 @@ struct TorusModeView: View {
     #endif
 
     var body: some View {
+        LazyModeView(isActive: isActive) {
+            torusContent
+        }
+    }
+
+    private var torusContent: some View {
         ZStack {
             // SceneKit view — transparent background
             TransparentSceneView(scene: scene.scene, pointOfView: scene.cameraNode)
