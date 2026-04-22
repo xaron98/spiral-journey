@@ -18,12 +18,12 @@ import SpiralKit
 ///   pager. Content is only rendered (and the loader timer only armed)
 ///   while active — matches the lazy-body optimization in each mode.
 /// - `delay`: how long the loader stays visible before fading the real
-///   content in. Long enough that the parent TabView's page transition
-///   has completed and SwiftUI has started building the subtree.
+///   content in. Long enough that the SpiralLoaderView completes ~1
+///   breathe cycle so the user sees it animate.
 struct LazyModeView<Content: View>: View {
 
     let isActive: Bool
-    var delay: Duration = .milliseconds(450)
+    var delay: Duration = .milliseconds(900)
     var loaderColor: Color = SpiralColors.accent
     @ViewBuilder let content: () -> Content
 
@@ -37,16 +37,20 @@ struct LazyModeView<Content: View>: View {
             SpiralColors.bg.ignoresSafeArea()
 
             if isActive {
+                // Heavy content is always built when active; we just hide
+                // it behind the loader until primed. Important: no ancestor
+                // .animation(...) modifier on this ZStack — it would flatten
+                // the loader's internal TimelineView progression.
                 content()
                     .opacity(contentReady ? 1 : 0)
+                    .animation(.easeOut(duration: 0.28), value: contentReady)
 
                 if !contentReady {
                     SpiralLoaderView(color: loaderColor)
-                        .transition(.opacity)
+                        .transition(.opacity.animation(.easeOut(duration: 0.2)))
                 }
             }
         }
-        .animation(.easeOut(duration: 0.28), value: contentReady)
         .task(id: isActive) {
             if isActive {
                 contentReady = false
