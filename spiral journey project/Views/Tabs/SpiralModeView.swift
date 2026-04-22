@@ -347,9 +347,9 @@ struct SpiralModeView: View {
                         // gap but drops the pill visually into the action
                         // cluster.
                         #if os(macOS)
-                        .padding(.bottom, 80)
+                        .padding(.bottom, 65)
                         #else
-                        .padding(.bottom, 115)
+                        .padding(.bottom, 95)
                         #endif
                 }
 
