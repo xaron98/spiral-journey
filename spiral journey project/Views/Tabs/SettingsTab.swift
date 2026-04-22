@@ -154,7 +154,10 @@ struct SettingsTab: View {
                         } label: {
                             HStack(spacing: 8) {
                                 if let ct = store.chronotypeResult {
-                                    Text(ct.chronotype.emoji).font(.title3)
+                                    Image(systemName: ct.chronotype.sfSymbol)
+                                        .font(.title3)
+                                        .symbolRenderingMode(.hierarchical)
+                                        .foregroundStyle(SpiralColors.accent)
                                     Text(chronotypeLabel(ct.chronotype))
                                         .font(.subheadline.monospaced())
                                         .foregroundStyle(SpiralColors.text)

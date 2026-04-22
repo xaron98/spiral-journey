@@ -49,6 +49,20 @@ public enum Chronotype: String, Codable, CaseIterable, Sendable {
         }
     }
 
+    /// SF Symbol name — renders reliably across every iOS/macOS version
+    /// and font context, unlike the emoji variants which can fall back
+    /// to monochrome text glyphs or the "tofu box" missing-glyph marker
+    /// depending on the active system font.
+    public var sfSymbol: String {
+        switch self {
+        case .definiteMorning:  return "sunrise.fill"
+        case .moderateMorning:  return "sun.max.fill"
+        case .intermediate:     return "cloud.sun.fill"
+        case .moderateEvening:  return "moon.fill"
+        case .definiteEvening:  return "moon.stars.fill"
+        }
+    }
+
     /// Ideal bedtime range as (start, end) clock hours.
     public var idealBedRange: (Double, Double) {
         switch self {

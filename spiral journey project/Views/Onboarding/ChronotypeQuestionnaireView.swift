@@ -179,8 +179,13 @@ struct ChronotypeQuestionnaireView: View {
         // made the Continue button visibly wider than the ideal-schedule
         // card above it, which read as "not squared / not centered".
         VStack(spacing: 20) {
-            Text(result.chronotype.emoji)
+            // SF Symbol instead of emoji — reliable rendering on every
+            // iOS version and font context. Color-tinted with the accent
+            // so it reads as "this is your chronotype badge".
+            Image(systemName: result.chronotype.sfSymbol)
                 .font(.system(size: 56))
+                .symbolRenderingMode(.hierarchical)
+                .foregroundStyle(SpiralColors.accent)
 
             Text(chronotypeLocalizedName(result.chronotype))
                 .font(.title.weight(.light))

@@ -543,24 +543,29 @@ final class SpiralStore {
         // On the very first launch ever, start completely clean.
         // This ensures no leftover simulator/dev data appears to a real first-time user.
         #if targetEnvironment(simulator)
-        // The simulator normally wipes UserDefaults on every launch and
-        // injects 10 weeks of mock data — useful for App Store screenshots
-        // but it makes it impossible to test onboarding / empty states
-        // because the app never "starts from zero".
-        //
-        // Escape hatch: set the `SKIP_MOCK_DATA=1` environment variable in
-        // the Xcode scheme (Product → Scheme → Edit Scheme → Run →
-        // Environment Variables) to disable both the wipe and the mock
-        // injection. With it set, the simulator behaves like a real
-        // device — persistent UserDefaults + empty data on first launch.
-        let skipMockData = ProcessInfo.processInfo.environment["SKIP_MOCK_DATA"] == "1"
-        if !skipMockData {
-            // Simulator always starts completely fresh on every launch
+        // Default for the simulator now matches a real device: persistent
+        // UserDefaults, empty data until the user (or HealthKit) logs
+        // something. Mock data is opt-in via the `ENABLE_MOCK_DATA=1`
+        // environment variable in the Xcode scheme — flip it on only
+        // when capturing App Store screenshots.
+        let enableMockData = ProcessInfo.processInfo.environment["ENABLE_MOCK_DATA"] == "1"
+        if enableMockData {
+            // Screenshot mode: wipe UserDefaults so we always start from
+            // the same clean state before injecting the mock payload.
             if let bundleID = Bundle.main.bundleIdentifier {
                 UserDefaults.standard.removePersistentDomain(forName: bundleID)
             }
             UserDefaults.standard.synchronize()
             UserDefaults(suiteName: Self.appGroupID)?.removeObject(forKey: "spiral-journey-store")
+        } else {
+            // Real-device-like first-launch wipe: only if this scheme
+            // hasn't been through a full onboarding yet.
+            let launchedKey = "spiral-journey-has-launched-v2"
+            if !UserDefaults.standard.bool(forKey: launchedKey) {
+                UserDefaults.standard.removeObject(forKey: "spiral-journey-store")
+                UserDefaults(suiteName: Self.appGroupID)?.removeObject(forKey: "spiral-journey-store")
+                UserDefaults.standard.set(true, forKey: launchedKey)
+            }
         }
         #else
         let launchedKey = "spiral-journey-has-launched-v2"
@@ -574,10 +579,12 @@ final class SpiralStore {
         load()
 
         #if targetEnvironment(simulator)
-        // Inject realistic mock data for App Store screenshots, unless the
-        // developer opted out via the `SKIP_MOCK_DATA` env variable above.
-        let skipMockInject = ProcessInfo.processInfo.environment["SKIP_MOCK_DATA"] == "1"
-        if !skipMockInject, sleepEpisodes.isEmpty {
+        // Inject realistic mock data ONLY when explicitly opted in with
+        // `ENABLE_MOCK_DATA=1`. Everyday development and onboarding
+        // testing now work with the same empty-state flow as a real
+        // device — no more surprise 10-week payload.
+        let enableMockInject = ProcessInfo.processInfo.environment["ENABLE_MOCK_DATA"] == "1"
+        if enableMockInject, sleepEpisodes.isEmpty {
             let mock = MockDataGenerator.generate()
             startDate = mock.startDate
             numDays = 8
