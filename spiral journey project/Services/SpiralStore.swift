@@ -543,12 +543,25 @@ final class SpiralStore {
         // On the very first launch ever, start completely clean.
         // This ensures no leftover simulator/dev data appears to a real first-time user.
         #if targetEnvironment(simulator)
-        // Simulator always starts completely fresh on every launch
-        if let bundleID = Bundle.main.bundleIdentifier {
-            UserDefaults.standard.removePersistentDomain(forName: bundleID)
+        // The simulator normally wipes UserDefaults on every launch and
+        // injects 10 weeks of mock data — useful for App Store screenshots
+        // but it makes it impossible to test onboarding / empty states
+        // because the app never "starts from zero".
+        //
+        // Escape hatch: set the `SKIP_MOCK_DATA=1` environment variable in
+        // the Xcode scheme (Product → Scheme → Edit Scheme → Run →
+        // Environment Variables) to disable both the wipe and the mock
+        // injection. With it set, the simulator behaves like a real
+        // device — persistent UserDefaults + empty data on first launch.
+        let skipMockData = ProcessInfo.processInfo.environment["SKIP_MOCK_DATA"] == "1"
+        if !skipMockData {
+            // Simulator always starts completely fresh on every launch
+            if let bundleID = Bundle.main.bundleIdentifier {
+                UserDefaults.standard.removePersistentDomain(forName: bundleID)
+            }
+            UserDefaults.standard.synchronize()
+            UserDefaults(suiteName: Self.appGroupID)?.removeObject(forKey: "spiral-journey-store")
         }
-        UserDefaults.standard.synchronize()
-        UserDefaults(suiteName: Self.appGroupID)?.removeObject(forKey: "spiral-journey-store")
         #else
         let launchedKey = "spiral-journey-has-launched-v2"
         if !UserDefaults.standard.bool(forKey: launchedKey) {
@@ -561,8 +574,10 @@ final class SpiralStore {
         load()
 
         #if targetEnvironment(simulator)
-        // Inject realistic mock data for App Store screenshots
-        if sleepEpisodes.isEmpty {
+        // Inject realistic mock data for App Store screenshots, unless the
+        // developer opted out via the `SKIP_MOCK_DATA` env variable above.
+        let skipMockInject = ProcessInfo.processInfo.environment["SKIP_MOCK_DATA"] == "1"
+        if !skipMockInject, sleepEpisodes.isEmpty {
             let mock = MockDataGenerator.generate()
             startDate = mock.startDate
             numDays = 8

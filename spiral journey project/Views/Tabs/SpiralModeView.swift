@@ -195,12 +195,18 @@ struct SpiralModeView: View {
                                 height: screen.size.height
                             )
                             let scaleDays = max(1, Int(ceil(maxReachedTurns)))
-                            let maxHours = Double(maxDays) * store.period
+                            // Cursor moves freely past and future — no hard cap.
+                            // `maxReachedTurns` extends dynamically so the spiral
+                            // geometry keeps up with the cursor. See CLAUDE.md.
 
                             if dragIsNew {
                                 // First touch: snap cursor to nearest position.
                                 dragIsNew = false
                                 dragPrevLocation = value.location
+                                // Search bound for nearestHour — at least one
+                                // week past the current extent so taps on the
+                                // future arm of the spiral still resolve.
+                                let searchHours = max(maxReachedTurns + 1, Double(maxDays)) * store.period
                                 let newHour = nearestHour(
                                     at: value.location,
                                     size: spiralSize,
@@ -209,7 +215,7 @@ struct SpiralModeView: View {
                                     period: store.period,
                                     spiralType: effectiveSpiralType,
                                     linkGrowthToTau: effectiveLinkGrowthToTau,
-                                    totalHours: maxHours
+                                    totalHours: searchHours
                                 )
                                 cursorAbsHour = newHour
                                 smoothCameraCenterTurns = newHour / store.period
@@ -230,7 +236,7 @@ struct SpiralModeView: View {
                                 linkGrowthToTau: effectiveLinkGrowthToTau,
                                 mouseDx: dx, mouseDy: dy
                             )
-                            let newHour = max(0, min(maxHours, cursorAbsHour + hoursStep))
+                            let newHour = max(0, cursorAbsHour + hoursStep)
                             cursorAbsHour = newHour
                             smoothCameraCenterTurns = newHour / store.period
                             showInfoForCursorPosition()
@@ -460,7 +466,7 @@ struct SpiralModeView: View {
                                     let spiralSize = CGSize(width: screen.size.width,
                                                             height: screen.size.height)
                                     let scaleDays = max(1, Int(ceil(maxReachedTurns)))
-                                    let maxHours  = Double(maxDays) * store.period
+                                    // No forward cap — see top-level drag handler.
                                     let hoursStep = tangentHoursPerPixel(
                                         atHour: cursorAbsHour,
                                         spiralSize: spiralSize,
@@ -470,7 +476,7 @@ struct SpiralModeView: View {
                                         linkGrowthToTau: effectiveLinkGrowthToTau,
                                         mouseDx: dx, mouseDy: dy
                                     )
-                                    let newHour = max(0, min(maxHours, cursorAbsHour + hoursStep))
+                                    let newHour = max(0, cursorAbsHour + hoursStep)
                                     cursorAbsHour = newHour
                                     // During scrub, camera tracks cursor immediately.
                                     smoothCameraCenterTurns = newHour / store.period
@@ -494,8 +500,9 @@ struct SpiralModeView: View {
                         .onKeyPress(phases: [.down, .repeat]) { press in
                             let isShift = press.modifiers.contains(.shift)
                             let stepHours: Double = isShift ? 1.0 : 0.25
-                            let maxHours = min((maxReachedTurns + 1.5) * store.period,
-                                               Double(maxDays) * store.period)
+                            // Arrow keys follow the same "free forward" rule
+                            // as the drag: no upper cap, `maxReachedTurns`
+                            // extends as the cursor advances.
                             switch press.key {
                             case .leftArrow:
                                 let newHour = max(0, cursorAbsHour - stepHours)
@@ -505,7 +512,7 @@ struct SpiralModeView: View {
                                 isCursorLive = abs(newHour - nowH) < 0.25
                                 return .handled
                             case .rightArrow:
-                                let newHour = min(maxHours, cursorAbsHour + stepHours)
+                                let newHour = cursorAbsHour + stepHours
                                 cursorAbsHour = newHour
                                 smoothCameraCenterTurns = newHour / store.period
                                 let nowH = Date().timeIntervalSince(store.startDate) / 3600
