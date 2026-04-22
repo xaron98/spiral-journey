@@ -34,8 +34,14 @@ struct WeekComparisonCard: View {
 
     // MARK: - Data
 
+    /// Records eligible for the comparison. Previously this filter
+    /// required `sleepDuration >= 3.0`, which silently dropped short
+    /// nights and left users with ≥ 14 records staring at a "necesitas
+    /// 14 días" placeholder because their count of *eligible* nights
+    /// had fallen below the threshold. Now we only drop completely
+    /// empty records (no duration at all) — short nights still count.
     private var meaningful: [SleepRecord] {
-        records.filter { $0.sleepDuration >= 3.0 }.sorted { $0.day < $1.day }
+        records.filter { $0.sleepDuration > 0 }.sorted { $0.day < $1.day }
     }
 
     /// Total number of full week pairs available.
