@@ -7,6 +7,7 @@
 
 ## Build
 - iOS: `xcodebuild build -scheme "spiral journey project" -destination "platform=iOS Simulator,id=58B00C42-E274-4903-8E91-84CCA65CBC3A"`
+- macOS: `xcodebuild build -scheme "spiral journey project" -destination "platform=macOS"`
 - Watch: `xcodebuild build -scheme "Spiral Watch App Watch App" -destination generic/platform=watchOS`
 
 ## Swift Skills (use when writing or reviewing code)
@@ -33,23 +34,44 @@
 - **Baseline persisted** — `WearableTo4DMapper.PersonalBaseline` stored in App Group key `"neurospiral-baseline"` as JSON.
 
 ### NeuroSpiral Views (Views/DNA/)
-- `NeuroSpiralView.swift` — hub dashboard. Computes analysis + perNightAnalyses + retainedSamples in `.task`. Passes data to detail views via NavigationLink.
-- `NeuroSpiralTorusDetailView.swift` — toggle 2D (Canvas) / 3D (RealityKit). 2D shows θ/φ scatter, 3D shows stereographic projection.
+- `NeuroSpiralView.swift` — hub dashboard. Computes analysis + perNightAnalyses + retainedSamples in `.task`. Passes data to detail views via NavigationLink. Random walk with momentum 0.90 + drift 0.10 + phase-specific targets.
+- `NeuroSpiralTorusDetailView.swift` — toggle 2D (Canvas) / 3D (RealityKit). 2D shows θ/φ scatter, 3D shows donut embedding.
 - `NeuroSpiralTrajectoryView.swift` — toggle 2D (Canvas animated) / 3D (RealityKit progressive reveal). Shared play/pause/speed controls.
-- `NeuroSpiralTorus3DView.swift` — RealityKit wrapper, `@available(iOS 18.0, *)`
+- `NeuroSpiralTorus3DView.swift` — RealityKit wrapper, `@available(iOS 18.0, *)`. Slider 4D rebuilds geometry via Observable `w4DAngle`.
 - `NeuroSpiralTrajectory3DView.swift` — RealityKit progressive reveal, entities pre-built invisible
-- `NeuroSpiralTorusInteractionManager.swift` — CADisplayLink 60fps, same pattern as HelixInteractionManager
-- `NeuroSpiralTorusSceneBuilder.swift` — builds wireframe + trajectory + 16 vertices. `project4Dto3D` is public static for reuse.
+- `NeuroSpiralTorusInteractionManager.swift` — CADisplayLink 60fps. `w4DAngle` is Observable (triggers rebuild). All other transform state @ObservationIgnored.
+- `NeuroSpiralTorusSceneBuilder.swift` — donut embedding: `(R + r·cos(φ))·cos(θ), r·sin(φ), (R + r·cos(φ))·sin(θ)` with R=0.35, r=0.15. Wireframe 8+4 rings. `project4Dto3D` is public static. Uses **direct feature mapping** (HRV, stillness, HR, circadian → torus angles), NOT Takens embedding (which requires raw signals at 100Hz+).
 - `NeuroSpiralHistoryView.swift` — sparklines + night list
 - `NeuroSpiralExportView.swift` — CSV export + ShareLink
-- `DNAInfoSheetView.swift` — SleepDNA educational info (11 sections + macro/micro bridge)
+- `SleepTriangleView.swift` — barycentric sleep triangle with empirical centers from 155+ subjects. Schedule-agnostic sleep window detection.
+- `DNAInfoSheetView.swift` — SleepDNA educational info (12 sections + macro/micro bridge + helix reading guide)
 
-### 3D Torus Performance Rules (same as DNA Helix)
+### Sleep Triangle Rules
+- **Schedule-agnostic** — `extractSleepWindow()` finds longest continuous non-awake block, NOT by clock hour. Works for night workers, siestas, split sleep.
+- **Empirical centers** — `.deep=(0.059, 0.282, 0.659)`, `.light=(0.145, 0.577, 0.278)`, `.rem=(0.205, 0.598, 0.197)`, `.awake=(0.593, 0.273, 0.135)`. Validated with 155+ subjects.
+- **Deep epochs skip blend** — go straight to empirical center. Other phases use 95/5 blend.
+- **Two triangle frameworks exist** — Paper uses W/REM/N3 vertices (3 archetypes). App uses Wake/Active(REM+N2)/Deep(N3) poles (3 natural states). Both valid, different perspectives. NOT an error — documented design decision.
+- **Deep points visual** — color `#7B68EE`, radius 5px (vs 2.5px), white border, drawn on top (z-order).
+- **Zone tints** — soft colored triangles near each pole (6% opacity).
+- **No trail lines** — removed for clarity. Temporal opacity shows direction (earlier=transparent, later=opaque).
+
+### 3D Torus Rules
+- **Donut embedding** (NOT stereographic) — `(R + r·cos(φ))·cos(θ)` with R=0.35, r=0.15
+- **Slider 4D is Observable** — triggers geometry rebuild in `update:` closure. Array() snapshot prevents mutation during child transfer.
+- **Zoom range 0.15× to 4.0×** — initial zoom 1.5×
 - **CADisplayLink at 60fps** — transform applied directly to entity, NOT via SwiftUI `update:` closure
-- **@ObservationIgnored** — `rotationX`, `rotationY`, `zoomScale`, `w4DAngle`, `dragStart`, `baseZoom`, `isInteracting` are all `@ObservationIgnored`. They MUST NOT trigger SwiftUI re-renders.
-- **Only `selectedEpochIndex` is @Observable** — the only property that needs SwiftUI updates
-- **Entities pre-built invisible** — trajectory 3D view creates all ~500 sphere entities in `make:`, sets `isEnabled = false`, then progressively enables them in `update:` based on `visibleCount`
-- **`project4Dto3D` is static** — stereographic projection with xw-plane rotation, reusable across builder and trajectory views
+- **@ObservationIgnored** — `rotationX`, `rotationY`, `zoomScale`, `dragStart`, `baseZoom`, `isInteracting`. Only `w4DAngle` and `selectedEpochIndex` are Observable.
+- **Wireframe** — 8 major + 4 minor rings, radius 0.001, opacity 0.03-0.04. No "straight line" artifacts.
+- **Vertices** — 16 tesseract vertices, radius 0.008 (dominant: 0.02 green glow). Small, don't compete with trajectory.
+
+### 3D Helix Rules
+- **Molecular DNA model** — smooth cylindrical backbones (72 seg/turn, joint spheres hide seams)
+- **Gold backbone** = current period (strand 1), **Silver backbone** = comparison period (strand 2)
+- **Connector bars** — radius 0.011, phase-colored (gold=wake, violet=REM, blue=NREM gradient)
+- **3 comparison modes**: Yesterday, Week, My Best — selector pills in overlay
+- **Bar hit-test** — CollisionComponent on parent Entity (width=hitThick, **height=barLength** on Y axis post-rotation). `targetedToAnyEntity()` with parent-chain walk.
+- **Phase legend** + strand identity below helix
+- **Rebuild on mode change** — `Array(root.children)` snapshot before removal to prevent mutation during iteration
 
 ### Comparison Integration
 - `ComparisonPayload` has 4 optional torus fields — `vertexDistribution`, `meanWindingRatio`, `torusStability`, `dominantVertex`
@@ -100,7 +122,30 @@
 - **No isLastRecord exceptions** — all records treated equally
 - **No skipEdge** — no edge fade applied
 - Records filtered by: `vis.isVisible` (always true) + `isBehindCamera` + `perspectiveScale > 0.04`
-- Tap info: `showInfoForCursorPosition()` uses `cursorAbsHour` directly, searches current + adjacent days for sleep detection
+- Tap info: `showInfoForCursorPosition()` uses `cursorAbsHour` (absolute hours) to compare against bed/wake ranges. Guard `inSleepRange` BEFORE checking phases. Shows specific phase: Deep sleep, Light sleep, REM (dreams), Brief awakening.
+
+## HealthKit Sync Rules (CRITICAL)
+
+### Sync Architecture
+- **3 parallel mechanisms**: HKObserverQuery (debounced 500ms) + HKAnchoredObjectQuery (direct callback) + foreground polling
+- **Background delivery** — `enableBackgroundDeliveryWithRetry(attempts: 3)` with 1s between retries
+- **Anchored query** — persisted anchor in UserDefaults, resumes from last position on relaunch
+- **Incremental fetch** — `fetchRecentNewEpisodes()` searches **7 days** (not 3), deduplicates by healthKitSampleID
+
+### Foreground Return Flow
+1. Immediate fetch (7 days)
+2. If empty: retry ladder **[5, 15, 30, 60]** seconds (110s total)
+3. Fast polls: **6 × 10s** = 60s of aggressive polling
+4. Slow polls: **every 60s** while app stays active
+5. All polling cancelled on `didEnterBackgroundNotification`
+6. `isSyncingHealthKit` flag shows "Updating..." indicator in SpiralTab
+
+### Pitfalls to Avoid
+1. Never assume HealthKit has Watch data immediately — Watch→iPhone BT sync can take 1-2 minutes
+2. Never do a single fetch without retries — always use the retry ladder
+3. Never log health data in production — all prints must be `#if DEBUG`
+4. Never modify the anchor persistence — `sleepAnchor` setter auto-persists to UserDefaults
+5. The `isImporting` flag prevents race conditions during `importAndAdjustEpoch()` — respect it
 
 ### Archimedean Mode
 - 2D flat: `startRadius = 75`, `depthScale = 0`, `perspectivePower = 1.0`
@@ -245,6 +290,76 @@
 6. Never hard-cut data at window edges — always fade smoothly (opacity gradient over 1.5 turns)
 7. Never position cursor at end of sleep data — always at current time (now)
 8. Never extend backbone past midnight of cursor's day — it should grow day-by-day, not continuously
+
+## Watch 3D Torus Rules (CRITICAL)
+
+### Architecture
+- **SceneKit** — `SleepTorusScene.swift` (scene) + `SleepTorusView.swift` (SwiftUI wrapper) + `TorusGeometry.swift` (math)
+- **Torus R=1.8, r=0.6** — wireframe + solid back-face + rim light, camera distance 9.5
+- **Trajectory** — sleep epochs → phi via `phiMap` (W=0.05, N2=0.55, REM=0.62, N3=0.85 × 2π), theta linear × 4.5 turns, `maxPhiStep=0.12` (no teleporting)
+
+### Interactions
+- **Playing**: Crown rotates camera, tap pauses, swipe changes tab
+- **Paused**: Crown scrubs timeline, drag rotates camera (overlay with `allowsHitTesting(isPaused)`), tap resumes
+- **Haptic**: `WKInterfaceDevice.current().play(.click)` on stage transitions
+
+### Battery (CRITICAL)
+- **Lazy animation** — `init()` does NOT call `startAnimation()`. `.task{}` starts it, `.onDisappear` stops it
+- **`torusParent.isPaused`** — stops SCNAction auto-rotation when not visible
+- **Timer 10fps** (0.1s) — sufficient for Watch, not 20fps
+- **HealthKit**: only anchored query (not both observer + anchored), debounce 30s between refreshes
+
+### Pitfalls to Avoid
+1. Never start animation in `init()` — drains battery from app launch even on invisible tabs
+2. Never use both `startObservingNewSleep()` + `startAnchoredSleepQuery()` — doubles callbacks
+3. Never use `minimumDistance: 0` on drag gesture — blocks TabView page swiping
+4. Never attach drag gesture unconditionally — use `allowsHitTesting(isPaused)` overlay
+
+## Coach Tab Honeycomb Rules
+
+### Architecture
+- **Honeycomb grid** — `CoachBubbleEngine.swift` (data + layout + physics) + `CoachBubbleViews.swift` (views)
+- **`HoneycombLayout.positions()`** — diamond hex grid 3-4-5-4-3 = 19 slots, centered at (0,0)
+- **`CoachHoneycombEngine`** — @Observable, icons array, spring physics at 60fps, slot-based reordering
+
+### Icons
+- Circular with gradient + glass overlay + subtle ring border
+- Each icon: SF Symbol + label + optional badge (score number, streak count)
+- Dynamic: only created for available data (via `computeActiveKinds()`)
+
+### Interactions
+- **Tap** → opens detail sheet (coach recommendation, digest, patterns, etc.) or action (chat, jet lag, micro-habit toggle)
+- **Drag** → icon follows finger, enters another's home zone → `remove + insert` reorder → springs animate all icons to new homes
+- **Spring physics** — `vel += (home - pos) * 0.15`, damping `0.68`, snap when `dist < 0.3pt`
+- **Order persisted** in UserDefaults by icon ID
+
+### Pitfalls to Avoid
+1. Never use collision physics AND springs together — they fight each other. Use slot-based reorder with springs only.
+2. Never swap icons — use `remove(at:) + insert(at:)` for proper cascade reflow
+3. Never change `dragAnchor` after reorder — translation stays relative to original touch point
+
+## macOS Compatibility Rules (CRITICAL)
+
+### Platform Guards
+- **`navigationBarTitleDisplayMode`** → `#if !os(macOS)` always
+- **`topBarLeading` / `topBarTrailing`** → use `.cancellationAction` / `.confirmationAction` (cross-platform)
+- **`UIKit`** → `#if canImport(UIKit)` with `#elseif canImport(AppKit)` where needed
+- **`UIColor`** → use `SCNPlatformColor` typealias (`UIColor` on iOS, `NSColor` on macOS) for SceneKit files
+- **`CADisplayLink`** → Timer fallback on macOS (`#if os(macOS)`)
+- **`BGTaskScheduler`** → entire `BackgroundTaskManager` wrapped in `#if !os(macOS)`
+- **`UNUserNotificationCenter.delegate`** → `#if !os(macOS)`
+- **`@available(iOS 26, *)`** → add `macOS 26` when using Foundation Models
+- **`ShareSheet`** → `#if os(iOS)` only
+
+### macOS Drag Overlay
+- SpiralTab uses a transparent overlay for mouse drag → cursor movement
+- **`minimumDistance: 5`** (not 0) — lets clicks pass through to buttons
+- Covers spiral area only, not the action bar zone
+
+### Manual Sleep Entry on Mac
+- `store.addManualEpisode()` — persists to SwiftData + in-memory + recompute. Always use this, not raw `sleepEpisodes.append`
+- **Cursor reset bug** — `.onChange(of: sleepEpisodes.count)` must NOT reset `cursorAbsHour` on manual entry. Only reset on first import (`wasEmpty`)
+- `LongPressGesture` disabled on macOS (`#if !os(macOS)`) — interferes with mouse clicks
 
 ## Code Quality Rules
 
