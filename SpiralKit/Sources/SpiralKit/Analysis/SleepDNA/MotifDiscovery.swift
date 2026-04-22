@@ -17,6 +17,30 @@ public struct SleepMotif: Identifiable, Codable, Sendable {
     public let avgQuality: Double
 }
 
+/// Diagnostic snapshot of a motif-discovery run. Surfaced via the profile so the UI can
+/// explain empty results to the user ("too few sequences" vs "too similar" vs "too varied").
+public struct MotifDiagnostics: Codable, Sendable {
+    public let sequencesAnalyzed: Int
+    public let clustersFormed: Int
+    public let multiMemberClusters: Int
+    public let minDistance: Double
+    public let medianDistance: Double
+    public let maxDistance: Double
+    public let thresholdUsed: Double
+
+    public init(sequencesAnalyzed: Int, clustersFormed: Int, multiMemberClusters: Int,
+                minDistance: Double, medianDistance: Double, maxDistance: Double,
+                thresholdUsed: Double) {
+        self.sequencesAnalyzed = sequencesAnalyzed
+        self.clustersFormed = clustersFormed
+        self.multiMemberClusters = multiMemberClusters
+        self.minDistance = minDistance
+        self.medianDistance = medianDistance
+        self.maxDistance = maxDistance
+        self.thresholdUsed = thresholdUsed
+    }
+}
+
 /// Discovers recurring motifs in weekly sleep sequences using DTW + agglomerative clustering.
 public enum MotifDiscovery {
 
@@ -49,7 +73,23 @@ public enum MotifDiscovery {
         weights: [Double]? = nil,
         threshold: Double = defaultThreshold
     ) -> [SleepMotif] {
-        guard sequences.count >= minimumSequences else { return [] }
+        discoverWithDiagnostics(sequences: sequences, weights: weights, threshold: threshold).motifs
+    }
+
+    /// Like `discover`, but also returns a `MotifDiagnostics` snapshot so callers can
+    /// explain empty results to users (too few sequences, too similar, too varied).
+    public static func discoverWithDiagnostics(
+        sequences: [WeekSequence],
+        weights: [Double]? = nil,
+        threshold: Double = defaultThreshold
+    ) -> (motifs: [SleepMotif], diagnostics: MotifDiagnostics) {
+        let emptyDiag = MotifDiagnostics(
+            sequencesAnalyzed: sequences.count,
+            clustersFormed: 0, multiMemberClusters: 0,
+            minDistance: 0, medianDistance: 0, maxDistance: 0,
+            thresholdUsed: threshold)
+
+        guard sequences.count >= minimumSequences else { return ([], emptyDiag) }
 
         // Sample if too many
         let (sampled, originalIndices) = sampleIfNeeded(sequences)
@@ -58,16 +98,35 @@ public enum MotifDiscovery {
         let n = sampled.count
         let w = weights ?? Array(repeating: 1.0, count: DayNucleotide.featureCount)
         var dist = [[Double]](repeating: [Double](repeating: 0, count: n), count: n)
+        var flatDistances: [Double] = []
+        flatDistances.reserveCapacity(n * (n - 1) / 2)
         for i in 0..<n {
             for j in (i + 1)..<n {
                 let d = DTWEngine.distance(sampled[i], sampled[j], weights: w).distance
                 dist[i][j] = d
                 dist[j][i] = d
+                flatDistances.append(d)
             }
+        }
+
+        // Distance statistics for diagnostics.
+        let minD = flatDistances.min() ?? 0
+        let maxD = flatDistances.max() ?? 0
+        let medianD: Double
+        if flatDistances.isEmpty {
+            medianD = 0
+        } else {
+            let sorted = flatDistances.sorted()
+            medianD = sorted[sorted.count / 2]
         }
 
         // Agglomerative clustering (single-linkage)
         let clusters = agglomerativeClustering(distanceMatrix: dist, threshold: threshold)
+        let multiMember = clusters.filter { $0.count >= 2 }.count
+
+        #if DEBUG
+        print("[MOTIF] sequences=\(n), clusters=\(clusters.count), multi-member=\(multiMember), dist min/med/max=\(String(format: "%.3f", minD))/\(String(format: "%.3f", medianD))/\(String(format: "%.3f", maxD)), threshold=\(threshold)")
+        #endif
 
         // Convert clusters to motifs (only those with >= 2 members)
         let globalMean = computeGlobalMean(sampled)
@@ -95,7 +154,17 @@ public enum MotifDiscovery {
 
         // Sort by instance count descending, cap at maxMotifs
         motifs.sort { $0.instanceCount > $1.instanceCount }
-        return Array(motifs.prefix(maxMotifs))
+
+        let diagnostics = MotifDiagnostics(
+            sequencesAnalyzed: n,
+            clustersFormed: clusters.count,
+            multiMemberClusters: multiMember,
+            minDistance: minD,
+            medianDistance: medianD,
+            maxDistance: maxD,
+            thresholdUsed: threshold)
+
+        return (Array(motifs.prefix(maxMotifs)), diagnostics)
     }
 
     // MARK: - Sampling

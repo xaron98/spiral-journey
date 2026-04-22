@@ -77904,6 +77904,526 @@
           }
         }
       }
+    },
+    "dna.sheet.diag.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnostics"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnóstico"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnòstic"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnostic"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnose"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "診断"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "诊断"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تشخيص"
+          }
+        }
+      }
+    },
+    "dna.sheet.diag.sequences": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weekly sequences"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semanas analizables"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setmanes analitzables"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semaines analysables"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wochen analysiert"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分析された週"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分析的周"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الأسابيع المحللة"
+          }
+        }
+      }
+    },
+    "dna.sheet.diag.clusters": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clusters formed"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clusters formados"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clústers formats"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clusters formés"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cluster gebildet"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "形成されたクラスタ"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "形成的聚类"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "المجموعات المشكلة"
+          }
+        }
+      }
+    },
+    "dna.sheet.diag.multimember": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clusters with ≥ 2 weeks"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clusters con ≥ 2 semanas"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clústers amb ≥ 2 setmanes"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clusters ≥ 2 semaines"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cluster mit ≥ 2 Wochen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2週以上のクラスタ"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "≥ 2 周的聚类"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مجموعات ≥ أسبوعين"
+          }
+        }
+      }
+    },
+    "dna.sheet.diag.dtwRange": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DTW distance (min/med/max)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Distancia DTW (mín/med/máx)"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Distància DTW (mín/med/màx)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Distance DTW (min/méd/max)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DTW-Abstand (min/med/max)"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DTW距離 (最小/中央/最大)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DTW 距离（最小/中位/最大）"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مسافة DTW (أدنى/وسيط/أعلى)"
+          }
+        }
+      }
+    },
+    "dna.sheet.diag.threshold": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clustering threshold"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Umbral de clustering"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Llindar de clustering"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seuil de clustering"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clustering-Schwelle"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クラスタリングのしきい値"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "聚类阈值"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "عتبة التجميع"
+          }
+        }
+      }
+    },
+    "dna.sheet.diag.hint.fewSequences": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not enough weekly sequences to cluster (need ≥ 4)."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay suficientes semanas analizables para clusterizar (hacen falta ≥ 4)."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hi ha prou setmanes analitzables per clusteritzar (cal ≥ 4)."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pas assez de séquences hebdomadaires pour clusteriser (≥ 4 requises)."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht genug Wochen für Clustering (≥ 4 erforderlich)."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クラスタリングに十分な週がありません（≥ 4 必要）。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "周数不足以聚类（需要 ≥ 4）。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا توجد أسابيع كافية للتجميع (يتطلب ≥ 4)."
+          }
+        }
+      }
+    },
+    "dna.sheet.diag.hint.tooSimilar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All weeks are very similar (distances well below threshold). No distinct patterns to separate — likely very regular habits."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todas tus semanas son muy parecidas (distancias muy por debajo del umbral). No hay patrones distintos que separar — probablemente tus hábitos son muy regulares."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Totes les teves setmanes són molt semblants (distàncies molt per sota del llindar). No hi ha patrons distints — probablement els teus hàbits són molt regulars."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toutes vos semaines sont très similaires (distances bien en dessous du seuil). Pas de motifs distincts — habitudes probablement très régulières."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Wochen sind sich sehr ähnlich (Abstände deutlich unter der Schwelle). Keine unterschiedlichen Muster — wahrscheinlich sehr regelmäßige Gewohnheiten."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "すべての週が非常に似ています（距離がしきい値よりはるかに低い）。習慣が非常に規則的だと思われます。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所有周都非常相似（距离远低于阈值）。习惯可能非常规律。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "جميع الأسابيع متشابهة جدًا (المسافات أقل بكثير من العتبة). ربما تكون عاداتك منتظمة جدًا."
+          }
+        }
+      }
+    },
+    "dna.sheet.diag.hint.tooVaried": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weeks are too different from one another (all distances above threshold). No recurring pattern — each week stands alone."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tus semanas son demasiado distintas entre sí (todas las distancias superan el umbral). No hay un patrón recurrente — cada semana es única."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les teves setmanes són massa diferents entre si (totes les distàncies superen el llindar). No hi ha patró recurrent — cada setmana és única."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les semaines sont trop différentes les unes des autres (toutes les distances dépassent le seuil). Pas de motif récurrent."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Wochen unterscheiden sich zu stark voneinander (alle Abstände über der Schwelle). Kein wiederkehrendes Muster."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "週の差が大きすぎます（すべての距離がしきい値を超える）。繰り返しパターンなし。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "周之间差异太大（所有距离都超过阈值）。无重复模式。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الأسابيع مختلفة جدًا (جميع المسافات فوق العتبة). لا يوجد نمط متكرر."
+          }
+        }
+      }
+    },
+    "dna.sheet.diag.hint.borderline": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data is borderline — clustering happened but no cluster grew past a single member. More data should reveal patterns."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los datos están en el límite — hubo clustering pero ningún cluster llegó a 2 miembros. Con más datos deberían aparecer patrones."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les dades estan al límit — hi va haver clustering però cap clúster va passar d'un membre. Amb més dades haurien d'aparèixer patrons."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Données limites — clustering effectué mais aucun cluster n'a dépassé un seul membre. Plus de données devraient révéler des motifs."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daten am Rand — Clustering erfolgte, aber kein Cluster wuchs über ein einzelnes Mitglied hinaus. Mehr Daten sollten Muster aufzeigen."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "データは境界線上 — クラスタリングは行われたが、どのクラスタも単一メンバーを超えませんでした。さらにデータがあればパターンが現れるはずです。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数据处于边缘 — 进行了聚类，但没有聚类超过单个成员。更多数据应该会显示模式。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "البيانات على الحدود — تم التجميع لكن لم يتجاوز أي عنقود عضوًا واحدًا. المزيد من البيانات سيكشف عن الأنماط."
+          }
+        }
+      }
     }
   },
   "version": "1.1"

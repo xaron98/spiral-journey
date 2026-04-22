@@ -34,7 +34,8 @@ final class SleepDNAService {
     ///
     /// - v1: original tier gates (motifs at >= 8 weeks).
     /// - v2: motif/mutation gate lowered to tier != .basic (>= 2 weeks).
-    private static let schemaVersion: Int = 2
+    /// - v3: profile now carries `motifDiagnostics` for empty-state explanations.
+    private static let schemaVersion: Int = 3
     private static let schemaKey = "dna.schema.version"
 
     // MARK: - Load Cached

@@ -94,6 +94,10 @@ public struct SleepDNAProfile: Codable, Sendable {
     public let computedAt: Date
     /// Number of full weeks of data available.
     public let dataWeeks: Int
+    /// Diagnostic stats from the last motif-discovery run (optional —
+    /// nil on older cached profiles and on profiles where motif discovery
+    /// was skipped entirely, e.g. `.basic` tier).
+    public let motifDiagnostics: MotifDiagnostics?
 
     public init(
         nucleotides: [DayNucleotide],
@@ -116,6 +120,7 @@ public struct SleepDNAProfile: Codable, Sendable {
         poissonFragmentation: PoissonFragmentationResult? = nil,
         codonAnalysis: SleepCodonAnalyzer.MultiNightCodonResult? = nil,
         hawkesAnalysis: HawkesAnalysisResult? = nil,
+        motifDiagnostics: MotifDiagnostics? = nil,
         tier: AnalysisTier,
         computedAt: Date,
         dataWeeks: Int
@@ -140,6 +145,7 @@ public struct SleepDNAProfile: Codable, Sendable {
         self.poissonFragmentation = poissonFragmentation
         self.codonAnalysis = codonAnalysis
         self.hawkesAnalysis = hawkesAnalysis
+        self.motifDiagnostics = motifDiagnostics
         self.tier = tier
         self.computedAt = computedAt
         self.dataWeeks = dataWeeks

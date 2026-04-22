@@ -134,13 +134,17 @@ public actor SleepDNAComputer {
         // tier (>= 2 weeks = 14 records → 8 sequences) is well above
         // that minimum and produces stable clusters.
         let motifs: [SleepMotif]
+        let motifDiagnostics: MotifDiagnostics?
         if tier != .basic {
-            motifs = MotifDiscovery.discover(
+            let result = MotifDiscovery.discoverWithDiagnostics(
                 sequences: sequences,
                 weights: blosum.weights
             )
+            motifs = result.motifs
+            motifDiagnostics = result.diagnostics
         } else {
             motifs = []
+            motifDiagnostics = nil
         }
 
         try Task.checkCancellation()
@@ -320,6 +324,7 @@ public actor SleepDNAComputer {
             poissonFragmentation: poissonResult,
             codonAnalysis: SleepCodonAnalyzer.analyzeMultiNight(records: records),
             hawkesAnalysis: hawkesResult,
+            motifDiagnostics: motifDiagnostics,
             tier: tier,
             computedAt: Date(),
             dataWeeks: dataWeeks

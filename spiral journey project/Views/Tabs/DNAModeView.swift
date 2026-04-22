@@ -481,6 +481,9 @@ struct DNAModeView: View {
                             text: pastThreshold
                                 ? loc("dna.sheet.patterns.noClusters")
                                 : String(format: loc("dna.sheet.patterns.empty"), weeks))
+                        if let diag = dnaProfile?.motifDiagnostics {
+                            motifDiagnosticsPanel(diag)
+                        }
                     }
                 }
                 .padding(16)
@@ -492,6 +495,77 @@ struct DNAModeView: View {
             #endif
             .toolbar { sheetCloseButton { showPatterns = false } }
         }
+    }
+
+    /// Collapsible diagnostic panel shown in the Patterns empty state when
+    /// the pipeline ran but produced zero motifs. Exposes the raw DTW
+    /// distance stats and cluster counts so the user (or me, over chat)
+    /// can tell whether the clustering threshold is too strict, too loose,
+    /// or the data really is uniformly regular.
+    @ViewBuilder
+    private func motifDiagnosticsPanel(_ diag: MotifDiagnostics) -> some View {
+        DisclosureGroup {
+            VStack(alignment: .leading, spacing: 6) {
+                diagRow(label: loc("dna.sheet.diag.sequences"), value: "\(diag.sequencesAnalyzed)")
+                diagRow(label: loc("dna.sheet.diag.clusters"), value: "\(diag.clustersFormed)")
+                diagRow(label: loc("dna.sheet.diag.multimember"), value: "\(diag.multiMemberClusters)")
+                diagRow(
+                    label: loc("dna.sheet.diag.dtwRange"),
+                    value: String(format: "%.2f – %.2f – %.2f",
+                                  diag.minDistance, diag.medianDistance, diag.maxDistance))
+                diagRow(
+                    label: loc("dna.sheet.diag.threshold"),
+                    value: String(format: "%.2f", diag.thresholdUsed))
+                diagHint(diag)
+            }
+            .padding(.top, 6)
+        } label: {
+            HStack {
+                Image(systemName: "stethoscope")
+                    .font(.caption)
+                    .foregroundStyle(SpiralColors.subtle)
+                Text(loc("dna.sheet.diag.title"))
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(SpiralColors.text)
+            }
+        }
+        .padding(14)
+        .background(SpiralColors.surface.opacity(0.5),
+                    in: RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(SpiralColors.border, lineWidth: 0.5))
+    }
+
+    private func diagRow(label: String, value: String) -> some View {
+        HStack {
+            Text(label)
+                .font(.caption2)
+                .foregroundStyle(SpiralColors.subtle)
+            Spacer()
+            Text(value)
+                .font(.caption2.monospacedDigit())
+                .foregroundStyle(SpiralColors.text)
+        }
+    }
+
+    /// Human-readable diagnosis of why motif discovery returned no results.
+    @ViewBuilder
+    private func diagHint(_ diag: MotifDiagnostics) -> some View {
+        let hint: String
+        if diag.sequencesAnalyzed < 4 {
+            hint = loc("dna.sheet.diag.hint.fewSequences")
+        } else if diag.multiMemberClusters == 0 && diag.maxDistance < diag.thresholdUsed * 0.5 {
+            hint = loc("dna.sheet.diag.hint.tooSimilar")
+        } else if diag.multiMemberClusters == 0 && diag.minDistance > diag.thresholdUsed {
+            hint = loc("dna.sheet.diag.hint.tooVaried")
+        } else {
+            hint = loc("dna.sheet.diag.hint.borderline")
+        }
+        Text(hint)
+            .font(.caption2)
+            .foregroundStyle(SpiralColors.muted)
+            .padding(.top, 2)
     }
 
     private func patternRow(motif: SleepMotif) -> some View {
