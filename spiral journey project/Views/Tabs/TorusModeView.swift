@@ -285,13 +285,28 @@ struct TorusModeView: View {
     // MARK: - Data Loading
 
     private func loadRealData() {
-        guard let lastRecord = store.records.last, !lastRecord.phases.isEmpty else {
+        // Prefer the most recent record that actually looks like a full
+        // sleep block (≥ 3h). Mirrors the same heuristic the header
+        // uses so the trajectory and the header label always point at
+        // the same night, not at a stray nap.
+        let pick = store.records.last(where: { $0.sleepDuration >= 3.0 })
+            ?? store.records.last
+        guard let lastRecord = pick, !lastRecord.phases.isEmpty else {
             if !dataLoaded {
                 scene.loadTrajectory(TorusSceneiPhone.mockNight())
                 dataLoaded = true
             }
             return
         }
+
+        // Does this sleep session wrap over midnight? SleepRecord
+        // convention: record.date is the day of wake-up. If bedtime
+        // is greater than wake-up (e.g. 23 > 7), the phases with a
+        // high clock hour (near bedtime) actually belong to the
+        // previous calendar day.
+        let wrapsOverMidnight = lastRecord.bedtimeHour > lastRecord.wakeupHour
+        let recordDayStart = Calendar.current.startOfDay(for: lastRecord.date)
+        let previousDayStart = recordDayStart.addingTimeInterval(-86_400)
 
         // Convert PhaseInterval → SleepEpoch
         let epochs = lastRecord.phases.map { phase -> SleepEpoch in
@@ -302,8 +317,17 @@ struct TorusModeView: View {
             case .light: stage = "N2"
             case .awake: stage = "W"
             }
-            let startDate = Calendar.current.startOfDay(for: lastRecord.date)
-                .addingTimeInterval(phase.hour * 3600)
+            // Phases with a clock hour at or after bedtime belong to
+            // the previous calendar day when the session wrapped. All
+            // other phases (0…wakeupHour, or daytime sleep without
+            // wrap) sit on the record's own day. This is what makes
+            // the trajectory match the user's real wall-clock schedule
+            // instead of showing the session as if it all happened on
+            // the wake-up day.
+            let dayAnchor: Date = (wrapsOverMidnight && phase.hour >= lastRecord.bedtimeHour)
+                ? previousDayStart
+                : recordDayStart
+            let startDate = dayAnchor.addingTimeInterval(phase.hour * 3600)
             let endDate = startDate.addingTimeInterval(15 * 60)
             return SleepEpoch(start: startDate, end: endDate, stage: stage)
         }

@@ -27,10 +27,17 @@ struct ModeHeaderView: View {
     }
 
     private var torusHeader: String {
-        guard let last = store.records.last else {
+        // Pick the most recent record that actually looks like a full
+        // sleep block (≥ 3h). Using `store.records.last` directly picked
+        // up naps and accidentally-registered 12-min entries, which is
+        // why the header was showing things like "Anoche · 0.2h" even
+        // when the user had slept a full night.
+        let main = store.records.last(where: { $0.sleepDuration >= 3.0 })
+            ?? store.records.last
+        guard let main else {
             return String(localized: "mode.torus.no_data", bundle: bundle)
         }
-        let hours = String(format: "%.1f", last.sleepDuration)
+        let hours = String(format: "%.1f", main.sleepDuration)
         return "\(String(localized: "mode.torus.last_night", bundle: bundle)) · \(hours)h"
     }
 
