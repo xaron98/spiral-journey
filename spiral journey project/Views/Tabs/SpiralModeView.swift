@@ -1186,6 +1186,12 @@ struct SpiralModeView: View {
                 .animation(.easeInOut(duration: 0.2), value: store.isProcessing)
             }
             .buttonStyle(.plain)
+            // Report the bottom center log button as the moon anchor for
+            // the onboarding overlay. The top-right button used to own
+            // this role pre-redesign; now that action moved down and the
+            // top-right spot is taken by the events button (which reports
+            // `eventsBtn` separately below).
+            .reportFrame(\.moonButton)
             .accessibilityLabel(logButtonAccessibilityLabel)
             .accessibilityHint(String(localized: "accessibility.log.hint", defaultValue: "Long press to cancel"))
             #if !os(macOS)

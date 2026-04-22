@@ -48,15 +48,20 @@ struct OnboardingOverlayView: View {
                              tooltipBelow: true)
 
         case .sleepLog:
+            // Post-redesign the log button lives at the center of the
+            // bottom action bar (64 pt circle). Fallback geometry tracks
+            // that position, not the old top-right one. Tooltip goes
+            // ABOVE the highlight so it doesn't clip into the home bar.
             let raw = frames.moonButton.isEmpty
-                ? CGRect(x: screenSize.width - 80, y: 80, width: 64, height: 64)
-                : frames.moonButton.insetBy(dx: -8, dy: -8)
-            // Force square so the highlight is a perfect circle
+                ? CGRect(x: screenSize.width / 2 - 34,
+                         y: screenSize.height - 180,
+                         width: 68, height: 68)
+                : frames.moonButton.insetBy(dx: -4, dy: -4)
             let side = max(raw.width, raw.height)
             let r = CGRect(x: raw.midX - side / 2, y: raw.midY - side / 2, width: side, height: side)
             return Highlight(rect: r, cornerRadius: side / 2,
-                             tooltipAnchorY: r.maxY + 4,
-                             tooltipBelow: true)
+                             tooltipAnchorY: r.minY - 8,
+                             tooltipBelow: false)
 
         case .cursor:
             let spiral = frames.spiralArea.isEmpty
@@ -69,11 +74,18 @@ struct OnboardingOverlayView: View {
                              tooltipBelow: false)
 
         case .events:
-            let r = frames.eventsBtn.isEmpty
-                ? CGRect(x: screenSize.width - 64, y: screenSize.height * 0.76, width: 48, height: 32)
-                : frames.eventsBtn.insetBy(dx: -10, dy: -8)
-            return Highlight(rect: r, cornerRadius: 10,
-                             tooltipAnchorY: r.maxY + 4,
+            // Events button is the "+/moon/eye" circle floating at the
+            // top right (where the old moon button used to be). Fallback
+            // approximates its real position so the tutorial still lands
+            // near the right target even if the frame hasn't been
+            // reported yet. Tooltip BELOW so the arrow points up at it.
+            let raw = frames.eventsBtn.isEmpty
+                ? CGRect(x: screenSize.width - 72, y: 96, width: 52, height: 52)
+                : frames.eventsBtn.insetBy(dx: -6, dy: -6)
+            let side = max(raw.width, raw.height)
+            let r = CGRect(x: raw.midX - side / 2, y: raw.midY - side / 2, width: side, height: side)
+            return Highlight(rect: r, cornerRadius: side / 2,
+                             tooltipAnchorY: r.maxY + 8,
                              tooltipBelow: true)
 
         case .tabs:
@@ -116,9 +128,11 @@ struct OnboardingOverlayView: View {
                                messageKey: "onboarding.welcome.message",
                                icon: "sparkles", arrowDirection: .none)
         case .sleepLog:
+            // Tooltip sits above the bottom action bar, so the arrow
+            // needs to point DOWN toward the log button below it.
             return StepContent(titleKey: "onboarding.sleepLog.title",
                                messageKey: "onboarding.sleepLog.message",
-                               icon: "moon.fill", arrowDirection: .up)
+                               icon: "moon.fill", arrowDirection: .down)
         case .cursor:
             return StepContent(titleKey: "onboarding.cursor.title",
                                messageKey: "onboarding.cursor.message",
