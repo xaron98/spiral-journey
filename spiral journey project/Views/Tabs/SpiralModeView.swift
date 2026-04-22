@@ -12,6 +12,13 @@ struct SpiralModeView: View {
     @Environment(\.modelContext) private var modelContext
     @Binding var selectedTab: AppTab
 
+    /// True when this mode is the one the user is looking at in the pager.
+    /// TabView(.page) keeps all three modes mounted at once, so when this
+    /// view is offscreen we return an empty background instead of the full
+    /// Canvas + stats tree — that prevents body re-evaluations from firing
+    /// whenever SpiralStore mutates (HK polling, anchor updates, etc.).
+    var isActive: Bool = true
+
     @State private var selectedDay: Int? = nil
     @State private var showCosinor    = false
     @State private var showBiomarkers = false
@@ -120,7 +127,20 @@ struct SpiralModeView: View {
         nonmutating set { interaction.zoomNorm = newValue }
     }
 
+    @ViewBuilder
     var body: some View {
+        if isActive {
+            activeBody
+        } else {
+            // Inactive — render a placeholder so @State and the interaction
+            // manager persist, but skip the expensive Canvas + stats + store
+            // observations that would otherwise fire on every store mutation.
+            SpiralColors.bg.ignoresSafeArea()
+        }
+    }
+
+    @ViewBuilder
+    private var activeBody: some View {
         // Read the redraw flag so SwiftUI re-evaluates when the interaction
         // manager toggles it via markDirty(). The flag itself carries no data —
         // its sole purpose is to poke the observation system.

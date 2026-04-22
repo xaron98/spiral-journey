@@ -29,7 +29,20 @@ struct DNAModeView: View {
     @State private var isAnalyzing = false
     @State private var showCalendar = false
 
+    @ViewBuilder
     var body: some View {
+        if isActive {
+            activeBody
+        } else {
+            // Inactive — skip the ScrollView + 7 cards + HelixRealityView
+            // tree. State is preserved in @State so when the user swipes
+            // back the sheets they had opened remember their values.
+            SpiralColors.bg.ignoresSafeArea()
+        }
+    }
+
+    @ViewBuilder
+    private var activeBody: some View {
         ZStack(alignment: .bottom) {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 12) {
