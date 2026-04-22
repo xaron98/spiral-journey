@@ -24,7 +24,6 @@ struct CoachChatView: View {
     @State private var streamingText: String = ""
     @State private var isGenerating: Bool = false
     @State private var generationTask: Task<Void, Never>?
-    @FocusState private var isInputFocused: Bool
 
     /// Maximum messages to keep in the conversation.
     private let maxMessages = 50
@@ -36,7 +35,12 @@ struct CoachChatView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                SpiralColors.bg.ignoresSafeArea()
+                CoachTokens.bg.ignoresSafeArea()
+                RadialGradient(colors: [CoachTokens.purple.opacity(0.22), .clear],
+                               center: UnitPoint(x: 1.1, y: -0.1),
+                               startRadius: 20, endRadius: 240)
+                    .ignoresSafeArea()
+                    .allowsHitTesting(false)
 
                 if let provider, !provider.requiresDownload {
                     // Foundation Models path — no download/load needed
@@ -57,26 +61,31 @@ struct CoachChatView: View {
                     }
                 }
             }
+            #if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     VStack(spacing: 1) {
                         HStack(spacing: 6) {
-                            Image(systemName: "brain.head.profile")
-                                .font(.footnote)
-                                .foregroundStyle(SpiralColors.accent)
+                            SparkSpiralView(size: 18, turns: 3, color: CoachTokens.purple, lineWidth: 1.6)
                             Text(loc("coach.chat.title"))
-                                .font(.subheadline.weight(.medium))
-                                .foregroundStyle(SpiralColors.text)
+                                .font(.system(size: 17, weight: .bold))
+                                .foregroundStyle(.white)
+                            Circle()
+                                .fill(CoachTokens.green)
+                                .frame(width: 6, height: 6)
+                                .shadow(color: CoachTokens.green, radius: 3)
                         }
                         if let provider {
-                            Text(provider.displayName)
-                                .font(.caption2.monospaced())
-                                .foregroundStyle(SpiralColors.faint)
+                            Text(provider.displayName.uppercased())
+                                .font(CoachTokens.mono(10))
+                                .foregroundStyle(CoachTokens.textDim)
+                                .tracking(0.5)
                         }
                     }
                 }
-                ToolbarItem(placement: .topBarLeading) {
+                ToolbarItem(placement: .cancellationAction) {
                     Button {
                         dismiss()
                     } label: {
@@ -255,41 +264,66 @@ struct CoachChatView: View {
                         proxy.scrollTo("streaming", anchor: .bottom)
                     }
                 }
-                .onTapGesture {
-                    isInputFocused = false
-                }
+                .scrollDismissesKeyboard(.interactively)
             }
 
-            Divider()
-                .overlay(SpiralColors.border)
+            // no-op: input bar floats over content, divider removed
 
-            // Input bar
-            inputBar
+            // Input bar — isolated struct so @FocusState doesn't re-render the message list
+            ChatInputBar(
+                inputText: $inputText,
+                isGenerating: isGenerating,
+                placeholder: loc("coach.chat.placeholder"),
+                onSend: { sendMessage() }
+            )
         }
     }
 
     // MARK: - Message Bubble
 
     private func messageBubble(_ message: ChatMessage) -> some View {
-        HStack {
+        HStack(alignment: .bottom, spacing: 8) {
+            if message.role == .assistant {
+                ZStack {
+                    Circle().fill(LinearGradient(
+                        colors: [CoachTokens.purple, CoachTokens.purpleDeep],
+                        startPoint: .topLeading, endPoint: .bottomTrailing))
+                    SparkSpiralView(size: 18, turns: 3, color: .white, lineWidth: 1.5)
+                }
+                .frame(width: 32, height: 32)
+                .shadow(color: CoachTokens.purple.opacity(0.35), radius: 5)
+            }
             if message.role == .user { Spacer(minLength: 48) }
 
             VStack(alignment: message.role == .user ? .trailing : .leading, spacing: 4) {
-                Text(message.content)
-                    .font(.body)
-                    .foregroundStyle(message.role == .user ? .white : SpiralColors.text)
-                    .padding(.horizontal, 14)
+                Text(LocalizedStringKey(message.content))
+                    .font(.system(size: 14))
+                    .foregroundStyle(message.role == .user ? .white : .white)
+                    .padding(.horizontal, 13)
                     .padding(.vertical, 10)
                     .background(
                         message.role == .user
-                            ? AnyShapeStyle(SpiralColors.accent.opacity(0.85))
-                            : AnyShapeStyle(.ultraThinMaterial),
-                        in: RoundedRectangle(cornerRadius: 16)
-                    )
+                            ? AnyShapeStyle(CoachTokens.purple)
+                            : AnyShapeStyle(CoachTokens.card))
+                    .clipShape(
+                        UnevenRoundedRectangle(
+                            topLeadingRadius: message.role == .user ? 16 : 4,
+                            bottomLeadingRadius: 16,
+                            bottomTrailingRadius: message.role == .user ? 4 : 16,
+                            topTrailingRadius: 16,
+                            style: .continuous))
+                    .overlay(
+                        UnevenRoundedRectangle(
+                            topLeadingRadius: message.role == .user ? 16 : 4,
+                            bottomLeadingRadius: 16,
+                            bottomTrailingRadius: message.role == .user ? 4 : 16,
+                            topTrailingRadius: 16,
+                            style: .continuous)
+                        .stroke(message.role == .assistant ? CoachTokens.border : .clear, lineWidth: 1))
 
                 Text(message.timestamp, format: .dateTime.hour().minute())
-                    .font(.caption2.monospaced())
-                    .foregroundStyle(SpiralColors.faint)
+                    .font(CoachTokens.mono(9))
+                    .foregroundStyle(CoachTokens.textFaint)
             }
 
             if message.role == .assistant { Spacer(minLength: 48) }
@@ -299,64 +333,50 @@ struct CoachChatView: View {
     // MARK: - Streaming Bubble
 
     private var streamingBubble: some View {
-        HStack {
+        HStack(alignment: .bottom, spacing: 8) {
+            ZStack {
+                Circle().fill(LinearGradient(
+                    colors: [CoachTokens.purple, CoachTokens.purpleDeep],
+                    startPoint: .topLeading, endPoint: .bottomTrailing))
+                SparkSpiralView(size: 18, turns: 3, color: .white, lineWidth: 1.5)
+            }
+            .frame(width: 32, height: 32)
+            .shadow(color: CoachTokens.purple.opacity(0.35), radius: 5)
+
             VStack(alignment: .leading, spacing: 4) {
                 if streamingText.isEmpty {
                     HStack(spacing: 4) {
-                        ForEach(0..<3, id: \.self) { i in
+                        ForEach(0..<3, id: \.self) { _ in
                             Circle()
-                                .fill(SpiralColors.muted)
+                                .fill(CoachTokens.textDim)
                                 .frame(width: 6, height: 6)
                                 .opacity(0.6)
                         }
                     }
-                    .padding(.horizontal, 14)
+                    .padding(.horizontal, 13)
                     .padding(.vertical, 12)
                 } else {
-                    Text(streamingText)
-                        .font(.body)
-                        .foregroundStyle(SpiralColors.text)
-                        .padding(.horizontal, 14)
+                    Text(LocalizedStringKey(streamingText))
+                        .font(.system(size: 14))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 13)
                         .padding(.vertical, 10)
                 }
             }
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+            .background(CoachTokens.card)
+            .clipShape(UnevenRoundedRectangle(
+                topLeadingRadius: 4, bottomLeadingRadius: 16,
+                bottomTrailingRadius: 16, topTrailingRadius: 16, style: .continuous))
+            .overlay(
+                UnevenRoundedRectangle(
+                    topLeadingRadius: 4, bottomLeadingRadius: 16,
+                    bottomTrailingRadius: 16, topTrailingRadius: 16, style: .continuous)
+                .stroke(CoachTokens.border, lineWidth: 1))
             Spacer(minLength: 48)
         }
     }
 
-    // MARK: - Input Bar
-
-    private var inputBar: some View {
-        HStack(spacing: 10) {
-            TextField(loc("coach.chat.placeholder"), text: $inputText, axis: .vertical)
-                .font(.body)
-                .lineLimit(1...4)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 10)
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 20))
-                .focused($isInputFocused)
-                .submitLabel(.send)
-                .onSubmit { sendMessage() }
-
-            Button {
-                sendMessage()
-            } label: {
-                Image(systemName: isGenerating ? "stop.fill" : "arrow.up.circle.fill")
-                    .font(.title)
-                    .foregroundStyle(
-                        inputText.trimmingCharacters(in: .whitespaces).isEmpty && !isGenerating
-                            ? SpiralColors.muted
-                            : SpiralColors.accent
-                    )
-            }
-            .disabled(inputText.trimmingCharacters(in: .whitespaces).isEmpty && !isGenerating)
-            .accessibilityLabel(isGenerating ? "Stop generating" : "Send message")
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .background(SpiralColors.bg)
-    }
+    // MARK: - Input Bar (delegated to isolated struct to avoid full-body re-render on focus)
 
     // MARK: - Actions
 
@@ -451,5 +471,61 @@ struct CoachChatView: View {
 
     private func loc(_ key: String) -> String {
         NSLocalizedString(key, bundle: bundle, comment: "")
+    }
+}
+
+// MARK: - Isolated Input Bar
+
+/// Separate struct so `@FocusState` changes only re-render this small view,
+/// not the entire chat (NavigationStack + ScrollView + all bubbles).
+private struct ChatInputBar: View {
+    @Binding var inputText: String
+    let isGenerating: Bool
+    let placeholder: String
+    let onSend: () -> Void
+
+    @FocusState private var isFocused: Bool
+
+    var body: some View {
+        HStack(spacing: 8) {
+            TextField(placeholder, text: $inputText, axis: .vertical)
+                .font(CoachTokens.sans(13))
+                .foregroundStyle(.white)
+                .lineLimit(1...4)
+                .padding(.horizontal, 4)
+                .focused($isFocused)
+                .submitLabel(.send)
+                .onSubmit { onSend() }
+
+            Button {
+                onSend()
+            } label: {
+                Image(systemName: isGenerating ? "stop.fill"
+                      : (inputText.trimmingCharacters(in: .whitespaces).isEmpty
+                         ? "mic.fill" : "arrow.up"))
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 36, height: 36)
+                    .background(
+                        LinearGradient(
+                            colors: [CoachTokens.purple, CoachTokens.purpleDeep],
+                            startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .clipShape(Circle())
+            }
+            .disabled(inputText.trimmingCharacters(in: .whitespaces).isEmpty && !isGenerating)
+            .accessibilityLabel(isGenerating ? "Stop generating" : "Send message")
+        }
+        .padding(6)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 28).fill(.ultraThinMaterial)
+                Color(hex: "1E1E3C").opacity(0.72)
+            })
+        .overlay(
+            RoundedRectangle(cornerRadius: 28)
+                .stroke(Color.white.opacity(0.12), lineWidth: 1))
+        .clipShape(RoundedRectangle(cornerRadius: 28))
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
     }
 }
