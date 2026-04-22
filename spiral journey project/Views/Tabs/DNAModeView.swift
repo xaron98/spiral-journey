@@ -14,6 +14,12 @@ struct DNAModeView: View {
     /// the view alive and onDisappear never fires.
     var isActive: Bool = true
 
+    /// Flips to true ~400ms after isActive becomes true. Until then the
+    /// SpiralLoaderView is shown and the heavy card tree is hidden, so
+    /// the user sees a responsive transition even when the first render
+    /// of HelixRealityView + 7 cards takes a moment on cold tabs.
+    @State private var contentReady = false
+
     // MARK: - Sheet states
 
     @State private var showPatterns = false
@@ -32,7 +38,24 @@ struct DNAModeView: View {
     @ViewBuilder
     var body: some View {
         if isActive {
-            activeBody
+            ZStack {
+                activeBody
+                    .opacity(contentReady ? 1 : 0)
+                if !contentReady {
+                    SpiralLoaderView()
+                }
+            }
+            .task(id: isActive) {
+                // Give SwiftUI a chance to lay out the heavy activeBody
+                // behind the loader, then fade it in.
+                try? await Task.sleep(for: .milliseconds(400))
+                withAnimation(.easeOut(duration: 0.25)) {
+                    contentReady = true
+                }
+            }
+            .onChange(of: isActive) { _, newValue in
+                if !newValue { contentReady = false }
+            }
         } else {
             // Inactive — skip the ScrollView + 7 cards + HelixRealityView
             // tree. State is preserved in @State so when the user swipes
