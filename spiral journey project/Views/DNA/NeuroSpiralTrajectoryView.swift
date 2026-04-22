@@ -8,6 +8,7 @@ struct NeuroSpiralTrajectoryView: View {
     let analysis: SleepTrajectoryAnalysis
 
     @Environment(\.languageBundle) private var bundle
+    @Environment(\.scenePhase) private var scenePhase
     @State private var visibleCount: Int = 0
     @State private var isPlaying = true
     @State private var speed: Double = 5
@@ -52,7 +53,13 @@ struct NeuroSpiralTrajectoryView: View {
     // MARK: - 2D Canvas
 
     private var torus2DContent: some View {
-        TimelineView(.periodic(from: .now, by: 1.0 / 30.0)) { _ in
+        // `.animation(paused:)` gives the redraws a real off-switch so the
+        // Canvas is idle when the user paused playback or the app went to
+        // background. Previously the stream was `.periodic` which kept firing
+        // 30 times per second regardless of visibility — a constant source
+        // of CPU heat on the DNA tab.
+        TimelineView(.animation(minimumInterval: 1.0 / 30.0,
+                                paused: !isPlaying || scenePhase != .active)) { _ in
             Canvas { context, size in
                 drawTorus(context: context, size: size)
             }

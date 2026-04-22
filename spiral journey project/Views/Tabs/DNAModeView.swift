@@ -550,22 +550,24 @@ struct DNAModeView: View {
     }
 
     /// Human-readable diagnosis of why motif discovery returned no results.
-    @ViewBuilder
     private func diagHint(_ diag: MotifDiagnostics) -> some View {
-        let hint: String
-        if diag.sequencesAnalyzed < 4 {
-            hint = loc("dna.sheet.diag.hint.fewSequences")
-        } else if diag.multiMemberClusters == 0 && diag.maxDistance < diag.thresholdUsed * 0.5 {
-            hint = loc("dna.sheet.diag.hint.tooSimilar")
-        } else if diag.multiMemberClusters == 0 && diag.minDistance > diag.thresholdUsed {
-            hint = loc("dna.sheet.diag.hint.tooVaried")
-        } else {
-            hint = loc("dna.sheet.diag.hint.borderline")
-        }
-        Text(hint)
+        Text(diagHintText(diag))
             .font(.caption2)
             .foregroundStyle(SpiralColors.muted)
             .padding(.top, 2)
+    }
+
+    private func diagHintText(_ diag: MotifDiagnostics) -> String {
+        if diag.sequencesAnalyzed < 4 {
+            return loc("dna.sheet.diag.hint.fewSequences")
+        }
+        if diag.multiMemberClusters == 0 && diag.maxDistance < diag.thresholdUsed * 0.5 {
+            return loc("dna.sheet.diag.hint.tooSimilar")
+        }
+        if diag.multiMemberClusters == 0 && diag.minDistance > diag.thresholdUsed {
+            return loc("dna.sheet.diag.hint.tooVaried")
+        }
+        return loc("dna.sheet.diag.hint.borderline")
     }
 
     private func patternRow(motif: SleepMotif) -> some View {
