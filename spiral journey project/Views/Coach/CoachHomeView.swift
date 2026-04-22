@@ -13,6 +13,7 @@ struct CoachHomeView: View {
     @State private var showChat = false
     @State private var showPatterns = false
     @State private var showPlan = false
+    @State private var showLearn = false
 
     private var adapter: CoachDataAdapter { CoachDataAdapter(store: store) }
 
@@ -49,6 +50,7 @@ struct CoachHomeView: View {
             }
             .sheet(isPresented: $showChat) { CoachChatView() }
             .sheet(isPresented: $showPlan) { CoachPlanView() }
+            .sheet(isPresented: $showLearn) { CoachLearnArticleView() }
             .navigationDestination(isPresented: $showPatterns) {
                 CoachPatternsView()
             }
@@ -267,29 +269,37 @@ struct CoachHomeView: View {
 
     private var storyAprende: some View {
         let l = adapter.learn
-        return CoachStoryCard(tag: String(localized: "coach.home.story.learn.tag", bundle: bundle), tagColor: CoachTokens.blue) {
-            HStack(spacing: 12) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(LinearGradient(
-                            colors: [CoachTokens.blue.opacity(0.27), CoachTokens.purpleDeep.opacity(0.27)],
-                            startPoint: .topLeading, endPoint: .bottomTrailing))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 14).stroke(CoachTokens.border, lineWidth: 1))
-                    SparkSpiralView(size: 38, turns: 4, color: CoachTokens.blue, lineWidth: 1.5)
-                }
-                .frame(width: 60, height: 60)
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(l.title)
-                        .font(CoachTokens.sans(14, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .lineLimit(3)
-                    Text(l.subtitle)
-                        .font(CoachTokens.sans(11))
+        return Button { showLearn = true } label: {
+            CoachStoryCard(tag: String(localized: "coach.home.story.learn.tag", bundle: bundle), tagColor: CoachTokens.blue) {
+                HStack(spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(LinearGradient(
+                                colors: [CoachTokens.blue.opacity(0.27), CoachTokens.purpleDeep.opacity(0.27)],
+                                startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 14).stroke(CoachTokens.border, lineWidth: 1))
+                        SparkSpiralView(size: 38, turns: 4, color: CoachTokens.blue, lineWidth: 1.5)
+                    }
+                    .frame(width: 60, height: 60)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(l.title)
+                            .font(CoachTokens.sans(14, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .multilineTextAlignment(.leading)
+                            .lineLimit(3)
+                        Text(l.subtitle)
+                            .font(CoachTokens.sans(11))
+                            .foregroundStyle(CoachTokens.textDim)
+                    }
+                    Spacer(minLength: 0)
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(CoachTokens.textDim)
                 }
             }
         }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Ask pill (header trailing)
