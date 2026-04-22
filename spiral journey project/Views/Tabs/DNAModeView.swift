@@ -118,7 +118,7 @@ struct DNAModeView: View {
                 HStack(spacing: 8) {
                     let topMotifs = Array(profile.motifs.prefix(3))
                     ForEach(topMotifs.indices, id: \.self) { i in
-                        Text(topMotifs[i].name)
+                        Text(localizedMotifName(topMotifs[i].name))
                             .font(.caption2.weight(.medium))
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
