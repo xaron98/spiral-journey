@@ -88,9 +88,14 @@ struct AnalysisTab: View {
     // MARK: - Dimensions row
 
     private var dimensionsRow: some View {
-        let c = store.analysis.consistency
-        let drift = store.analysis.stats.stdBedtime * 60.0   // minutes
-        let duration = store.analysis.stats.meanSleepDuration
+        // Capture the analysis snapshot once — the property is computed
+        // on the @Observable store and walking it three times per body
+        // eval (consistency + stats.stdBedtime + stats.meanSleepDuration)
+        // adds unnecessary observation churn.
+        let analysis = store.analysis
+        let c = analysis.consistency
+        let drift = analysis.stats.stdBedtime * 60.0   // minutes
+        let duration = analysis.stats.meanSleepDuration
         return HStack(spacing: 10) {
             DimensionPill(
                 label: String(localized: "analysis.dim.consistency", bundle: bundle),
@@ -117,10 +122,11 @@ struct AnalysisTab: View {
     // MARK: - Insight
 
     private var weeklyInsight: WeeklyInsight? {
-        WeeklyInsightEngine.generate(
+        let analysis = store.analysis
+        return WeeklyInsightEngine.generate(
             records: displayRecords,
-            stats: store.analysis.stats,
-            consistency: store.analysis.consistency)
+            stats: analysis.stats,
+            consistency: analysis.consistency)
     }
 
     // MARK: - Derived
