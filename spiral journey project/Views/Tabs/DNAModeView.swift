@@ -74,6 +74,18 @@ struct DNAModeView: View {
                         .frame(height: 500)
                         .padding(.horizontal, 16)
 
+                    // When the user toggles pattern highlights, surface a
+                    // rich timeline card right under the helix so the color
+                    // tint on the bars isn't just decorative — each motif
+                    // gets a dedicated lane with the concrete dates of the
+                    // weeks that belong to it.
+                    if showPatternArrows,
+                       let profile = dnaProfile,
+                       !profile.motifs.isEmpty {
+                        MotifTimelineCard(profile: profile, records: filteredRecords)
+                            .transition(.opacity.combined(with: .move(edge: .top)))
+                    }
+
                     // Cards below
                     patternsCard
                     mutationsCard
@@ -86,6 +98,7 @@ struct DNAModeView: View {
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
                 .padding(.bottom, 180)
+                .animation(.easeInOut(duration: 0.2), value: showPatternArrows)
             }
 
             bottomStack
