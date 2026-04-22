@@ -32,6 +32,20 @@ struct DNAModeView: View {
     @State private var isAnalyzing = false
     @State private var showCalendar = false
 
+    // MARK: - Date range filter for the helix
+
+    /// User-selected date range for the helix hero. When nil, the helix
+    /// uses the full record history. Both bounds are inclusive and the
+    /// range resets to nil via the "Reset" button in the picker sheet.
+    @State private var helixDateRange: (from: Date, to: Date)?
+
+    /// Records to feed the helix — either the full history or the slice
+    /// selected via the calendar button in the action bar.
+    private var filteredRecords: [SleepRecord] {
+        guard let range = helixDateRange else { return store.records }
+        return store.records.filter { $0.date >= range.from && $0.date <= range.to }
+    }
+
     // MARK: - Shared with HelixRealityView
 
     /// Owned here so the phase legend overlay and the helix hero stay in
@@ -102,6 +116,9 @@ struct DNAModeView: View {
         }
         .sheet(isPresented: $showPatternsHelp) {
             patternsHelpSheet
+        }
+        .sheet(isPresented: $showCalendar) {
+            calendarRangeSheet
         }
         // The Insights sub-sheet was the only caller of `refreshIfNeeded`,
         // so users who only opened this main tab were stuck with whatever
@@ -200,10 +217,11 @@ struct DNAModeView: View {
             if #available(iOS 18.0, macOS 15.0, *) {
                 HelixRealityView(
                     profile: profile,
-                    records: store.records,
+                    records: filteredRecords,
                     isInteractingWith3D: $isInteractingWith3D,
                     isActive: isActive,
-                    comparisonMode: $helixComparisonMode
+                    comparisonMode: $helixComparisonMode,
+                    showPatterns: $showPatternArrows
                 )
             } else {
                 helixPreview
@@ -424,7 +442,10 @@ struct DNAModeView: View {
 
     private var actionBar: some View {
         HStack(spacing: 24) {
-            // Left: Pattern connections
+            // Left: Pattern highlights — toggles motif color overlay on the
+            // 3D helix. Wired via the `showPatternArrows` binding passed to
+            // HelixRealityView; the same state syncs both directions so the
+            // internal eye button inside the helix stays consistent.
             Button {
                 showPatternArrows.toggle()
             } label: {
@@ -435,12 +456,16 @@ struct DNAModeView: View {
                     .liquidGlass(circular: true)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(loc("dna.action.patterns"))
 
-            // Center: Analyze
+            // Center: Analyze — force a full recompute of the SleepDNA
+            // profile. Useful when the user just logged new data, changed
+            // their sleep goal, or wants to verify the pipeline picked up
+            // edits without waiting for the next scheduled refresh.
             Button {
-                isAnalyzing = true
                 Task {
-                    try? await Task.sleep(for: .seconds(2))
+                    isAnalyzing = true
+                    await dnaService.forceRefresh(store: store, context: modelContext)
                     isAnalyzing = false
                 }
             } label: {
@@ -462,19 +487,48 @@ struct DNAModeView: View {
             .buttonStyle(.plain)
             .disabled(isAnalyzing)
 
-            // Right: Calendar / range
+            // Right: Calendar / range — opens a picker to filter the helix
+            // hero to a specific window of dates (e.g. analyze just "last
+            // month" without losing the full history elsewhere).
             Button {
-                showCalendar.toggle()
+                showCalendar = true
             } label: {
-                Image(systemName: "calendar.badge.clock")
+                Image(systemName: helixDateRange == nil
+                      ? "calendar.badge.clock" : "calendar.badge.checkmark")
                     .font(.title3)
                     .foregroundStyle(SpiralColors.text)
                     .frame(width: 48, height: 48)
                     .liquidGlass(circular: true)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(loc("dna.action.range"))
         }
         .padding(.bottom, 8)
+    }
+
+    // MARK: - Date Range Picker Sheet
+
+    private var calendarRangeSheet: some View {
+        DNADateRangePicker(
+            initialRange: helixDateRange,
+            availableRange: availableDateBounds,
+            onApply: { range in
+                helixDateRange = range
+                showCalendar = false
+            },
+            onCancel: { showCalendar = false }
+        )
+    }
+
+    /// Minimum and maximum dates across the user's full record history,
+    /// used to bound the DatePickers so the user can't select a range
+    /// outside their data.
+    private var availableDateBounds: ClosedRange<Date> {
+        let dates = store.records.map(\.date)
+        guard let first = dates.min(), let last = dates.max() else {
+            return Date()...Date()
+        }
+        return first...last
     }
 
     // MARK: - Sheet Views

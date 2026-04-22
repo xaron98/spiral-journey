@@ -18,6 +18,24 @@ struct HelixRealityView: View {
     /// Owned by the parent (DNAModeView) so its phase legend overlay and
     /// the pills inside the helix hero stay in sync.
     @Binding var comparisonMode: HelixComparisonMode
+    /// Toggles the motif highlights on the helix bars. Defaults to an
+    /// internal source when the caller doesn't need external control; the
+    /// DNA tab's action bar wires this to its left button.
+    @Binding var showPatterns: Bool
+
+    init(profile: SleepDNAProfile,
+         records: [SleepRecord] = [],
+         isInteractingWith3D: Binding<Bool>,
+         isActive: Bool = true,
+         comparisonMode: Binding<HelixComparisonMode>,
+         showPatterns: Binding<Bool> = .constant(false)) {
+        self.profile = profile
+        self.records = records
+        self._isInteractingWith3D = isInteractingWith3D
+        self.isActive = isActive
+        self._comparisonMode = comparisonMode
+        self._showPatterns = showPatterns
+    }
 
     @Environment(\.languageBundle) private var bundle
     @Environment(\.scenePhase) private var scenePhase
@@ -143,6 +161,9 @@ struct HelixRealityView: View {
         .gesture(tapGesture)
         .onAppear {
             if isActive { manager.startDisplayLink() }
+            // Seed the manager from the external binding so the action bar
+            // and the internal eye button render a single source of truth.
+            manager.showPatterns = showPatterns
         }
         .onDisappear {
             manager.stopDisplayLink()
@@ -153,6 +174,14 @@ struct HelixRealityView: View {
             } else {
                 manager.stopDisplayLink()
             }
+        }
+        .onChange(of: showPatterns) { _, new in
+            manager.showPatterns = new
+        }
+        .onChange(of: manager.showPatterns) { _, new in
+            // Propagate internal toggles (eye button inside the helix) back
+            // up to the parent so both entry points stay in sync.
+            if showPatterns != new { showPatterns = new }
         }
         .onChange(of: scenePhase) { _, newPhase in
             switch newPhase {
