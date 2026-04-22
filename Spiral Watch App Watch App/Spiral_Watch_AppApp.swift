@@ -29,10 +29,18 @@ struct SpiralWatchApp: App {
         guard hk.isAuthorized else { return }
         // Pull current data immediately, then keep watching for new samples.
         await store.refreshFromHealthKit()
+
+        // Debounced callback — HealthKit can fire multiple times rapidly.
+        // Only refresh once per 30 seconds to save battery.
+        var lastRefresh = Date()
         hk.onNewSleepData = { [store] in
+            let now = Date()
+            guard now.timeIntervalSince(lastRefresh) > 30 else { return }
+            lastRefresh = now
             Task { await store.refreshFromHealthKit() }
         }
-        hk.startObservingNewSleep()
+
+        // Use ONLY anchored query (not both observer + anchored — that doubles callbacks)
         hk.startAnchoredSleepQuery()
     }
 }
