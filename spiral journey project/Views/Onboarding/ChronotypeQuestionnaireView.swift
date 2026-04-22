@@ -174,13 +174,18 @@ struct ChronotypeQuestionnaireView: View {
     // MARK: - Result View
 
     private func resultView(_ result: ChronotypeResult) -> some View {
+        // Uniform horizontal padding at the VStack level instead of mixing
+        // 24/32 values on individual children — the asymmetric paddings
+        // made the Continue button visibly wider than the ideal-schedule
+        // card above it, which read as "not squared / not centered".
         VStack(spacing: 20) {
             Text(result.chronotype.emoji)
-                .font(.largeTitle)
+                .font(.system(size: 56))
 
             Text(chronotypeLocalizedName(result.chronotype))
                 .font(.title.weight(.light))
                 .foregroundStyle(SpiralColors.accent)
+                .multilineTextAlignment(.center)
 
             Text(String(
                 format: String(localized: "chronotype.result.score", bundle: bundle),
@@ -194,7 +199,6 @@ struct ChronotypeQuestionnaireView: View {
                 .foregroundStyle(SpiralColors.text.opacity(0.8))
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
-                .padding(.horizontal, 32)
 
             // Ideal schedule summary
             VStack(spacing: 6) {
@@ -210,6 +214,7 @@ struct ChronotypeQuestionnaireView: View {
                 )
             }
             .padding(16)
+            .frame(maxWidth: .infinity)
             .background(
                 RoundedRectangle(cornerRadius: 12)
                     .fill(SpiralColors.surface)
@@ -218,11 +223,11 @@ struct ChronotypeQuestionnaireView: View {
                             .stroke(SpiralColors.border, lineWidth: 0.8)
                     )
             )
-            .padding(.horizontal, 32)
 
             Spacer().frame(height: 8)
 
-            // Continue button
+            // Continue button — matches the width of the schedule card above
+            // because both now live inside the VStack's unified padding.
             Button(action: onComplete) {
                 Text(String(localized: "chronotype.continue", bundle: bundle))
                     .font(.body.weight(.semibold).monospaced())
@@ -233,9 +238,9 @@ struct ChronotypeQuestionnaireView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 14))
             }
             .buttonStyle(.plain)
-            .padding(.horizontal, 24)
-            .padding(.bottom, 48)
         }
+        .padding(.horizontal, 24)
+        .padding(.bottom, 48)
     }
 
     private func scheduleRow(icon: String, label: String, value: String) -> some View {

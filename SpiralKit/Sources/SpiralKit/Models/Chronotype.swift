@@ -33,13 +33,19 @@ public enum Chronotype: String, Codable, CaseIterable, Sendable {
     }
 
     /// Emoji representing the chronotype for quick visual identification.
+    ///
+    /// Both `U+2600` (sun) and `U+26C5` (sun behind cloud) have ambiguous
+    /// Unicode presentation defaults — without the `U+FE0F` variation
+    /// selector they can render as monochrome text glyphs (the "tofu box"
+    /// effect) depending on the system font context. Both carry VS16 here
+    /// to force the color-emoji rendering reliably.
     public var emoji: String {
         switch self {
-        case .definiteMorning:  return "\u{1F305}"  // 🌅
-        case .moderateMorning:  return "\u{2600}\u{FE0F}"   // ☀️
-        case .intermediate:     return "\u{26C5}"    // ⛅
-        case .moderateEvening:  return "\u{1F319}"   // 🌙
-        case .definiteEvening:  return "\u{1F303}"   // 🌃
+        case .definiteMorning:  return "\u{1F305}"              // 🌅
+        case .moderateMorning:  return "\u{2600}\u{FE0F}"       // ☀️
+        case .intermediate:     return "\u{26C5}\u{FE0F}"       // ⛅
+        case .moderateEvening:  return "\u{1F319}"              // 🌙
+        case .definiteEvening:  return "\u{1F303}"              // 🌃
         }
     }
 
