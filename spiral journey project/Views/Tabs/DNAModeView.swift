@@ -137,9 +137,9 @@ struct DNAModeView: View {
                 let missense = profile.mutations.filter { $0.classification == .missense }.count
                 let nonsense = profile.mutations.filter { $0.classification == .nonsense }.count
                 HStack(spacing: 16) {
-                    mutationBadge(count: silent, label: "Silent", color: SpiralColors.good)
-                    mutationBadge(count: missense, label: "Missense", color: SpiralColors.moderate)
-                    mutationBadge(count: nonsense, label: "Nonsense", color: SpiralColors.poor)
+                    mutationBadge(count: silent, label: loc("dna.mutation.badge.silent"), color: SpiralColors.good)
+                    mutationBadge(count: missense, label: loc("dna.mutation.badge.missense"), color: SpiralColors.moderate)
+                    mutationBadge(count: nonsense, label: loc("dna.mutation.badge.nonsense"), color: SpiralColors.poor)
                     Spacer()
                 }
             } else {
@@ -242,10 +242,10 @@ struct DNAModeView: View {
             if let profile = dnaProfile {
                 let hm = profile.healthMarkers
                 VStack(spacing: 8) {
-                    healthRow(label: "Coherence", value: hm.circadianCoherence)
-                    healthRow(label: "Continuity", value: hm.helicalContinuity)
-                    healthRow(label: "Balance", value: hm.homeostasisBalance)
-                    healthRow(label: "Fragmentation", value: 1.0 - hm.fragmentationScore)
+                    healthRow(label: loc("dna.health.coherence"), value: hm.circadianCoherence)
+                    healthRow(label: loc("dna.health.continuity"), value: hm.helicalContinuity)
+                    healthRow(label: loc("dna.health.balance"), value: hm.homeostasisBalance)
+                    healthRow(label: loc("dna.health.fragmentation"), value: 1.0 - hm.fragmentationScore)
                 }
             } else {
                 Text(loc("dna.card.circadian.description"))
@@ -287,7 +287,7 @@ struct DNAModeView: View {
                         Text(SleepStatistics.formatHour(pred.predictedBedtime))
                             .font(.title3.weight(.bold).monospacedDigit())
                             .foregroundStyle(SpiralColors.text)
-                        Text("Bedtime")
+                        Text(loc("dna.prediction.label.bedtime"))
                             .font(.system(size: 9))
                             .foregroundStyle(SpiralColors.muted)
                     }
@@ -295,7 +295,7 @@ struct DNAModeView: View {
                         Text(SleepStatistics.formatHour(pred.predictedWake))
                             .font(.title3.weight(.bold).monospacedDigit())
                             .foregroundStyle(SpiralColors.text)
-                        Text("Wake")
+                        Text(loc("dna.prediction.label.wake"))
                             .font(.system(size: 9))
                             .foregroundStyle(SpiralColors.muted)
                     }
@@ -303,7 +303,7 @@ struct DNAModeView: View {
                         Text(String(format: "%.1fh", pred.predictedDuration))
                             .font(.title3.weight(.bold).monospacedDigit())
                             .foregroundStyle(SpiralColors.text)
-                        Text("Duration")
+                        Text(loc("dna.prediction.label.duration"))
                             .font(.system(size: 9))
                             .foregroundStyle(SpiralColors.muted)
                     }
@@ -319,7 +319,7 @@ struct DNAModeView: View {
                         Text(SleepStatistics.formatHour(mlPred.predictedBedtimeHour))
                             .font(.title3.weight(.bold).monospacedDigit())
                             .foregroundStyle(SpiralColors.text)
-                        Text("Bedtime")
+                        Text(loc("dna.prediction.label.bedtime"))
                             .font(.system(size: 9))
                             .foregroundStyle(SpiralColors.muted)
                     }
@@ -327,7 +327,7 @@ struct DNAModeView: View {
                         Text(SleepStatistics.formatHour(mlPred.predictedWakeHour))
                             .font(.title3.weight(.bold).monospacedDigit())
                             .foregroundStyle(SpiralColors.text)
-                        Text("Wake")
+                        Text(loc("dna.prediction.label.wake"))
                             .font(.system(size: 9))
                             .foregroundStyle(SpiralColors.muted)
                     }
@@ -462,70 +462,162 @@ struct DNAModeView: View {
 
     private var patternsSheet: some View {
         NavigationStack {
-            ZStack {
-                SpiralColors.bg.ignoresSafeArea()
-                VStack(spacing: 16) {
-                    Image(systemName: "link")
-                        .font(.largeTitle)
-                        .foregroundStyle(SpiralColors.accent)
-                    Text(loc("dna.card.patterns"))
-                        .font(.title2.weight(.semibold))
-                        .foregroundStyle(SpiralColors.text)
-                    Text(loc("dna.sheet.patterns.placeholder"))
-                        .font(.body)
-                        .foregroundStyle(SpiralColors.muted)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 32)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    if let profile = dnaProfile, !profile.motifs.isEmpty {
+                        let sorted = profile.motifs.sorted { $0.instanceCount > $1.instanceCount }
+                        ForEach(sorted) { motif in
+                            patternRow(motif: motif)
+                        }
+                    } else {
+                        sheetEmptyState(
+                            icon: "link",
+                            text: loc("dna.sheet.patterns.empty"))
+                    }
                 }
+                .padding(16)
             }
+            .background(SpiralColors.bg.ignoresSafeArea())
             .navigationTitle(loc("dna.card.patterns"))
             #if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button { showPatterns = false } label: {
-                        Image(systemName: "xmark")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(SpiralColors.muted)
-                    }
-                }
+            .toolbar { sheetCloseButton { showPatterns = false } }
+        }
+    }
+
+    private func patternRow(motif: SleepMotif) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Image(systemName: "waveform.path.ecg")
+                    .font(.body)
+                    .foregroundStyle(SpiralColors.accent)
+                Text(localizedMotifName(motif.name))
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(SpiralColors.text)
+                Spacer()
+                Text(String(format: loc("dna.sheet.patterns.instances"), motif.instanceCount))
+                    .font(.caption.monospaced())
+                    .foregroundStyle(SpiralColors.muted)
+            }
+            HStack {
+                Text(loc("dna.sheet.patterns.avgQuality"))
+                    .font(.caption)
+                    .foregroundStyle(SpiralColors.subtle)
+                Spacer()
+                Text(String(format: "%.0f%%", motif.avgQuality * 100))
+                    .font(.caption.weight(.semibold).monospacedDigit())
+                    .foregroundStyle(motif.avgQuality > 0.6 ? SpiralColors.good
+                                     : motif.avgQuality > 0.4 ? SpiralColors.moderate
+                                     : SpiralColors.poor)
             }
         }
+        .padding(14)
+        .background(SpiralColors.surface, in: RoundedRectangle(cornerRadius: 14))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(SpiralColors.border, lineWidth: 0.5))
+    }
+
+    /// Translate motif engine keys (English) to localized names
+    private func localizedMotifName(_ engineName: String) -> String {
+        let key = "dna.motif.name.\(engineName.lowercased())"
+        let result = loc(key)
+        return result == key ? engineName : result
     }
 
     private var mutationsSheet: some View {
         NavigationStack {
-            ZStack {
-                SpiralColors.bg.ignoresSafeArea()
-                VStack(spacing: 16) {
-                    Image(systemName: "bolt.trianglebadge.exclamationmark")
-                        .font(.largeTitle)
-                        .foregroundStyle(SpiralColors.accent)
-                    Text(loc("dna.card.mutations"))
-                        .font(.title2.weight(.semibold))
-                        .foregroundStyle(SpiralColors.text)
-                    Text(loc("dna.sheet.mutations.placeholder"))
-                        .font(.body)
-                        .foregroundStyle(SpiralColors.muted)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 32)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 10) {
+                    if let profile = dnaProfile, !profile.mutations.isEmpty {
+                        // Most recent first, cap at 30 rows.
+                        let recent = Array(profile.mutations.suffix(30).reversed())
+                        ForEach(recent) { mutation in
+                            mutationRow(mutation: mutation)
+                        }
+                    } else {
+                        sheetEmptyState(
+                            icon: "bolt.trianglebadge.exclamationmark",
+                            text: loc("dna.sheet.mutations.empty"))
+                    }
                 }
+                .padding(16)
             }
+            .background(SpiralColors.bg.ignoresSafeArea())
             .navigationTitle(loc("dna.card.mutations"))
             #if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button { showMutations = false } label: {
-                        Image(systemName: "xmark")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(SpiralColors.muted)
-                    }
-                }
+            .toolbar { sheetCloseButton { showMutations = false } }
+        }
+    }
+
+    private func mutationRow(mutation: SleepMutation) -> some View {
+        HStack(spacing: 12) {
+            Circle()
+                .fill(mutationRowColor(mutation.classification))
+                .frame(width: 12, height: 12)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(mutationRowLabel(mutation.classification))
+                    .font(.body.weight(.medium))
+                    .foregroundStyle(SpiralColors.text)
+                Text(String(format: loc("dna.sheet.mutations.week"), mutation.day))
+                    .font(.caption2)
+                    .foregroundStyle(SpiralColors.subtle)
+            }
+            Spacer()
+            Text(String(format: "%+.0f%%", mutation.qualityDelta * 100))
+                .font(.caption.weight(.semibold).monospacedDigit())
+                .foregroundStyle(mutation.qualityDelta >= 0 ? SpiralColors.good : SpiralColors.poor)
+        }
+        .padding(12)
+        .background(SpiralColors.surface, in: RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(SpiralColors.border, lineWidth: 0.5))
+    }
+
+    private func mutationRowColor(_ t: MutationType) -> Color {
+        switch t {
+        case .silent:   return SpiralColors.good
+        case .missense: return SpiralColors.moderate
+        case .nonsense: return SpiralColors.poor
+        }
+    }
+
+    private func mutationRowLabel(_ t: MutationType) -> String {
+        switch t {
+        case .silent:   return loc("dna.motif.mutation.silent")
+        case .missense: return loc("dna.motif.mutation.missense")
+        case .nonsense: return loc("dna.motif.mutation.nonsense")
+        }
+    }
+
+    @ToolbarContentBuilder
+    private func sheetCloseButton(action: @escaping () -> Void) -> some ToolbarContent {
+        ToolbarItem(placement: .cancellationAction) {
+            Button(action: action) {
+                Image(systemName: "xmark")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(SpiralColors.muted)
             }
         }
+    }
+
+    private func sheetEmptyState(icon: String, text: String) -> some View {
+        VStack(spacing: 16) {
+            Image(systemName: icon)
+                .font(.largeTitle)
+                .foregroundStyle(SpiralColors.accent)
+            Text(text)
+                .font(.body)
+                .foregroundStyle(SpiralColors.muted)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 16)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 48)
     }
 
     private var helixSheet: some View {
@@ -564,69 +656,243 @@ struct DNAModeView: View {
 
     private var predictionSheet: some View {
         NavigationStack {
-            ZStack {
-                SpiralColors.bg.ignoresSafeArea()
-                VStack(spacing: 16) {
-                    Image(systemName: "sparkles")
-                        .font(.largeTitle)
-                        .foregroundStyle(SpiralColors.accent)
-                    Text(loc("dna.card.prediction"))
-                        .font(.title2.weight(.semibold))
-                        .foregroundStyle(SpiralColors.text)
-                    Text(loc("dna.sheet.prediction.placeholder"))
-                        .font(.body)
-                        .foregroundStyle(SpiralColors.muted)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 32)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    if let profile = dnaProfile, let pred = profile.prediction {
+                        predictionDetailCard(pred: pred, profile: profile)
+                        if !profile.alignments.isEmpty {
+                            alignmentsList(profile.alignments)
+                        }
+                    } else if let ml = store.latestPrediction {
+                        mlPredictionCard(ml)
+                    } else {
+                        sheetEmptyState(
+                            icon: "sparkles",
+                            text: loc("dna.sheet.prediction.empty"))
+                    }
                 }
+                .padding(16)
             }
+            .background(SpiralColors.bg.ignoresSafeArea())
             .navigationTitle(loc("dna.card.prediction"))
             #if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button { showPrediction = false } label: {
-                        Image(systemName: "xmark")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(SpiralColors.muted)
-                    }
+            .toolbar { sheetCloseButton { showPrediction = false } }
+        }
+    }
+
+    private func predictionDetailCard(pred: SequencePrediction, profile: SleepDNAProfile) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 18) {
+                predictionMetric(
+                    label: loc("dna.sheet.prediction.bedtime"),
+                    value: SleepStatistics.formatHour(pred.predictedBedtime))
+                predictionMetric(
+                    label: loc("dna.sheet.prediction.wake"),
+                    value: SleepStatistics.formatHour(pred.predictedWake))
+                predictionMetric(
+                    label: loc("dna.sheet.prediction.duration"),
+                    value: String(format: "%.1fh", pred.predictedDuration))
+                Spacer()
+            }
+
+            Divider().overlay(SpiralColors.border)
+
+            HStack {
+                Text(loc("dna.sheet.prediction.confidence"))
+                    .font(.caption)
+                    .foregroundStyle(SpiralColors.muted)
+                Spacer()
+                Text(String(format: "%.0f%%", pred.confidence * 100))
+                    .font(.body.weight(.semibold).monospacedDigit())
+                    .foregroundStyle(pred.confidence > 0.6 ? SpiralColors.good
+                                     : pred.confidence > 0.4 ? SpiralColors.moderate
+                                     : SpiralColors.poor)
+            }
+
+            if !pred.basedOnWeekIndices.isEmpty {
+                Text(String(format: loc("dna.sheet.prediction.basedOn"), pred.basedOnWeekIndices.count))
+                    .font(.caption2)
+                    .foregroundStyle(SpiralColors.subtle)
+            }
+        }
+        .padding(16)
+        .background(SpiralColors.surface, in: RoundedRectangle(cornerRadius: 16))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(SpiralColors.border, lineWidth: 0.5))
+    }
+
+    private func predictionMetric(label: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(label)
+                .font(.caption2)
+                .foregroundStyle(SpiralColors.subtle)
+                .textCase(.uppercase)
+            Text(value)
+                .font(.title3.weight(.bold).monospacedDigit())
+                .foregroundStyle(SpiralColors.text)
+        }
+    }
+
+    private func mlPredictionCard(_ ml: PredictionOutput) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 18) {
+                predictionMetric(
+                    label: loc("dna.sheet.prediction.bedtime"),
+                    value: SleepStatistics.formatHour(ml.predictedBedtimeHour))
+                predictionMetric(
+                    label: loc("dna.sheet.prediction.wake"),
+                    value: SleepStatistics.formatHour(ml.predictedWakeHour))
+                Spacer()
+            }
+        }
+        .padding(16)
+        .background(SpiralColors.surface, in: RoundedRectangle(cornerRadius: 16))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(SpiralColors.border, lineWidth: 0.5))
+    }
+
+    private func alignmentsList(_ alignments: [WeekAlignment]) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(loc("dna.sheet.prediction.alignments"))
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(SpiralColors.subtle)
+                .textCase(.uppercase)
+
+            let top = alignments.sorted { $0.similarity > $1.similarity }.prefix(5)
+            ForEach(Array(top.enumerated()), id: \.offset) { _, alignment in
+                HStack {
+                    Image(systemName: "arrow.triangle.branch")
+                        .font(.footnote)
+                        .foregroundStyle(SpiralColors.accent)
+                    Text(String(format: loc("dna.sheet.mutations.week"), alignment.startDay))
+                        .font(.caption)
+                        .foregroundStyle(SpiralColors.text)
+                    Spacer()
+                    Text(String(format: "%.0f%%", alignment.similarity * 100))
+                        .font(.caption.weight(.semibold).monospacedDigit())
+                        .foregroundStyle(alignment.similarity > 0.7 ? SpiralColors.good
+                                         : alignment.similarity > 0.4 ? SpiralColors.moderate
+                                         : SpiralColors.poor)
                 }
+                .padding(10)
+                .background(SpiralColors.surface.opacity(0.6),
+                            in: RoundedRectangle(cornerRadius: 10))
             }
         }
     }
 
     private var exportSheet: some View {
         NavigationStack {
-            ZStack {
-                SpiralColors.bg.ignoresSafeArea()
-                VStack(spacing: 16) {
-                    Image(systemName: "square.and.arrow.up")
-                        .font(.largeTitle)
-                        .foregroundStyle(SpiralColors.accent)
-                    Text(loc("dna.card.export"))
-                        .font(.title2.weight(.semibold))
-                        .foregroundStyle(SpiralColors.text)
-                    Text(loc("dna.sheet.export.placeholder"))
-                        .font(.body)
-                        .foregroundStyle(SpiralColors.muted)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 32)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    if let profile = dnaProfile, !profile.nucleotides.isEmpty {
+                        exportSummaryCard(profile: profile)
+                        exportPreviewCard(profile: profile)
+                        exportShareButton(profile: profile)
+                    } else {
+                        sheetEmptyState(
+                            icon: "square.and.arrow.up",
+                            text: loc("dna.sheet.export.empty"))
+                    }
                 }
+                .padding(16)
             }
+            .background(SpiralColors.bg.ignoresSafeArea())
             .navigationTitle(loc("dna.card.export"))
             #if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button { showExport = false } label: {
-                        Image(systemName: "xmark")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(SpiralColors.muted)
-                    }
-                }
+            .toolbar { sheetCloseButton { showExport = false } }
+        }
+    }
+
+    private func exportSummaryCard(profile: SleepDNAProfile) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(loc("dna.sheet.export.description"))
+                .font(.subheadline)
+                .foregroundStyle(SpiralColors.text)
+            HStack {
+                Label(String(format: loc("dna.sheet.export.days"), profile.nucleotides.count),
+                      systemImage: "calendar")
+                Spacer()
+                Label(String(format: loc("dna.sheet.export.features"), DayNucleotide.featureCount),
+                      systemImage: "chart.bar")
             }
+            .font(.caption)
+            .foregroundStyle(SpiralColors.muted)
+        }
+        .padding(14)
+        .background(SpiralColors.surface, in: RoundedRectangle(cornerRadius: 14))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(SpiralColors.border, lineWidth: 0.5))
+    }
+
+    private func exportPreviewCard(profile: SleepDNAProfile) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(loc("dna.sheet.export.preview"))
+                .font(.caption.weight(.medium))
+                .foregroundStyle(SpiralColors.subtle)
+            Text("day,bedtimeSin,bedtimeCos,...,sleepQuality")
+                .font(.system(size: 9, design: .monospaced))
+                .foregroundStyle(SpiralColors.muted)
+            ForEach(profile.nucleotides.prefix(3), id: \.day) { n in
+                Text(previewRow(for: n))
+                    .font(.system(size: 9, design: .monospaced))
+                    .foregroundStyle(SpiralColors.text.opacity(0.7))
+                    .lineLimit(1)
+            }
+        }
+        .padding(14)
+        .background(SpiralColors.surface, in: RoundedRectangle(cornerRadius: 14))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(SpiralColors.border, lineWidth: 0.5))
+    }
+
+    private func exportShareButton(profile: SleepDNAProfile) -> some View {
+        Group {
+            if let url = makeCSV(profile: profile) {
+                ShareLink(item: url) {
+                    Label(loc("dna.sheet.export.share"), systemImage: "square.and.arrow.up")
+                        .font(.body.weight(.medium))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(SpiralColors.accent, in: RoundedRectangle(cornerRadius: 14))
+                        .foregroundStyle(.white)
+                }
+            } else {
+                ProgressView().padding()
+            }
+        }
+    }
+
+    private func previewRow(for n: DayNucleotide) -> String {
+        let head = n.features.prefix(3).map { String(format: "%.2f", $0) }.joined(separator: ",")
+        let tail = n.features.last.map { String(format: "%.2f", $0) } ?? "—"
+        return "\(n.day),\(head),…,\(tail)"
+    }
+
+    /// Writes the profile's nucleotides to a temp-dir CSV file and returns the URL.
+    /// Returns nil only when the file write fails.
+    private func makeCSV(profile: SleepDNAProfile) -> URL? {
+        let header = ["day"] + DayNucleotide.Feature.allCases.map { "\($0)" }
+        var csv = header.joined(separator: ",") + "\n"
+        for n in profile.nucleotides {
+            let values = n.features.map { String(format: "%.4f", $0) }
+            csv += "\(n.day)," + values.joined(separator: ",") + "\n"
+        }
+        let dir = FileManager.default.temporaryDirectory
+        let url = dir.appendingPathComponent("sleepdna_\(Int(Date().timeIntervalSince1970)).csv")
+        do {
+            try csv.write(to: url, atomically: true, encoding: .utf8)
+            return url
+        } catch {
+            return nil
         }
     }
 
