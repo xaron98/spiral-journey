@@ -74,11 +74,22 @@ public actor SleepDNAComputer {
         }
 
         // Step 1: Determine tier
+        //
+        // Thresholds lowered (2026-04): motifs/mutations used to gate at 8
+        // weeks (`.full`), which blocked users with ~4-6 weeks of data from
+        // seeing patterns that the underlying algorithm could already
+        // detect. MotifDiscovery only needs 4 sliding-window sequences
+        // (10 records), so 2 weeks is a safe, honest minimum.
+        //
+        // - basic:        < 2 weeks — encoding only
+        // - intermediate: 2-3 weeks — motifs, mutations, predictions, Poisson
+        // - full:         >= 4 weeks — BLOSUM learning, Hawkes, persistent
+        //                 homology, linking number, mutual information spectrum
         let dataWeeks = records.count / 7
         let tier: AnalysisTier
-        if dataWeeks >= 8 {
+        if dataWeeks >= 4 {
             tier = .full
-        } else if dataWeeks >= 4 {
+        } else if dataWeeks >= 2 {
             tier = .intermediate
         } else {
             tier = .basic
@@ -116,9 +127,14 @@ public actor SleepDNAComputer {
 
         try Task.checkCancellation()
 
-        // Step 6: Motif discovery (full tier only)
+        // Step 6: Motif discovery (intermediate+ tier — lowered from .full)
+        //
+        // MotifDiscovery has its own `minimumSequences = 4` guard, which
+        // corresponds to 10 records (10 days). Running at intermediate
+        // tier (>= 2 weeks = 14 records → 8 sequences) is well above
+        // that minimum and produces stable clusters.
         let motifs: [SleepMotif]
-        if tier == .full {
+        if tier != .basic {
             motifs = MotifDiscovery.discover(
                 sequences: sequences,
                 weights: blosum.weights
@@ -129,10 +145,10 @@ public actor SleepDNAComputer {
 
         try Task.checkCancellation()
 
-        // Step 7: Mutation classification (full tier only)
+        // Step 7: Mutation classification (intermediate+ tier, gated by motifs)
         let mutations: [SleepMutation]
         let expressionRules: [ExpressionRule]
-        if tier == .full && !motifs.isEmpty {
+        if tier != .basic && !motifs.isEmpty {
             mutations = MutationClassifier.classifyMutations(
                 sequences: sequences,
                 motifs: motifs,

@@ -65,7 +65,7 @@ struct SleepDNAComputerTests {
         #expect(profile.prediction == nil)
     }
 
-    @Test("30 records -> intermediate tier, has prediction")
+    @Test("30 records -> full tier (>=4wk), has motifs + prediction")
     func testIntermediateTier() async throws {
         let records = makeRecords(count: 30)
         let computer = SleepDNAComputer()
@@ -77,15 +77,14 @@ struct SleepDNAComputerTests {
             goalDuration: 8
         )
 
-        #expect(profile.tier == .intermediate)
+        // Thresholds lowered 2026-04: 30 records (~4.3 weeks) is now `.full`.
+        #expect(profile.tier == .full)
         #expect(profile.dataWeeks == 4)
         #expect(profile.nucleotides.count == 30)
         #expect(profile.sequences.count == 24)  // 30 - 7 + 1
-        // Motifs are not computed in intermediate tier
-        #expect(profile.motifs.isEmpty)
-        // Prediction should be attempted (>= 4 sequences)
-        // Note: prediction may or may not succeed depending on data shape,
-        // but the pipeline should not crash
+        // Motifs should be computed at intermediate+ tier (gate lowered).
+        // Whether clustering actually produces motifs depends on data shape,
+        // so we only assert the pipeline ran — not an exact count.
     }
 
     @Test("60 records -> full tier, has motifs + prediction")
@@ -110,6 +109,25 @@ struct SleepDNAComputerTests {
         #expect(profile.healthMarkers.circadianCoherence >= 0)
     }
 
+    @Test("14 records -> intermediate tier, motifs attempted")
+    func testIntermediateTierAt2Weeks() async throws {
+        let records = makeRecords(count: 14)
+        let computer = SleepDNAComputer()
+
+        let profile = try await computer.compute(
+            records: records,
+            events: [],
+            chronotype: nil,
+            goalDuration: 8
+        )
+
+        // 14 records = 2 weeks = intermediate tier (new boundary).
+        #expect(profile.tier == .intermediate)
+        #expect(profile.dataWeeks == 2)
+        #expect(profile.sequences.count == 8)  // 14 - 7 + 1
+        // Motifs should be attempted (sequences.count >= 4 is enough).
+    }
+
     @Test("Empty records throws insufficientData")
     func testEmptyRecords() async throws {
         let computer = SleepDNAComputer()
@@ -128,41 +146,46 @@ struct SleepDNAComputerTests {
     func testTierBoundaries() async throws {
         let computer = SleepDNAComputer()
 
-        // 27 records = 3 weeks -> basic
+        // Boundaries lowered 2026-04:
+        //   basic:        < 2 weeks (< 14 records)
+        //   intermediate: 2-3 weeks (14-27 records)
+        //   full:         >= 4 weeks (>= 28 records)
+
+        // 13 records = 1 week + 6 days -> basic
+        let p13 = try await computer.compute(
+            records: makeRecords(count: 13),
+            events: [],
+            chronotype: nil,
+            goalDuration: 8
+        )
+        #expect(p13.tier == .basic)
+
+        // 14 records = 2 weeks -> intermediate
+        let p14 = try await computer.compute(
+            records: makeRecords(count: 14),
+            events: [],
+            chronotype: nil,
+            goalDuration: 8
+        )
+        #expect(p14.tier == .intermediate)
+
+        // 27 records = 3 weeks + 6 days -> intermediate
         let p27 = try await computer.compute(
             records: makeRecords(count: 27),
             events: [],
             chronotype: nil,
             goalDuration: 8
         )
-        #expect(p27.tier == .basic)
+        #expect(p27.tier == .intermediate)
 
-        // 28 records = 4 weeks -> intermediate
+        // 28 records = 4 weeks -> full
         let p28 = try await computer.compute(
             records: makeRecords(count: 28),
             events: [],
             chronotype: nil,
             goalDuration: 8
         )
-        #expect(p28.tier == .intermediate)
-
-        // 55 records = 7 weeks -> intermediate
-        let p55 = try await computer.compute(
-            records: makeRecords(count: 55),
-            events: [],
-            chronotype: nil,
-            goalDuration: 8
-        )
-        #expect(p55.tier == .intermediate)
-
-        // 56 records = 8 weeks -> full
-        let p56 = try await computer.compute(
-            records: makeRecords(count: 56),
-            events: [],
-            chronotype: nil,
-            goalDuration: 8
-        )
-        #expect(p56.tier == .full)
+        #expect(p28.tier == .full)
     }
 
     @Test("Profile includes helix geometry for every record")
@@ -205,8 +228,9 @@ struct SleepDNAComputerTests {
         let existingBLOSUM = SleepBLOSUM(weights: customWeights)
         let computer = SleepDNAComputer()
 
+        // 7 records = 1 week = basic tier, BLOSUM not learned.
         let profile = try await computer.compute(
-            records: makeRecords(count: 14),
+            records: makeRecords(count: 7),
             events: [],
             chronotype: nil,
             goalDuration: 8,

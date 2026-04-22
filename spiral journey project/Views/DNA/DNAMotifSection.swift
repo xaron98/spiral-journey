@@ -10,7 +10,7 @@ struct DNAMotifSection: View {
 
     private var hasMotifs: Bool { !profile.motifs.isEmpty }
     private var learningWeeks: Int { profile.dataWeeks }
-    private let requiredWeeks = 8
+    private let requiredWeeks = 2
 
     var body: some View {
         VStack(spacing: 12) {

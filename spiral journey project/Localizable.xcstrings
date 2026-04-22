@@ -41885,49 +41885,49 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "تظهر الطفرات بمجرد إنشاء أساس النمط لمدة 8 أسابيع (%d/8)."
+            "value": "تظهر الطفرات بمجرد إنشاء الأنماط (أسبوعان كحد أدنى، لديك %d)."
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les mutacions apareixen quan s'estableix la teva base de patrons de 8 setmanes (%d/8)."
+            "value": "Les mutacions apareixen quan s'estableixen els patrons (mínim 2 setmanes, portes %d)."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mutationen erscheinen, sobald Ihre 8-Wochen-Musterbasis erstellt ist (%d/8)."
+            "value": "Mutationen erscheinen, sobald Muster etabliert sind (mindestens 2 Wochen, Sie haben %d)."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mutations appear once your 8-week pattern baseline is established (%d/8)."
+            "value": "Mutations appear once patterns are established (2 weeks minimum, you have %d)."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Las mutaciones aparecen cuando se establece tu base de patrones de 8 semanas (%d/8)."
+            "value": "Las mutaciones aparecen cuando se establecen los patrones (mínimo 2 semanas, llevas %d)."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les mutations apparaissent une fois votre base de 8 semaines établie (%d/8)."
+            "value": "Les mutations apparaissent une fois les motifs établis (2 semaines minimum, vous avez %d)."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "変異は8週間のパターン基準が確立されると表示されます (%d/8)。"
+            "value": "変異はパターンが確立されると表示されます（最低2週間、現在 %d）。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "一旦建立 8 周模式基线，突变就会出现 (%d/8)。"
+            "value": "模式建立后会出现突变（至少 2 周，您有 %d）。"
           }
         }
       }
@@ -42094,49 +42094,49 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "يتم اكتشاف الأنماط والطفرات بعد 8 أسابيع من البيانات. لديك حاليًا %d/8."
+            "value": "يتم اكتشاف الأنماط بعد أسبوعين من البيانات. لديك حاليًا %d/2."
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "Els patrons i mutacions es descobreixen a les 8 setmanes de dades. Portes %d/8."
+            "value": "Els patrons es descobreixen a les 2 setmanes de dades. Portes %d/2."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Muster und Mutationen werden ab 8 Wochen Daten erkannt. Sie haben %d/8."
+            "value": "Muster werden nach 2 Wochen Daten erkannt. Sie haben %d/2."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Patterns and mutations are discovered at 8 weeks of data. You currently have %d/8."
+            "value": "Patterns are discovered after 2 weeks of data. You currently have %d/2."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Los patrones y mutaciones se descubren a las 8 semanas de datos. Llevas %d/8."
+            "value": "Los patrones se descubren a las 2 semanas de datos. Llevas %d/2."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les motifs et mutations sont détectés à 8 semaines de données. Vous en avez %d/8."
+            "value": "Les motifs sont détectés après 2 semaines de données. Vous en avez %d/2."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "パターンと変異は8週間のデータで検出されます。現在 %d/8。"
+            "value": "パターンは2週間のデータで検出されます。現在 %d/2。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "模式和突变在 8 周数据后检测到。您目前有 %d/8。"
+            "value": "模式在 2 周数据后检测到。您目前有 %d/2。"
           }
         }
       }
