@@ -260,6 +260,8 @@ struct SpiralControlsSettingsView: View {
         }
         .background(SpiralColors.bg.ignoresSafeArea())
         .navigationTitle(String(localized: "spiral.controls.title", bundle: bundle))
+        #if !os(macOS)
         .navigationBarTitleDisplayMode(.inline)
+        #endif
     }
 }

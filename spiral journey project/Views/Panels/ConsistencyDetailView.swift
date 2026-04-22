@@ -377,7 +377,7 @@ struct ConsistencyDetailView: View {
                         .transition(.opacity)
                     } else {
                         Button {
-                            if #available(iOS 26, *) {
+                            if #available(iOS 26, macOS 26, *) {
                                 Task { await generateAISummary(profile: profile) }
                             }
                         } label: {
@@ -403,7 +403,7 @@ struct ConsistencyDetailView: View {
         }
     }
 
-    @available(iOS 26, *)
+    @available(iOS 26, macOS 26, *)
     private func generateAISummary(profile: SleepDNAProfile) async {
         isGeneratingAI = true
         defer { isGeneratingAI = false }
@@ -724,7 +724,9 @@ private struct ConsistencyLegendSheet: View {
             }
             .background(SpiralColors.bg.ignoresSafeArea())
             .navigationTitle(loc("consistency.help.title"))
+            #if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button { dismiss() } label: {
@@ -851,7 +853,9 @@ private struct TemporalImpactHelpSheet: View {
             }
             .background(SpiralColors.bg.ignoresSafeArea())
             .navigationTitle(loc("temporal.help.title"))
+            #if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button { dismiss() } label: {

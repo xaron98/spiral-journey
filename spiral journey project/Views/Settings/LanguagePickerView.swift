@@ -55,6 +55,8 @@ struct LanguagePickerView: View {
         }
         .background(SpiralColors.bg.ignoresSafeArea())
         .navigationTitle(String(localized: "settings.language.title", bundle: bundle))
+        #if !os(macOS)
         .navigationBarTitleDisplayMode(.inline)
+        #endif
     }
 }

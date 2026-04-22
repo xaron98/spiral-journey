@@ -144,7 +144,7 @@ struct DreamEntrySheet: View {
                     // Interpret button
                     if aiService.isAvailable && !allDreamTexts.isEmpty {
                         Button {
-                            if #available(iOS 26, *) {
+                            if #available(iOS 26, macOS 26, *) {
                                 Task { await interpretDream() }
                             }
                         } label: {
@@ -208,7 +208,7 @@ struct DreamEntrySheet: View {
 
     // MARK: - AI
 
-    @available(iOS 26, *)
+    @available(iOS 26, macOS 26, *)
     private func interpretDream() async {
         isInterpreting = true
         defer { isInterpreting = false }

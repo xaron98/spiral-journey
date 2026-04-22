@@ -133,6 +133,8 @@ struct CoachModeSettingsView: View {
         }
         .background(SpiralColors.bg.ignoresSafeArea())
         .navigationTitle(String(localized: "settings.coachMode.title", bundle: bundle))
+        #if !os(macOS)
         .navigationBarTitleDisplayMode(.inline)
+        #endif
     }
 }

@@ -43,6 +43,8 @@ struct AboutView: View {
         }
         .background(SpiralColors.bg.ignoresSafeArea())
         .navigationTitle(String(localized: "settings.about.title", bundle: bundle))
+        #if !os(macOS)
         .navigationBarTitleDisplayMode(.inline)
+        #endif
     }
 }

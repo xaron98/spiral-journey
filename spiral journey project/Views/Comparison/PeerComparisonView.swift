@@ -26,9 +26,11 @@ struct PeerComparisonView: View {
                 }
             }
             .navigationTitle(String(localized: "comparison.title", bundle: bundle))
+            #if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
+                ToolbarItem(placement: .cancellationAction) {
                     Button {
                         manager.stopSearching()
                         dismiss()

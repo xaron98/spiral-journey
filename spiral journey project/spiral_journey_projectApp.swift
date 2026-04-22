@@ -12,6 +12,7 @@ struct spiral_journey_projectApp: App {
     @State private var dnaService = SleepDNAService()
     @State private var aiService = OnDeviceAIService()
     @State private var watchBridge: WatchSyncBridge?
+    @State private var healthKitPollingTask: Task<Void, Never>?
 
     @State private var modelContainer: ModelContainer = {
         let allModels: [any PersistentModel.Type] = [
@@ -67,14 +68,18 @@ struct spiral_journey_projectApp: App {
         // Register background processing tasks before the first frame.
         // Must happen in init(), not in .task{}, because BGTaskScheduler
         // requires registration before the app finishes launching.
+        #if !os(macOS)
         BackgroundTaskManager.registerTasks(
             store: store,
             modelContainer: modelContainer,
             dnaService: dnaService
         )
+        #endif
 
         // Allow notifications to show as banners while the app is in the foreground.
+        #if !os(macOS)
         UNUserNotificationCenter.current().delegate = NotificationDelegate.shared
+        #endif
     }
 
     var body: some Scene {
@@ -91,8 +96,10 @@ struct spiral_journey_projectApp: App {
                 .modelContainer(modelContainer)
                 .task {
                     // ⓪ Schedule background tasks
+                    #if !os(macOS)
                     BackgroundTaskManager.scheduleRetrainIfNeeded()
                     BackgroundTaskManager.scheduleDNARefresh()
+                    #endif
 
                     // ① Let the first frame render before doing any work.
                     //    Without this, the UI appears frozen until the HealthKit
@@ -226,24 +233,64 @@ struct spiral_journey_projectApp: App {
                             // Refresh health profiles + auto-import events
                             await store.refreshHealthProfiles()
 
-                            // Retry ladder: 5s, 15s, 30s — Watch Bluetooth transfer can be slow
-                            if newEpisodes.isEmpty {
-                                for delay in [5, 15, 30] {
+                            // Retry ladder: always retry up to 3 times (Watch BT can be slow)
+                            // Even if first fetch had results, today's data may still be in transit.
+                            // Check if any new episode covers the last 24h (absolute hours from epoch).
+                            let nowHours = Date().timeIntervalSince(store.startDate) / 3600
+                            let hasTodayData = newEpisodes.contains { $0.end > nowHours - 24 }
+                            if !hasTodayData {
+                                for delay in [5, 10, 20] {
                                     try? await Task.sleep(for: .seconds(delay))
                                     let retryIDs = Set(store.sleepEpisodes.compactMap(\.healthKitSampleID))
                                     let retryEpisodes = await healthKit.fetchRecentNewEpisodes(
                                         epoch: store.startDate, knownIDs: retryIDs)
                                     if !retryEpisodes.isEmpty {
                                         store.mergeHealthKitEpisodes(retryEpisodes)
-                                        break // got data, stop retrying
+                                        break
                                     }
                                 }
                             }
-                            store.isSyncingHealthKit = false
+
+                            // Fast polls: 5s × 8 = 40s — catches late-arriving Watch data.
+                            // Sync indicator stays on during this phase.
+                            self.healthKitPollingTask?.cancel()
+                            self.healthKitPollingTask = Task {
+                                for _ in 0..<8 {
+                                    try? await Task.sleep(for: .seconds(5))
+                                    guard !Task.isCancelled else { break }
+                                    let ids = Set(store.sleepEpisodes.compactMap(\.healthKitSampleID))
+                                    let eps = await healthKit.fetchRecentNewEpisodes(
+                                        epoch: store.startDate, knownIDs: ids)
+                                    if !eps.isEmpty { store.mergeHealthKitEpisodes(eps) }
+                                }
+                                store.isSyncingHealthKit = false
+                                // Slow polls every 60s while app stays active (no indicator)
+                                while !Task.isCancelled {
+                                    try? await Task.sleep(for: .seconds(60))
+                                    guard !Task.isCancelled else { return }
+                                    let ids = Set(store.sleepEpisodes.compactMap(\.healthKitSampleID))
+                                    let eps = await healthKit.fetchRecentNewEpisodes(
+                                        epoch: store.startDate, knownIDs: ids)
+                                    if !eps.isEmpty { store.mergeHealthKitEpisodes(eps) }
+                                }
+                            }
                         }
                         #endif
                         await store.cloudSync?.fetchNow()
                     }
+                }
+                .onReceive(
+                    NotificationCenter.default.publisher(for: {
+                        #if os(macOS)
+                        return NSApplication.didResignActiveNotification
+                        #else
+                        return UIApplication.didEnterBackgroundNotification
+                        #endif
+                    }())
+                ) { _ in
+                    // Stop polling when app goes to background
+                    healthKitPollingTask?.cancel()
+                    healthKitPollingTask = nil
                 }
         }
     }

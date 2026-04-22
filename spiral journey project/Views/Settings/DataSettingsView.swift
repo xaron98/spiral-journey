@@ -59,9 +59,11 @@ struct DataSettingsView: View {
                     .disabled(isExporting)
                     .padding(.vertical, 12)
                     .padding(.horizontal, 16)
+                    #if os(iOS)
                     .sheet(isPresented: $showExportShare) {
                         if let url = exportURL { ShareSheet(activityItems: [url]) }
                     }
+                    #endif
 
                     if healthKit.isAuthorized {
                         Divider().background(SpiralColors.border.opacity(0.5))
@@ -155,7 +157,9 @@ struct DataSettingsView: View {
         }
         .background(SpiralColors.bg.ignoresSafeArea())
         .navigationTitle(String(localized: "settings.data.title", bundle: bundle))
+        #if !os(macOS)
         .navigationBarTitleDisplayMode(.inline)
+        #endif
     }
 }
 

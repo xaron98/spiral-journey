@@ -27,7 +27,9 @@ struct SpiralHomeStatsSheet: View {
             }
             .background(SpiralColors.bg)
             .navigationTitle(loc("spiral.stats.rhythm"))
+            #if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
         }
     }
 
