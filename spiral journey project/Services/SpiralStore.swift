@@ -239,7 +239,13 @@ final class SpiralStore {
     /// Alias shown to peers during Multipeer Connectivity comparison sessions.
     /// Defaults to the device name, truncated to 20 characters.
     var comparisonAlias: String {
-        get { sharedDefaults.string(forKey: "comparison-alias") ?? UIDevice.current.name.prefix(20).description }
+        get {
+            #if canImport(UIKit)
+            return sharedDefaults.string(forKey: "comparison-alias") ?? UIDevice.current.name.prefix(20).description
+            #else
+            return sharedDefaults.string(forKey: "comparison-alias") ?? Host.current().localizedName ?? "Mac"
+            #endif
+        }
         set { sharedDefaults.set(newValue, forKey: "comparison-alias") }
     }
 
@@ -382,6 +388,9 @@ final class SpiralStore {
     /// Call once from the app entry point after the ModelContainer is created.
     func configure(with context: ModelContext) {
         self.modelContext = context
+        // Collapse duplicate HK rows that accumulated before dedup-by-healthKitSampleID
+        // was introduced. Idempotent and cheap after the first run.
+        deduplicateSwiftDataEpisodes()
     }
 
     /// Load episodes from SwiftData, returning nil if unavailable or empty
@@ -406,22 +415,76 @@ final class SpiralStore {
         cachedEpisodes = nil
     }
 
-    /// Write new episodes to SwiftData (primary store), skipping duplicates by episodeID.
+    /// Add a manual sleep episode: persists to SwiftData + in-memory, then recomputes.
+    func addManualEpisode(_ episode: SleepEpisode) {
+        sleepEpisodes.append(episode)
+        sleepEpisodes.sort { $0.start < $1.start }
+        writeEpisodesToSwiftData([episode])
+        recompute()
+        let endTurns = episode.end / period
+        save()
+    }
+
+    /// Write new episodes to SwiftData (primary store), skipping duplicates.
+    ///
+    /// Dedup strategy:
+    /// - HealthKit episodes: match by `healthKitSampleID` (stable across imports).
+    ///   HKManager regenerates `SleepEpisode.id` on every fetch, so matching by
+    ///   UUID would let duplicates accumulate one-per-launch.
+    /// - Manual episodes: match by `episodeID` (UUID created once and preserved).
     private func writeEpisodesToSwiftData(_ episodes: [SleepEpisode]) {
         guard let ctx = modelContext else { return }
         for episode in episodes {
-            // Check for existing episode with the same ID to avoid duplicates
-            var descriptor = FetchDescriptor<SDSleepEpisode>(
-                predicate: #Predicate { $0.episodeID == episode.id }
-            )
-            descriptor.fetchLimit = 1
-            let exists = (try? ctx.fetchCount(descriptor)) ?? 0
+            let exists: Int
+            if let hkID = episode.healthKitSampleID {
+                var descriptor = FetchDescriptor<SDSleepEpisode>(
+                    predicate: #Predicate { $0.healthKitSampleID == hkID }
+                )
+                descriptor.fetchLimit = 1
+                exists = (try? ctx.fetchCount(descriptor)) ?? 0
+            } else {
+                let epID = episode.id
+                var descriptor = FetchDescriptor<SDSleepEpisode>(
+                    predicate: #Predicate { $0.episodeID == epID }
+                )
+                descriptor.fetchLimit = 1
+                exists = (try? ctx.fetchCount(descriptor)) ?? 0
+            }
             if exists == 0 {
                 ctx.insert(SDSleepEpisode(from: episode))
             }
         }
         try? ctx.save()
         invalidateEpisodeCache()
+    }
+
+    /// One-time cleanup: collapse any duplicate HK episodes that accumulated
+    /// before the healthKitSampleID-based dedup was added. Keeps the oldest
+    /// `modifiedAt` row per `healthKitSampleID`. Idempotent — safe to call repeatedly.
+    func deduplicateSwiftDataEpisodes() {
+        guard let ctx = modelContext else { return }
+        let descriptor = FetchDescriptor<SDSleepEpisode>(
+            sortBy: [SortDescriptor(\.modifiedAt)]
+        )
+        guard let all = try? ctx.fetch(descriptor) else { return }
+        var seen: Set<String> = []
+        var removed = 0
+        for row in all {
+            guard let hkID = row.healthKitSampleID else { continue }
+            if seen.contains(hkID) {
+                ctx.delete(row)
+                removed += 1
+            } else {
+                seen.insert(hkID)
+            }
+        }
+        if removed > 0 {
+            try? ctx.save()
+            invalidateEpisodeCache()
+            #if DEBUG
+            print("[Store] deduplicateSwiftDataEpisodes removed \(removed) duplicate HK rows")
+            #endif
+        }
     }
 
     /// True while applying remote CloudKit changes — prevents save() from re-pushing to CloudKit.
@@ -805,27 +868,61 @@ final class SpiralStore {
 
     /// Apply the result of importAndAdjustEpoch.
     ///
-    /// The incoming `episodes` are already expressed in absolute hours relative to `epoch`,
-    /// so the correct approach is to:
-    ///  1. Replace ALL stored HealthKit episodes with the freshly-fetched ones (which have
-    ///     correct coordinates relative to the correct epoch). Manual episodes are preserved.
-    ///  2. Update startDate to the new epoch (which may be earlier than the stored one).
-    ///  3. Ensure numDays covers from the new startDate through today.
+    /// The incoming `episodes` are expressed in absolute hours relative to `epoch`.
+    /// Manual episodes are relative to the current `startDate`.
+    /// When these differ, coordinates must be re-based to a common epoch before combining.
     ///
-    /// Replacing rather than merging fixes the case where a previous import used the
-    /// wrong epoch (e.g. install date) and stored episodes with shifted coordinates.
+    /// Steps:
+    ///  1. Compute unified epoch = min(epoch, startDate).
+    ///  2. Shift manual episodes forward if startDate moves earlier.
+    ///  3. Shift HK episodes forward if their epoch is later than the unified epoch.
+    ///  4. Combine, update startDate, ensure numDays covers today.
     func applyHealthKitResult(epoch: Date, episodes: [SleepEpisode]) {
         let calendar = Calendar.current
         #if DEBUG
         print("[Store] applyHealthKitResult: epoch=\(epoch), currentStartDate=\(startDate), episodes=\(episodes.count)")
         #endif
 
-        // Keep manually-entered episodes — replace all HealthKit ones with the fresh fetch.
+        let newEpoch = min(epoch, startDate)
+
+        // Shift manual episodes if startDate is moving earlier (newEpoch < startDate).
+        // Their absolute hours were relative to the old startDate; re-base to newEpoch.
+        let manualShiftHours = startDate.timeIntervalSince(newEpoch) / 3600.0
         let manualEpisodes = sleepEpisodes.filter { $0.source == .manual }
-        let combined = (manualEpisodes + episodes).sorted { $0.start < $1.start }
+        let adjustedManual: [SleepEpisode]
+        if manualShiftHours > 0.001 {
+            #if DEBUG
+            print("[Store] shifting \(manualEpisodes.count) manual episodes by +\(String(format: "%.1f", manualShiftHours))h (startDate moving earlier)")
+            #endif
+            adjustedManual = manualEpisodes.map { ep in
+                SleepEpisode(id: ep.id, start: ep.start + manualShiftHours,
+                             end: ep.end + manualShiftHours, source: ep.source,
+                             healthKitSampleID: ep.healthKitSampleID, phase: ep.phase)
+            }
+        } else {
+            adjustedManual = manualEpisodes
+        }
+
+        // Shift HK episodes if their epoch is later than newEpoch.
+        // They were fetched relative to `epoch`; re-base to newEpoch.
+        let hkShiftHours = epoch.timeIntervalSince(newEpoch) / 3600.0
+        let adjustedHK: [SleepEpisode]
+        if hkShiftHours > 0.001 {
+            #if DEBUG
+            print("[Store] shifting \(episodes.count) HK episodes by +\(String(format: "%.1f", hkShiftHours))h (HK epoch later than startDate)")
+            #endif
+            adjustedHK = episodes.map { ep in
+                SleepEpisode(id: ep.id, start: ep.start + hkShiftHours,
+                             end: ep.end + hkShiftHours, source: ep.source,
+                             healthKitSampleID: ep.healthKitSampleID, phase: ep.phase)
+            }
+        } else {
+            adjustedHK = episodes
+        }
+
+        let combined = (adjustedManual + adjustedHK).sorted { $0.start < $1.start }
 
         // Update startDate before writing episodes so save() persists the correct epoch.
-        let newEpoch = min(epoch, startDate)
         #if DEBUG
         print("[Store] newEpoch=\(newEpoch), will update startDate: \(newEpoch < startDate)")
         #endif
@@ -851,7 +948,7 @@ final class SpiralStore {
         let existingHKIDs = Set(sleepEpisodes.compactMap(\.healthKitSampleID))
         sleepEpisodes = combined
         recompute()
-        let newOnes = episodes.filter { ep in
+        let newOnes = adjustedHK.filter { ep in
             guard let hkID = ep.healthKitSampleID else { return true }
             return !existingHKIDs.contains(hkID)
         }
