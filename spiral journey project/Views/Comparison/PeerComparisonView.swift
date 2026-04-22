@@ -79,7 +79,8 @@ struct PeerComparisonView: View {
                     .foregroundStyle(SpiralColors.text)
                     .multilineTextAlignment(.center)
 
-                Text(String(localized: "comparison.sharingAs \(store.comparisonAlias)", bundle: bundle))
+                Text(String(format: String(localized: "comparison.sharingAs", bundle: bundle),
+                            store.comparisonAlias))
                     .font(.caption.monospaced())
                     .foregroundStyle(SpiralColors.muted)
             }
@@ -118,7 +119,8 @@ struct PeerComparisonView: View {
                     Text(store.comparisonAlias)
                         .font(.subheadline.weight(.medium).monospaced())
                         .foregroundStyle(SpiralColors.text)
-                    Text(String(localized: "comparison.days \(store.records.count)", bundle: bundle))
+                    Text(String(format: String(localized: "comparison.days", bundle: bundle),
+                                store.records.count))
                         .font(.caption2.monospaced())
                         .foregroundStyle(SpiralColors.muted)
                 }
@@ -137,7 +139,8 @@ struct PeerComparisonView: View {
                         .font(.subheadline.weight(.medium).monospaced())
                         .foregroundStyle(SpiralColors.text)
                     if let peer = manager.peerPayload {
-                        Text(String(localized: "comparison.days \(peer.recordCount)", bundle: bundle))
+                        Text(String(format: String(localized: "comparison.days", bundle: bundle),
+                                    peer.recordCount))
                             .font(.caption2.monospaced())
                             .foregroundStyle(SpiralColors.muted)
                     }
