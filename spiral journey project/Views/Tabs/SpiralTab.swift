@@ -38,7 +38,7 @@ struct SpiralTab: View {
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .animation(.easeInOut(duration: 0.3), value: selectedMode)
+                    .animation(.easeInOut(duration: 0.18), value: selectedMode)
                     #else
                     TabView(selection: $selectedMode) {
                         TorusModeView(isActive: selectedMode == 0)
@@ -50,7 +50,10 @@ struct SpiralTab: View {
                             .tag(2)
                     }
                     .tabViewStyle(.page(indexDisplayMode: .never))
-                    .animation(.easeInOut(duration: 0.3), value: selectedMode)
+                    // Short animation so pill taps feel immediate. Longer
+                    // durations made the view feel unresponsive because
+                    // the old selection kept rendering mid-transition.
+                    .animation(.easeInOut(duration: 0.18), value: selectedMode)
                     #endif
                 }
                 .ignoresSafeArea(edges: .top)

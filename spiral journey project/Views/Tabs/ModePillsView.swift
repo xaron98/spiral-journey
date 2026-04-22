@@ -13,9 +13,13 @@ struct ModePillsView: View {
         HStack(spacing: 4) {
             ForEach(0..<3, id: \.self) { index in
                 Button {
-                    withAnimation(.easeInOut(duration: 0.25)) {
-                        selectedMode = index
-                    }
+                    // Assign directly — the parent TabView already animates
+                    // the page transition via its own .animation modifier on
+                    // `selectedMode`. Wrapping in withAnimation here stacked
+                    // a second implicit animation on top, which made rapid
+                    // taps queue up and register slowly (user had to tap
+                    // 2-3 times for the switch to land).
+                    selectedMode = index
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: modes[index].icon)
