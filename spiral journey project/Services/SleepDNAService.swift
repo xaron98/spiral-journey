@@ -26,6 +26,17 @@ final class SleepDNAService {
 
     private let computer = SleepDNAComputer()
 
+    /// Bump this whenever the pipeline semantics change in a way that
+    /// invalidates cached snapshots — new tier gates, motif thresholds,
+    /// feature additions, etc. The stored value is kept in UserDefaults;
+    /// a mismatch forces an immediate recompute even if today's snapshot
+    /// already exists.
+    ///
+    /// - v1: original tier gates (motifs at >= 8 weeks).
+    /// - v2: motif/mutation gate lowered to tier != .basic (>= 2 weeks).
+    private static let schemaVersion: Int = 2
+    private static let schemaKey = "dna.schema.version"
+
     // MARK: - Load Cached
 
     /// Fetch the latest `SDSleepDNASnapshot` from SwiftData and decode it
@@ -52,9 +63,14 @@ final class SleepDNAService {
 
     // MARK: - Refresh
 
-    /// Compute a new profile only if no snapshot exists from today.
+    /// Compute a new profile only if no snapshot exists from today — unless
+    /// the stored pipeline schema version is older than the current one, in
+    /// which case we always recompute so users see the new gate semantics.
     func refreshIfNeeded(store: SpiralStore, context: ModelContext) async {
-        if let last = lastComputedAt, Calendar.current.isDateInToday(last) {
+        let storedVersion = UserDefaults.standard.integer(forKey: Self.schemaKey)
+        let schemaChanged = storedVersion != Self.schemaVersion
+
+        if !schemaChanged, let last = lastComputedAt, Calendar.current.isDateInToday(last) {
             return
         }
         await computeAndSave(store: store, context: context)
@@ -107,6 +123,9 @@ final class SleepDNAService {
             error = nil
             // Keep the store's transient dnaProfile in sync for prediction blending.
             store.dnaProfile = profile
+            // Persist the schema version so `refreshIfNeeded` can detect
+            // future pipeline upgrades and trigger an automatic recompute.
+            UserDefaults.standard.set(Self.schemaVersion, forKey: Self.schemaKey)
         } catch is CancellationError {
             // Silently ignore cancellation
         } catch {

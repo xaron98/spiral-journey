@@ -76277,101 +76277,49 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "كل نقطة = 15 دقيقة. الموقع داخل المثلث يعكس مدى قربك من كل حالة."
+            "value": "كل نقطة = 15 دقيقة. موقعك داخل المثلث يعكس مدى قربك من كل نموذج."
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cada punt = 15 min. La posició dins el triangle reflecteix com de prop estàs de cada estat."
+            "value": "Cada punt = 15 min. La teva posició dins del triangle reflecteix com de prop estàs de cada arquetip."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Jeder Punkt = 15 Min. Die Position im Dreieck zeigt die Nähe zu jedem Zustand."
+            "value": "Jeder Punkt = 15 Min. Ihre Position im Dreieck zeigt, wie nah Sie an jedem Archetyp sind."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Each dot = 15 min. Position inside the triangle reflects how close you are to each state."
+            "value": "Each dot = 15 min. Your position inside the triangle reflects how close you are to each archetype."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cada punto = 15 min. La posición dentro del triángulo refleja tu cercanía a cada estado."
+            "value": "Cada punto = 15 min. Tu posición dentro del triángulo refleja qué tan cerca estás de cada arquetipo."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chaque point = 15 min. La position dans le triangle reflète votre proximité avec chaque état."
+            "value": "Chaque point = 15 min. Votre position dans le triangle reflète votre proximité à chaque archétype."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "各点=15分。三角形内の位置は各状態への近さを反映します。"
+            "value": "各点 = 15分。三角形内の位置は、各アーキタイプにどれだけ近いかを反映します。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "每个点=15分钟。三角形内的位置反映你与每个状态的接近程度。"
-          }
-        }
-      }
-    },
-    "triangle.legend.nrem": {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "NREM"
-          }
-        },
-        "ca": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "NREM"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "NREM"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "NREM"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "NREM"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "NREM"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "NREM"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "NREM"
+            "value": "每个点 = 15 分钟。您在三角形内的位置反映您与每个原型的接近程度。"
           }
         }
       }
@@ -76485,49 +76433,49 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "كان دماغك %d%% مستيقظًا، %d%% في نوم نشط (REM + خفيف)، %d%% في راحة عميقة."
+            "value": "ليلتك: %d%% مستيقظ، %d%% REM، %d%% نوم خفيف، %d%% عميق."
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "El teu cervell va estar %d%% despert, %d%% en son actiu (REM + lleuger), %d%% en repòs profund."
+            "value": "La teva nit: %d%% despert, %d%% en REM, %d%% en son lleuger, %d%% en profund."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ihr Gehirn war %d%% wach, %d%% in aktivem Schlaf (REM + leicht), %d%% in Tiefschlaf."
+            "value": "Ihre Nacht: %d%% wach, %d%% REM, %d%% Leichtschlaf, %d%% Tiefschlaf."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your brain spent %d%% awake, %d%% in active sleep (REM + light), %d%% in deep rest."
+            "value": "Your night: %d%% awake, %d%% REM, %d%% light sleep, %d%% deep."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tu cerebro estuvo %d%% despierto, %d%% en sueño activo (REM + ligero), %d%% en reposo profundo."
+            "value": "Tu noche: %d%% despierto, %d%% en REM, %d%% en sueño ligero, %d%% en profundo."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Votre cerveau a passé %d%% éveillé, %d%% en sommeil actif (REM + léger), %d%% en repos profond."
+            "value": "Votre nuit : %d%% éveillé, %d%% en REM, %d%% en sommeil léger, %d%% en profond."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "あなたの脳は %d%% 覚醒、%d%% 活動睡眠（REM + 浅い睡眠）、%d%% 深い休息でした。"
+            "value": "あなたの夜: %d%% 覚醒、%d%% REM、%d%% 浅い睡眠、%d%% 深い睡眠。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "您的大脑 %d%% 时间清醒，%d%% 活跃睡眠（REM + 浅睡）, %d%% 深度休息。"
+            "value": "您的夜晚：%d%% 清醒，%d%% REM，%d%% 浅睡，%d%% 深睡。"
           }
         }
       }
@@ -76580,58 +76528,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "夜晚摘要"
-          }
-        }
-      }
-    },
-    "triangle.pole.active": {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "نشط"
-          }
-        },
-        "ca": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Actiu"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aktiv"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Active"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Activo"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Actif"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "活動"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "活跃"
           }
         }
       }
@@ -77650,49 +77546,257 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "REM and light sleep share the Active pole by design — validated with 155+ subjects. Deep sleep dots stand out with a white border."
+            "value": "Each vertex is a pure phase (Wake · REM · Deep). Light sleep (N2) appears in the interior because it shares features with REM and Deep."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "REM y sueño ligero comparten el polo Activo por diseño — validado con 155+ sujetos. Los puntos de sueño profundo destacan con borde blanco."
+            "value": "Cada vértice es una fase pura (Despierto · REM · Profundo). El sueño ligero (N2) aparece en el interior porque comparte características con REM y Profundo."
           }
         },
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "REM i son lleuger comparteixen el pol Actiu per disseny — validat amb 155+ subjectes. Els punts de son profund destaquen amb vora blanca."
+            "value": "Cada vèrtex és una fase pura (Despert · REM · Profund). El son lleuger (N2) apareix a l'interior perquè comparteix característiques amb REM i Profund."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Le REM et le sommeil léger partagent le pôle Actif par conception — validé avec plus de 155 sujets. Les points de sommeil profond se distinguent par une bordure blanche."
+            "value": "Chaque sommet est une phase pure (Éveil · REM · Profond). Le sommeil léger (N2) apparaît à l'intérieur car il partage des caractéristiques avec REM et Profond."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "REM und Leichtschlaf teilen sich den Aktiv-Pol absichtlich — validiert mit über 155 Probanden. Tiefschlaf-Punkte heben sich durch einen weißen Rand ab."
+            "value": "Jede Ecke ist eine reine Phase (Wach · REM · Tief). Leichtschlaf (N2) erscheint im Inneren, weil er Merkmale von REM und Tiefschlaf teilt."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "REMと浅い睡眠は設計上、活動極を共有します（155人以上の被験者で検証済み）。深い睡眠の点は白い枠で目立ちます。"
+            "value": "各頂点は純粋なフェーズ（覚醒・REM・深い）です。浅い睡眠（N2）はREMと深い睡眠の特徴を共有するため、内部に表示されます。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "REM 和浅睡按设计共享活跃极 — 已通过 155+ 受试者验证。深睡点以白色边框突出显示。"
+            "value": "每个顶点是一种纯粹的阶段（清醒·REM·深睡）。浅睡 (N2) 出现在内部，因为它与 REM 和深睡共享特征。"
           }
         },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "نوم REM والنوم الخفيف يتشاركان القطب النشط حسب التصميم — تم التحقق منه مع أكثر من 155 موضوعًا. نقاط النوم العميق تبرز بحد أبيض."
+            "value": "كل رأس هو مرحلة نقية (مستيقظ · REM · عميق). النوم الخفيف (N2) يظهر في الداخل لأنه يتشارك خصائص مع REM والعميق."
+          }
+        }
+      }
+    },
+    "triangle.pole.rem": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "REM"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "REM"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "REM"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "REM"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "REM"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "レム"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "REM"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "REM"
+          }
+        }
+      }
+    },
+    "triangle.pole.light": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Light"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ligero"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lleuger"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Léger"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leicht"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "浅い睡眠"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "浅睡"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "خفيف"
+          }
+        }
+      }
+    },
+    "triangle.legend.light": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Light (N2)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ligero (N2)"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lleuger (N2)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Léger (N2)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leicht (N2)"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "浅い睡眠 (N2)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "浅睡 (N2)"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "خفيف (N2)"
+          }
+        }
+      }
+    },
+    "triangle.legend.deep": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deep (N3)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profundo (N3)"
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profund (N3)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profond (N3)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tief (N3)"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "深い睡眠 (N3)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "深睡 (N3)"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "عميق (N3)"
           }
         }
       }

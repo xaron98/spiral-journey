@@ -2,11 +2,16 @@ import SwiftUI
 import simd
 import SpiralKit
 
-/// Barycentric Sleep Triangle — continuous 3-pole visualization of sleep architecture.
+/// Barycentric Sleep Triangle — continuous 3-vertex visualization of sleep architecture.
 ///
-/// Three poles: Wake (top), Active/REM+N2 (bottom-right), Deep/N3 (bottom-left).
-/// Each epoch maps to a point inside the triangle based on its distance to the 3 pole centroids.
-/// N1 disappears as a category — it's a transition zone (39% Wake + 44% Active + 17% Deep).
+/// Each vertex is one AASM phase (W / REM / N3 framework), matching the
+/// paper's archetype decomposition:
+///   - Bottom-left:  Wake (external consciousness)
+///   - Top:          REM (internal consciousness, dreams)
+///   - Bottom-right: Deep / N3 (slow-wave rest)
+///
+/// N2 / light sleep becomes an interior point — it shares features with
+/// both REM (spindles) and N3 (beginning delta activity).
 struct SleepTriangleView: View {
     @Environment(SpiralStore.self) private var store
     @Environment(\.dismiss) private var dismiss
@@ -81,60 +86,63 @@ struct SleepTriangleView: View {
             let pad: CGFloat = 30
             let triH = h - 2 * pad
 
-            // Triangle vertices
-            let wake = CGPoint(x: w / 2, y: pad)                     // top
-            let active = CGPoint(x: w - pad, y: pad + triH)          // bottom-right
-            let deep = CGPoint(x: pad, y: pad + triH)                // bottom-left
+            // Triangle vertices — one AASM phase per vertex.
+            // Wake at bottom-left, REM at top (peak of consciousness), Deep at bottom-right.
+            let wake = CGPoint(x: pad, y: pad + triH)                // bottom-left
+            let rem = CGPoint(x: w / 2, y: pad)                      // top
+            let deep = CGPoint(x: w - pad, y: pad + triH)            // bottom-right
 
             // Draw triangle outline
             var triPath = Path()
             triPath.move(to: wake)
-            triPath.addLine(to: active)
+            triPath.addLine(to: rem)
             triPath.addLine(to: deep)
             triPath.closeSubpath()
             context.stroke(triPath, with: .color(SpiralColors.muted.opacity(0.3)), lineWidth: 1)
 
-            // Grid lines (25%, 50%, 75% isolines)
+            // Grid lines (25%, 50%, 75% isolines parallel to each side)
             for frac in [0.25, 0.5, 0.75] {
                 let f = CGFloat(frac)
-                // Lines parallel to each side
-                let p1 = lerp(wake, deep, t: f)
-                let p2 = lerp(wake, active, t: f)
-                let p3 = lerp(deep, active, t: 1 - f)
-                context.stroke(Path { p in p.move(to: p1); p.addLine(to: p2) },
-                               with: .color(Color.secondary.opacity(0.08)), lineWidth: 0.5)
-                context.stroke(Path { p in p.move(to: lerp(wake, deep, t: f)); p.addLine(to: lerp(active, deep, t: f)) },
-                               with: .color(Color.secondary.opacity(0.08)), lineWidth: 0.5)
+                context.stroke(
+                    Path { p in p.move(to: lerp(wake, rem, t: f)); p.addLine(to: lerp(deep, rem, t: f)) },
+                    with: .color(Color.secondary.opacity(0.08)), lineWidth: 0.5)
+                context.stroke(
+                    Path { p in p.move(to: lerp(wake, deep, t: f)); p.addLine(to: lerp(rem, deep, t: f)) },
+                    with: .color(Color.secondary.opacity(0.08)), lineWidth: 0.5)
             }
 
-            // Pole labels
-            drawLabel(context: context, text: loc("triangle.pole.wake"), at: CGPoint(x: wake.x, y: wake.y - 14), color: Color(hex: "d4a860"))
-            drawLabel(context: context, text: loc("triangle.pole.active"), at: CGPoint(x: active.x + 4, y: active.y + 12), color: Color(hex: "a78bfa"))
-            drawLabel(context: context, text: loc("triangle.pole.deep"), at: CGPoint(x: deep.x - 4, y: deep.y + 12), color: Color(hex: "1a2a6e"))
+            // Vertex labels
+            drawLabel(context: context, text: loc("triangle.pole.wake"),
+                      at: CGPoint(x: wake.x - 4, y: wake.y + 12), color: Color(hex: "d4a860"))
+            drawLabel(context: context, text: loc("triangle.pole.rem"),
+                      at: CGPoint(x: rem.x, y: rem.y - 14), color: Color(hex: "a78bfa"))
+            drawLabel(context: context, text: loc("triangle.pole.deep"),
+                      at: CGPoint(x: deep.x + 4, y: deep.y + 12), color: Color(hex: "7B68EE"))
 
-            // Zone tints: soft colored gradient near each pole
+            // Zone tints — soft gradient near each vertex
             let zoneAlpha: CGFloat = 0.06
-            // Wake zone (top third)
+
+            // Wake zone (near bottom-left vertex)
             var wakePath = Path()
             wakePath.move(to: wake)
-            wakePath.addLine(to: lerp(wake, active, t: 0.4))
+            wakePath.addLine(to: lerp(wake, rem, t: 0.4))
             wakePath.addLine(to: lerp(wake, deep, t: 0.4))
             wakePath.closeSubpath()
             context.fill(wakePath, with: .color(Color(hex: "d4a860").opacity(zoneAlpha)))
 
-            // Active zone (bottom-right third)
-            var activePath = Path()
-            activePath.move(to: active)
-            activePath.addLine(to: lerp(active, wake, t: 0.4))
-            activePath.addLine(to: lerp(active, deep, t: 0.4))
-            activePath.closeSubpath()
-            context.fill(activePath, with: .color(Color(hex: "a78bfa").opacity(zoneAlpha)))
+            // REM zone (near top vertex)
+            var remPath = Path()
+            remPath.move(to: rem)
+            remPath.addLine(to: lerp(rem, wake, t: 0.4))
+            remPath.addLine(to: lerp(rem, deep, t: 0.4))
+            remPath.closeSubpath()
+            context.fill(remPath, with: .color(Color(hex: "a78bfa").opacity(zoneAlpha)))
 
-            // Deep zone (bottom-left third)
+            // Deep zone (near bottom-right vertex)
             var deepPath = Path()
             deepPath.move(to: deep)
             deepPath.addLine(to: lerp(deep, wake, t: 0.4))
-            deepPath.addLine(to: lerp(deep, active, t: 0.4))
+            deepPath.addLine(to: lerp(deep, rem, t: 0.4))
             deepPath.closeSubpath()
             context.fill(deepPath, with: .color(Color(hex: "7B68EE").opacity(zoneAlpha)))
 
@@ -150,7 +158,7 @@ struct SleepTriangleView: View {
                     let epochIsDeep = epoch.phase == .deep
                     guard epochIsDeep == isDeepPass else { continue }
 
-                    let pt = baryToScreen(epoch.bary, wake: wake, active: active, deep: deep)
+                    let pt = baryToScreen(epoch.bary, wake: wake, rem: rem, deep: deep)
                     let isHead = visibleCount > 0 && i == count - 1
 
                     // Temporal opacity: earlier epochs more transparent, later more opaque
@@ -197,10 +205,18 @@ struct SleepTriangleView: View {
         let count = epochs.count
         guard count > 0 else { return AnyView(EmptyView()) }
 
-        let avgBary = averageBary()
-        let wPct = Int(avgBary.0 * 100)
-        let aPct = Int(avgBary.1 * 100)
-        let dPct = Int(avgBary.2 * 100)
+        // Real time percentages per AASM phase — not the barycentric average.
+        // Users expect "30% deep sleep" to mean "30% of the night was N3",
+        // not "the center of mass projects to 30% on the deep axis".
+        let wakeCount = epochs.filter { $0.phase == .awake }.count
+        let remCount = epochs.filter { $0.phase == .rem }.count
+        let lightCount = epochs.filter { $0.phase == .light }.count
+        let deepCount = epochs.filter { $0.phase == .deep }.count
+        let total = Double(count)
+        let wPct = Int(Double(wakeCount) / total * 100)
+        let remPct = Int(Double(remCount) / total * 100)
+        let lPct = Int(Double(lightCount) / total * 100)
+        let dPct = Int(Double(deepCount) / total * 100)
 
         return AnyView(
             VStack(alignment: .leading, spacing: 10) {
@@ -208,13 +224,14 @@ struct SleepTriangleView: View {
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(SpiralColors.text)
 
-                HStack(spacing: 12) {
+                HStack(spacing: 8) {
                     metricPill(loc("triangle.pole.wake"), value: "\(wPct)%", color: Color(hex: "d4a860"))
-                    metricPill(loc("triangle.pole.active"), value: "\(aPct)%", color: Color(hex: "a78bfa"))
-                    metricPill(loc("triangle.pole.deep"), value: "\(dPct)%", color: Color(hex: "4a7ab5"))
+                    metricPill(loc("triangle.pole.rem"), value: "\(remPct)%", color: Color(hex: "a78bfa"))
+                    metricPill(loc("triangle.pole.light"), value: "\(lPct)%", color: Color(hex: "4a7ab5"))
+                    metricPill(loc("triangle.pole.deep"), value: "\(dPct)%", color: Color(hex: "7B68EE"))
                 }
 
-                Text(String(format: loc("triangle.metrics.interpretation"), wPct, aPct, dPct))
+                Text(String(format: loc("triangle.metrics.interpretation"), wPct, remPct, lPct, dPct))
                     .font(.caption2)
                     .foregroundStyle(SpiralColors.muted)
             }
@@ -285,10 +302,14 @@ struct SleepTriangleView: View {
 
     private var legendCard: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 16) {
+            // Four phase dots — one per AASM phase, matching the triangle's
+            // colors. Light sleep gets its own dot because it renders as an
+            // interior point (no vertex of its own).
+            HStack(spacing: 14) {
                 legendDot(loc("triangle.legend.wake"), color: Color(hex: "d4a860"))
                 legendDot(loc("triangle.legend.rem"), color: Color(hex: "a78bfa"))
-                legendDot(loc("triangle.legend.nrem"), color: Color(hex: "4a7ab5"))
+                legendDot(loc("triangle.legend.light"), color: Color(hex: "4a7ab5"))
+                legendDot(loc("triangle.legend.deep"), color: Color(hex: "7B68EE"))
             }
             Text(loc("triangle.legend.explanation"))
                 .font(.caption2)
@@ -296,9 +317,6 @@ struct SleepTriangleView: View {
 
             Divider().overlay(SpiralColors.border)
 
-            // Clarifying note so users don't read "REM + light together" as
-            // a bug. The 2-pole geometry (Active = REM + light, Deep = N3)
-            // was validated with 155+ subjects across HMC + Sleep-EDF.
             HStack(alignment: .top, spacing: 6) {
                 Image(systemName: "info.circle")
                     .font(.caption2)
@@ -321,10 +339,12 @@ struct SleepTriangleView: View {
 
     // MARK: - Geometry Helpers
 
-    private func baryToScreen(_ bary: (Double, Double, Double), wake: CGPoint, active: CGPoint, deep: CGPoint) -> CGPoint {
+    /// Map a barycentric triple (wake, rem, deep) onto the canvas using the
+    /// three vertex CGPoints. The tuple MUST sum to 1.0 (enforced upstream).
+    private func baryToScreen(_ bary: (Double, Double, Double), wake: CGPoint, rem: CGPoint, deep: CGPoint) -> CGPoint {
         CGPoint(
-            x: bary.0 * wake.x + bary.1 * active.x + bary.2 * deep.x,
-            y: bary.0 * wake.y + bary.1 * active.y + bary.2 * deep.y
+            x: bary.0 * wake.x + bary.1 * rem.x + bary.2 * deep.x,
+            y: bary.0 * wake.y + bary.1 * rem.y + bary.2 * deep.y
         )
     }
 
@@ -365,7 +385,6 @@ struct SleepTriangleView: View {
     private func loadEpochs() async {
         isLoading = true
         let records = store.records
-        let hrvData = store.hrvData
 
         guard records.count >= 2 else {
             epochs = []
@@ -497,7 +516,9 @@ struct SleepTriangleView: View {
 // MARK: - Data Types
 
 struct TriangleEpoch {
-    let bary: (Double, Double, Double)  // (wake, active, deep) — sums to 1.0
+    /// Barycentric coordinates as (wake, rem, deep). Sums to 1.0.
+    /// Each component is the proportion toward one vertex archetype.
+    let bary: (Double, Double, Double)
     let color: Color
     let timestamp: Date
     let phase: SleepPhase
@@ -505,54 +526,36 @@ struct TriangleEpoch {
 
 // MARK: - Barycentric Calculator
 
-/// Barycentric coordinates from empirical sleep data.
+/// Barycentric coordinates in the W / REM / N3 archetype framework.
 ///
-/// Validated with 155+ subjects across HMC and Sleep-EDF datasets.
-/// Each AASM phase maps to a specific barycentric center with known std.
-/// N1 is NOT a separate state — it's a transition zone (39% Wake + 44% Active + 17% Deep).
+/// Vertices represent pure archetypes (Wake, REM, Deep / N3). N2 / light
+/// sleep lands in the interior because it shares features with both REM
+/// (sleep spindles, occasional K-complexes) and N3 (emerging slow-wave
+/// activity). This is the paper's barycentric decomposition — one phase
+/// per vertex — rather than the older W / Active(REM+N2) / Deep scheme.
 enum BarycentricCalculator {
 
-    /// Empirical barycentric centers per phase (Wake%, Active%, Deep%).
-    /// Source: centroid analysis on 155+ subjects, 2 independent datasets.
+    /// Barycentric center per AASM phase in (wake, rem, deep) space.
+    ///
+    /// Values tuned so each "pure" AASM phase sits close to its archetype
+    /// vertex, while N2 sits in the interior between REM and Deep.
     static func empiricalCenter(for phase: SleepPhase) -> (Double, Double, Double) {
         switch phase {
-        case .awake: return (0.593, 0.273, 0.135) // Wake pole dominant
-        case .light: return (0.145, 0.577, 0.278) // N2 — Active pole with Deep component
-        case .deep:  return (0.059, 0.282, 0.659) // N3 — Deep pole dominant
-        case .rem:   return (0.205, 0.598, 0.197) // REM — Active pole, near N2
+        case .awake: return (0.85, 0.10, 0.05) // near Wake vertex, slight REM
+        case .rem:   return (0.20, 0.75, 0.05) // near REM vertex, noticeable Wake (REM ≈ Wake EEG)
+        case .light: return (0.10, 0.40, 0.50) // interior — halfway between REM and Deep
+        case .deep:  return (0.05, 0.10, 0.85) // near Deep vertex
         }
     }
 
-    /// Empirical standard deviation per phase (same units as bary coords).
-    /// Higher = more dispersed. N1 would be 0.208 (most dispersed).
+    /// Per-phase dispersion used as gaussian noise amplitude when scattering
+    /// points around the empirical center. Higher values produce a wider cloud.
     static func empiricalStd(for phase: SleepPhase) -> Double {
         switch phase {
-        case .awake: return 0.147
-        case .light: return 0.192 // N2
-        case .deep:  return 0.152 // N3
-        case .rem:   return 0.185
+        case .awake: return 0.10
+        case .rem:   return 0.12
+        case .light: return 0.15 // more spread — it's an interior, transitional region
+        case .deep:  return 0.10
         }
-    }
-
-    /// Compute barycentric coordinates from raw physiological features.
-    /// Used when real Watch data with HRV/HR/motion is available.
-    static func compute(hrv: Double, heartRate: Double, motion: Double) -> (Double, Double, Double) {
-        let poleWake   = SIMD3<Double>(0.7, 1.10, 0.15)
-        let poleActive = SIMD3<Double>(0.95, 0.93, 0.025)
-        let poleDeep   = SIMD3<Double>(1.25, 0.87, 0.015)
-
-        let baseline = (hrvMean: 50.0, hrMean: 65.0, motionMax: 1.0)
-        let point = SIMD3<Double>(hrv / baseline.hrvMean, heartRate / baseline.hrMean, motion / baseline.motionMax)
-
-        let dW = max(simd_distance(point, poleWake), 0.001)
-        let dA = max(simd_distance(point, poleActive), 0.001)
-        let dD = max(simd_distance(point, poleDeep), 0.001)
-
-        let invW = 1.0 / (dW * dW)
-        let invA = 1.0 / (dA * dA)
-        let invD = 1.0 / (dD * dD)
-        let total = invW + invA + invD
-
-        return (invW / total, invA / total, invD / total)
     }
 }
