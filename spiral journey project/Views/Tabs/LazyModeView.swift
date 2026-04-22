@@ -3,9 +3,13 @@ import SpiralKit
 
 /// Suspense-like wrapper for heavy mode views inside the tri-modal pager.
 ///
-/// Shows a `SpiralLoaderView` on top of a solid background while the real
-/// content warms up, then fades the content in. Pattern:
+/// Renders ONLY the `SpiralLoaderView` while `isActive` is fresh, then
+/// swaps in the real content after a short delay. The previous approach
+/// of always building `content()` behind the loader with opacity(0) made
+/// SwiftUI block the main thread in the same frame where the loader
+/// needed to paint — so the user never saw the loader animate.
 ///
+/// Usage:
 /// ```swift
 /// var body: some View {
 ///     LazyModeView(isActive: isActive) {
@@ -13,13 +17,6 @@ import SpiralKit
 ///     }
 /// }
 /// ```
-///
-/// - `isActive`: true when this mode is the one currently visible in the
-///   pager. Content is only rendered (and the loader timer only armed)
-///   while active — matches the lazy-body optimization in each mode.
-/// - `delay`: how long the loader stays visible before fading the real
-///   content in. Long enough that the SpiralLoaderView completes ~1
-///   breathe cycle so the user sees it animate.
 struct LazyModeView<Content: View>: View {
 
     let isActive: Bool
@@ -31,23 +28,17 @@ struct LazyModeView<Content: View>: View {
 
     var body: some View {
         ZStack {
-            // Solid background so the loader is always visible — even during
-            // the TabView(.page) swipe transition, which can otherwise leak
-            // the previous mode's pixels underneath.
+            // Solid background so nothing from the previous page leaks
+            // through during the pager's swipe transition.
             SpiralColors.bg.ignoresSafeArea()
 
             if isActive {
-                // Heavy content is always built when active; we just hide
-                // it behind the loader until primed. Important: no ancestor
-                // .animation(...) modifier on this ZStack — it would flatten
-                // the loader's internal TimelineView progression.
-                content()
-                    .opacity(contentReady ? 1 : 0)
-                    .animation(.easeOut(duration: 0.28), value: contentReady)
-
-                if !contentReady {
+                if contentReady {
+                    content()
+                        .transition(.opacity)
+                } else {
                     SpiralLoaderView(color: loaderColor)
-                        .transition(.opacity.animation(.easeOut(duration: 0.2)))
+                        .transition(.opacity)
                 }
             }
         }
@@ -56,7 +47,9 @@ struct LazyModeView<Content: View>: View {
                 contentReady = false
                 try? await Task.sleep(for: delay)
                 guard !Task.isCancelled else { return }
-                contentReady = true
+                withAnimation(.easeOut(duration: 0.28)) {
+                    contentReady = true
+                }
             } else {
                 contentReady = false
             }

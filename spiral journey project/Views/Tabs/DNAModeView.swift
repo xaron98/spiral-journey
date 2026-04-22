@@ -41,11 +41,12 @@ struct DNAModeView: View {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 12) {
                     // Hero: 3D Helix at top, scrolls with cards.
-                    // 420pt gives the RealityView enough headroom that the
-                    // model doesn't push up against the pills, and lets the
-                    // phase legend sit below it cleanly.
+                    // 340pt keeps the helix + phase legend comfortably
+                    // above the floating action bar on an iPhone, with
+                    // clear reading space for the "Hoy / Ayer / Despierto
+                    // / → NREM" row below the model.
                     helixHeroView
-                        .frame(height: 420)
+                        .frame(height: 340)
                         .padding(.horizontal, 16)
 
                     // Cards below
