@@ -160,14 +160,26 @@ final class HealthKitManager {
         }
         observerQuery = query
         store.execute(query)
-        // Enable background delivery so the callback fires even when the app is backgrounded.
-        store.enableBackgroundDelivery(for: sleepType, frequency: .immediate) { success, error in
-            if let error {
+        // Enable background delivery with retry — critical for Watch data while app is closed.
+        enableBackgroundDeliveryWithRetry(for: sleepType, attempts: 3)
+    }
+
+    /// Retry enableBackgroundDelivery up to N times (1s apart) if it fails.
+    private func enableBackgroundDeliveryWithRetry(for type: HKObjectType, attempts: Int) {
+        var remaining = attempts
+        func attempt() {
+            store.enableBackgroundDelivery(for: type, frequency: .immediate) { [weak self] success, error in
+                if success { return }
+                remaining -= 1
                 #if DEBUG
-                print("[HealthKit] Background delivery failed: \(error.localizedDescription)")
+                print("[HealthKit] Background delivery failed (\(remaining) retries left): \(error?.localizedDescription ?? "unknown")")
                 #endif
+                if remaining > 0 {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) { attempt() }
+                }
             }
         }
+        attempt()
     }
 
     // MARK: - Anchored Sleep Query

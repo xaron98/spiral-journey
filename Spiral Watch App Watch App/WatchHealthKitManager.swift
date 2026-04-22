@@ -67,7 +67,21 @@ final class WatchHealthKitManager {
         }
         observerQuery = query
         store.execute(query)
-        store.enableBackgroundDelivery(for: sleepType, frequency: .immediate) { _, _ in }
+        enableBackgroundDeliveryWithRetry()
+    }
+
+    /// Retry background delivery up to 3 times (same as iOS).
+    private func enableBackgroundDeliveryWithRetry(attempts: Int = 3) {
+        store.enableBackgroundDelivery(for: sleepType, frequency: .immediate) { [weak self] success, error in
+            if !success, let self, attempts > 1 {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                    self.enableBackgroundDeliveryWithRetry(attempts: attempts - 1)
+                }
+            }
+            #if DEBUG
+            if let error { print("[WatchHK] Background delivery error: \(error.localizedDescription)") }
+            #endif
+        }
     }
 
     // MARK: - Anchored Query (more reliable than observer)

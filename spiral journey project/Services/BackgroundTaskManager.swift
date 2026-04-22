@@ -1,5 +1,7 @@
 import Foundation
+#if canImport(BackgroundTasks)
 import BackgroundTasks
+#endif
 import SwiftData
 import SpiralKit
 
@@ -9,6 +11,7 @@ import SpiralKit
 /// Schedules processing tasks that run when the device is idle
 /// (typically overnight).  Registration must happen before the app
 /// finishes launching.
+#if !os(macOS)
 enum BackgroundTaskManager {
 
     /// The identifier registered in Info.plist → BGTaskSchedulerPermittedIdentifiers.
@@ -212,3 +215,4 @@ enum BackgroundTaskManager {
         ) ?? tomorrow
     }
 }
+#endif
