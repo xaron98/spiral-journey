@@ -26,6 +26,12 @@ final class TorusSceneiPhone {
     private var trailNode = SCNNode()
     private(set) var trajectoryPoints: [SCNVector3] = []
     private(set) var trajectoryStages: [String] = []
+    /// Wall-clock timestamp of the first epoch in the loaded trajectory.
+    /// Used by `currentHour` to show the real hour at each dot position,
+    /// not the hardcoded "night starts at 23:00" assumption.
+    private(set) var trajectoryStartDate: Date?
+    /// Wall-clock timestamp of the last epoch in the loaded trajectory.
+    private(set) var trajectoryEndDate: Date?
     private(set) var currentIndex = 0
     private var animationTimer: Timer?
     private var previousStage: String?
@@ -178,6 +184,8 @@ final class TorusSceneiPhone {
         let (points, stages) = Self.buildTrajectory(from: epochs)
         trajectoryPoints = points
         trajectoryStages = stages
+        trajectoryStartDate = epochs.first?.start
+        trajectoryEndDate = epochs.last?.end
         currentIndex = 0
 
         // Full trajectory as faint line
@@ -308,11 +316,20 @@ final class TorusSceneiPhone {
         return trajectoryStages[min(currentIndex, trajectoryStages.count - 1)]
     }
 
-    /// Estimated clock hour for the current position.
+    /// Real clock hour for the current position, computed by
+    /// interpolating between the trajectory's actual start and end
+    /// timestamps. Falls back to a 23:00-anchored 8h night only when
+    /// no date range was loaded (e.g. mock data).
     var currentHour: String {
         guard !trajectoryPoints.isEmpty else { return "" }
         let fraction = Double(currentIndex) / Double(max(1, trajectoryPoints.count - 1))
-        // Assume ~8h night starting at 23:00
+        if let start = trajectoryStartDate, let end = trajectoryEndDate {
+            let total = end.timeIntervalSince(start)
+            let date = start.addingTimeInterval(fraction * total)
+            let comps = Calendar.current.dateComponents([.hour, .minute], from: date)
+            return String(format: "%02d:%02d", comps.hour ?? 0, comps.minute ?? 0)
+        }
+        // Fallback when we don't have real timestamps (mock trajectory).
         let totalMinutes = fraction * 8 * 60
         let hour = (23 + Int(totalMinutes) / 60) % 24
         let minute = Int(totalMinutes) % 60
