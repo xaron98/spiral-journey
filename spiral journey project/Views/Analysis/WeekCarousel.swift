@@ -14,6 +14,8 @@ struct WeekCarousel: View {
     /// 0 = current week, 1 = previous, …
     @Binding var selectedOffset: Int
 
+    @Environment(\.languageBundle) private var bundle
+
     private var entries: [Entry] {
         guard availableWeeks > 0 else { return [] }
         let today = Date()
@@ -77,6 +79,8 @@ struct WeekCarousel: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(String(format: String(localized: "analysis.week.a11yLabel", bundle: bundle), entry.label))
+        .accessibilityHint(String(localized: "analysis.week.a11yHint", bundle: bundle))
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }

@@ -120,6 +120,8 @@ struct CoachHomeView: View {
                     }
                 }
                 .frame(width: 96, height: 96)
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel(String(format: String(localized: "coach.home.hero.a11yLabel", bundle: bundle), h.score))
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(h.todayLabel)
@@ -165,6 +167,7 @@ struct CoachHomeView: View {
                                    height: 26, showAxisDays: false)
                     .padding(.top, 6)
             }
+            .accessibilityElement(children: .combine)
 
             CoachMiniCard(title: String(localized: "coach.home.bento.consistency.title", bundle: bundle),
                           value: b.consistencyValue, sub: b.consistencySub,
@@ -175,6 +178,7 @@ struct CoachHomeView: View {
                                    highlightLast: CoachTokens.purple)
                     .padding(.top, 6)
             }
+            .accessibilityElement(children: .combine)
 
             Button {
                 showPatterns = true
@@ -184,6 +188,7 @@ struct CoachHomeView: View {
                               valueColor: CoachTokens.blue, iconSystem: "waveform")
             }
             .buttonStyle(.plain)
+            .accessibilityHint(String(localized: "coach.home.bento.patterns.a11yHint", bundle: bundle))
 
             CoachMiniCard(title: String(localized: "coach.home.bento.habit.title", bundle: bundle),
                           value: b.habitValue, sub: b.habitSub,
@@ -199,6 +204,7 @@ struct CoachHomeView: View {
                 }
                 .padding(.top, 6)
             }
+            .accessibilityElement(children: .combine)
         }
     }
     private var storyLoQueCambio: some View {
@@ -254,10 +260,12 @@ struct CoachHomeView: View {
                         HStack(spacing: 5) {
                             Button(String(localized: "coach.home.story.propose.remindMe", bundle: bundle)) { showPlan = true }
                                 .buttonStyle(CoachPillButtonStyle(primary: true))
+                                .accessibilityHint(String(localized: "coach.home.propose.remind.a11yHint", bundle: bundle))
                             Button(String(localized: "coach.home.story.propose.adjust", bundle: bundle)) {
                                 // Future: navigate to chronotype settings
                             }
                             .buttonStyle(CoachPillButtonStyle(primary: false))
+                            .accessibilityHint(String(localized: "coach.home.propose.adjust.a11yHint", bundle: bundle))
                         }
                         .padding(.top, 9)
                     }
@@ -300,12 +308,15 @@ struct CoachHomeView: View {
             }
         }
         .buttonStyle(.plain)
+        .accessibilityHint(String(localized: "coach.home.learn.a11yHint", bundle: bundle))
     }
 
     // MARK: - Ask pill (header trailing)
 
     private var askPill: some View {
-        Button { showChat = true } label: {
+        let askLabel = String(localized: "coach.home.askPill.a11yLabel", bundle: bundle)
+        let askHint = String(localized: "coach.home.askPill.a11yHint", bundle: bundle)
+        return Button { showChat = true } label: {
             HStack(spacing: 6) {
                 SparkSpiralView(size: 14, turns: 3, color: CoachTokens.purple, lineWidth: 1.3)
                 Text(String(localized: "coach.dock.askPlaceholder", bundle: bundle))
@@ -324,6 +335,8 @@ struct CoachHomeView: View {
             .clipShape(Capsule())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(askLabel)
+        .accessibilityHint(askHint)
     }
 
     // MARK: - Empty state

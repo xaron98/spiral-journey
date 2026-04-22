@@ -60,6 +60,7 @@ struct AdvancedChipsScroll: View {
             .clipShape(RoundedRectangle(cornerRadius: 14))
         }
         .buttonStyle(.plain)
+        .accessibilityHint(String(localized: "analysis.advanced.chip.a11yHint", bundle: bundle))
     }
 
     @ViewBuilder

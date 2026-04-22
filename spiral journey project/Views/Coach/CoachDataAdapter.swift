@@ -165,7 +165,8 @@ struct CoachDataAdapter {
 
     /// Maps episode start hour to a 0..1 lateness score.
     /// 0 = 22:00 (early), 1 = 04:00 (late). Anything outside wraps sensibly.
-    private func lastNBedtimeLatenessNorm(n: Int) -> [Double] {
+    // internal for testing
+    func lastNBedtimeLatenessNorm(n: Int) -> [Double] {
         let eps = store.sleepEpisodes.suffix(n)
         return eps.map { ep in
             // ep.start is absolute hours from epoch day 0 — take clock hour.
@@ -198,7 +199,8 @@ struct CoachDataAdapter {
         }
     }
 
-    private func normalizeBars(_ values: [Double]) -> [Double] {
+    // internal for testing
+    func normalizeBars(_ values: [Double]) -> [Double] {
         guard let maxV = values.max(), maxV > 0 else { return values.map { _ in 0 } }
         return values.map { $0 / maxV }
     }
@@ -212,7 +214,8 @@ struct CoachDataAdapter {
         return String(format: "anoche · %+0.1fh", diff)
     }
 
-    private func sriLabel(_ sri: Double) -> String {
+    // internal for testing
+    func sriLabel(_ sri: Double) -> String {
         switch sri {
         case ...40: return "irregular"
         case 41...60: return "variable"
@@ -221,14 +224,16 @@ struct CoachDataAdapter {
         }
     }
 
-    private func formatHour(_ h: Double) -> String {
+    // internal for testing
+    func formatHour(_ h: Double) -> String {
         let hh = Int(h), mm = Int((h - Double(hh)) * 60)
         let safeHH = (hh + 24) % 24
         let safeMM = (mm + 60) % 60
         return String(format: "%02d:%02d", safeHH, safeMM)
     }
 
-    private func chronotypeLabelEs(_ c: Chronotype) -> String {
+    // internal for testing
+    func chronotypeLabelEs(_ c: Chronotype) -> String {
         switch c {
         case .definiteMorning:  return "matutino definido"
         case .moderateMorning:  return "matutino moderado"

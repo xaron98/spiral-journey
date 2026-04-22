@@ -78,6 +78,8 @@ struct NightByNightCard: View {
                 .foregroundStyle(SpiralColors.subtle)
                 .frame(width: 34, alignment: .trailing)
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(rowA11yLabel(entry))
         .padding(.vertical, 8)
     }
 
@@ -139,5 +141,13 @@ struct NightByNightCard: View {
         let hh = Int(h) % 24
         let mm = Int((h - Double(Int(h))) * 60)
         return String(format: "%02d:%02d", hh, mm)
+    }
+
+    private func rowA11yLabel(_ entry: NightEntry) -> String {
+        let base = "\(entry.dayLabel), \(entry.bedtimeLabel), \(entry.durationLabel)"
+        let consistency = entry.consistent
+            ? String(localized: "analysis.nightByNight.row.consistent", bundle: bundle)
+            : String(localized: "analysis.nightByNight.row.inconsistent", bundle: bundle)
+        return "\(base). \(consistency)"
     }
 }
