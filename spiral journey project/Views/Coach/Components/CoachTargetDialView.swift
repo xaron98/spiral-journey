@@ -1,14 +1,36 @@
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
 /// Large 240pt dial for the Plan screen. Draws full 24-hour clock with
 /// ticks, a glowing purple arc for the optimal window, and a pointer
 /// dot at the target hour.
+///
+/// When `targetHour` is a binding, the dial becomes interactive: drag
+/// the pointer around the clock face to scrub the target bedtime. The
+/// optimal window arc follows the target (±15 min window).
 struct CoachTargetDialView: View {
     var size: CGFloat = 240
-    var windowStart: Double = 1.25
-    var windowEnd: Double = 1.75
-    var targetHour: Double = 1.5
+    @Binding var targetHour: Double
+    var windowHalfWidth: Double = 0.25     // hours (±15 min by default)
     var color: Color = CoachTokens.purple
+    var snapMinutes: Int = 5               // drag snaps to nearest N minutes
+
+    @State private var isDragging = false
+
+    // Read-only initializer for callers that don't need interaction.
+    init(size: CGFloat = 240,
+         targetHour: Binding<Double>,
+         windowHalfWidth: Double = 0.25,
+         color: Color = CoachTokens.purple,
+         snapMinutes: Int = 5) {
+        self.size = size
+        self._targetHour = targetHour
+        self.windowHalfWidth = windowHalfWidth
+        self.color = color
+        self.snapMinutes = snapMinutes
+    }
 
     var body: some View {
         Canvas { ctx, _ in
@@ -31,8 +53,10 @@ struct CoachTargetDialView: View {
             ctx.stroke(Path(ellipseIn: trackRect),
                        with: .color(Color.white.opacity(0.08)), lineWidth: 6)
 
-            // Optimal window arc.
+            // Optimal window arc (centered on targetHour).
             let toRad = { (h: Double) -> Double in (h / 24.0) * 2 * .pi - .pi / 2 }
+            let windowStart = targetHour - windowHalfWidth
+            let windowEnd   = targetHour + windowHalfWidth
             var arc = Path()
             arc.addArc(center: c, radius: r - 4,
                        startAngle: .radians(toRad(windowStart)),
@@ -71,10 +95,69 @@ struct CoachTargetDialView: View {
             // Target pointer.
             let a = toRad(targetHour)
             let p = CGPoint(x: c.x + (r - 4) * cos(a), y: c.y + (r - 4) * sin(a))
-            let pointerRect = CGRect(x: p.x - 8, y: p.y - 8, width: 16, height: 16)
+            let pointerSize: CGFloat = isDragging ? 20 : 16
+            let half = pointerSize / 2
+            let pointerRect = CGRect(x: p.x - half, y: p.y - half,
+                                     width: pointerSize, height: pointerSize)
             ctx.fill(Path(ellipseIn: pointerRect), with: .color(color))
             ctx.stroke(Path(ellipseIn: pointerRect), with: .color(.white), lineWidth: 2)
         }
         .frame(width: size, height: size)
+        .contentShape(Rectangle())
+        .gesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { value in
+                    updateTarget(from: value.location)
+                    if !isDragging {
+                        isDragging = true
+                        hapticFeedback()
+                    }
+                }
+                .onEnded { _ in
+                    isDragging = false
+                    hapticFeedback()
+                }
+        )
     }
+
+    // MARK: - Gesture math
+
+    private func updateTarget(from location: CGPoint) {
+        let c = CGPoint(x: size / 2, y: size / 2)
+        let dx = location.x - c.x
+        let dy = location.y - c.y
+        // Ignore taps very close to the center to prevent jitter.
+        guard hypot(dx, dy) > 10 else { return }
+
+        // atan2 gives angle from +x axis. Our 0h is at -π/2 (top), so
+        // we shift by +π/2 and normalize to [0, 2π).
+        var angle = atan2(dy, dx) + .pi / 2
+        if angle < 0 { angle += 2 * .pi }
+
+        var hours = (angle / (2 * .pi)) * 24.0
+        // Snap to nearest N minutes.
+        let stepHours = Double(snapMinutes) / 60.0
+        hours = (hours / stepHours).rounded() * stepHours
+        if hours >= 24 { hours -= 24 }
+
+        // Only trigger state write on actual change to avoid redundant
+        // SwiftUI invalidations.
+        if abs(hours - targetHour) >= stepHours * 0.5 {
+            targetHour = hours
+            hapticFeedback(style: .light)
+        }
+    }
+
+    private func hapticFeedback(style: HapticStyle = .medium) {
+        #if canImport(UIKit) && !os(watchOS)
+        let generator: UIImpactFeedbackGenerator
+        switch style {
+        case .light: generator = UIImpactFeedbackGenerator(style: .light)
+        case .medium: generator = UIImpactFeedbackGenerator(style: .medium)
+        }
+        generator.impactOccurred()
+        #endif
+    }
+
+    private enum HapticStyle { case light, medium }
 }
