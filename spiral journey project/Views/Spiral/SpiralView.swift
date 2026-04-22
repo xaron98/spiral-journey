@@ -826,7 +826,16 @@ struct SpiralView: View {
             guard run.points.count >= 2 else { return }
 
             let baseColor = phaseColor(run.phase)
-            let nextColor = run.nextPhase.map { phaseColor($0) } ?? baseColor
+            // Falling asleep is gradual (we don't notice it), waking up is
+            // abrupt. So we blend FROM `prevColor` in the first 20% of each
+            // sleep run instead of blending INTO `nextColor` at the end.
+            // For the opening sleep block (prev = awake) this means the
+            // path fades in from amber → sleep color. Internal phase
+            // transitions (deep → light, etc.) also blend at the start of
+            // the new phase, which matches how the brain actually slides
+            // between states. The END of every sleep run stays solid —
+            // the final edge is the "wake up" moment.
+            let prevColor = run.prevPhase.map { phaseColor($0) } ?? baseColor
 
             for i in 0..<(run.points.count - 1) {
                 let p0   = run.points[i]
@@ -842,13 +851,12 @@ struct SpiralView: View {
                 let lw   = max(2.0, min(sc * 20.0, max(2.0, projSpacing - 2.0)))
                 let segOpacity = applyEdgeFade ? opacity * segmentEdgeFade(t: tSeg) : opacity
                 guard segOpacity > 0.01 else { continue }
-                // Blend toward nextColor in the final 20% of sleep runs
                 let isSleepRun = run.phase != .awake
                 let progress = (isSleepRun && run.points.count > 2)
                     ? Double(i) / Double(run.points.count - 2)
-                    : 0.0
-                let segColor = (isSleepRun && progress > 0.8)
-                    ? blendColor(baseColor, nextColor, t: (progress - 0.8) / 0.2)
+                    : 1.0
+                let segColor = (isSleepRun && progress < 0.2)
+                    ? blendColor(prevColor, baseColor, t: progress / 0.2)
                     : baseColor
 
                 var seg = Path()
@@ -863,6 +871,9 @@ struct SpiralView: View {
             let capEnd   = run.nextPhase == nil || !isSleep(run.nextPhase!)
 
             if capStart, !camera.isBehindCamera(turns: run.points[0].t) {
+                // Start cap picks up the prev (awake) color so the circle
+                // matches the first blended segment, giving a clean fade-in
+                // into sleep instead of a hard edge.
                 let tFirst = run.points[0].t
                 let sc = camera.perspectiveScale(turns: tFirst)
                 guard sc > 0.04 else { return }
@@ -871,9 +882,12 @@ struct SpiralView: View {
                 let lw = max(2.0, min(sc * 20.0, max(2.0, capProjSpacing - 2.0)))
                 let r  = lw * 0.5; let pt = run.points[0].pt
                 context.fill(Circle().path(in: CGRect(x: pt.x - r, y: pt.y - r, width: lw, height: lw)),
-                             with: .color(baseColor.opacity(opacity * capFade)))
+                             with: .color(prevColor.opacity(opacity * capFade)))
             }
             if capEnd, !camera.isBehindCamera(turns: run.points[run.points.count - 1].t) {
+                // End cap stays on the sleep color — waking up is a sharp
+                // edge, not a blend. The amber live-awake extension takes
+                // over from here without a gradient softening the step.
                 let tLast = run.points[run.points.count - 1].t
                 let sc = camera.perspectiveScale(turns: tLast)
                 guard sc > 0.04 else { return }
@@ -882,7 +896,7 @@ struct SpiralView: View {
                 let lw = max(2.0, min(sc * 20.0, max(2.0, capProjSpacing - 2.0)))
                 let r  = lw * 0.5; let pt = run.points[run.points.count - 1].pt
                 context.fill(Circle().path(in: CGRect(x: pt.x - r, y: pt.y - r, width: lw, height: lw)),
-                             with: .color(nextColor.opacity(opacity * capFade)))
+                             with: .color(baseColor.opacity(opacity * capFade)))
             }
         }
 
