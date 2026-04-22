@@ -92,37 +92,34 @@ struct WeekComparisonCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
 
-            // Title row with week navigation
-            HStack {
-                Text(String(localized: "analysis.weekComparison.title", bundle: bundle))
-                    .font(.caption.weight(.semibold).monospaced())
-                    .foregroundStyle(SpiralColors.muted)
-                    .textCase(.uppercase)
-                Spacer()
-                if totalWeekPairs > 0 {
-                    HStack(spacing: 12) {
-                        Button {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                weekOffset = min(weekOffset + 1, totalWeekPairs - 1)
-                            }
-                        } label: {
-                            Image(systemName: "chevron.left")
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(weekOffset < totalWeekPairs - 1 ? SpiralColors.accent : SpiralColors.subtle)
+            // Week navigation chevrons. The title was removed because the
+            // parent `WeekVsWeekHero` already shows the section kicker
+            // ("SEMANA VS SEMANA"), so duplicating it inside the card
+            // produced two stacked headers saying the same thing.
+            if totalWeekPairs > 0 {
+                HStack(spacing: 12) {
+                    Spacer()
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            weekOffset = min(weekOffset + 1, totalWeekPairs - 1)
                         }
-                        .disabled(weekOffset >= totalWeekPairs - 1)
-
-                        Button {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                weekOffset = max(weekOffset - 1, 0)
-                            }
-                        } label: {
-                            Image(systemName: "chevron.right")
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(weekOffset > 0 ? SpiralColors.accent : SpiralColors.subtle)
-                        }
-                        .disabled(weekOffset <= 0)
+                    } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(weekOffset < totalWeekPairs - 1 ? SpiralColors.accent : SpiralColors.subtle)
                     }
+                    .disabled(weekOffset >= totalWeekPairs - 1)
+
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            weekOffset = max(weekOffset - 1, 0)
+                        }
+                    } label: {
+                        Image(systemName: "chevron.right")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(weekOffset > 0 ? SpiralColors.accent : SpiralColors.subtle)
+                    }
+                    .disabled(weekOffset <= 0)
                 }
             }
 
@@ -133,8 +130,10 @@ struct WeekComparisonCard: View {
                 placeholderRow
             }
         }
-        .padding(14)
-        .liquidGlass(cornerRadius: 16, tint: overallTint)
+        .padding(.vertical, 4)
+        // No background — the card sits inside `WeekVsWeekHero`'s purple
+        // gradient, so we let it show through instead of stacking a
+        // second liquid-glass surface on top.
     }
 
     // MARK: - Spiral row (dual Canvas + drag)

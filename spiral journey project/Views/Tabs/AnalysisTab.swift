@@ -79,7 +79,7 @@ struct AnalysisTab: View {
 
     private var weekHero: some View {
         WeekVsWeekHero(
-            records: displayRecords,
+            records: comparisonRecords,
             spiralType: store.spiralType,
             period: store.period,
             good: isGoodWeek)
@@ -136,6 +136,17 @@ struct AnalysisTab: View {
         let start = max(0, end - 7)
         guard start < end else { return [] }
         return Array(store.records[start..<end])
+    }
+
+    /// All records up to and including the selected week. The week hero's
+    /// `WeekComparisonCard` needs ≥ 14 days to show the two-week delta —
+    /// passing only `displayRecords` (7 days) left users with 6+ weeks of
+    /// data still seeing the "need 14 days" placeholder. The card's own
+    /// internal offset controls handle further navigation.
+    private var comparisonRecords: [SleepRecord] {
+        let end = store.records.count - selectedWeekOffset * 7
+        guard end > 0 else { return [] }
+        return Array(store.records.prefix(end))
     }
 
     private var currentWeekNumber: Int {
