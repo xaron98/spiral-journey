@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 import SpiralKit
 
 /// DNA mode page — scrollable card layout reorganizing DNA/NeuroSpiral views.
@@ -6,6 +7,7 @@ import SpiralKit
 struct DNAModeView: View {
     @Environment(SpiralStore.self) private var store
     @Environment(SleepDNAService.self) private var dnaService
+    @Environment(\.modelContext) private var modelContext
     @Environment(\.languageBundle) private var bundle
 
     /// True when this mode is the one the user is currently looking at in
@@ -96,6 +98,15 @@ struct DNAModeView: View {
         }
         .sheet(isPresented: $showExport) {
             exportSheet
+        }
+        // The Insights sub-sheet was the only caller of `refreshIfNeeded`,
+        // so users who only opened this main tab were stuck with whatever
+        // snapshot was cached by the previous app launch. Trigger a refresh
+        // whenever the DNA tab becomes active — the service's schemaVersion
+        // check short-circuits when nothing needs recomputing.
+        .task(id: isActive) {
+            guard isActive else { return }
+            await dnaService.refreshIfNeeded(store: store, context: modelContext)
         }
     }
 
