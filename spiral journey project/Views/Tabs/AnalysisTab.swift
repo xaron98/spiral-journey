@@ -5,115 +5,41 @@ import UIKit
 #endif
 
 /// Trends tab — answers "¿esto es puntual o es patrón?".
-/// Top section: 3 human-readable trend dimensions.
-/// Bottom: full analysis for users who want more detail.
 struct AnalysisTab: View {
 
     @Environment(SpiralStore.self) private var store
     @Environment(\.languageBundle) private var bundle
-
-    @State private var showFullAnalysis       = false
-    @State private var showDrift             = false
-    @State private var showSlidingCosinor    = false
-    @State private var showPRC               = false
-    @State private var showActogram          = false
-    @State private var showAutocorrelation   = false
-    @State private var showSectorQuality     = false
-    @State private var showHRV               = false
-    @State private var showPeriodogram       = false
-    @State private var showTimeline         = false
-    @State private var isGeneratingPDF       = false
+    @AppStorage("analysis.selectedWeekOffset") private var selectedWeekOffset: Int = 0
+    @State private var isGeneratingPDF = false
 
     var body: some View {
         ZStack {
             SpiralColors.bg.ignoresSafeArea()
-        ScrollView(showsIndicators: false) {
-            VStack(spacing: 20) {
-                if store.records.isEmpty {
-                    emptyState
-                } else {
-                    trendHeader
-
-                    // ── 3 trend dimensions ───────────────────────────────────
-                    consistencyTrendCard
-                    driftTrendCard
-                    durationTrendCard
-
-                    // ── Week vs Week comparison ───────────────────────────────
-                    WeekComparisonCard(
-                        records: store.records,
-                        spiralType: store.spiralType,
-                        period: store.period
-                    )
-
-                    // ── Trend arrows (engine output) ─────────────────────────
-                    let trends = store.analysis.trends
-                    if !trends.improving.isEmpty || !trends.deteriorating.isEmpty {
-                        trendArrowsCard(trends)
-                    }
-
-                    // ── Full analysis — collapsible ──────────────────────────
-                    fullAnalysisToggle
-
-                    if showFullAnalysis {
-                        scoreCard
-                        if !store.analysis.categories.isEmpty {
-                            VStack(alignment: .leading, spacing: 8) {
-                                PanelTitle(title: String(localized: "conclusions.categories.title", bundle: bundle))
-                                ForEach(store.analysis.categories) { cat in
-                                    CategoryRow(category: cat, bundle: bundle)
-                                }
-                            }
-                            .glassPanel()
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 10) {
+                    if store.records.isEmpty {
+                        emptyState
+                    } else {
+                        trendHeader
+                        WeekCarousel(
+                            availableWeeks: max(1, store.records.count / 7),
+                            selectedOffset: $selectedWeekOffset)
+                        weekHero
+                        if let insight = weeklyInsight {
+                            WeeklyInsightCard(insight: insight)
                         }
-                        if !store.analysis.recommendations.isEmpty {
-                            VStack(alignment: .leading, spacing: 8) {
-                                PanelTitle(title: String(localized: "conclusions.recommendations.title", bundle: bundle))
-                                ForEach(store.analysis.recommendations) { rec in
-                                    RecommendationRow(rec: rec, bundle: bundle)
-                                }
-                            }
-                            .glassPanel()
-                        }
-                        StatsPanelView(records: store.records)
-                        if showDrift            { DriftChartView(records: store.records) }
-                        if showSlidingCosinor  { SlidingCosinorView(records: store.records) }
-                        if showPRC             { PRCChartView(events: store.events) }
-                        if showActogram        { ActogramView(records: store.records) }
-                        if showAutocorrelation { AutocorrelationHeatmapView(records: store.records) }
-                        if showSectorQuality   { SectorQualityHeatmapView(records: store.records) }
-                        if showHRV             { HRVTrendView(hrvData: store.hrvData) }
-                        if showPeriodogram {
-                            PeriodogramView(
-                                periodogramResults: store.analysis.periodogramResults,
-                                healthProfiles: store.healthProfiles,
-                                recordCount: store.records.count
-                            )
-                        }
-                        if showTimeline {
-                            DiscoveryTimelineView(
-                                discoveries: DiscoveryDetector.detect(
-                                    records: store.records,
-                                    dnaProfile: store.dnaProfile,
-                                    consistency: store.analysis.consistency,
-                                    periodograms: store.analysis.periodogramResults,
-                                    healthProfiles: store.healthProfiles,
-                                    events: store.events,
-                                    startDate: store.startDate
-                                )
-                            )
-                        }
-                        chartToggles
+                        dimensionsRow
+                        NightByNightCard(records: displayRecords)
+                        AdvancedChipsScroll()
                     }
                 }
+                .padding(.horizontal, 16)
+                .padding(.top, 16)
+                .padding(.bottom, 100)
+                .frame(maxWidth: 540)
+                .frame(maxWidth: .infinity)
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 16)
-            .padding(.bottom, 100)
-            .frame(maxWidth: 540)
-            .frame(maxWidth: .infinity)
         }
-        } // ZStack
     }
 
     // MARK: - Header
@@ -121,12 +47,15 @@ struct AnalysisTab: View {
     private var trendHeader: some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
-                Text(String(localized: "analysis.header.title", bundle: bundle))
-                    .font(.title2.weight(.light))
-                    .foregroundStyle(SpiralColors.text)
-                Text(String(format: String(localized: "analysis.header.subtitle", bundle: bundle), store.numDays))
-                    .font(.caption.monospaced())
+                Text(String(format: String(localized: "analysis.header.weekNumber", bundle: bundle),
+                            currentWeekNumber))
+                    .font(.system(size: 11, design: .monospaced))
+                    .tracking(1.5)
                     .foregroundStyle(SpiralColors.subtle)
+                Text(String(localized: "analysis.header.thisWeek", bundle: bundle))
+                    .font(.system(size: 28, weight: .bold))
+                    .tracking(-0.5)
+                    .foregroundStyle(SpiralColors.text)
             }
             Spacer()
             Button {
@@ -134,18 +63,118 @@ struct AnalysisTab: View {
             } label: {
                 if isGeneratingPDF {
                     ProgressView()
-                        .controlSize(.small)
-                        .tint(SpiralColors.accent)
                 } else {
                     Image(systemName: "square.and.arrow.up")
-                        .font(.subheadline)
+                        .font(.system(size: 18))
                         .foregroundStyle(SpiralColors.accent)
                 }
             }
             .disabled(isGeneratingPDF)
+            .accessibilityLabel(String(localized: "analysis.share.pdf", bundle: bundle))
         }
-        .padding(.bottom, 4)
+        .padding(.vertical, 4)
     }
+
+    // MARK: - Hero
+
+    private var weekHero: some View {
+        WeekVsWeekHero(
+            records: displayRecords,
+            spiralType: store.spiralType,
+            period: store.period,
+            good: isGoodWeek)
+    }
+
+    // MARK: - Dimensions row
+
+    private var dimensionsRow: some View {
+        let c = store.analysis.consistency
+        let drift = store.analysis.stats.stdBedtime * 60.0   // minutes
+        let duration = store.analysis.stats.meanSleepDuration
+        return HStack(spacing: 10) {
+            DimensionPill(
+                label: String(localized: "analysis.dim.consistency", bundle: bundle),
+                value: c.map { "\($0.score)" } ?? "--",
+                unit: "/100",
+                valueColor: consistencyColor(for: c?.label ?? .insufficient))
+            DimensionPill(
+                label: String(localized: "analysis.dim.drift", bundle: bundle),
+                value: drift > 0 ? String(format: "%dm", Int(drift)) : "--",
+                unit: nil,
+                valueColor: drift < 45 ? SpiralColors.good
+                          : drift < 90 ? SpiralColors.moderate
+                          : SpiralColors.poor)
+            DimensionPill(
+                label: String(localized: "analysis.dim.duration", bundle: bundle),
+                value: duration > 0 ? String(format: "%.1fh", duration) : "--",
+                unit: nil,
+                valueColor: duration >= 7.0 ? SpiralColors.good
+                          : duration >= 6.0 ? SpiralColors.moderate
+                          : SpiralColors.poor)
+        }
+    }
+
+    // MARK: - Insight
+
+    private var weeklyInsight: WeeklyInsight? {
+        WeeklyInsightEngine.generate(
+            records: displayRecords,
+            stats: store.analysis.stats,
+            consistency: store.analysis.consistency)
+    }
+
+    // MARK: - Derived
+
+    private var displayRecords: [SleepRecord] {
+        let end = store.records.count - selectedWeekOffset * 7
+        let start = max(0, end - 7)
+        guard start < end else { return [] }
+        return Array(store.records[start..<end])
+    }
+
+    private var currentWeekNumber: Int {
+        let refDate = displayRecords.last?.date ?? Date()
+        return Calendar.current.component(.weekOfYear, from: refDate)
+    }
+
+    /// True when the displayed week qualifies for the positive "good
+    /// streak" insight. Derives from `weeklyInsight` so the tint of the
+    /// hero can never disagree with the card below it — and it respects
+    /// `selectedWeekOffset`, unlike reading `store.analysis` directly.
+    private var isGoodWeek: Bool {
+        weeklyInsight?.kind == .goodStreak
+    }
+
+    private func consistencyColor(for label: ConsistencyLabel) -> Color {
+        switch label {
+        case .veryStable, .stable: return SpiralColors.good
+        case .variable:            return SpiralColors.moderate
+        case .disorganized:        return SpiralColors.poor
+        case .insufficient:        return SpiralColors.muted
+        }
+    }
+
+    // MARK: - Empty state
+
+    private var emptyState: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "chart.line.uptrend.xyaxis")
+                .font(.system(size: 44))
+                .foregroundStyle(SpiralColors.muted)
+                .padding(.top, 60)
+            Text(String(localized: "analysis.empty.title", bundle: bundle))
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(SpiralColors.text)
+            Text(String(localized: "analysis.empty.body", bundle: bundle))
+                .font(.system(size: 13))
+                .foregroundStyle(SpiralColors.subtle)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 40)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    // MARK: - PDF
 
     /// Generates the PDF on a background thread, then presents the share sheet.
     ///
@@ -203,390 +232,6 @@ struct AnalysisTab: View {
         }
         topVC.present(activityVC, animated: true)
         #endif
-    }
-
-    // MARK: - 3 Trend Dimensions
-
-    private var consistencyTrendCard: some View {
-        let cons = store.analysis.consistency
-        let score = cons?.score ?? 0
-        let label = cons?.label ?? .insufficient
-        let delta = cons?.deltaVsPreviousWeek
-
-        return TrendDimensionCard(
-            title: String(localized: "analysis.trend.consistency", bundle: bundle),
-            value: cons != nil ? "\(score)" : "--",
-            valueUnit: "/100",
-            description: consistencyDescription(label: label, delta: delta),
-            trend: trendDirection(delta: delta),
-            accentColor: consistencyColor(label: label)
-        )
-    }
-
-    private func consistencyDescription(label: ConsistencyLabel, delta: Double?) -> String {
-        var base: String
-        switch label {
-        case .veryStable:   base = String(localized: "analysis.trend.consistency.veryStable",   bundle: bundle)
-        case .stable:       base = String(localized: "analysis.trend.consistency.stable",       bundle: bundle)
-        case .variable:     base = String(localized: "analysis.trend.consistency.variable",     bundle: bundle)
-        case .disorganized: base = String(localized: "analysis.trend.consistency.disorganized", bundle: bundle)
-        case .insufficient: base = String(localized: "analysis.trend.consistency.insufficient", bundle: bundle)
-        }
-        if let d = delta {
-            let change = abs(Int(d))
-            if d >= 2 {
-                base += String(format: String(localized: "analysis.trend.consistency.better", bundle: bundle), change)
-            } else if d <= -2 {
-                base += String(format: String(localized: "analysis.trend.consistency.worse", bundle: bundle), change)
-            }
-        }
-        return base
-    }
-
-    private func consistencyColor(label: ConsistencyLabel) -> Color {
-        switch label {
-        case .veryStable, .stable:   return SpiralColors.good
-        case .variable:              return SpiralColors.moderate
-        case .disorganized:          return SpiralColors.poor
-        case .insufficient:          return SpiralColors.muted
-        }
-    }
-
-    private var driftTrendCard: some View {
-        let stats = store.analysis.stats
-        let std = stats.stdAcrophase
-        let jetlag = stats.socialJetlag
-
-        let value: String
-        let desc: String
-        let color: Color
-        let trend: TrendDirection
-
-        if std <= 0 {
-            value = "--"
-            desc = String(localized: "analysis.trend.drift.noData",          bundle: bundle)
-            color = SpiralColors.muted
-            trend = .neutral
-        } else if std < 0.5 {
-            value = String(format: "±%.0fm", std * 60)
-            desc = String(localized: "analysis.trend.drift.veryStable",      bundle: bundle)
-            color = SpiralColors.good
-            trend = .up
-        } else if std < 1.0 {
-            value = String(format: "±%.0fm", std * 60)
-            desc = String(localized: "analysis.trend.drift.someVariation",   bundle: bundle)
-            color = SpiralColors.moderate
-            trend = .neutral
-        } else {
-            value = String(format: "±%.1fh", std)
-            desc = String(localized: "analysis.trend.drift.significant",     bundle: bundle)
-            color = SpiralColors.poor
-            trend = .down
-        }
-
-        let jetlagNote = jetlag > 45 ? String(format: String(localized: "analysis.trend.drift.jetlagNote", bundle: bundle), formatJetlag(jetlag)) : ""
-
-        return TrendDimensionCard(
-            title: String(localized: "analysis.trend.drift", bundle: bundle),
-            value: value,
-            valueUnit: "",
-            description: desc + jetlagNote,
-            trend: trend,
-            accentColor: color
-        )
-    }
-
-    private var durationTrendCard: some View {
-        let stats = store.analysis.stats
-        let dur = stats.meanSleepDuration
-
-        let value = dur > 0 ? String(format: "%.1fh", dur) : "--"
-        let desc: String
-        let color: Color
-        let trend: TrendDirection
-
-        if dur <= 0 {
-            desc = String(localized: "analysis.trend.duration.noData",        bundle: bundle)
-            color = SpiralColors.muted
-            trend = .neutral
-        } else if dur >= 7 && dur <= 9 {
-            desc = String(localized: "analysis.trend.duration.optimal",       bundle: bundle)
-            color = SpiralColors.good
-            trend = .up
-        } else if dur > 9 {
-            desc = String(localized: "analysis.trend.duration.excessive",     bundle: bundle)
-            color = SpiralColors.moderate
-            trend = .neutral
-        } else if dur >= 6 {
-            desc = String(localized: "analysis.trend.duration.slightlyShort", bundle: bundle)
-            color = SpiralColors.moderate
-            trend = .neutral
-        } else {
-            desc = String(localized: "analysis.trend.duration.tooShort",      bundle: bundle)
-            color = SpiralColors.poor
-            trend = .down
-        }
-
-        return TrendDimensionCard(
-            title: String(localized: "analysis.trend.duration", bundle: bundle),
-            value: value,
-            valueUnit: String(localized: "analysis.trend.duration.unit", bundle: bundle),
-            description: desc,
-            trend: trend,
-            accentColor: color
-        )
-    }
-
-    // MARK: - Trend Arrows
-
-    private func trendArrowsCard(_ trends: TrendAnalysis) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            PanelTitle(title: String(localized: "analysis.recentTrends", bundle: bundle))
-            ForEach(trends.deteriorating) { t in trendRow(t, color: SpiralColors.poor,  arrow: "arrow.down") }
-            ForEach(trends.improving)     { t in trendRow(t, color: SpiralColors.good,  arrow: "arrow.up") }
-        }
-        .glassPanel()
-    }
-
-    // MARK: - Full Analysis Toggle
-
-    private var fullAnalysisToggle: some View {
-        Button {
-            withAnimation(.easeInOut(duration: 0.25)) { showFullAnalysis.toggle() }
-        } label: {
-            HStack(spacing: 6) {
-                Image(systemName: showFullAnalysis ? "chevron.up" : "chevron.down")
-                    .font(.caption.weight(.medium))
-                Text(showFullAnalysis
-                    ? String(localized: "analysis.fullAnalysis.hide", bundle: bundle)
-                    : String(localized: "analysis.fullAnalysis.show", bundle: bundle)
-                )
-                    .font(.footnote.weight(.medium).monospaced())
-            }
-            .foregroundStyle(SpiralColors.accent)
-            .padding(.vertical, 10)
-            .frame(maxWidth: .infinity)
-            .liquidGlass(cornerRadius: 12)
-        }
-        .buttonStyle(.plain)
-    }
-
-    // MARK: - Localization helper
-
-    /// Resolve a dynamic key string against the current language bundle.
-    private func loc(_ key: String) -> String {
-        NSLocalizedString(key, bundle: bundle, comment: "")
-    }
-
-    /// Formats a social jetlag value (in minutes) as "Xh Ym" or "Xm".
-    private func formatJetlag(_ minutes: Double) -> String {
-        let total = Int(minutes.rounded())
-        if total < 60 { return "\(total)m" }
-        let h = total / 60
-        let m = total % 60
-        return m == 0 ? "\(h)h" : "\(h)h \(m)m"
-    }
-
-    private func trendDirection(delta: Double?) -> TrendDirection {
-        guard let d = delta else { return .neutral }
-        if d >= 2  { return .up }
-        if d <= -2 { return .down }
-        return .neutral
-    }
-
-    // MARK: - Score card
-
-    private var localizedScoreLabel: String {
-        if let key = store.analysis.scoreKey {
-            return loc("score.\(key.rawValue)")
-        }
-        return store.analysis.label
-    }
-
-    private var scoreCard: some View {
-        HStack(spacing: 16) {
-            ScoreGaugeView(
-                score: store.analysis.composite,
-                label: localizedScoreLabel,
-                hexColor: store.analysis.hexColor
-            )
-            .frame(width: 90, height: 90)
-
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Spiral Journey")
-                    .font(.caption.monospaced())
-                    .foregroundStyle(SpiralColors.subtle)
-                Text(localizedScoreLabel)
-                    .font(.title2.weight(.semibold))
-                    .foregroundStyle(Color(hex: store.analysis.hexColor))
-                Text(String(localized: "conclusions.score.composite", bundle: bundle))
-                    .font(.caption)
-                    .foregroundStyle(SpiralColors.subtle)
-                    .lineLimit(2)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            Spacer()
-        }
-        .padding(20)
-        .liquidGlass(cornerRadius: 20, tint: Color(hex: store.analysis.hexColor))
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(String(localized: "accessibility.score.label", defaultValue: "Sleep score") + ", \(store.analysis.composite), \(localizedScoreLabel)")
-    }
-
-    // MARK: - Chart toggles
-
-    private var chartToggles: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            PanelTitle(title: String(localized: "analysis.charts.title", bundle: bundle))
-            HStack(spacing: 6) {
-                PillButton(label: String(localized: "analysis.charts.drift",    bundle: bundle), isActive: showDrift)          { showDrift.toggle() }
-                PillButton(label: String(localized: "spiral.controls.cosinor",  bundle: bundle), isActive: showSlidingCosinor) { showSlidingCosinor.toggle() }
-                PillButton(label: "PRC",                                                          isActive: showPRC)            { showPRC.toggle() }
-                PillButton(label: String(localized: "analysis.charts.actogram", bundle: bundle), isActive: showActogram)       { showActogram.toggle() }
-            }
-            HStack(spacing: 6) {
-                PillButton(label: String(localized: "analysis.charts.autocorrelation.short", bundle: bundle), isActive: showAutocorrelation) { showAutocorrelation.toggle() }
-                PillButton(label: String(localized: "analysis.charts.sectorQuality.short",   bundle: bundle), isActive: showSectorQuality)   { showSectorQuality.toggle() }
-                PillButton(label: "HRV", isActive: showHRV) {
-                    showHRV.toggle()
-                    if showHRV && store.hrvData.isEmpty {
-                        Task { await store.refreshHRV() }
-                    }
-                }
-                PillButton(
-                    label: String(localized: "analysis.charts.periodogram", bundle: bundle),
-                    isActive: showPeriodogram
-                ) {
-                    showPeriodogram.toggle()
-                }
-                PillButton(
-                    label: String(localized: "analysis.charts.timeline", bundle: bundle),
-                    isActive: showTimeline
-                ) {
-                    showTimeline.toggle()
-                }
-            }
-        }
-        .glassPanel()
-    }
-
-    // MARK: - Empty state
-
-    private var emptyState: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "chart.line.uptrend.xyaxis")
-                .font(.largeTitle)
-                .foregroundStyle(SpiralColors.muted)
-            Text(String(localized: "analysis.empty.title", bundle: bundle))
-                .font(.subheadline.monospaced())
-                .foregroundStyle(SpiralColors.text)
-            Text(String(localized: "analysis.empty.subtitle", bundle: bundle))
-                .font(.footnote)
-                .foregroundStyle(SpiralColors.subtle)
-                .multilineTextAlignment(.center)
-        }
-        .padding(.top, 80)
-    }
-
-    // MARK: - Helpers
-
-    private func localizedTrendLabel(_ t: TrendItem) -> String {
-        if let key = t.labelKey { return loc("trend.\(key.rawValue)") }
-        return t.label
-    }
-
-    private func localizedTrendDetail(_ t: TrendItem) -> String {
-        guard let key = t.detailKey else { return t.detail }
-        let fmt = loc("trend.detail.\(key.rawValue)")
-        if t.detailArgs.isEmpty { return fmt }
-        switch t.detailArgs.count {
-        case 1: return String(format: fmt, t.detailArgs[0])
-        case 2: return String(format: fmt, t.detailArgs[0], t.detailArgs[1])
-        default: return fmt
-        }
-    }
-
-    private func trendRow(_ t: TrendItem, color: Color, arrow: String) -> some View {
-        HStack(spacing: 8) {
-            Image(systemName: arrow)
-                .font(.caption.weight(.bold))
-                .foregroundStyle(color)
-                .frame(width: 14)
-            VStack(alignment: .leading, spacing: 1) {
-                Text(localizedTrendLabel(t)).font(.caption.weight(.medium)).foregroundStyle(SpiralColors.text)
-                Text(localizedTrendDetail(t)).font(.caption2).foregroundStyle(SpiralColors.subtle)
-            }
-        }
-    }
-}
-
-// MARK: - Trend Dimension Components
-
-enum TrendDirection {
-    case up, down, neutral
-
-    var icon: String {
-        switch self {
-        case .up:      return "arrow.up.right"
-        case .down:    return "arrow.down.right"
-        case .neutral: return "minus"
-        }
-    }
-
-    var color: Color {
-        switch self {
-        case .up:      return SpiralColors.good
-        case .down:    return SpiralColors.poor
-        case .neutral: return SpiralColors.muted
-        }
-    }
-}
-
-struct TrendDimensionCard: View {
-    let title: String
-    let value: String
-    let valueUnit: String
-    let description: String
-    let trend: TrendDirection
-    let accentColor: Color
-
-    var body: some View {
-        HStack(spacing: 14) {
-            // Trend arrow
-            Image(systemName: trend.icon)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(trend.color)
-                .frame(width: 20)
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.caption.weight(.semibold).monospaced())
-                    .foregroundStyle(SpiralColors.subtle)
-                    .textCase(.uppercase)
-
-                HStack(alignment: .firstTextBaseline, spacing: 3) {
-                    Text(value)
-                        .font(.title2.weight(.bold).monospaced())
-                        .foregroundStyle(accentColor)
-                    if !valueUnit.isEmpty {
-                        Text(valueUnit)
-                            .font(.caption)
-                            .foregroundStyle(SpiralColors.subtle)
-                    }
-                }
-
-                Text(description)
-                    .font(.caption)
-                    .foregroundStyle(SpiralColors.muted)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .lineSpacing(2)
-            }
-            Spacer()
-        }
-        .padding(20)
-        .liquidGlass(cornerRadius: 16, tint: accentColor)
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(title), \(value)\(valueUnit)")
     }
 }
 
