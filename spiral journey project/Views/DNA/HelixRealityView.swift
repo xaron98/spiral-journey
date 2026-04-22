@@ -189,7 +189,7 @@ struct HelixRealityView: View {
                 .background(Capsule().fill(SpiralColors.surface.opacity(0.85)))
                 .clipShape(Capsule())
                 .padding(.leading, 12)
-                .padding(.top, 12)
+                .padding(.top, 28)
 
                 Spacer()
 
@@ -218,7 +218,7 @@ struct HelixRealityView: View {
                         )
                     }
                     .padding(.trailing, 12)
-                    .padding(.top, 12)
+                    .padding(.top, 28)
                 }
             }
 
