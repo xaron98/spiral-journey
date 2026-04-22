@@ -13,6 +13,7 @@ struct DNAInsightsView: View {
     @Environment(\.languageBundle) private var bundle
 
     @State private var isInteractingWith3D = false
+    @State private var helixComparisonMode: HelixComparisonMode = .yesterday
     @State private var showQuestionnaire = false
     @State private var questionnaireAvailable = false
     @State private var showNeuroSpiral = false
@@ -104,7 +105,7 @@ struct DNAInsightsView: View {
 
                 DNAStateSection(profile: profile)
                 if #available(iOS 18.0, *), profile.helixGeometry.count >= 3 {
-                    HelixRealityView(profile: profile, records: store.records, isInteractingWith3D: $isInteractingWith3D)
+                    HelixRealityView(profile: profile, records: store.records, isInteractingWith3D: $isInteractingWith3D, comparisonMode: $helixComparisonMode)
                 }
                 DNAMotifSection(profile: profile)
                 DNAAlignmentSection(profile: profile)

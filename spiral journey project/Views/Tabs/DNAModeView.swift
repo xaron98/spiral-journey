@@ -29,6 +29,12 @@ struct DNAModeView: View {
     @State private var isAnalyzing = false
     @State private var showCalendar = false
 
+    // MARK: - Shared with HelixRealityView
+
+    /// Owned here so the phase legend overlay and the helix hero stay in
+    /// sync when the user taps Ayer / Semana / Mi mejor inside the helix.
+    @State private var helixComparisonMode: HelixComparisonMode = .yesterday
+
     var body: some View {
         LazyModeView(isActive: isActive) {
             activeBody
@@ -41,12 +47,14 @@ struct DNAModeView: View {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 12) {
                     // Hero: 3D Helix at top, scrolls with cards.
-                    // 340pt keeps the helix + phase legend comfortably
-                    // above the floating action bar on an iPhone, with
-                    // clear reading space for the "Hoy / Ayer / Despierto
-                    // / → NREM" row below the model.
+                    // 500pt lets the helix dominate the vertical area
+                    // so the model reads as centered on screen. The
+                    // phase legend is no longer packed inside this
+                    // frame — it now floats above the action bar as
+                    // an overlay (see below), freeing this hero to be
+                    // pure 3D canvas.
                     helixHeroView
-                        .frame(height: 340)
+                        .frame(height: 500)
                         .padding(.horizontal, 16)
 
                     // Cards below
@@ -60,10 +68,10 @@ struct DNAModeView: View {
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
-                .padding(.bottom, 160)
+                .padding(.bottom, 180)
             }
 
-            actionBar
+            bottomStack
         }
         .sheet(isPresented: $showPatterns) {
             patternsSheet
@@ -175,7 +183,8 @@ struct DNAModeView: View {
                     profile: profile,
                     records: store.records,
                     isInteractingWith3D: $isInteractingWith3D,
-                    isActive: isActive
+                    isActive: isActive,
+                    comparisonMode: $helixComparisonMode
                 )
             } else {
                 helixPreview
@@ -383,6 +392,16 @@ struct DNAModeView: View {
     }
 
     // MARK: - Action Bar
+
+    @ViewBuilder
+    private var bottomStack: some View {
+        VStack(spacing: 10) {
+            if #available(iOS 18.0, macOS 15.0, *), dnaProfile != nil {
+                HelixPhaseLegend(comparisonMode: helixComparisonMode)
+            }
+            actionBar
+        }
+    }
 
     private var actionBar: some View {
         HStack(spacing: 24) {
