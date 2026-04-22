@@ -92,6 +92,7 @@ final class LLMService {
             state = .downloaded
         }
         // Observe memory warnings to auto-unload
+        #if canImport(UIKit)
         memoryWarningObserver = NotificationCenter.default.addObserver(
             forName: UIApplication.didReceiveMemoryWarningNotification,
             object: nil,
@@ -101,6 +102,7 @@ final class LLMService {
                 self?.unloadModel()
             }
         }
+        #endif
     }
 
     deinit {

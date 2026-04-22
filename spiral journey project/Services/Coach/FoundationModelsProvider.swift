@@ -7,7 +7,7 @@ import FoundationModels
 ///
 /// Uses the on-device system language model (Apple Intelligence) for zero-download,
 /// zero-cost inference. Falls back gracefully when the hardware or OS doesn't support it.
-@available(iOS 26, *)
+@available(iOS 26, macOS 26, *)
 @Observable
 @MainActor
 final class FoundationModelsProvider: CoachLLMProvider {

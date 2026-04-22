@@ -12,7 +12,7 @@ import FoundationModels
 final class OnDeviceAIService {
 
     var isAvailable: Bool {
-        if #available(iOS 26, *) {
+        if #available(iOS 26, macOS 26, *) {
             return SystemLanguageModel.default.availability == .available
         }
         return false
@@ -23,7 +23,7 @@ final class OnDeviceAIService {
     // MARK: - Sleep Insight Interpretation
 
     /// Generate a natural language summary of the user's sleep data.
-    @available(iOS 26, *)
+    @available(iOS 26, macOS 26, *)
     func interpretSleepInsights(
         poisson: PoissonFragmentationResult?,
         hawkes: HawkesAnalysisResult?,
@@ -98,7 +98,7 @@ final class OnDeviceAIService {
     // MARK: - Dream Interpretation
 
     /// Interpret a dream and optionally find patterns with previous dreams.
-    @available(iOS 26, *)
+    @available(iOS 26, macOS 26, *)
     func interpretDream(
         dreamText: String,
         sleepPhases: String,

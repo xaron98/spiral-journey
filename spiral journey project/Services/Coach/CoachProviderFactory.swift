@@ -10,7 +10,7 @@ struct CoachProviderFactory {
 
     static func makeProvider(llmService: LLMService) -> any CoachLLMProvider {
         #if canImport(FoundationModels)
-        if #available(iOS 26, *) {
+        if #available(iOS 26, macOS 26, *) {
             let fm = FoundationModelsProvider()
             if fm.isAvailable { return fm }
         }
