@@ -78,6 +78,12 @@ struct HelixRealityView: View {
             let anchor = AnchorEntity()
             let (strand1, strand2) = strandRecords(mode: comparisonMode)
             let root = HelixSceneBuilder.build(from: profile, strand1Records: strand1, strand2Records: strand2)
+            // RealityView's default camera sits slightly high relative to
+            // the anchor origin, so a model that is mathematically centered
+            // on y=0 renders with its midpoint above the visual center of
+            // the view. Nudge the whole helix down so it sits in the middle
+            // of the hero frame.
+            root.position = SIMD3<Float>(0, -0.15, 0)
             anchor.addChild(root)
 
             // Directional light for glass material reflections

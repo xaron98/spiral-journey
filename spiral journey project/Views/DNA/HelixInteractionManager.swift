@@ -99,8 +99,15 @@ final class HelixInteractionManager {
 
     func applyDrag(translationX: Float, translationY: Float) {
         let sensitivity: Float = 0.008
-        rotationY += translationX * sensitivity
-        rotationX += translationY * sensitivity
+        // Sign convention: the model should follow the finger.
+        // - Drag right → model visually rotates right (so `rotationY`
+        //   decreases, since RealityKit's right-handed +Y axis rotates
+        //   CCW as seen from above, which moves the visible face left
+        //   for a positive angle).
+        // - Drag down → you should end up looking more at the top of
+        //   the helix; that requires a negative rotation around +X.
+        rotationY -= translationX * sensitivity
+        rotationX -= translationY * sensitivity
         rotationX = max(-.pi / 2.5, min(.pi / 2.5, rotationX))
         // No need to notify SwiftUI — displayLink applies transform next frame
     }
