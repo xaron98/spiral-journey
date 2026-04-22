@@ -24,6 +24,7 @@ final class NeuroSpiralSceneKitScene {
     private(set) var trajectoryColors: [SCNPlatformColor] = []
     private(set) var currentIndex = 0
     private var animationTimer: Timer?
+    private var animateByDefault: Bool = false
 
     /// Torus radii — larger than Watch for iPhone display.
     private let R: Float = 2.2
@@ -71,9 +72,30 @@ final class NeuroSpiralSceneKitScene {
         if let analysis {
             loadFromAnalysis(analysis)
         }
-        if animated {
+        animateByDefault = animated
+        // Start paused; the SwiftUI wrapper calls resume() in .onAppear.
+        // This prevents battery drain when the view is instantiated but
+        // not yet visible (e.g. inside a tab that hasn't been selected).
+        torusParent.isPaused = true
+    }
+
+    // MARK: - Lifecycle
+
+    /// Called from SwiftUI `.onAppear`. Resumes the auto-rotation and,
+    /// if `animateByDefault` was true at init, restarts the trajectory
+    /// scrubber timer.
+    func resume() {
+        torusParent.isPaused = false
+        if animateByDefault {
             startAnimation()
         }
+    }
+
+    /// Called from SwiftUI `.onDisappear`. Pauses auto-rotation and
+    /// stops the trajectory scrubber so the scene uses zero CPU while
+    /// offscreen.
+    func pause() {
+        stopAnimation()
     }
 
     // MARK: - Camera
@@ -398,9 +420,10 @@ struct NeuroSpiralSceneKitTorusView: View {
                 let s = NeuroSpiralSceneKitScene(analysis: analysis, animated: animated)
                 scene = s
             }
+            scene?.resume()
         }
         .onDisappear {
-            scene?.stopAnimation()
+            scene?.pause()
         }
         .onChange(of: visibleCount?.wrappedValue) { _, newValue in
             if let count = newValue {
