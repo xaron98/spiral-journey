@@ -58,7 +58,7 @@ struct HelixRealityView: View {
 
                 overlays
             }
-            .frame(height: 400)
+            .frame(maxHeight: .infinity)
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             .accessibilityElement(children: .contain)
             .accessibilityLabel(loc("dna.3d.a11y.label"))
@@ -66,6 +66,7 @@ struct HelixRealityView: View {
 
             // Sleep phase legend
             phaseLegend
+                .padding(.top, 6)
         }
     }
 

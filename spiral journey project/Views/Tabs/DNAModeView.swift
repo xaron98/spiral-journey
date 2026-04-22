@@ -33,11 +33,13 @@ struct DNAModeView: View {
         ZStack(alignment: .bottom) {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 12) {
-                    // Hero: 3D Helix at top, scrolls with cards
+                    // Hero: 3D Helix at top, scrolls with cards.
+                    // 420pt gives the RealityView enough headroom that the
+                    // model doesn't push up against the pills, and lets the
+                    // phase legend sit below it cleanly.
                     helixHeroView
-                        .frame(height: 350)
+                        .frame(height: 420)
                         .padding(.horizontal, 16)
-                        .padding(.top, 20)
 
                     // Cards below
                     patternsCard
@@ -50,7 +52,7 @@ struct DNAModeView: View {
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
-                .padding(.bottom, 100)
+                .padding(.bottom, 160)
             }
 
             actionBar
