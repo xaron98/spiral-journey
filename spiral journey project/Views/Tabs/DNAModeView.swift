@@ -8,6 +8,12 @@ struct DNAModeView: View {
     @Environment(SleepDNAService.self) private var dnaService
     @Environment(\.languageBundle) private var bundle
 
+    /// True when this mode is the one the user is currently looking at in
+    /// the pager. Forwarded to HelixRealityView so its 60fps CADisplayLink
+    /// stops when the mode goes offscreen — otherwise TabView(.page) keeps
+    /// the view alive and onDisappear never fires.
+    var isActive: Bool = true
+
     // MARK: - Sheet states
 
     @State private var showPatterns = false
@@ -158,7 +164,8 @@ struct DNAModeView: View {
                 HelixRealityView(
                     profile: profile,
                     records: store.records,
-                    isInteractingWith3D: $isInteractingWith3D
+                    isInteractingWith3D: $isInteractingWith3D,
+                    isActive: isActive
                 )
             } else {
                 helixPreview

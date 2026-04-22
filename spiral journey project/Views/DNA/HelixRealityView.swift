@@ -11,6 +11,10 @@ struct HelixRealityView: View {
     let profile: SleepDNAProfile
     var records: [SleepRecord] = []
     @Binding var isInteractingWith3D: Bool
+    /// True when the hosting mode is visible in the pager. When false,
+    /// the CADisplayLink is stopped — prevents a 60fps render loop
+    /// behind an invisible TabView(.page) child.
+    var isActive: Bool = true
 
     @Environment(\.languageBundle) private var bundle
     @Environment(\.scenePhase) private var scenePhase
@@ -139,15 +143,22 @@ struct HelixRealityView: View {
         .gesture(magnifyGesture)
         .gesture(tapGesture)
         .onAppear {
-            manager.startDisplayLink()
+            if isActive { manager.startDisplayLink() }
         }
         .onDisappear {
             manager.stopDisplayLink()
         }
+        .onChange(of: isActive) { _, active in
+            if active {
+                manager.startDisplayLink()
+            } else {
+                manager.stopDisplayLink()
+            }
+        }
         .onChange(of: scenePhase) { _, newPhase in
             switch newPhase {
             case .active:
-                manager.startDisplayLink()
+                if isActive { manager.startDisplayLink() }
             case .inactive, .background:
                 manager.stopDisplayLink()
             @unknown default:

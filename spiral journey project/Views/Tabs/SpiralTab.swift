@@ -32,7 +32,7 @@ struct SpiralTab: View {
                     Group {
                         switch selectedMode {
                         case 0:  TorusModeView(isActive: true)
-                        case 2:  DNAModeView()
+                        case 2:  DNAModeView(isActive: true)
                         default: SpiralModeView(selectedTab: $selectedTab,
                                                 showConsistencyDetail: $showConsistencyDetail)
                         }
@@ -46,7 +46,7 @@ struct SpiralTab: View {
                         SpiralModeView(selectedTab: $selectedTab,
                                        showConsistencyDetail: $showConsistencyDetail)
                             .tag(1)
-                        DNAModeView()
+                        DNAModeView(isActive: selectedMode == 2)
                             .tag(2)
                     }
                     .tabViewStyle(.page(indexDisplayMode: .never))
