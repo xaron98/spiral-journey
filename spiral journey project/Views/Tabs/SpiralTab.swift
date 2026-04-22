@@ -31,7 +31,7 @@ struct SpiralTab: View {
                     // macOS has no .page tab view style — switch directly
                     Group {
                         switch selectedMode {
-                        case 0:  TorusModeView()
+                        case 0:  TorusModeView(isActive: true)
                         case 2:  DNAModeView()
                         default: SpiralModeView(selectedTab: $selectedTab,
                                                 showConsistencyDetail: $showConsistencyDetail)
@@ -41,7 +41,7 @@ struct SpiralTab: View {
                     .animation(.easeInOut(duration: 0.3), value: selectedMode)
                     #else
                     TabView(selection: $selectedMode) {
-                        TorusModeView()
+                        TorusModeView(isActive: selectedMode == 0)
                             .tag(0)
                         SpiralModeView(selectedTab: $selectedTab,
                                        showConsistencyDetail: $showConsistencyDetail)

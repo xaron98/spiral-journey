@@ -13,6 +13,13 @@ struct TorusModeView: View {
     @Environment(SpiralStore.self) private var store
     @Environment(\.scenePhase) private var scenePhase
 
+    /// True when this mode is the one the user is currently looking at in
+    /// the pager. When false, the scene is paused to avoid running a
+    /// SceneKit render loop + SCNAction for a view that is offscreen —
+    /// TabView(.page) keeps all children mounted so .onDisappear never
+    /// fires and we need an explicit signal from the parent.
+    var isActive: Bool = true
+
     @State private var scene = TorusSceneiPhone()
     @State private var isPaused = false
     @State private var wasPlayingBeforeBackground = false
@@ -92,19 +99,33 @@ struct TorusModeView: View {
                 #endif
             }
             loadRealData()
-            scene.startAnimation()
-            isPaused = false
+            if isActive {
+                scene.startAnimation()
+                isPaused = false
+            }
         }
         .onDisappear {
             scene.stopAnimation()
             scene.stopScrub()
+        }
+        .onChange(of: isActive) { _, active in
+            // Pager kept the view alive but moved it offscreen. Pause to
+            // stop burning CPU on a SceneKit render loop the user can't see.
+            if active {
+                if !isPaused {
+                    scene.startAnimation()
+                }
+            } else {
+                scene.stopAnimation()
+                scene.stopScrub()
+            }
         }
         .onChange(of: store.records.count) { _, _ in
             loadRealData()
         }
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
-                if wasPlayingBeforeBackground {
+                if wasPlayingBeforeBackground && isActive {
                     scene.startAnimation()
                     isPaused = false
                     wasPlayingBeforeBackground = false
