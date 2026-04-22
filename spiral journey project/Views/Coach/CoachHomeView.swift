@@ -113,9 +113,9 @@ struct CoachHomeView: View {
                         Text("\(h.score)")
                             .font(CoachTokens.mono(28, weight: .bold))
                             .foregroundStyle(.white)
-                        Text("SCORE")
+                        Text(String(localized: "coach.home.hero.score", bundle: bundle))
                             .font(CoachTokens.mono(8))
-                            .foregroundStyle(CoachTokens.textDim)
+                            .foregroundStyle(.white.opacity(0.85))
                             .tracking(1)
                     }
                 }

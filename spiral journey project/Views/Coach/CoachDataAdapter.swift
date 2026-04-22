@@ -73,10 +73,27 @@ struct CoachDataAdapter {
         return HeroData(
             score: score,
             todayLabel: "ESTA NOCHE",
-            insightTitle: store.analysis.coachInsight?.title ?? "Tu ritmo pide constancia",
+            insightTitle: localizedInsightTitle(),
             last7Bars: normalizeBars(durations),
             last7Subtitle: "7 NOCHES · \(diffStr) MEDIA",
             accent: CoachTokens.accent(forScore: score))
+    }
+
+    /// CoachEngine produces titles as English fallback strings and
+    /// stores the stable issueKey alongside. Resolve the key through
+    /// `Localizable.xcstrings` (`coach.issue.<issueKey>.title`) so the
+    /// hero bento shows the current locale's text instead of the raw
+    /// English fallback the engine emits.
+    private func localizedInsightTitle() -> String {
+        let fallback = "Tu ritmo pide constancia"
+        guard let insight = store.analysis.coachInsight else { return fallback }
+        let key = "coach.issue.\(insight.issueKey.rawValue).title"
+        let resolved = Bundle.main.localizedString(forKey: key, value: insight.title, table: nil)
+        // If the key is missing from the strings catalog, Foundation
+        // echoes the key back unchanged — detect that and fall back to
+        // the engine's English title so we never surface a raw key.
+        if resolved == key { return insight.title }
+        return resolved
     }
 
     var bento: BentoData {
