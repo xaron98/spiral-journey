@@ -1508,6 +1508,7 @@
       }
     },
     "watch.spiral.emptyHint" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -1560,6 +1561,7 @@
       }
     },
     "watch.spiral.emptyTitle" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

@@ -380,35 +380,12 @@ struct SpiralModeView: View {
                 }
                 .animation(.spring(response: 0.35), value: showCoachTip)
 
-                // ── Layer 6: Empty state ─────────────────────────────────
-                // Full-screen panel with opaque background so the moon
-                // badge + hint text stay readable against the backbone
-                // spiral drawn in Layer 1. App Review flagged the Watch
-                // version of this same pattern as a crowded layout
-                // (Guideline 4) when the text sat directly on top of
-                // the dots — mirror the fix here for parity.
-                if store.records.isEmpty {
-                    VStack(spacing: 14) {
-                        Image(systemName: "moon.zzz")
-                            .font(.system(size: 56))
-                            .foregroundStyle(SpiralColors.accent.opacity(0.85))
-                        Text(String(localized: "spiral.empty.title",
-                                    defaultValue: "No sleep data yet",
-                                    bundle: bundle))
-                            .font(.headline)
-                            .foregroundStyle(SpiralColors.text)
-                            .multilineTextAlignment(.center)
-                        Text(String(localized: "spiral.empty.hint", bundle: bundle))
-                            .font(.footnote)
-                            .foregroundStyle(SpiralColors.muted)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 32)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(SpiralColors.bg)
-                    .allowsHitTesting(false)
-                }
+                // Layer 6 intentionally removed: an empty-state panel
+                // over the backbone isn't necessary on iPhone. The grey
+                // skeleton alone communicates "no data yet" clearly
+                // enough, and it doubles as the tap-to-log surface —
+                // the action bar's moon button is the affordance the
+                // user reaches for, not a floating hint panel.
 
                 // ── Layer 7: Undo toast ─────────────────────────────────
                 if lastManualEpisodeID != nil {

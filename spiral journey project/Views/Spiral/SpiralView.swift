@@ -963,15 +963,24 @@ struct SpiralView: View {
 
         // ── Live awake extension ──
         // Drawn OUTSIDE the record loop so it always renders, even when
-        // the last record is not visible (cursor far in the future).
-        // The vigilia path extends from where data ends to the cursor.
-        // During growth animation, only draw if the cursor is within growthCutTurns.
-        if let lastRec = lastRecord, let cursorH = cursorAbsHour,
+        // the last record is not visible (cursor far in the future) or
+        // when there are no records at all (a fresh install). The
+        // vigilia path extends from where data ends (or turn 0, if no
+        // data yet) to the cursor. During growth animation, only draw
+        // if the cursor is within growthCutTurns.
+        if let cursorH = cursorAbsHour,
            cursorH / geo.period <= growthCutTurns {
             let tCursor = cursorH / geo.period
-            let tWakeRaw = geo.turns(day: lastRec.day, hour: lastRec.wakeupHour)
-            let tDataEnd = state.dataEndTurns
-            let tStart = max(tDataEnd, tWakeRaw)
+            // With data: start at the later of "data end" and "wakeup
+            // after last record" so sleep paths aren't overdrawn.
+            // Without data: start at turn 0 — the spiral's origin.
+            let tStart: Double
+            if let lastRec = lastRecord {
+                let tWakeRaw = geo.turns(day: lastRec.day, hour: lastRec.wakeupHour)
+                tStart = max(state.dataEndTurns, tWakeRaw)
+            } else {
+                tStart = 0
+            }
             let tWake = max(tStart, tCursor - 7.0)
             if tCursor > tWake + (0.25 / geo.period) {
                 var awakePoints: [(t: Double, pt: CGPoint)] = []
