@@ -337,7 +337,8 @@ struct AdvancedMetricsIntegrationTests {
 
     @Test("Basic tier profile does not include advanced metrics")
     func testBasicTierNoAdvancedMetrics() async throws {
-        let records = makeRecords(count: 14)
+        // Thresholds lowered 2026-04: basic now requires < 14 records.
+        let records = makeRecords(count: 7)
         let computer = SleepDNAComputer()
 
         let profile = try await computer.compute(
@@ -355,7 +356,8 @@ struct AdvancedMetricsIntegrationTests {
 
     @Test("Intermediate tier profile does not include advanced metrics")
     func testIntermediateTierNoAdvancedMetrics() async throws {
-        let records = makeRecords(count: 30)
+        // Intermediate now = 2-3 weeks (14-27 records).
+        let records = makeRecords(count: 21)
         let computer = SleepDNAComputer()
 
         let profile = try await computer.compute(

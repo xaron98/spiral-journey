@@ -283,9 +283,10 @@ struct PoissonComputerIntegrationTests {
         (0..<count).map { makeRecord(day: $0, awakePhaseCount: awakePerNight) }
     }
 
-    @Test("Intermediate tier (28 records) has poissonFragmentation")
+    @Test("Intermediate tier (21 records) has poissonFragmentation")
     func testIntermediateTierHasPoisson() async throws {
-        let records = makeRecords(count: 28)
+        // Intermediate now = 2-3 weeks (14-27 records).
+        let records = makeRecords(count: 21)
         let computer = SleepDNAComputer()
         let profile = try await computer.compute(
             records: records,
@@ -295,12 +296,13 @@ struct PoissonComputerIntegrationTests {
         )
         #expect(profile.tier == .intermediate)
         #expect(profile.poissonFragmentation != nil)
-        #expect(profile.poissonFragmentation!.nightlyRates.count == 28)
+        #expect(profile.poissonFragmentation!.nightlyRates.count == 21)
     }
 
-    @Test("Basic tier (14 records) has no poissonFragmentation")
+    @Test("Basic tier (7 records) has no poissonFragmentation")
     func testBasicTierNoPoisson() async throws {
-        let records = makeRecords(count: 14)
+        // Basic now requires < 14 records after the threshold change.
+        let records = makeRecords(count: 7)
         let computer = SleepDNAComputer()
         let profile = try await computer.compute(
             records: records,

@@ -364,7 +364,8 @@ struct HawkesComputerIntegrationTests {
 
     @Test("Intermediate tier does not have hawkesAnalysis")
     func testIntermediateTierNoHawkes() async throws {
-        let records = makeRecords(count: 28)
+        // Intermediate now = 2-3 weeks (14-27 records). 21 is squarely inside.
+        let records = makeRecords(count: 21)
         let events = (0..<10).map { i in
             makeEvent(type: .caffeine, absoluteHour: Double(i) * 24.0 + 14.0)
         }
