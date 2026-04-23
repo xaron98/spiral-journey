@@ -640,17 +640,18 @@
 				CODE_SIGN_ENTITLEMENTS = "Spiral Watch App Watch App/Spiral Watch App Watch App.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = R29D2W5992;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Spiral Watch App Watch App/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Spiral Watch App";
 				INFOPLIST_KEY_CFBundleName = "Spiral Watch App";
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "Spiral Journey uses your sleep data from Apple Health to visualize your circadian rhythm on the spiral.";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Spiral Journey does not write health data. This permission is required by the system but the app only reads your sleep information.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Spiral Journey reads your sleep data from Apple Health to analyze your circadian rhythm and show sleep statistics on your wrist. Your data stays on your device and is never shared.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Spiral Journey records your sleep preferences and circadian events to provide personalized tracking of your rest.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "xaron.spiral-journey-project";
+				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -680,17 +681,18 @@
 				CODE_SIGN_ENTITLEMENTS = "Spiral Watch App Watch App/Spiral Watch App Watch App.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = R29D2W5992;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Spiral Watch App Watch App/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Spiral Watch App";
 				INFOPLIST_KEY_CFBundleName = "Spiral Watch App";
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "Spiral Journey uses your sleep data from Apple Health to visualize your circadian rhythm on the spiral.";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Spiral Journey does not write health data. This permission is required by the system but the app only reads your sleep information.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Spiral Journey reads your sleep data from Apple Health to analyze your circadian rhythm and show sleep statistics on your wrist. Your data stays on your device and is never shared.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Spiral Journey records your sleep preferences and circadian events to provide personalized tracking of your rest.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "xaron.spiral-journey-project";
+				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -718,7 +720,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = R29D2W5992;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.1.1;
@@ -741,7 +743,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = R29D2W5992;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.1.1;
@@ -764,7 +766,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = R29D2W5992;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.1.1;
@@ -786,7 +788,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = R29D2W5992;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.1.1;
@@ -813,7 +815,7 @@
 				CODE_SIGN_ENTITLEMENTS = "spiral journey project/spiral journey project.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = R29D2W5992;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
@@ -874,7 +876,7 @@
 				CODE_SIGN_ENTITLEMENTS = "spiral journey project/spiral journey projectRelease.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = R29D2W5992;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
@@ -1046,7 +1048,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = R29D2W5992;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -1072,7 +1074,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = R29D2W5992;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -1097,7 +1099,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = R29D2W5992;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -1122,7 +1124,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = R29D2W5992;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -1149,7 +1151,7 @@
 				CODE_SIGN_ENTITLEMENTS = SpiralWidget/SpiralWidget.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = R29D2W5992;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SpiralWidget/Info.plist;
@@ -1181,7 +1183,7 @@
 				CODE_SIGN_ENTITLEMENTS = SpiralWidget/SpiralWidget.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = R29D2W5992;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SpiralWidget/Info.plist;
