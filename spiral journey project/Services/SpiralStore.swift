@@ -391,6 +391,63 @@ final class SpiralStore {
         // Collapse duplicate HK rows that accumulated before dedup-by-healthKitSampleID
         // was introduced. Idempotent and cheap after the first run.
         deduplicateSwiftDataEpisodes()
+        // Before versions that fixed removeEpisode(), deleting an entry only
+        // pulled it from in-memory sleepEpisodes — the SwiftData row stayed
+        // behind and recompute() kept reading it back, so deleted tramos
+        // resurrected on the spiral. Reconcile once on launch to evict any
+        // SwiftData rows that aren't in sleepEpisodes. Idempotent.
+        reconcileSwiftDataWithMemory()
+    }
+
+    /// Delete SDSleepEpisode rows that don't correspond to anything in
+    /// `sleepEpisodes` (the source of truth for user intent). Fixes ghost
+    /// entries from the pre-fix `removeEpisode` which only touched memory.
+    ///
+    /// Matching key per row type:
+    ///  - HK row  → `healthKitSampleID` (STABLE across fetches; UUID is
+    ///    regenerated on every HealthKit fetch so matching by UUID is wrong
+    ///    and would wipe legitimate HK data)
+    ///  - manual row → `episodeID` (stable — preserved for the life of the
+    ///    manual entry)
+    ///
+    /// Safety guard: if memory is empty but SwiftData has rows, bail out.
+    /// That pattern means load() hasn't populated memory yet (e.g. restore
+    /// is pending) — wiping SwiftData in that state would lose data.
+    private func reconcileSwiftDataWithMemory() {
+        guard let ctx = modelContext else { return }
+        let descriptor = FetchDescriptor<SDSleepEpisode>()
+        guard let sdEpisodes = try? ctx.fetch(descriptor), !sdEpisodes.isEmpty else { return }
+        if sleepEpisodes.isEmpty { return }
+        let memoryManualUUIDs = Set(
+            sleepEpisodes.filter { $0.source == .manual }.map(\.id)
+        )
+        let memoryHKIDs = Set(sleepEpisodes.compactMap(\.healthKitSampleID))
+        var removed = 0
+        for row in sdEpisodes {
+            if let hkID = row.healthKitSampleID {
+                // HK-sourced SwiftData row: stale if its sample ID is no
+                // longer represented in memory. Do NOT tombstone — the HK
+                // sample may still exist and deserve re-import; we just
+                // want to drop the stale row.
+                if !memoryHKIDs.contains(hkID) {
+                    ctx.delete(row)
+                    removed += 1
+                }
+            } else {
+                // Manual row: stable UUID matching.
+                if !memoryManualUUIDs.contains(row.episodeID) {
+                    ctx.delete(row)
+                    removed += 1
+                }
+            }
+        }
+        if removed > 0 {
+            try? ctx.save()
+            invalidateEpisodeCache()
+            #if DEBUG
+            print("[Store] reconcileSwiftDataWithMemory evicted \(removed) ghost rows")
+            #endif
+        }
     }
 
     /// Load episodes from SwiftData, returning nil if unavailable or empty
@@ -528,6 +585,20 @@ final class SpiralStore {
 
     private func isDeletedAutoEvent(_ event: CircadianEvent) -> Bool {
         deletedAutoEventKeys.contains(autoEventKey(event))
+    }
+
+    // MARK: - HealthKit Episode Deletion Tracking
+
+    private static let deletedEpisodeHKIDsKey = "spiral-journey-deleted-episode-hk-ids"
+
+    /// HealthKit sample IDs the user has explicitly deleted. HK sync skips these
+    /// on re-import so the episode doesn't keep coming back after deletion.
+    private(set) var deletedEpisodeHKIDs: Set<String> = [] {
+        didSet {
+            if let data = try? JSONEncoder().encode(Array(deletedEpisodeHKIDs)) {
+                sharedDefaults.set(data, forKey: Self.deletedEpisodeHKIDsKey)
+            }
+        }
     }
 
     private func isDuplicate(_ autoEvent: CircadianEvent) -> Bool {
@@ -727,11 +798,22 @@ final class SpiralStore {
     private var recomputeTask: Task<Void, Never>?
 
     /// Recompute SleepRecords and AnalysisResult from current episodes.
+    ///
+    /// Source of truth is `sleepEpisodes` (in-memory, mirrored to UserDefaults).
+    /// We only fall back to SwiftData when memory is empty — that covers the
+    /// first launch after migration, where memory might be populated lazily.
+    /// Reading SwiftData as the primary source previously resurrected ghost
+    /// rows whose deletions never propagated past the in-memory array.
     func recompute() {
         recomputeGeneration += 1
         let generation = recomputeGeneration
         recomputeTask?.cancel()
-        let eps = loadEpisodesFromSwiftData() ?? sleepEpisodes
+        let eps: [SleepEpisode]
+        if !sleepEpisodes.isEmpty {
+            eps = sleepEpisodes
+        } else {
+            eps = loadEpisodesFromSwiftData() ?? []
+        }
         guard !eps.isEmpty else {
             records = []
             analysis = AnalysisResult()
@@ -933,19 +1015,25 @@ final class SpiralStore {
 
         // Shift HK episodes if their epoch is later than newEpoch.
         // They were fetched relative to `epoch`; re-base to newEpoch.
+        // Also drop any HK episode the user has explicitly deleted so the
+        // next re-import doesn't resurrect it.
         let hkShiftHours = epoch.timeIntervalSince(newEpoch) / 3600.0
+        let filteredHK = episodes.filter { ep in
+            guard let hkID = ep.healthKitSampleID else { return true }
+            return !deletedEpisodeHKIDs.contains(hkID)
+        }
         let adjustedHK: [SleepEpisode]
         if hkShiftHours > 0.001 {
             #if DEBUG
-            print("[Store] shifting \(episodes.count) HK episodes by +\(String(format: "%.1f", hkShiftHours))h (HK epoch later than startDate)")
+            print("[Store] shifting \(filteredHK.count) HK episodes by +\(String(format: "%.1f", hkShiftHours))h (HK epoch later than startDate)")
             #endif
-            adjustedHK = episodes.map { ep in
+            adjustedHK = filteredHK.map { ep in
                 SleepEpisode(id: ep.id, start: ep.start + hkShiftHours,
                              end: ep.end + hkShiftHours, source: ep.source,
                              healthKitSampleID: ep.healthKitSampleID, phase: ep.phase)
             }
         } else {
-            adjustedHK = episodes
+            adjustedHK = filteredHK
         }
 
         let combined = (adjustedManual + adjustedHK).sorted { $0.start < $1.start }
@@ -987,6 +1075,8 @@ final class SpiralStore {
         let existingIDs = Set(sleepEpisodes.compactMap(\.healthKitSampleID))
         let toAdd = newEpisodes.filter { ep in
             guard let hkID = ep.healthKitSampleID else { return true }
+            // Respect user-deleted HK episodes: don't let HK re-import them.
+            if deletedEpisodeHKIDs.contains(hkID) { return false }
             return !existingIDs.contains(hkID)
         }
         if !toAdd.isEmpty {
@@ -1028,8 +1118,37 @@ final class SpiralStore {
         #endif
     }
 
+    /// Delete a sleep episode completely:
+    ///  - remove from in-memory `sleepEpisodes`
+    ///  - delete the backing SDSleepEpisode row so `recompute()` (which reads
+    ///    from SwiftData) doesn't bring it back
+    ///  - if the episode came from HealthKit, remember its sample ID so the
+    ///    next HK sync won't re-import it
+    ///  - push deletion to CloudKit
     func removeEpisode(id: UUID) {
+        let toDelete = sleepEpisodes.first(where: { $0.id == id })
         sleepEpisodes.removeAll { $0.id == id }
+
+        // Delete backing SwiftData row — otherwise loadEpisodesFromSwiftData()
+        // inside recompute() keeps reading the "deleted" entry back.
+        if let ctx = modelContext {
+            let epID = id
+            let descriptor = FetchDescriptor<SDSleepEpisode>(
+                predicate: #Predicate { $0.episodeID == epID }
+            )
+            if let matches = try? ctx.fetch(descriptor) {
+                for match in matches { ctx.delete(match) }
+                try? ctx.save()
+            }
+            invalidateEpisodeCache()
+        }
+
+        // Tombstone HK-sourced deletions so HKAnchoredObjectQuery re-imports
+        // don't resurrect them. Manual deletions don't need this.
+        if let hkID = toDelete?.healthKitSampleID {
+            deletedEpisodeHKIDs.insert(hkID)
+        }
+
         recompute()
         cloudSync?.enqueueEpisodeDelete(id: id)
     }
@@ -1179,6 +1298,10 @@ final class SpiralStore {
         UserDefaults.standard.removeObject(forKey: "spiral-journey-settings-modified-at")
         UserDefaults.standard.removeObject(forKey: storageKey)
         sharedDefaults.removeObject(forKey: storageKey)
+        sharedDefaults.removeObject(forKey: Self.deletedAutoEventsKey)
+        sharedDefaults.removeObject(forKey: Self.deletedEpisodeHKIDsKey)
+        deletedAutoEventKeys = []
+        deletedEpisodeHKIDs = []
         sleepEpisodes = []
         events = []
         startDate = Calendar.current.startOfDay(for: Date())
@@ -1463,6 +1586,31 @@ final class SpiralStore {
         if let data = sharedDefaults.data(forKey: Self.deletedAutoEventsKey),
            let keys = try? JSONDecoder().decode([String].self, from: data) {
             deletedAutoEventKeys = Set(keys)
+        }
+
+        // Restore deleted HK episode sample IDs
+        if let data = sharedDefaults.data(forKey: Self.deletedEpisodeHKIDsKey),
+           let ids = try? JSONDecoder().decode([String].self, from: data) {
+            deletedEpisodeHKIDs = Set(ids)
+        }
+
+        // One-time recovery: a shipped build (v1.1.1) had a buggy reconcile
+        // that matched SwiftData rows to memory by UUID. HealthKit regenerates
+        // UUIDs on every fetch while `healthKitSampleID` stays stable, so the
+        // buggy matcher tombstoned almost every HK sample ID as "deleted".
+        // The next sync then filtered them all out, emptying the spiral.
+        // This migration clears the tombstones once so HK re-imports normally.
+        // Any genuinely user-deleted HK episodes will just come back once —
+        // the user can delete them again via the fixed removeEpisode path.
+        let recoveryKey = "spiral-journey-hk-tombstone-recovery-v1"
+        if !UserDefaults.standard.bool(forKey: recoveryKey) {
+            if !deletedEpisodeHKIDs.isEmpty {
+                #if DEBUG
+                print("[Store] Recovery: clearing \(deletedEpisodeHKIDs.count) HK tombstones from buggy reconcile")
+                #endif
+                deletedEpisodeHKIDs = []
+            }
+            UserDefaults.standard.set(true, forKey: recoveryKey)
         }
     }
 

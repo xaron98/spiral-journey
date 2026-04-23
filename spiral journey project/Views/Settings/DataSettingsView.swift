@@ -121,7 +121,7 @@ struct DataSettingsView: View {
                     .buttonStyle(.plain)
                     .padding(.vertical, 12)
                     .padding(.horizontal, 16)
-                    .disabled(store.sleepEpisodes.allSatisfy { $0.source != .manual })
+                    .disabled(store.sleepEpisodes.isEmpty)
 
                     Divider().background(SpiralColors.border.opacity(0.5))
 
@@ -202,6 +202,14 @@ private struct ManualEpisodesSheet: View {
     @Environment(\.languageBundle) private var bundle
     @Environment(\.dismiss) private var dismiss
 
+    /// Show all episodes (manual + HealthKit) so user can target any stray
+    /// entry — including cases where a manual episode might have been saved
+    /// with an unexpected source tag.
+    @State private var showAllSources = false
+
+    /// Episode awaiting deletion confirmation. Nil when no dialog is open.
+    @State private var pendingDelete: SleepEpisode?
+
     /// Shared formatter — @ViewBuilder doesn't allow mutating statements
     /// after `let` declarations, so configuring the DateFormatter inline
     /// fails to compile. Build once as a static and reuse.
@@ -212,17 +220,40 @@ private struct ManualEpisodesSheet: View {
         return f
     }()
 
-    private var manualEpisodes: [SleepEpisode] {
-        store.sleepEpisodes
-            .filter { $0.source == .manual }
-            .sorted { $0.start > $1.start }
+    private var visibleEpisodes: [SleepEpisode] {
+        let all = store.sleepEpisodes.sorted { $0.start > $1.start }
+        return showAllSources ? all : all.filter { $0.source == .manual }
+    }
+
+    private var manualCount: Int {
+        store.sleepEpisodes.filter { $0.source == .manual }.count
     }
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 10) {
-                    if manualEpisodes.isEmpty {
+                VStack(spacing: 12) {
+                    // Stats header — lets user confirm the episode is
+                    // actually stored even if the manual filter misses it.
+                    HStack(spacing: 12) {
+                        Text("manual: \(manualCount) · total: \(store.sleepEpisodes.count)")
+                            .font(.caption.monospaced())
+                            .foregroundStyle(SpiralColors.muted)
+                        Spacer()
+                        Toggle(isOn: $showAllSources) {
+                            Text(String(localized: "settings.manual.showAll",
+                                        defaultValue: "Show all",
+                                        bundle: bundle))
+                                .font(.caption)
+                                .foregroundStyle(SpiralColors.muted)
+                        }
+                        .toggleStyle(.switch)
+                        .tint(SpiralColors.accent)
+                        .fixedSize()
+                    }
+                    .padding(.horizontal, 4)
+
+                    if visibleEpisodes.isEmpty {
                         VStack(spacing: 10) {
                             Image(systemName: "checkmark.circle")
                                 .font(.largeTitle)
@@ -236,7 +267,7 @@ private struct ManualEpisodesSheet: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 48)
                     } else {
-                        ForEach(manualEpisodes) { ep in
+                        ForEach(visibleEpisodes) { ep in
                             episodeRow(ep)
                         }
                     }
@@ -257,6 +288,38 @@ private struct ManualEpisodesSheet: View {
                     }
                 }
             }
+            .confirmationDialog(
+                String(localized: "settings.manual.deleteConfirm.title",
+                       defaultValue: "Delete this sleep entry?",
+                       bundle: bundle),
+                isPresented: Binding(
+                    get: { pendingDelete != nil },
+                    set: { if !$0 { pendingDelete = nil } }
+                ),
+                titleVisibility: .visible,
+                presenting: pendingDelete
+            ) { ep in
+                Button(
+                    String(localized: "settings.confirm.yes", bundle: bundle),
+                    role: .destructive
+                ) {
+                    store.removeEpisode(id: ep.id)
+                    pendingDelete = nil
+                }
+                Button(
+                    String(localized: "settings.confirm.cancel", bundle: bundle),
+                    role: .cancel
+                ) {
+                    pendingDelete = nil
+                }
+            } message: { ep in
+                let startHour = ep.start.truncatingRemainder(dividingBy: 24)
+                let endHour = ep.end.truncatingRemainder(dividingBy: 24)
+                let dayIndex = Int(ep.start / 24)
+                let date = Calendar.current.date(byAdding: .day, value: dayIndex, to: store.startDate) ?? store.startDate
+                let dateLabel = Self.rowDateFormatter.string(from: date).capitalized
+                Text("\(dateLabel) · \(SleepStatistics.formatHour(startHour < 0 ? startHour + 24 : startHour)) → \(SleepStatistics.formatHour(endHour < 0 ? endHour + 24 : endHour))")
+            }
         }
     }
 
@@ -267,12 +330,24 @@ private struct ManualEpisodesSheet: View {
         let dayIndex = Int(ep.start / 24)
         let date = Calendar.current.date(byAdding: .day, value: dayIndex, to: store.startDate) ?? store.startDate
         let dateLabel = Self.rowDateFormatter.string(from: date).capitalized
+        let isManual = ep.source == .manual
 
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 3) {
-                Text(dateLabel)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(SpiralColors.text)
+                HStack(spacing: 6) {
+                    Text(dateLabel)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(SpiralColors.text)
+                    Text(isManual ? "manual" : "health")
+                        .font(.caption2.weight(.semibold))
+                        .padding(.horizontal, 6).padding(.vertical, 2)
+                        .background(
+                            (isManual ? SpiralColors.accent : SpiralColors.muted)
+                                .opacity(0.18),
+                            in: Capsule()
+                        )
+                        .foregroundStyle(isManual ? SpiralColors.accent : SpiralColors.muted)
+                }
                 Text("\(SleepStatistics.formatHour(startHour < 0 ? startHour + 24 : startHour))  →  \(SleepStatistics.formatHour(endHour < 0 ? endHour + 24 : endHour))")
                     .font(.caption.monospaced())
                     .foregroundStyle(SpiralColors.muted)
@@ -282,7 +357,7 @@ private struct ManualEpisodesSheet: View {
             }
             Spacer()
             Button(role: .destructive) {
-                store.removeEpisode(id: ep.id)
+                pendingDelete = ep
             } label: {
                 Image(systemName: "trash")
                     .font(.body)

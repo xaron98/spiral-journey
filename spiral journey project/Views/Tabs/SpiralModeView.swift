@@ -1581,28 +1581,53 @@ struct SpiralModeView: View {
             return
         }
 
-        // 3. Sleep (search current day's record using absolute hours, not clock hours)
-        //    Uses cursorAbsHour directly to avoid day-boundary ambiguity.
+        // 3. Sleep — match by absolute timestamps, not clock hours.
+        //    Each PhaseInterval covers a 15-min bin starting at `timestamp`.
+        //    We search across all records' phases so sleep that crosses
+        //    midnight is handled correctly: the cursor's 03:00 bin lives
+        //    in day N+1's phases array even when the "night" record is N.
         let cursorAbs = cursorAbsHour
-        for candidateDay in [dayIndex, dayIndex - 1, dayIndex + 1] {
-            guard let record = store.records.first(where: { $0.day == candidateDay }) else { continue }
+        let binWidth = 0.25
 
-            // Convert record's bed/wake to absolute hours for unambiguous comparison
-            let bedAbs = Double(candidateDay) * period + record.bedtimeHour
-            let wakeAbs: Double = {
-                let w = Double(candidateDay) * period + record.wakeupHour
-                // If wake < bed (crosses midnight), wake is next day
-                return w <= bedAbs ? w + period : w
-            }()
+        // Find the (record, phase) pair whose bin contains the cursor.
+        var phaseAtCursor: PhaseInterval? = nil
+        var phaseOwnerRecord: SleepRecord? = nil
+        for record in store.records {
+            if let p = record.phases.first(where: { cursorAbs >= $0.timestamp && cursorAbs < $0.timestamp + binWidth }) {
+                phaseAtCursor = p
+                phaseOwnerRecord = record
+                break
+            }
+        }
 
-            // Cursor must be within this record's absolute time range
-            guard cursorAbs >= bedAbs && cursorAbs <= wakeAbs else { continue }
+        // Record whose bedtime/wake range contains the cursor (for
+        // bedtime/wakeup/duration metadata — preferred over phase-owner
+        // when sleep crosses midnight, because the "night" record has
+        // the correct metadata).
+        let coveringRecord: SleepRecord? = {
+            for candidateDay in [dayIndex, dayIndex - 1, dayIndex + 1] {
+                guard let record = store.records.first(where: { $0.day == candidateDay }) else { continue }
+                let bedAbs = Double(candidateDay) * period + record.bedtimeHour
+                let wakeAbs: Double = {
+                    let w = Double(candidateDay) * period + record.wakeupHour
+                    return w <= bedAbs ? w + period : w
+                }()
+                if cursorAbs >= bedAbs && cursorAbs <= wakeAbs { return record }
+            }
+            return nil
+        }()
 
-            // Find the actual phase at cursor time
-            let phaseAtHour = record.phases.last(where: { $0.hour <= clockHour })
+        let binIsSleep = phaseAtCursor.map { $0.phase != .awake } ?? false
 
-            // If phase is .awake (brief awakening within sleep), show it as awakening
-            if let phase = phaseAtHour, phase.phase == .awake {
+        // We show sleep info if:
+        //  - cursor is inside a sleep block (coveringRecord != nil), OR
+        //  - the 15-min bin at the cursor is a sleep stage (binIsSleep).
+        if coveringRecord != nil || binIsSleep {
+            let metadataRecord = coveringRecord ?? phaseOwnerRecord
+            guard let record = metadataRecord else { return }
+
+            if let phase = phaseAtCursor, phase.phase == .awake, coveringRecord != nil {
+                // Brief awakening inside a sleep block.
                 showElementInfo(SpiralElementInfo(
                     label: loc("spiral.info.awake.brief"),
                     timeRange: "\(formatClockHour(record.bedtimeHour)) – \(formatClockHour(record.wakeupHour))",
@@ -1610,9 +1635,8 @@ struct SpiralModeView: View {
                     color: SpiralColors.awakeSleep
                 ))
             } else {
-                // Real sleep phase
                 let phaseLabel: String
-                if let phase = phaseAtHour {
+                if let phase = phaseAtCursor {
                     switch phase.phase {
                     case .deep:  phaseLabel = loc("spiral.info.sleep.deep")
                     case .rem:   phaseLabel = loc("spiral.info.sleep.rem")
@@ -1626,7 +1650,7 @@ struct SpiralModeView: View {
                     label: phaseLabel,
                     timeRange: "\(formatClockHour(record.bedtimeHour)) – \(formatClockHour(record.wakeupHour))",
                     duration: formatDurationCompact(record.sleepDuration),
-                    color: Color(hex: phaseAtHour?.phase.hexColor ?? "a855f7")
+                    color: Color(hex: phaseAtCursor?.phase.hexColor ?? "a855f7")
                 ))
             }
             return
