@@ -104,24 +104,40 @@ final class WatchStore {
 
     init() {
         #if targetEnvironment(simulator)
-        // Simulator: load sample sleep episodes so the spiral renders with colors
-        if let bundleID = Bundle.main.bundleIdentifier {
-            UserDefaults.standard.removePersistentDomain(forName: bundleID)
+        // Mock data injection (14 sample nights) is opt-in via the
+        // `ENABLE_MOCK_DATA=1` environment variable on the Xcode scheme —
+        // same gate as the iPhone target. Default simulator flow is now
+        // identical to a real device: persistent UserDefaults + empty
+        // episodes on first launch. Flip the env variable ON only when
+        // you need pre-populated data for App Store screenshots.
+        let enableMockData = ProcessInfo.processInfo.environment["ENABLE_MOCK_DATA"] == "1"
+        if enableMockData {
+            if let bundleID = Bundle.main.bundleIdentifier {
+                UserDefaults.standard.removePersistentDomain(forName: bundleID)
+            }
+            UserDefaults.standard.synchronize()
+            let simStart = Calendar.current.date(byAdding: .day, value: -13, to: Calendar.current.startOfDay(for: Date())) ?? Date()
+            startDate = simStart
+            // 14 nights with slight natural variation in bedtime/wakeup
+            let bedtimes:  [Double] = [23.0, 23.5, 0.0, 23.0, 23.5, 1.0, 0.5,
+                                        22.5, 23.0, 23.5, 0.0, 23.0, 23.5, 0.0]
+            let durations: [Double] = [7.5,  8.0,  7.0,  7.5,  8.0,  6.5, 7.0,
+                                        8.5,  7.5,  8.0,  7.5,  7.0,  8.0, 7.5]
+            for i in 0..<14 {
+                let base = Double(i) * 24.0
+                let bed = base + bedtimes[i]
+                episodes.append(SleepEpisode(start: bed, end: bed + durations[i], source: .manual))
+            }
+            recompute()
+        } else {
+            let launchedKey = "watchstore-has-launched-v2"
+            if !UserDefaults.standard.bool(forKey: launchedKey) {
+                UserDefaults.standard.removeObject(forKey: defaultsKey)
+                UserDefaults.standard.set(true, forKey: launchedKey)
+            } else {
+                loadFromDefaults()
+            }
         }
-        UserDefaults.standard.synchronize()
-        let simStart = Calendar.current.date(byAdding: .day, value: -13, to: Calendar.current.startOfDay(for: Date())) ?? Date()
-        startDate = simStart
-        // 14 nights with slight natural variation in bedtime/wakeup
-        let bedtimes:  [Double] = [23.0, 23.5, 0.0, 23.0, 23.5, 1.0, 0.5,
-                                    22.5, 23.0, 23.5, 0.0, 23.0, 23.5, 0.0]
-        let durations: [Double] = [7.5,  8.0,  7.0,  7.5,  8.0,  6.5, 7.0,
-                                    8.5,  7.5,  8.0,  7.5,  7.0,  8.0, 7.5]
-        for i in 0..<14 {
-            let base = Double(i) * 24.0
-            let bed = base + bedtimes[i]
-            episodes.append(SleepEpisode(start: bed, end: bed + durations[i], source: .manual))
-        }
-        recompute()
         #else
         let launchedKey = "watchstore-has-launched-v2"
         if !UserDefaults.standard.bool(forKey: launchedKey) {
