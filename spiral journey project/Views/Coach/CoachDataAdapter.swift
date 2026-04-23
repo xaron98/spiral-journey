@@ -58,8 +58,21 @@ struct CoachDataAdapter {
     // MARK: - Inputs
 
     let store: SpiralStore
+    /// Localization bundle forwarded from the view environment. Defaults
+    /// to `.main` so existing unit tests and plain-SwiftUI call sites
+    /// keep working, but the Coach views pass `bundle` from
+    /// `@Environment(\.languageBundle)` so in-app language override
+    /// (which lives outside the system locale) resolves correctly.
+    let bundle: Bundle
 
-    init(store: SpiralStore) { self.store = store }
+    init(store: SpiralStore, bundle: Bundle = .main) {
+        self.store = store
+        self.bundle = bundle
+    }
+
+    private func loc(_ key: String) -> String {
+        NSLocalizedString(key, bundle: bundle, comment: "")
+    }
 
     // MARK: - Derived
 
@@ -72,10 +85,10 @@ struct CoachDataAdapter {
         let diffStr = String(format: "%+0.1fh", diff)
         return HeroData(
             score: score,
-            todayLabel: "ESTA NOCHE",
+            todayLabel: loc("coach.hero.tonight"),
             insightTitle: localizedInsightTitle(),
             last7Bars: normalizeBars(durations),
-            last7Subtitle: "7 NOCHES · \(diffStr) MEDIA",
+            last7Subtitle: String(format: loc("coach.hero.last7Subtitle"), diffStr),
             accent: CoachTokens.accent(forScore: score))
     }
 
@@ -85,10 +98,10 @@ struct CoachDataAdapter {
     /// hero bento shows the current locale's text instead of the raw
     /// English fallback the engine emits.
     private func localizedInsightTitle() -> String {
-        let fallback = "Tu ritmo pide constancia"
+        let fallback = loc("coach.hero.insight.fallback")
         guard let insight = store.analysis.coachInsight else { return fallback }
         let key = "coach.issue.\(insight.issueKey.rawValue).title"
-        let resolved = Bundle.main.localizedString(forKey: key, value: insight.title, table: nil)
+        let resolved = bundle.localizedString(forKey: key, value: insight.title, table: nil)
         // If the key is missing from the strings catalog, Foundation
         // echoes the key back unchanged — detect that and fall back to
         // the engine's English title so we never surface a raw key.
@@ -111,10 +124,14 @@ struct CoachDataAdapter {
             consistencyValue: "\(Int(sri))",
             consistencySub: "/100 · \(sriLabel(sri))",
             consistencyBars: sriDaily,
-            patternsValue: patterns > 0 ? "\(patterns) patrones" : "estable",
-            patternsSub: patterns > 0 ? "esta semana" : "sin cambios",
+            patternsValue: patterns > 0
+                ? String(format: loc("coach.bento.patterns.count"), patterns)
+                : loc("coach.bento.patterns.stable"),
+            patternsSub: patterns > 0
+                ? loc("coach.bento.patterns.thisWeek")
+                : loc("coach.bento.patterns.noChanges"),
             habitValue: "\(streak)",
-            habitSub: "días seguidos",
+            habitSub: loc("coach.bento.habit.streak"),
             habitStripes: habitStripes)
     }
 
@@ -125,10 +142,12 @@ struct CoachDataAdapter {
         let mid = (start + end) / 2.0
         let hh = Int(mid) % 24
         let mm = Int((mid - Double(Int(mid))) * 60)
+        let midStr = String(format: "%02d:%02d", hh, mm)
         return ProposalData(
-            title: "Esta noche, antes de la \(String(format: "%02d:%02d", hh, mm)).",
+            title: String(format: loc("coach.proposal.title"), midStr),
             window: "\(formatHour(start)) – \(formatHour(end))",
-            chronotypeSub: "Cronotipo: \(chronotypeLabelEs(chrono))",
+            chronotypeSub: String(format: loc("coach.proposal.chronotypeSub"),
+                                  chronotypeLocalizedLabel(chrono)),
             dialStart: start, dialEnd: end)
     }
 
@@ -140,11 +159,12 @@ struct CoachDataAdapter {
         let deltaPrev = firstThree.isEmpty ? 0 : firstThree.reduce(0, +) / Double(firstThree.count)
         let diffMin = Int((deltaThis - deltaPrev) * 60)
         let absMin = abs(diffMin)
-        let label = diffMin < 0
-            ? "\(absMin / 60)h \(absMin % 60)m más tarde"
-            : "\(diffMin / 60)h \(diffMin % 60)m antes"
+        let labelFormat = diffMin < 0
+            ? loc("coach.change.label.later")
+            : loc("coach.change.label.earlier")
+        let label = String(format: labelFormat, absMin / 60, absMin % 60)
         return ChangeData(
-            headline: "Te acuestas \(label) que la semana pasada.",
+            headline: String(format: loc("coach.change.headline"), label),
             highlightedFragment: label,
             sparkValues: normalizeBars(durations).map { 1 - $0 },
             rangeLabel: "00:00 → 03:00")
@@ -152,8 +172,8 @@ struct CoachDataAdapter {
 
     var learn: LearnData {
         LearnData(
-            title: "Jet lag social: por qué el domingo te pasa factura el martes",
-            subtitle: "Lectura breve")
+            title: loc("coach.learn.title"),
+            subtitle: loc("coach.learn.subtitle"))
     }
 
     // MARK: - Helpers
@@ -207,21 +227,23 @@ struct CoachDataAdapter {
 
     private func durationSubtitle(durations: [Double]) -> String {
         guard let last = durations.last, durations.count >= 2 else {
-            return "anoche"
+            return loc("coach.bento.duration.lastNight")
         }
         let mean = durations.dropLast().reduce(0, +) / Double(durations.count - 1)
         let diff = last - mean
-        return String(format: "anoche · %+0.1fh", diff)
+        return String(format: loc("coach.bento.duration.lastNightDelta"), diff)
     }
 
     // internal for testing
     func sriLabel(_ sri: Double) -> String {
+        let key: String
         switch sri {
-        case ...40: return "irregular"
-        case 41...60: return "variable"
-        case 61...80: return "consistente"
-        default: return "sólido"
+        case ...40:   key = "coach.sri.label.irregular"
+        case 41...60: key = "coach.sri.label.variable"
+        case 61...80: key = "coach.sri.label.consistent"
+        default:      key = "coach.sri.label.solid"
         }
+        return loc(key)
     }
 
     // internal for testing
@@ -234,6 +256,9 @@ struct CoachDataAdapter {
 
     // internal for testing
     func chronotypeLabelEs(_ c: Chronotype) -> String {
+        // Preserved for test compatibility — production code now routes
+        // through `chronotypeLocalizedLabel` so the label follows the
+        // user's language selection, not a hard-coded Spanish literal.
         switch c {
         case .definiteMorning:  return "matutino definido"
         case .moderateMorning:  return "matutino moderado"
@@ -241,5 +266,13 @@ struct CoachDataAdapter {
         case .moderateEvening:  return "nocturno moderado"
         case .definiteEvening:  return "nocturno definido"
         }
+    }
+
+    /// Localized chronotype label using the existing `chronotype.result.*`
+    /// keys from the app xcstrings (same keys the questionnaire result
+    /// screen and settings row already use).
+    private func chronotypeLocalizedLabel(_ c: Chronotype) -> String {
+        let key = "chronotype.result.\(c.rawValue)"
+        return bundle.localizedString(forKey: key, value: c.label, table: nil)
     }
 }

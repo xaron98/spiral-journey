@@ -15,7 +15,7 @@ struct CoachHomeView: View {
     @State private var showPlan = false
     @State private var showLearn = false
 
-    private var adapter: CoachDataAdapter { CoachDataAdapter(store: store) }
+    private var adapter: CoachDataAdapter { CoachDataAdapter(store: store, bundle: bundle) }
 
     var body: some View {
         NavigationStack {

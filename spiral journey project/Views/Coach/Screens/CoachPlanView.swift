@@ -17,7 +17,7 @@ struct CoachPlanView: View {
         case denied, failed, unsupported
     }
 
-    private var adapter: CoachDataAdapter { CoachDataAdapter(store: store) }
+    private var adapter: CoachDataAdapter { CoachDataAdapter(store: store, bundle: bundle) }
 
     var body: some View {
         ZStack(alignment: .bottom) {
