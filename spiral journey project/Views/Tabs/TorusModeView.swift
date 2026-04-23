@@ -12,6 +12,7 @@ import SpiralKit
 struct TorusModeView: View {
     @Environment(SpiralStore.self) private var store
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.languageBundle) private var bundle
 
     /// True when this mode is the one the user is currently looking at in
     /// the pager. When false, the scene is paused to avoid running a
@@ -87,6 +88,30 @@ struct TorusModeView: View {
                         .background(.ultraThinMaterial, in: Capsule())
                         .opacity(labelOpacity)
                         .padding(.bottom, 130) // above action bar
+                }
+            }
+
+            // Sample-data hint — the scene loads `TorusSceneiPhone.mockNight()`
+            // when there are no real records yet (otherwise a brand-new user
+            // would see a static empty torus and miss the feature entirely).
+            // Without this badge, the animated demo could be mistaken for
+            // the user's actual sleep trajectory.
+            if store.records.first(where: { $0.sleepDuration >= 3.0 }) == nil {
+                VStack {
+                    HStack {
+                        Spacer()
+                        Text(String(localized: "torus.demo.badge",
+                                    defaultValue: "Sample night — log sleep to see yours",
+                                    bundle: bundle))
+                            .font(.caption2.weight(.medium))
+                            .foregroundStyle(SpiralColors.muted)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(.ultraThinMaterial, in: Capsule())
+                            .padding(.top, 12)
+                        Spacer()
+                    }
+                    Spacer()
                 }
             }
 

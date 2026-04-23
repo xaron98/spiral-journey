@@ -21,16 +21,35 @@ struct NightByNightCard: View {
                 .tracking(1.2)
                 .foregroundStyle(SpiralColors.subtle)
 
-            VStack(spacing: 0) {
-                ForEach(Array(displayRecords.enumerated()), id: \.offset) { idx, entry in
-                    row(entry)
-                    if idx < displayRecords.count - 1 {
-                        Divider().background(SpiralColors.border)
+            if displayRecords.isEmpty {
+                // Nothing to plot — show a lightweight placeholder instead of
+                // an empty card with just a title + axis. Cards that title
+                // "night by night" but show zero nights read as a broken UI.
+                HStack(spacing: 10) {
+                    Image(systemName: "calendar.badge.clock")
+                        .font(.headline)
+                        .foregroundStyle(SpiralColors.muted)
+                    Text(String(localized: "analysis.nightByNight.empty",
+                                defaultValue: "No nights logged yet.",
+                                bundle: bundle))
+                        .font(.footnote)
+                        .foregroundStyle(SpiralColors.muted)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.vertical, 16)
+            } else {
+                VStack(spacing: 0) {
+                    ForEach(Array(displayRecords.enumerated()), id: \.offset) { idx, entry in
+                        row(entry)
+                        if idx < displayRecords.count - 1 {
+                            Divider().background(SpiralColors.border)
+                        }
                     }
                 }
-            }
 
-            axisLegend
+                axisLegend
+            }
         }
         .padding(14)
         .background(SpiralColors.surface)
