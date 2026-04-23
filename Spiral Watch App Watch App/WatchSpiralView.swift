@@ -92,6 +92,13 @@ struct WatchSpiralView: View {
                     }
                 }
                 .buttonStyle(.plain)
+                // Explicitly drop focus from the button so the digital
+                // crown stays attached to the parent container. watchOS
+                // auto-focuses the first interactive Button on each page,
+                // which was silently stealing crown events away from the
+                // parent's digitalCrownRotation binding — result: crown
+                // looked dead in both data and empty states.
+                .focusable(false)
                 .padding(.top, 42).padding(.trailing, 8)
 
                 if flashConfirm {
@@ -109,22 +116,22 @@ struct WatchSpiralView: View {
                 }
 
                 // Time label — bottom-left, just inside safe area.
-                // Hidden in the empty state because the cursor isn't
-                // attached to anything meaningful without data.
-                if !showEmptyState {
-                    VStack(spacing: 0) {
+                // Shown in every state (including empty) so the user
+                // always has visible feedback that the digital crown is
+                // actually advancing the cursor even when there's no
+                // spiral yet to draw it on.
+                VStack(spacing: 0) {
+                    Spacer()
+                    HStack(spacing: 0) {
+                        let hh = Int(cursorAbsHour) % 24
+                        let mm = Int((cursorAbsHour - Double(Int(cursorAbsHour))) * 60)
+                        Text(String(format: "%02d:%02d", hh, mm))
+                            .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                            .foregroundStyle(markingState == .sleeping ? SpiralColors.sleep : SpiralColors.accent)
+                            .allowsHitTesting(false)
+                            .padding(.leading, 26)
+                            .padding(.bottom, 6)
                         Spacer()
-                        HStack(spacing: 0) {
-                            let hh = Int(cursorAbsHour) % 24
-                            let mm = Int((cursorAbsHour - Double(Int(cursorAbsHour))) * 60)
-                            Text(String(format: "%02d:%02d", hh, mm))
-                                .font(.system(size: 10, weight: .semibold, design: .monospaced))
-                                .foregroundStyle(markingState == .sleeping ? SpiralColors.sleep : SpiralColors.accent)
-                                .allowsHitTesting(false)
-                                .padding(.leading, 26)
-                                .padding(.bottom, 6)
-                            Spacer()
-                        }
                     }
                 }
             }

@@ -23,6 +23,11 @@ struct SleepTorusView: View {
     @State private var labelText = ""
     @State private var labelOpacity: Double = 0
     @State private var lastDragLocation: CGPoint?
+    /// Without an explicit FocusState binding, watchOS does NOT always
+    /// promote the view to focused on appear — crown events silently
+    /// go nowhere. Set this to true on appear and bind `.focused(_:)`
+    /// to the same ZStack that carries `.digitalCrownRotation`.
+    @FocusState private var crownFocused: Bool
 
     var body: some View {
         ZStack {
@@ -49,6 +54,7 @@ struct SleepTorusView: View {
             }
         }
         .focusable(true)
+        .focused($crownFocused)
         .digitalCrownRotation($crownValue, from: 0, through: 1000, sensitivity: .high, isContinuous: true)
         .onChange(of: crownValue) { _, newValue in
             // Compute delta, handling wrap-around at 1000 boundary
@@ -103,6 +109,14 @@ struct SleepTorusView: View {
             loadRealData()
             // Start animation only when this tab is visible
             scene.startAnimation()
+            // Claim focus so the digital crown binding above actually
+            // receives rotation events on this tab.
+            crownFocused = true
+        }
+        .onAppear {
+            // TabView(.page) re-shows this view on swipe without firing
+            // `.task` again — re-assert focus here too.
+            crownFocused = true
         }
         .onDisappear {
             // Stop everything when user swipes to another tab — save battery
@@ -137,7 +151,14 @@ struct SleepTorusView: View {
         } else {
             scene.startAnimation()
             withAnimation(.easeOut(duration: 0.3)) { labelOpacity = 0 }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { showLabel = false }
+            // `Task.sleep` keeps us on the View's @MainActor context —
+            // `DispatchQueue.main.asyncAfter` works but mixes two
+            // scheduling systems and produces warnings under Swift 6
+            // strict concurrency.
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(0.3))
+                showLabel = false
+            }
         }
     }
 

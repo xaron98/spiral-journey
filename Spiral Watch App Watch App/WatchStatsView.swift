@@ -130,7 +130,11 @@ struct WatchStatsView: View {
                 Text(String(localized: "watch.stats.consistency", bundle: bundle))
                     .font(.system(size: 8, design: .monospaced))
                     .foregroundStyle(SpiralColors.muted(app))
-                Text(cons.label.displayText)
+                // `displayText` is an English-only fallback baked into
+                // ConsistencyLabel. Route through `localizationKey` so the
+                // label renders as "Muy estable" / "Très stable" / etc.
+                Text(String(localized: String.LocalizationValue(cons.label.localizationKey),
+                            bundle: bundle))
                     .font(.system(size: 9, weight: .semibold))
                     .foregroundStyle(Color(hex: cons.label.hexColor))
             }
