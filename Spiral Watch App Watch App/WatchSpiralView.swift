@@ -39,24 +39,41 @@ struct WatchSpiralView: View {
 
     enum MarkingState { case idle, sleeping }
 
+    /// True when the watch has no usable sleep history yet AND the user
+    /// isn't mid-marking a sleep session. In this state we hide the
+    /// backbone spiral entirely — drawing the dense dot ring behind the
+    /// empty-state text made the text unreadable and was flagged by
+    /// App Review (Guideline 4 — Design) as a crowded layout.
+    private var showEmptyState: Bool {
+        store.isEmpty && markingState == .idle
+    }
+
     var body: some View {
         GeometryReader { geo in
             ZStack(alignment: .topTrailing) {
                 Color(hex: "0c0e14").ignoresSafeArea().frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                WatchSpiralCanvas(
-                    records: store.recentRecords,
-                    events: store.events,
-                    cursorAbsHour: cursorAbsHour,
-                    sleepStartHour: sleepStartHour,
-                    markingColor: markingState == .sleeping ? SpiralColors.sleep : SpiralColors.accent,
-                    spiralExtentTurns: maxReachedTurns,
-                    visibleDays: visibleDays,
-                    period: store.period
-                )
-                .frame(width: geo.size.width, height: geo.size.height)
-                .ignoresSafeArea()
-                .allowsHitTesting(false)
+                if showEmptyState {
+                    // Minimal layout — no spiral, no cursor, no time labels.
+                    // Just a centered badge + two lines of copy, framed so the
+                    // watchOS system clock (top-left) and the mark button
+                    // (top-right) stay unambiguous.
+                    emptyStateContent
+                } else {
+                    WatchSpiralCanvas(
+                        records: store.recentRecords,
+                        events: store.events,
+                        cursorAbsHour: cursorAbsHour,
+                        sleepStartHour: sleepStartHour,
+                        markingColor: markingState == .sleeping ? SpiralColors.sleep : SpiralColors.accent,
+                        spiralExtentTurns: maxReachedTurns,
+                        visibleDays: visibleDays,
+                        period: store.period
+                    )
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .ignoresSafeArea()
+                    .allowsHitTesting(false)
+                }
 
                 // Mark button — below the system clock (top right)
                 // .top 42 leaves room for the watchOS time display (~38pt tall)
@@ -91,41 +108,23 @@ struct WatchSpiralView: View {
                     .transition(.opacity)
                 }
 
-                // Empty-state overlay — guides the user when no data exists
-                if store.isEmpty && markingState == .idle {
-                    VStack(spacing: 8) {
+                // Time label — bottom-left, just inside safe area.
+                // Hidden in the empty state because the cursor isn't
+                // attached to anything meaningful without data.
+                if !showEmptyState {
+                    VStack(spacing: 0) {
                         Spacer()
-                        Image(systemName: "moon.stars")
-                            .font(.system(size: 24))
-                            .foregroundStyle(SpiralColors.accent.opacity(0.7))
-                        Text(String(localized: "watch.spiral.emptyTitle", bundle: bundle))
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(SpiralColors.text)
-                            .multilineTextAlignment(.center)
-                        Text(String(localized: "watch.spiral.emptyHint", bundle: bundle))
-                            .font(.system(size: 9))
-                            .foregroundStyle(SpiralColors.muted)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 16)
-                        Spacer()
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .allowsHitTesting(false)
-                }
-
-                // Time label — bottom-left, just inside safe area
-                VStack(spacing: 0) {
-                    Spacer()
-                    HStack(spacing: 0) {
-                        let hh = Int(cursorAbsHour) % 24
-                        let mm = Int((cursorAbsHour - Double(Int(cursorAbsHour))) * 60)
-                        Text(String(format: "%02d:%02d", hh, mm))
-                            .font(.system(size: 10, weight: .semibold, design: .monospaced))
-                            .foregroundStyle(markingState == .sleeping ? SpiralColors.sleep : SpiralColors.accent)
-                            .allowsHitTesting(false)
-                            .padding(.leading, 26)
-                            .padding(.bottom, 6)
-                        Spacer()
+                        HStack(spacing: 0) {
+                            let hh = Int(cursorAbsHour) % 24
+                            let mm = Int((cursorAbsHour - Double(Int(cursorAbsHour))) * 60)
+                            Text(String(format: "%02d:%02d", hh, mm))
+                                .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                                .foregroundStyle(markingState == .sleeping ? SpiralColors.sleep : SpiralColors.accent)
+                                .allowsHitTesting(false)
+                                .padding(.leading, 26)
+                                .padding(.bottom, 6)
+                            Spacer()
+                        }
                     }
                 }
             }
@@ -154,6 +153,34 @@ struct WatchSpiralView: View {
             // (e.g. iPhone sends records with same count but more recent days).
             handleRecordsChange()
         }
+    }
+
+    // MARK: - Empty State
+
+    /// Centered "no data yet" screen. Replaces the spiral canvas entirely
+    /// when `store.isEmpty` — the prior overlay-on-spiral layout had the
+    /// text rendered behind the dense backbone dots, which App Review
+    /// flagged as a crowded layout (Guideline 4 — Design).
+    @ViewBuilder
+    private var emptyStateContent: some View {
+        VStack(spacing: 10) {
+            Image(systemName: "moon.stars")
+                .font(.system(size: 32))
+                .foregroundStyle(SpiralColors.accent.opacity(0.8))
+            Text(String(localized: "watch.spiral.emptyTitle", bundle: bundle))
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(SpiralColors.text)
+                .multilineTextAlignment(.center)
+            Text(String(localized: "watch.spiral.emptyHint", bundle: bundle))
+                .font(.system(size: 10))
+                .foregroundStyle(SpiralColors.muted)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 20)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.horizontal, 8)
+        .allowsHitTesting(false)
     }
 
     // MARK: - Crown
