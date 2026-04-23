@@ -138,9 +138,29 @@ struct DNAModeView: View {
         // snapshot was cached by the previous app launch. Trigger a refresh
         // whenever the DNA tab becomes active — the service's schemaVersion
         // check short-circuits when nothing needs recomputing.
+        //
+        // Also kick the NeuroSpiral → Watch sync here. The heavy detail
+        // view (NeuroSpiralView) is only reachable from a sub-sheet, so
+        // without this call the Apple Watch companion card would keep
+        // reading a nil summary and render "no data" indefinitely.
         .task(id: isActive) {
             guard isActive else { return }
             await dnaService.refreshIfNeeded(store: store, context: modelContext)
+            let records = store.records
+            let hrvData = store.hrvData
+            Task.detached {
+                guard NeuroSpiralAnalyzer.syncWatchSummary(
+                    records: records, hrvData: hrvData
+                ) != nil else { return }
+                // Analyzer wrote the App Group payload — push it to the
+                // Watch right away so the NeuroSpiral card refreshes
+                // without waiting for the next full sendAnalysis trigger.
+                await MainActor.run {
+                    #if os(iOS)
+                    WatchConnectivityManager.shared.pushNeuroSpiralUpdate()
+                    #endif
+                }
+            }
         }
     }
 

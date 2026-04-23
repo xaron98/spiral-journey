@@ -188,6 +188,31 @@ final class WatchConnectivityManager: NSObject, WCSessionDelegate {
         try? WCSession.default.updateApplicationContext(context)
     }
 
+    /// Merge the App Group's `neurospiral-last-night` payload into the
+    /// Watch's applicationContext so the NeuroSpiral card refreshes
+    /// without waiting for the next full `sendAnalysis` trigger.
+    ///
+    /// Called from the iPhone whenever `NeuroSpiralAnalyzer.syncWatchSummary`
+    /// finishes — the analyzer writes to App Group, this method picks it
+    /// up and pushes to the Watch immediately.
+    func pushNeuroSpiralUpdate() {
+        guard WCSession.default.activationState == .activated,
+              WCSession.default.isWatchAppInstalled else { return }
+        guard let nsData = UserDefaults(suiteName: "group.xaron.spiral-journey-project")?
+                .dictionary(forKey: "neurospiral-last-night") else { return }
+
+        var context = WCSession.default.applicationContext
+        context["neuroSpiralData"] = [
+            "stability":    nsData["neurospiral_stability"] ?? 0,
+            "dominantIdx":  nsData["neurospiral_dominant_idx"] ?? 0,
+            "dominantCode": nsData["neurospiral_dominant_code"] ?? "",
+            "winding":      nsData["neurospiral_winding"] ?? -1.0,
+            "transitions":  nsData["neurospiral_transitions"] ?? 0,
+            "date":         nsData["neurospiral_date"] ?? 0,
+        ]
+        try? WCSession.default.updateApplicationContext(context)
+    }
+
     // MARK: - WCSessionDelegate
 
     nonisolated func session(_ session: WCSession,
